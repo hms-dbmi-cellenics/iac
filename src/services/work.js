@@ -30,6 +30,10 @@ class WorkService {
     return `queue-job-${this.getWorkerHash()}.fifo`;
   }
 
+  /**
+   * Creates or locates an SQS queue for the appropriate
+   * worker.
+   */
   async createQueue() {
     const workQueueName = this.getWorkQueueName();
 
@@ -46,6 +50,11 @@ class WorkService {
     return queueUrl;
   }
 
+  /**
+   * Creates an authentication string that can be fed into a
+   * Kubernetes secret. This is used so that the Job created
+   * can pull the image from the Biomage internal container registry.
+   */
   static createDockerRegistryAuth() {
     let dockerConfig = {
       auths: {
@@ -61,6 +70,11 @@ class WorkService {
     return dockerConfig;
   }
 
+  /**
+   * Returns a `Promise` to send an appropriately
+   * formatted task to the Job via an SQS queue.
+   * @param {string} queueUrl adsas
+   */
   sendMessageToQueue(queueUrl) {
     return this.sqs.sendMessage({
       MessageBody: JSON.stringify(this.workToSubmit),
@@ -69,6 +83,10 @@ class WorkService {
     }).promise();
   }
 
+  /**
+   * Returns a `Promise` to create a Kubernetes `Secret` for
+   * pulling images from the internal GitLab container registry.
+   */
   createDockerDeploymentSecret() {
     const workerHash = this.getWorkerHash();
 
@@ -89,6 +107,9 @@ class WorkService {
     });
   }
 
+  /**
+   * Launches a Kubernetes `Job` with the appropriate configuration.
+   */
   createJob() {
     const workerHash = this.getWorkerHash();
     const workQueueName = this.getWorkQueueName();
