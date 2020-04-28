@@ -187,8 +187,7 @@ class WorkService {
 
     this.sendMessageToQueue(queueUrl)
       .then(() => this.createDockerDeploymentSecret())
-      .then(() => this.createJob())
-      .then(() => { console.log('everything launched'); return null; });
+      .then(() => this.createJob());
   }
 }
 
