@@ -1,10 +1,9 @@
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
+const { OpenApiValidator } = require('express-openapi-validator');
 
-const routes = require('../api/routes');
-const config = require('../config');
-
-module.exports = (app) => {
+module.exports = async (app) => {
   app.get('/status', (req, res) => {
     res.status(200).end();
   });
@@ -17,25 +16,24 @@ module.exports = (app) => {
   app.use(cors());
 
   // Middleware that transforms the raw string of req.body into json
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.text());
   app.use(bodyParser.json());
 
-  // Load API routes
-  app.use(config.api.prefix, routes());
+  await new OpenApiValidator({
+    apiSpec: path.join(__dirname, '..', 'specs', 'api.yaml'),
+    validateRequests: true,
+    validateResponses: true,
+    operationHandlers: path.join(__dirname, '..', 'api'),
+  }).install(app);
 
-  // catch 404 and forward to error handler
-  app.use((req, res, next) => {
-    const err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-  });
-
-  // error handlers
-  app.use((err, req, res) => {
-    res.status(err.status || 500);
-    res.json({
-      errors: {
-        message: err.message,
-      },
+  // Custom error handler.
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, next) => {
+    // format errors
+    res.status(err.status || 500).json({
+      message: err.message,
+      errors: err.errors,
     });
   });
 };

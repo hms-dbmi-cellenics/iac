@@ -18,14 +18,15 @@
   },
   "homepage": "https://gitlab.com/biomage/api#readme",
   "dependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
     "@kubernetes/client-node": "^0.11.2",
     "aws-sdk": "^2.663.0",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-openapi-validator": "^3.12.7",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
