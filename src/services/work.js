@@ -51,26 +51,6 @@ class WorkService {
   }
 
   /**
-   * Creates an authentication string that can be fed into a
-   * Kubernetes secret. This is used so that the Job created
-   * can pull the image from the Biomage internal container registry.
-   */
-  static createDockerRegistryAuth() {
-    let dockerConfig = {
-      auths: {
-        'registry.gitlab.com': {
-          username: `${process.env.WORKER_DEPLOY_USER}`,
-          password: `${process.env.WORKER_DEPLOY_PASSWORD}`,
-        },
-      },
-    };
-
-    dockerConfig = Buffer.from(JSON.stringify(dockerConfig)).toString('base64');
-
-    return dockerConfig;
-  }
-
-  /**
    * Returns a `Promise` to send an appropriately
    * formatted task to the Job via an SQS queue.
    * @param {string} queueUrl adsas
@@ -84,37 +64,16 @@ class WorkService {
   }
 
   /**
-   * Returns a `Promise` to create a Kubernetes `Secret` for
-   * pulling images from the internal GitLab container registry.
-   */
-  createDockerDeploymentSecret() {
-    const workerHash = this.getWorkerHash();
-
-    return this.k8sCoreApi.createNamespacedSecret('default', {
-      apiVersion: 'v1',
-      kind: 'Secret',
-      metadata: {
-        name: `job-${workerHash}-docker-secret`,
-        labels: {
-          job: workerHash,
-          experiment: this.workToSubmit.experiment,
-        },
-      },
-      type: 'kubernetes.io/dockerconfigjson',
-      data: {
-        '.dockerconfigjson': WorkService.createDockerRegistryAuth(),
-      },
-    });
-  }
-
-  /**
-   * Launches a Kubernetes `Job` with the appropriate configuration.
-   */
-  createJob() {
+    * Launches a Kubernetes `Job` with the appropriate configuration.
+    */
+  createWorker() {
     const workerHash = this.getWorkerHash();
     const workQueueName = this.getWorkQueueName();
 
-    this.k8sBatchApi.createNamespacedJob('default', {
+    const namespaceName = 'worker-18327207-staging';
+
+
+    return this.k8sBatchApi.createNamespacedJob(namespaceName, {
       apiVersion: 'batch/v1',
       kind: 'Job',
       metadata: {
@@ -161,7 +120,7 @@ class WorkService {
             restartPolicy: 'OnFailure',
             imagePullSecrets: [
               {
-                name: `job-${workerHash}-docker-secret`,
+                name: 'worker-image-pull-secrets',
               },
             ],
           },
@@ -183,11 +142,15 @@ class WorkService {
       },
     };
 
-    const queueUrl = await this.createQueue();
+    await this.createQueue().then(
+      (queueUrl) => this.sendMessageToQueue(queueUrl),
+    );
 
-    this.sendMessageToQueue(queueUrl)
-      .then(() => this.createDockerDeploymentSecret())
-      .then(() => this.createJob());
+    this.createWorker().catch((e) => {
+      if (e.statusCode !== 409) {
+        throw new Error(e);
+      }
+    });
   }
 }
 

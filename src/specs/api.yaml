@@ -37,6 +37,28 @@ paths:
                       - test
                       - staging
                       - production
+  /work:
+    post:
+      operationId: submitWork
+      x-eov-operation-id: work#submit
+      x-eov-operation-handler: routes/experiment
+      requestBody:
+        description: work to submit
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_path:
+                  type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema: {} 
+
   '/experiments/{experimentId}':
     get:
       tags:

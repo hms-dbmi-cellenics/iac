@@ -1,4 +1,5 @@
 const ExperimentService = require('../../services/experiment');
+const WorkService = require('../../services/work');
 
 const experimentService = new ExperimentService();
 
@@ -14,5 +15,11 @@ module.exports = {
   'experiment#generateMock': async (req, res) => {
     await experimentService.generateMockData();
     res.json({ wow: 'hi from experiment' });
+  },
+  'work#submit': (req, res) => {
+    const workService = new WorkService(req.body);
+    workService.submitWork();
+
+    res.json({ wow: 'hi from work' });
   },
 };
