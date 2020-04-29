@@ -104,15 +104,35 @@ class WorkService {
                   },
                   {
                     name: 'AWS_ACCESS_KEY_ID',
-                    value: process.env.WORKER_AWS_ACCESS_KEY_ID,
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: 'staging-secret',
+                        key: 'AWS_ACCESS_KEY_ID',
+                      },
+                    },
                   },
                   {
                     name: 'AWS_SECRET_ACCESS_KEY',
-                    value: process.env.WORKER_AWS_SECRET_ACCESS_KEY,
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: 'staging-secret',
+                        key: 'AWS_SECRET_ACCESS_KEY',
+                      },
+                    },
                   },
                   {
                     name: 'AWS_DEFAULT_REGION',
-                    value: 'eu-west-2',
+                    valueFrom: {
+                      secretKeyRef: {
+                        name: 'staging-secret',
+                        key: 'AWS_DEFAULT_REGION',
+                      },
+                    },
+
+                  },
+                  {
+                    name: 'WORK_TIMEOUT',
+                    value: '10',
                   },
                 ],
               },
