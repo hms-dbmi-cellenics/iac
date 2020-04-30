@@ -27,7 +27,7 @@ class WorkService {
   }
 
   getWorkQueueName() {
-    return `queue-job-${this.getWorkerHash()}.fifo`;
+    return `queue-job-${this.getWorkerHash()}-${process.env.GITLAB_ENVIRONMENT_NAME}.fifo`;
   }
 
   /**
@@ -70,7 +70,8 @@ class WorkService {
     const workerHash = this.getWorkerHash();
     const workQueueName = this.getWorkQueueName();
 
-    const namespaceName = 'worker-18327207-staging';
+    // TODO: this needs to be set to `development` when we have separate environments deployed.
+    const namespaceName = `worker-18327207-${process.env.GITLAB_ENVIRONMENT_NAME}`;
 
 
     return this.k8sBatchApi.createNamespacedJob(namespaceName, {

@@ -5,7 +5,7 @@ class ExperimentService {
     this.dynamodb = new AWS.DynamoDB({
       region: 'eu-west-2',
     });
-    this.tableName = 'experiments';
+    this.tableName = `experiments-${process.env.GITLAB_ENVIRONMENT_NAME}`;
   }
 
   async getExperimentData(experimentId) {

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const express = require('express');
 const config = require('./config');
 const loader = require('./loaders');
@@ -12,8 +13,7 @@ async function startServer() {
       process.exit(1);
       return;
     }
-
-    // eslint-disable-next-line no-console
+    console.log(`NODE_ENV: ${process.env.NODE_ENV}, AWS/k8s env: ${process.env.GITLAB_ENVIRONMENT_NAME}`);
     console.log(`Server listening on port: ${config.port}`);
   });
 }
