@@ -7,6 +7,7 @@ service:
   externalPort: 3000
   internalPort: 3000
   commonName:
+  additionalHosts:
 
 prometheus:
   metrics: true
