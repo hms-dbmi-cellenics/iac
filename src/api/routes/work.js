@@ -10,6 +10,6 @@ module.exports = {
   'work#receive': (req, res) => {
     console.log(req.snsMessage);
 
-    res.json({ wow: 'hi from work' });
+    res.status(200);
   },
 };
