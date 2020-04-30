@@ -94,7 +94,7 @@ class ExperimentService {
     mockData = AWS.DynamoDB.Converter.marshall(mockData);
 
     const params = {
-      TableName: this.tableName,
+      TableNamesss: this.tableName,
       Item: mockData,
     };
 
