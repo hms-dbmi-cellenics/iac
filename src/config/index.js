@@ -25,10 +25,6 @@ if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
 
 if (!process.env.GITLAB_ENVIRONMENT_NAME) {
   process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-
-  // TODO: this needs to be set to development when an AWS/k8s cluster
-  // is deployed for development.
-  process.env.GITLAB_ENVIRONMENT_NAME = 'staging';
 }
 
 
@@ -37,10 +33,11 @@ if (!envFound) {
   throw new Error("Couldn't find .env file");
 }
 
-
+// TODO: clusterEnv needs to be set to development when an AWS/k8s cluster
+// is deployed for development.
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
-
+  clusterEnv: process.env.GITLAB_ENVIRONMENT_NAME || 'staging';
   api: {
     prefix: '/',
   },

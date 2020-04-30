@@ -13,7 +13,7 @@ async function startServer() {
       process.exit(1);
       return;
     }
-    console.log(`NODE_ENV: ${process.env.NODE_ENV}, AWS/k8s env: ${process.env.GITLAB_ENVIRONMENT_NAME}`);
+    console.log(`NODE_ENV: ${process.env.NODE_ENV}, cluster env: ${config.clusterEnv}`);
     console.log(`Server listening on port: ${config.port}`);
   });
 }

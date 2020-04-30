@@ -107,7 +107,7 @@ class WorkService {
                     name: 'AWS_ACCESS_KEY_ID',
                     valueFrom: {
                       secretKeyRef: {
-                        name: 'staging-secret',
+                        name: `${process.env.GITLAB_ENVIRONMENT_NAME}-secret`,
                         key: 'AWS_ACCESS_KEY_ID',
                       },
                     },
@@ -116,7 +116,7 @@ class WorkService {
                     name: 'AWS_SECRET_ACCESS_KEY',
                     valueFrom: {
                       secretKeyRef: {
-                        name: 'staging-secret',
+                        name: `${process.env.GITLAB_ENVIRONMENT_NAME}-secret`,
                         key: 'AWS_SECRET_ACCESS_KEY',
                       },
                     },
@@ -125,7 +125,7 @@ class WorkService {
                     name: 'AWS_DEFAULT_REGION',
                     valueFrom: {
                       secretKeyRef: {
-                        name: 'staging-secret',
+                        name: `${process.env.GITLAB_ENVIRONMENT_NAME}-secret`,
                         key: 'AWS_DEFAULT_REGION',
                       },
                     },
