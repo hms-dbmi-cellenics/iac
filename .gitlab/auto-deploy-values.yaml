@@ -14,7 +14,7 @@ postgresql:
   enabled: false
 
 readinessProbe:
-  path: "/exploration"
+  path: "/v1/health"
 
 livenessProbe:
-  path: "/exploration"
+  path: "/v1/health"
