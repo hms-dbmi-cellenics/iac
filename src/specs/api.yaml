@@ -67,9 +67,9 @@ paths:
         description: work results submitted
         required: true
         content:
-          application/json:
+          text/plain:
             schema:
-              type: object
+              type: string
       responses:
         '200':
           description: the results have been successfully received
