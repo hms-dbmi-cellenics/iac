@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const crypto = require('crypto');
 const uuid = require('uuid');
 const k8s = require('@kubernetes/client-node');
+const config = require('../config');
 
 class WorkService {
   constructor(json) {
@@ -27,7 +28,7 @@ class WorkService {
   }
 
   getWorkQueueName() {
-    return `queue-job-${this.getWorkerHash()}-${process.env.GITLAB_ENVIRONMENT_NAME}.fifo`;
+    return `queue-job-${this.getWorkerHash()}-${config.clusterEnv}.fifo`;
   }
 
   /**
@@ -71,7 +72,7 @@ class WorkService {
     const workQueueName = this.getWorkQueueName();
 
     // TODO: this needs to be set to `development` when we have separate environments deployed.
-    const namespaceName = `worker-18327207-${process.env.GITLAB_ENVIRONMENT_NAME}`;
+    const namespaceName = `worker-18327207-${config.clusterEnv}`;
 
 
     return this.k8sBatchApi.createNamespacedJob(namespaceName, {
@@ -107,7 +108,7 @@ class WorkService {
                     name: 'AWS_ACCESS_KEY_ID',
                     valueFrom: {
                       secretKeyRef: {
-                        name: `${process.env.GITLAB_ENVIRONMENT_NAME}-secret`,
+                        name: `${config.clusterEnv}-secret`,
                         key: 'AWS_ACCESS_KEY_ID',
                       },
                     },
@@ -116,7 +117,7 @@ class WorkService {
                     name: 'AWS_SECRET_ACCESS_KEY',
                     valueFrom: {
                       secretKeyRef: {
-                        name: `${process.env.GITLAB_ENVIRONMENT_NAME}-secret`,
+                        name: `${config.clusterEnv}-secret`,
                         key: 'AWS_SECRET_ACCESS_KEY',
                       },
                     },
@@ -125,7 +126,7 @@ class WorkService {
                     name: 'AWS_DEFAULT_REGION',
                     valueFrom: {
                       secretKeyRef: {
-                        name: `${process.env.GITLAB_ENVIRONMENT_NAME}-secret`,
+                        name: `${config.clusterEnv}-secret`,
                         key: 'AWS_DEFAULT_REGION',
                       },
                     },
