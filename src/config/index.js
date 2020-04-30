@@ -37,7 +37,7 @@ if (!envFound) {
 // is deployed for development.
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
-  clusterEnv: process.env.GITLAB_ENVIRONMENT_NAME || 'staging';
+  clusterEnv: process.env.GITLAB_ENVIRONMENT_NAME || 'staging',
   api: {
     prefix: '/',
   },
