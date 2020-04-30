@@ -10,6 +10,7 @@ module.exports = {
     res.json({ wow: 'hi from work' });
   },
   'work#receive': [snsMiddleware(), (req, res) => {
+    console.log(req);
     res.status(200);
   }],
 };
