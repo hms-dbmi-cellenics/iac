@@ -41,7 +41,7 @@ paths:
     post:
       operationId: submitWork
       x-eov-operation-id: work#submit
-      x-eov-operation-handler: routes/experiment
+      x-eov-operation-handler: routes/work
       requestBody:
         description: work to submit
         required: true
@@ -58,7 +58,25 @@ paths:
           content:
             application/json:
               schema: {} 
-
+  /work-results:
+    post:
+      operationId: receiveWork
+      x-eov-operation-id: work#receive
+      x-eov-operation-handler: routes/work
+      requestBody:
+        description: work results submitted
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: the results have been successfully received
+          content:
+            application/json:
+              schema:
+                type: object
   '/experiments/{experimentId}':
     get:
       tags:

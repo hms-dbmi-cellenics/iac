@@ -1457,6 +1457,11 @@ expand-range@^1.8.1:
   dependencies:
     fill-range "^2.1.0"
 
+express-aws-sns@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/express-aws-sns/-/express-aws-sns-0.4.0.tgz#a6b1e1870314f621908c763b2dd8f32dbd9d3091"
+  integrity sha1-prHhhwMU9iGQjHY7LdjzLb2dMJE=
+
 express-openapi-validator@^3.12.7:
   version "3.12.7"
   resolved "https://registry.yarnpkg.com/express-openapi-validator/-/express-openapi-validator-3.12.7.tgz#f5284afe25cc98672eb108354dbfa1ed837a35ee"
