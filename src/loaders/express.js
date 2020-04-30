@@ -1,7 +1,6 @@
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const sns = require('express-aws-sns');
 const { OpenApiValidator } = require('express-openapi-validator');
 
 module.exports = async (app) => {
@@ -20,10 +19,6 @@ module.exports = async (app) => {
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.text());
   app.use(bodyParser.json());
-
-  app.use(sns({
-    verify: true,
-  }));
 
   await new OpenApiValidator({
     apiSpec: path.join(__dirname, '..', 'specs', 'api.yaml'),

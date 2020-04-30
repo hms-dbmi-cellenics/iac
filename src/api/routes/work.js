@@ -1,4 +1,6 @@
+const snsMiddleware = require('express-sns-validator');
 const WorkService = require('../../services/work');
+
 
 module.exports = {
   'work#submit': (req, res) => {
@@ -7,9 +9,7 @@ module.exports = {
 
     res.json({ wow: 'hi from work' });
   },
-  'work#receive': (req, res) => {
-    console.log(req.snsMessage);
-
+  'work#receive': [snsMiddleware(), (req, res) => {
     res.status(200);
-  },
+  }],
 };
