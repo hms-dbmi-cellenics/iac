@@ -18,8 +18,7 @@ if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
       process.env.NODE_ENV = 'production';
       break;
     default:
-      process.env.NODE_ENV = 'production';
-      break;
+      throw new Error('Invalid cluster environment name');
   }
 }
 

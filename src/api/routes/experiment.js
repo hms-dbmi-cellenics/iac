@@ -4,17 +4,20 @@ const WorkService = require('../../services/work');
 const experimentService = new ExperimentService();
 
 module.exports = {
-  'experiment#findByID': async (req, res) => {
-    const data = await experimentService.getExperimentData(req.params.experimentId);
-    res.json(data);
+  'experiment#findByID': (req, res) => {
+    experimentService.getExperimentData(req.params.experimentId)
+      .then((data) => res.json(data));
   },
-  'experiment#getCellSets': async (req, res) => {
-    const data = await experimentService.getCellSets(req.params.experimentId);
-    res.json(data);
+  'experiment#getCellSets': (req, res) => {
+    experimentService.getCellSets(req.params.experimentId)
+      .then((data) => res.json(data));
   },
-  'experiment#generateMock': async (req, res) => {
-    await experimentService.generateMockData();
-    res.json({ wow: 'hi from experiment' });
+  'experiment#generateMock': (req, res) => {
+    experimentService.generateMockData()
+      .then((r) => res.json(r))
+      .catch((e) => {
+        res.status(500).json({ error: e });
+      });
   },
   'work#submit': (req, res) => {
     const workService = new WorkService(req.body);

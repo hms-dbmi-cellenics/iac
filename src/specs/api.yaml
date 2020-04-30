@@ -97,6 +97,10 @@ paths:
       responses:
         '200':
           description: successful operation
+          content:
+            application/json:
+              schema: {}
+
   '/experiments/{experimentId}/cell-sets':
     get:
       tags:

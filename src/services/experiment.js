@@ -1,11 +1,13 @@
 const AWS = require('aws-sdk');
+const config = require('../config');
+
 
 class ExperimentService {
   constructor() {
     this.dynamodb = new AWS.DynamoDB({
       region: 'eu-west-2',
     });
-    this.tableName = `experiments-${process.env.GITLAB_ENVIRONMENT_NAME}`;
+    this.tableName = `experiments-${config.clusterEnv}`;
   }
 
   async getExperimentData(experimentId) {
@@ -40,7 +42,7 @@ class ExperimentService {
     return prettyData;
   }
 
-  async generateMockData() {
+  generateMockData() {
     let mockData = {
       experiment_id: '5e959f9c9f4b120771249001',
       experiment_name: 'TGFB1 experiment',
@@ -95,10 +97,9 @@ class ExperimentService {
       TableName: this.tableName,
       Item: mockData,
     };
-    this.dynamodb.putItem(params, (err, data) => {
-      if (err) console.log(err, err.stack); // an error occurred
-      else console.log(data); // successful response
-    });
+
+
+    return this.dynamodb.putItem(params).promise();
   }
 }
 
