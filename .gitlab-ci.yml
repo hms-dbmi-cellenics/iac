@@ -22,20 +22,11 @@ variables:
   STAGING_ENABLED: "true"
   POSTGRES_ENABLED: "false"
   
-install_dependencies:
-  image: node:latest
-  stage: install
-  script:
-  - yarn install
-  artifacts:
-    paths:
-      - yarn.lock
-      - node_modules/
-
 testing:
   image: node:latest
   stage: test
   script:
+  - yarn install
   - yarn test
 
 include:
