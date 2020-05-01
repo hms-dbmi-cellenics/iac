@@ -18,7 +18,7 @@ module.exports = {
   'work#response': [(req, res) => {
     let msg;
 
-    // First, let's try parsing the body. It should be JSON.
+    // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
     } catch (error) {
@@ -33,6 +33,7 @@ module.exports = {
         console.error(
           'Error validating the SNS response: ', err,
         );
+        return;
       }
 
       // Handle subscripton and unsubscription automatically.
@@ -48,7 +49,7 @@ module.exports = {
           const responseService = new WorkResponseService(workResult);
         } catch (e) {
           console.error(
-            'Error parsing the work response message: ', e,
+            'Error processing the work response message: ', e,
           );
         }
       }
@@ -56,6 +57,6 @@ module.exports = {
 
     // SNS is really dumb, so we can just send back a generic response.
     // It doesn't really care what we do afterwards.
-    res.status(200).body('ok');
+    res.status(200).send('ok');
   }],
 };

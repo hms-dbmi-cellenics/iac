@@ -28,7 +28,9 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-openapi-validator": "^3.12.7",
+    "js-yaml": "^3.13.1",
     "sns-validator": "^0.3.4",
+    "swagger-model-validator": "^3.0.18",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
