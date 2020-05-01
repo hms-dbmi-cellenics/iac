@@ -67,7 +67,7 @@ paths:
   /workResults:
     post:
       operationId: receiveWork
-      x-eov-operation-id: 'work#receive'
+      x-eov-operation-id: 'work#response'
       x-eov-operation-handler: routes/work
       requestBody:
         description: The data sent by AWS SNS.
@@ -84,11 +84,19 @@ paths:
             examples: {}
       responses:
         '200':
-          description: 'A response was received by the server, *irrespective of whether it was successful or not*.'
+          description: 'A JSON-parseable was received by the server, *irrespective of whether it was correct/acceptable or not*.'
           content:
             text/plain:
               schema:
                 type: string
+                pattern: ok
+        '500':
+          description: The data sent by the server could not be parsed as JSON.
+          content:
+            text/plain:
+              schema:
+                type: string
+                pattern: nok
       description: |-
         Results from work performed by workers are relayed to the API through this endpoint.
 

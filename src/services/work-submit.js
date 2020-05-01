@@ -4,7 +4,7 @@ const uuid = require('uuid');
 const k8s = require('@kubernetes/client-node');
 const config = require('../config');
 
-class WorkService {
+class WorkSubmitService {
   constructor(json) {
     this.json = json;
     this.kc = new k8s.KubeConfig();
@@ -176,4 +176,4 @@ class WorkService {
   }
 }
 
-module.exports = WorkService;
+module.exports = WorkSubmitService;
