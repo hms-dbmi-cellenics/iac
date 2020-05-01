@@ -13,7 +13,7 @@ class WorkResponseService {
 
     console.log(res);
     if (!res.valid) {
-      throw new Error('Supplied response is not a valid WorkResponse:', res.errors);
+      throw new Error(res.errors);
     }
 
     console.log('Valid work:', workResponse);
