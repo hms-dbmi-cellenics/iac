@@ -11,12 +11,9 @@ class WorkResponseService {
 
     const res = validator.validate(workResponse, specObj.components.schemas.WorkResponse, specObj.components.schemas);
 
-    console.log(res);
     if (!res.valid) {
       throw new Error(res.errors);
     }
-
-    console.log('Valid work:', workResponse);
   }
 }
 
