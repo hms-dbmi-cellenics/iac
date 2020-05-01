@@ -67,7 +67,7 @@ paths:
   /workResults:
     post:
       operationId: receiveWork
-      x-eov-operation-id: 'work#receive'
+      x-eov-operation-id: 'work#response'
       x-eov-operation-handler: routes/work
       requestBody:
         description: The data sent by AWS SNS.
