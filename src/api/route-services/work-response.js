@@ -2,14 +2,17 @@ const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
 const Validator = require('swagger-model-validator');
+const AWS = require('aws-sdk');
 
 class WorkResponseService {
   constructor(io, workResponse) {
-    const specPath = path.resolve(__dirname, '..', 'specs', 'api.yaml');
+    const specPath = path.resolve(__dirname, '..', '..', 'specs', 'api.yaml');
     const specObj = yaml.safeLoad(fs.readFileSync(specPath), 'utf8');
     const validator = new Validator();
 
-    const res = validator.validate(workResponse, specObj.components.schemas.WorkResponse, specObj.components.schemas);
+    const res = validator.validate(
+      workResponse, specObj.components.schemas.WorkResponse, specObj.components.schemas,
+    );
 
     if (!res.valid) {
       throw new Error(res.errors);
@@ -17,18 +20,69 @@ class WorkResponseService {
 
     this.workResponse = workResponse;
     this.io = io;
+    this.s3 = new AWS.S3();
   }
 
-  sendResponse() {
-    /*
-    console.log(this.workResponse.socketId);
-    this.io.to(this.workResponse.socketId).emit('news', [
-      { title: 'The cure of the Sadness is to play Videogames', date: '04.10.2016' },
-      { title: 'Batman saves Racoon City, the Joker is infected once again', date: '05.10.2016' },
-      { title: "Deadpool doesn't want to do a third part of the franchise", date: '05.10.2016' },
-      { title: 'Quicksilver demand Warner Bros. due to plagiarism with Speedy Gonzales', date: '04.10.2016' },
-    ]);
-    */
+  async processS3PathType(workResponse) {
+    const s3Promises = [];
+
+    workResponse.results
+      .filter((result) => result.type === 's3-path')
+      .forEach((result) => {
+        const fullPath = result.body.split('/');
+
+        const params = {
+          Bucket: fullPath[0],
+          Key: fullPath.slice(1).join('/'),
+          ResponseContentType: result['content-type'],
+          ResponseContentEncoding: result['content-encoding'] || 'utf-8',
+        };
+
+        s3Promises.push(this.s3.getObject(params).promise());
+      });
+
+    const result = await Promise.all(s3Promises).then((values) => {
+      const processed = [];
+
+      values.forEach((value) => {
+        processed.push({
+          'content-type': value.ContentType,
+          'content-encoding': value.ContentEncoding,
+          body: value.Body.toString(value.ContentEncoding),
+        });
+      });
+
+      return processed;
+    });
+
+    return result;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async processInlineType(workResponse) {
+    const inlineResults = workResponse.results
+      .filter((result) => result.type === 'inline')
+      .map((result) => {
+        // eslint-disable-next-line no-param-reassign
+        delete result.type;
+        return result;
+      });
+
+    return inlineResults;
+  }
+
+
+  async handleResponse() {
+    Promise.all(
+      [this.processS3PathType(this.workResponse), this.processInlineType(this.workResponse)],
+    ).then((results) => {
+      const responseForClient = this.workResponse;
+      responseForClient.results = results.flat();
+
+      return responseForClient;
+    }).then((response) => {
+      this.io.to(response.socketId).emit(`WorkResponse-${response.uuid}`, response);
+    });
   }
 }
 

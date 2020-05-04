@@ -7,24 +7,18 @@ const WorkResponseService = require('../route-services/work-response');
 const validator = new MessageValidator();
 
 module.exports = {
-  'work#response': [(req, res) => {
+  'work#response': async (req, res) => {
     let msg;
 
     // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
     } catch (error) {
+      console.log(error);
       res.status(500).send('nok');
       return;
     }
 
-    const io = req.app.get('io');
-
-    const responseService = new WorkResponseService(io, msg);
-    responseService.sendResponse();
-
-
-    /*
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
       // Ignore errors.
@@ -44,19 +38,21 @@ module.exports = {
       // Notifications are passed on to the service for processing.
       if (message.Type === 'Notification') {
         try {
+          const io = req.app.get('io');
+
           const workResult = JSON.parse(message.Message);
-          const responseService = new WorkResponseService(workResult);
+          const responseService = new WorkResponseService(io, workResult);
+          responseService.handleResponse();
         } catch (e) {
           console.error(
             'Error processing the work response message: ', e,
           );
         }
       }
-  });
-  */
+    });
 
     // SNS is really dumb, so we can just send back a generic response.
     // It doesn't really care what we do afterwards.
     res.status(200).send('ok');
-  }],
+  },
 };

@@ -239,6 +239,10 @@ components:
               body:
                 type: string
                 description: The work result in the format specified by `content-type` and `type`.
+              content-encoding:
+                type: string
+                default: utf-8
+                description: The encoding used with the binary value received.
             required:
               - content-type
               - type
