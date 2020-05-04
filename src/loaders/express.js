@@ -2,6 +2,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const { OpenApiValidator } = require('express-openapi-validator');
+const http = require('http');
+const io = require('socket.io');
 
 module.exports = async (app) => {
   app.get('/status', (req, res) => {
@@ -36,4 +38,13 @@ module.exports = async (app) => {
       errors: err.errors,
     });
   });
+
+  const server = http.createServer(app);
+  const socketIo = io.listen(server);
+
+  return {
+    socketIo,
+    app,
+    server,
+  };
 };

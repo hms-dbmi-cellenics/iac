@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const config = require('../config');
+const config = require('../../config');
 
 
 class ExperimentService {
@@ -11,13 +11,13 @@ class ExperimentService {
   }
 
   async getExperimentData(experimentId) {
-    let key = { experiment_id: experimentId };
+    let key = { experimentId };
     key = AWS.DynamoDB.Converter.marshall(key);
 
     const params = {
       TableName: this.tableName,
       Key: key,
-      ProjectionExpression: 'experiment_id, experiment_name',
+      ProjectionExpression: 'experimentId, experimentName',
     };
 
     const data = await this.dynamodb.getItem(params).promise();
@@ -27,13 +27,13 @@ class ExperimentService {
   }
 
   async getCellSets(experimentId) {
-    let key = { experiment_id: experimentId };
+    let key = { experimentId };
     key = AWS.DynamoDB.Converter.marshall(key);
 
     const params = {
       TableName: this.tableName,
       Key: key,
-      ProjectionExpression: 'cell_sets',
+      ProjectionExpression: 'cellSets',
     };
 
     const data = await this.dynamodb.getItem(params).promise();
@@ -44,10 +44,10 @@ class ExperimentService {
 
   generateMockData() {
     let mockData = {
-      experiment_id: '5e959f9c9f4b120771249001',
-      experiment_name: 'TGFB1 experiment',
-      matrix_path: 'balbad',
-      cell_sets: [
+      experimentId: '5e959f9c9f4b120771249001',
+      experimentName: 'TGFB1 experiment',
+      matrixPath: 'balbad',
+      cellSets: [
         {
           key: 1,
           name: 'Cell types',
@@ -94,7 +94,7 @@ class ExperimentService {
     mockData = AWS.DynamoDB.Converter.marshall(mockData);
 
     const params = {
-      TableNamesss: this.tableName,
+      TableName: this.tableName,
       Item: mockData,
     };
 

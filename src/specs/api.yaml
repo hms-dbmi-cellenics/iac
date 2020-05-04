@@ -14,6 +14,10 @@ servers:
 tags:
   - name: experiments
     description: Manage your experiments and experiment details.
+  - name: heartbeat
+    description: API health checks.
+  - name: work
+    description: Submitting and receiving work.
 paths:
   /health:
     get:
@@ -42,28 +46,6 @@ paths:
                       - staging
                       - production
       description: Returns a status on the health of the API.
-  /work:
-    post:
-      operationId: submitWork
-      x-eov-operation-id: 'work#submit'
-      x-eov-operation-handler: routes/work
-      requestBody:
-        description: work to submit
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                file_path:
-                  type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema: {}
-              examples: {}
   /workResults:
     post:
       operationId: receiveWork
@@ -102,8 +84,10 @@ paths:
 
         Note that this endpoint is only exposed to AWS SNS, and since it has a specific communication protocol with limited feedback, the schema defined here is designed to be liberally enforceable. This endpoint is also used by SNS to handle subscribe/unsubscribe events.
 
-        The actual JSON for the experiments is found in the `WorkResponse` model, which is to be validated by the API.
+        The actual JSON passed by SNS is found in the `WorkResponse` model, which is to be validated by the API.
       summary: Retrieve results from worker
+      tags:
+        - work
     parameters: []
   '/experiments/{experimentId}':
     get:
@@ -114,13 +98,6 @@ paths:
       operationId: getExperimentById
       x-eov-operation-id: 'experiment#findByID'
       x-eov-operation-handler: routes/experiment
-      parameters:
-        - name: experimentId
-          in: path
-          description: ID of experiment to find.
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: successful operation
@@ -130,28 +107,17 @@ paths:
                 $ref: '#/components/schemas/Experiment'
               examples:
                 example-1: {}
-            application/xml:
-              schema:
-                type: object
-                properties:
-                  '':
-                    type: string
-            multipart/form-data:
-              schema:
-                type: object
-                properties: {}
-            text/html:
-              schema:
-                type: object
-                properties: {}
-            text/plain:
-              schema:
-                type: object
-                properties: {}
         '400':
           description: Invalid ID supplied
         '404':
           description: Experiment not found
+    parameters:
+      - schema:
+          type: string
+        name: experimentId
+        in: path
+        required: true
+        description: ID of the experiment to find.
   /experiments/generate:
     post:
       tags:
@@ -167,7 +133,7 @@ paths:
             application/json:
               schema: {}
       description: Generates mock data into the pipeline DynamoDB database.
-  '/experiments/{experimentId}/cell-sets':
+  '/experiments/{experimentId}/cellSets':
     get:
       tags:
         - experiments
@@ -176,13 +142,6 @@ paths:
       operationId: getExperimentCellSetsById
       x-eov-operation-id: 'experiment#getCellSets'
       x-eov-operation-handler: routes/experiment
-      parameters:
-        - name: experimentId
-          in: path
-          description: ID of experiment to find.
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: successful operation
@@ -199,6 +158,13 @@ paths:
           description: Invalid ID supplied.
         '404':
           description: Experiment not found
+    parameters:
+      - name: experimentId
+        in: path
+        description: ID of experiment to find cell sets of.
+        required: true
+        schema:
+          type: string
 components:
   securitySchemes: {}
   schemas:
@@ -232,6 +198,8 @@ components:
         key:
           type: integer
           format: int32
+          minimum: 0
+          exclusiveMinimum: false
         name:
           type: string
         rootNode:
@@ -250,7 +218,7 @@ components:
       properties:
         socketId:
           type: string
-          description: The ID of the socket where the response is expected by the UI.
+          description: The connection ID of the socket the client is using. This is where the response will be sent back.
         results:
           type: array
           description: The results of the work
@@ -278,7 +246,7 @@ components:
         timeout:
           type: string
           format: date-time
-          description: The timeout value for this work specified by the UI.
+          description: 'The timeout value for this work specified by the UI. While processing work, all work items whose timeout field is past the current time will be discarded along the work processing chain.'
         uuid:
           type: string
           format: uuid
@@ -299,3 +267,51 @@ components:
       required:
         - message
         - errors
+    WorkRequest:
+      title: WorkRequest
+      type: object
+      description: This is the schema for the event emitted by the UI when certain work is requested from the API/workers.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: A UUID generated by the client submitting the work. Will be used to map `WorkResponse` objects to the request submitted.
+        socketId:
+          type: string
+          description: The connection ID of the socket the client is using. The API will send the result back to the ID specified in this parameter.
+        timeout:
+          type: string
+          format: date-time
+          description: 'The timeout parameter set by the client. While processing work, all work items whose timeout field is past the current time will be discarded along the work processing chain.'
+        body:
+          $ref: '#/components/schemas/WorkSchemaGetEmbedding'
+        experimentId:
+          type: string
+          description: The ID of the experiment for which this work was created.
+      required:
+        - uuid
+        - socketId
+        - timeout
+        - experimentId
+    WorkSchemaGetEmbedding:
+      title: WorkSchemaGetEmbedding
+      type: object
+      description: ''
+      properties:
+        name:
+          type: string
+          example: GetEmbedding
+          description: The name of this work -- must be `GetEmbedding`.
+        type:
+          type: string
+          enum:
+            - pca
+            - tsne
+            - umap
+          description: The type of embedding to compute.
+        filter:
+          type: string
+          description: 'The cell set whose embedding will be computed. If left undefined, the embedding will be computed on all cells.'
+      required:
+        - name
+        - type

@@ -1,12 +1,11 @@
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
-const uuid = require('uuid');
 const k8s = require('@kubernetes/client-node');
-const config = require('../config');
+const config = require('../../config');
+
 
 class WorkSubmitService {
-  constructor(json) {
-    this.json = json;
+  constructor(workRequest) {
     this.kc = new k8s.KubeConfig();
     this.kc.loadFromDefault();
 
@@ -16,19 +15,15 @@ class WorkSubmitService {
     this.sqs = new AWS.SQS({
       region: 'eu-west-2',
     });
-  }
 
-  getWorkerHash() {
-    const workerHash = crypto
+    this.workRequest = workRequest;
+
+    this.workerHash = crypto
       .createHash('sha1')
-      .update(this.workToSubmit.experiment)
+      .update(this.workRequest.experimentId)
       .digest('hex');
 
-    return workerHash;
-  }
-
-  getWorkQueueName() {
-    return `queue-job-${this.getWorkerHash()}-${config.clusterEnv}.fifo`;
+    this.workQueueName = `queue-job-${this.workerHash}-${config.clusterEnv}.fifo`;
   }
 
   /**
@@ -36,10 +31,8 @@ class WorkSubmitService {
    * worker.
    */
   async createQueue() {
-    const workQueueName = this.getWorkQueueName();
-
     const q = await this.sqs.createQueue({
-      QueueName: workQueueName,
+      QueueName: this.workQueueName,
       Attributes: {
         FifoQueue: 'true',
         ContentBasedDeduplication: 'true',
@@ -58,7 +51,7 @@ class WorkSubmitService {
    */
   sendMessageToQueue(queueUrl) {
     return this.sqs.sendMessage({
-      MessageBody: JSON.stringify(this.workToSubmit),
+      MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
       MessageGroupId: 'work',
     }).promise();
@@ -68,9 +61,6 @@ class WorkSubmitService {
     * Launches a Kubernetes `Job` with the appropriate configuration.
     */
   createWorker() {
-    const workerHash = this.getWorkerHash();
-    const workQueueName = this.getWorkQueueName();
-
     // TODO: this needs to be set to `development` when we have separate environments deployed.
     const namespaceName = `worker-18327207-${config.clusterEnv}`;
 
@@ -79,30 +69,30 @@ class WorkSubmitService {
       apiVersion: 'batch/v1',
       kind: 'Job',
       metadata: {
-        name: `job-${workerHash}`,
+        name: `job-${this.workerHash}`,
         labels: {
-          job: workerHash,
-          experiment: this.workToSubmit.experiment,
+          job: this.workerHash,
+          experimentId: this.workRequest.experimentId,
         },
       },
       spec: {
         template: {
           metadata: {
-            name: `job-${workerHash}-template`,
+            name: `job-${this.workerHash}-template`,
             labels: {
-              job: workerHash,
-              experiment: this.workToSubmit.experiment,
+              job: this.workerHash,
+              experimentId: this.workRequest.experimentId,
             },
           },
           spec: {
             containers: [
               {
-                name: `job-${workerHash}-container`,
+                name: `job-${this.workerHash}-container`,
                 image: 'registry.gitlab.com/biomage/worker/master',
                 env: [
                   {
                     name: 'WORK_QUEUE',
-                    value: workQueueName,
+                    value: this.workQueueName,
                   },
                   {
                     name: 'AWS_ACCESS_KEY_ID',
@@ -152,18 +142,6 @@ class WorkSubmitService {
   }
 
   async submitWork() {
-    this.workToSubmit = {
-      uuid: uuid.v4(),
-      count_matrix: this.json.file_path,
-      experiment: 'my-amazing-experiment',
-      task: 'ComputeEmbedding',
-      details: {
-        type: 'PCA',
-        cells: 'all',
-        dimensions: 3,
-      },
-    };
-
     await this.createQueue().then(
       (queueUrl) => this.sendMessageToQueue(queueUrl),
     );

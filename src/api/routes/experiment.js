@@ -1,4 +1,4 @@
-const ExperimentService = require('../../services/experiment');
+const ExperimentService = require('../route-services/experiment');
 
 const experimentService = new ExperimentService();
 

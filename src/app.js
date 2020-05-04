@@ -1,17 +1,23 @@
 /* eslint-disable no-console */
 const express = require('express');
+const expressLoader = require('./loaders/express');
 const config = require('./config');
-const loader = require('./loaders');
 
 async function startServer() {
-  const app = express();
+  const { app, server, socketIo: io } = await expressLoader(express());
+  app.set('io', io);
 
-  await loader(app);
+  // Set up handlers for SocketIO events.
+  io.on('connection', (socket) => {
+    console.log('connected');
+    // eslint-disable-next-line global-require
+    require('./api/events')(socket);
+  });
 
-  app.listen(config.port, (err) => {
+  // Set up HTTP server.
+  server.listen(config.port, (err) => {
     if (err) {
       process.exit(1);
-      return;
     }
     console.log(`NODE_ENV: ${process.env.NODE_ENV}, cluster env: ${config.clusterEnv}`);
     console.log(`Server listening on port: ${config.port}`);

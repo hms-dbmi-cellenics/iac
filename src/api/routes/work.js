@@ -2,19 +2,11 @@
 const https = require('https');
 
 const MessageValidator = require('sns-validator');
-const WorkSubmitService = require('../../services/work-submit');
-const WorkResponseService = require('../../services/work-response');
+const WorkResponseService = require('../route-services/work-response');
 
 const validator = new MessageValidator();
 
 module.exports = {
-  'work#submit': (req, res) => {
-    const submitService = new WorkSubmitService(req.body);
-    submitService.submitWork();
-
-    res.json({ wow: 'hi from work' });
-  },
-
   'work#response': [(req, res) => {
     let msg;
 
@@ -22,10 +14,17 @@ module.exports = {
     try {
       msg = JSON.parse(req.body);
     } catch (error) {
-      res.status(500).body('nok');
+      res.status(500).send('nok');
       return;
     }
 
+    const io = req.app.get('io');
+
+    const responseService = new WorkResponseService(io, msg);
+    responseService.sendResponse();
+
+
+    /*
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
       // Ignore errors.
@@ -53,7 +52,8 @@ module.exports = {
           );
         }
       }
-    });
+  });
+  */
 
     // SNS is really dumb, so we can just send back a generic response.
     // It doesn't really care what we do afterwards.
