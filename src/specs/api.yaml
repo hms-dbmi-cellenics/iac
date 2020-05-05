@@ -216,9 +216,6 @@ components:
       type: object
       description: This is the format the workers communicate the results of the work they completed back to the API. The API is then responsible for transforming this data and returning it back to the clients.
       properties:
-        socketId:
-          type: string
-          description: The connection ID of the socket the client is using. This is where the response will be sent back.
         results:
           type: array
           description: The results of the work
@@ -247,19 +244,10 @@ components:
               - content-type
               - type
               - body
-        timeout:
-          type: string
-          format: date-time
-          description: 'The timeout value for this work specified by the UI. While processing work, all work items whose timeout field is past the current time will be discarded along the work processing chain.'
-        uuid:
-          type: string
-          format: uuid
-          description: The UUID of the work submitted by the UI.
+        request:
+          $ref: '#/components/schemas/WorkRequest'
       required:
-        - socketId
         - results
-        - timeout
-        - uuid
     ApiError:
       title: ApiError
       type: object
