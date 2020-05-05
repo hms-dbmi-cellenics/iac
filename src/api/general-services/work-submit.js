@@ -51,6 +51,7 @@ class WorkSubmitService {
    * @param {string} queueUrl adsas
    */
   sendMessageToQueue(queueUrl) {
+    console.log('in the function...');
     return this.sqs.sendMessage({
       MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
@@ -149,7 +150,7 @@ class WorkSubmitService {
 
   async submitWork() {
     this.getQueueUrl().then(
-      (queueUrl) => this.sendMessageToQueue(queueUrl),
+      (queueUrl) => { console.log('before queueurl...'); return this.sendMessageToQueue(queueUrl); },
     ).then((a) => console.log(a)).catch((e) => {
       if (e.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw e; }
 
