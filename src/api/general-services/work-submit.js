@@ -72,7 +72,6 @@ class WorkSubmitService {
   getQueueUrl() {
     // First, get account ID, then construct queue URL from the available
     // data.
-    console.log(AWS.config);
     return this.sts.getCallerIdentity({})
       .promise()
       .then((data) => `https://sqs.${AWS.SQS.region}.amazonaws.com/${data.Account}/${this.workQueueName}`);
