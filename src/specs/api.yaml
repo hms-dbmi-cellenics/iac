@@ -171,12 +171,12 @@ components:
     Experiment:
       type: object
       required:
-        - experiment_id
-        - experiment_name
+        - experimentId
+        - experimentName
       properties:
-        experiment_id:
+        experimentId:
           type: string
-        experiment_name:
+        experimentName:
           type: string
     ApiResponse:
       type: object
