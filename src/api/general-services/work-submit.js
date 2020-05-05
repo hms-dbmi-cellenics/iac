@@ -126,10 +126,6 @@ class WorkSubmitService {
                     },
 
                   },
-                  {
-                    name: 'WORK_TIMEOUT',
-                    value: '10',
-                  },
                 ],
               },
             ],
