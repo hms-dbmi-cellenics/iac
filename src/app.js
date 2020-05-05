@@ -8,8 +8,6 @@ async function startServer() {
   const { app, server, socketIo: io } = await expressLoader(express());
   app.set('io', io);
 
-  console.log(process.env);
-
   // Set up handlers for SocketIO events.
   io.on('connection', (socket) => {
     console.log('connected');

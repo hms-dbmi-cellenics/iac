@@ -24,6 +24,8 @@ class WorkResponseService {
   }
 
   async processS3PathType(workResponse) {
+    console.log('processs3pathtype called');
+
     const s3Promises = [];
 
     workResponse.results
@@ -42,6 +44,8 @@ class WorkResponseService {
       });
 
     const result = await Promise.all(s3Promises).then((values) => {
+      console.log('all promises in s3 resolved');
+
       const processed = [];
 
       values.forEach((value) => {
@@ -52,8 +56,12 @@ class WorkResponseService {
         });
       });
 
+      console.log('decoded...');
+
       return processed;
     });
+
+    console.log('returning from s3 process');
 
     return result;
   }
@@ -73,15 +81,27 @@ class WorkResponseService {
 
 
   async handleResponse() {
+    console.log('handleResponse');
+
     Promise.all(
       [this.processS3PathType(this.workResponse), this.processInlineType(this.workResponse)],
     ).then((results) => {
+      console.log('all promises resolved');
+
+
       const responseForClient = this.workResponse;
       responseForClient.results = results.flat();
 
+      console.log('response flattened');
+
+
       return responseForClient;
     }).then((response) => {
+      console.log('response processed');
+
       this.io.to(response.socketId).emit(`WorkResponse-${response.uuid}`, response);
+
+      console.log('response sent out');
     });
   }
 }

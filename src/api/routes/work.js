@@ -10,6 +10,8 @@ module.exports = {
   'work#response': async (req, res) => {
     let msg;
 
+    console.log('message received');
+
     // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
@@ -18,6 +20,8 @@ module.exports = {
       res.status(500).send('nok');
       return;
     }
+
+    console.log('message parsed');
 
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
@@ -37,10 +41,17 @@ module.exports = {
 
       // Notifications are passed on to the service for processing.
       if (message.Type === 'Notification') {
+        console.log('notification type message');
+
+
         try {
           const io = req.app.get('io');
 
           const workResult = JSON.parse(message.Message);
+
+          console.log('workresult parsed');
+
+
           const responseService = new WorkResponseService(io, workResult);
           responseService.handleResponse();
         } catch (e) {

@@ -6,7 +6,6 @@ const config = require('../../config');
 
 class WorkSubmitService {
   constructor(workRequest) {
-    console.log('worksubmit constructor started');
     this.kc = new k8s.KubeConfig();
     this.kc.loadFromDefault();
 
@@ -14,7 +13,7 @@ class WorkSubmitService {
     this.k8sBatchApi = this.kc.makeApiClient(k8s.BatchV1Api);
 
     this.sqs = new AWS.SQS({
-      region: 'eu-west-2',
+      region: config.awsRegion,
     });
 
     this.sts = new AWS.STS();
@@ -27,17 +26,6 @@ class WorkSubmitService {
       .digest('hex');
 
     this.workQueueName = `queue-job-${this.workerHash}-${config.clusterEnv}.fifo`;
-
-    AWS.config.getCredentials((err) => {
-      if (err) console.log(err.stack);
-      // credentials not loaded
-      else {
-        console.log('Access key:', AWS.config.credentials.accessKeyId);
-        console.log('Secret access key:', AWS.config.credentials.secretAccessKey);
-      }
-    });
-
-    console.log('worksubmit constructor finished');
   }
 
   /**
@@ -45,8 +33,6 @@ class WorkSubmitService {
    * worker.
    */
   async createQueue() {
-    console.log('createQueue start start');
-
     const q = await this.sqs.createQueue({
       QueueName: this.workQueueName,
       Attributes: {
@@ -55,12 +41,7 @@ class WorkSubmitService {
       },
     }).promise();
 
-    console.log('createQueue finished.');
-
     const { QueueUrl: queueUrl } = q;
-
-    console.log('returning createqueue');
-
     return queueUrl;
   }
 
@@ -70,7 +51,6 @@ class WorkSubmitService {
    * @param {string} queueUrl adsas
    */
   sendMessageToQueue(queueUrl) {
-    console.log('sendMessageToQueue start');
     return this.sqs.sendMessage({
       MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
@@ -79,11 +59,8 @@ class WorkSubmitService {
   }
 
   getQueueUrl() {
-    // First, get account ID, then construct queue URL from the available
-    // data.
-    return this.sts.getCallerIdentity({})
-      .promise()
-      .then((data) => { console.log(data); return `https://sqs.${AWS.SQS.region}.amazonaws.com/${data.Account}/${this.workQueueName}`; });
+    return config.awsAccountIdPromise
+      .then((id) => `https://sqs.${config.awsRegion}.amazonaws.com/${id}/${this.workQueueName}`);
   }
 
   /**
@@ -171,24 +148,19 @@ class WorkSubmitService {
   }
 
   async submitWork() {
-    console.log('before creating queue');
-
-    this.getQueueUrl().then((url) => {
-      console.log(url);
-    });
-    /*
-    await this.createQueue().then(
+    this.getQueueUrl().then(
       (queueUrl) => this.sendMessageToQueue(queueUrl),
-    );
+    ).then((a) => console.log(a)).catch((e) => {
+      if (e.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw e; }
 
-    console.log('sent to queue');
+      this.createQueue().then((queueUrl) => this.sendMessageToQueue(queueUrl));
+    });
 
     this.createWorker().catch((e) => {
       if (e.statusCode !== 409) {
         throw new Error(e);
       }
     });
-    */
   }
 }
 
