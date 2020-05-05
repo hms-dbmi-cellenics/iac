@@ -17,6 +17,8 @@ class WorkSubmitService {
       region: 'eu-west-2',
     });
 
+    this.sts = new AWS.STS();
+
     this.workRequest = workRequest;
 
     this.workerHash = crypto
@@ -65,6 +67,15 @@ class WorkSubmitService {
       QueueUrl: queueUrl,
       MessageGroupId: 'work',
     }).promise();
+  }
+
+  getQueueUrl() {
+    // First, get account ID, then construct queue URL from the available
+    // data.
+    console.log(AWS.config);
+    return this.sts.getCallerIdentity({})
+      .promise()
+      .then((data) => `https://sqs.${AWS.SQS.region}.amazonaws.com/${data.Account}/${this.workQueueName}`);
   }
 
   /**
@@ -154,6 +165,10 @@ class WorkSubmitService {
   async submitWork() {
     console.log('before creating queue');
 
+    this.getQueueUrl().then((url) => {
+      console.log(url);
+    });
+    /*
     await this.createQueue().then(
       (queueUrl) => this.sendMessageToQueue(queueUrl),
     );
@@ -165,6 +180,7 @@ class WorkSubmitService {
         throw new Error(e);
       }
     });
+    */
   }
 }
 
