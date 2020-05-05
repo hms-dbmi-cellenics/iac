@@ -28,6 +28,15 @@ class WorkSubmitService {
 
     this.workQueueName = `queue-job-${this.workerHash}-${config.clusterEnv}.fifo`;
 
+    AWS.config.getCredentials((err) => {
+      if (err) console.log(err.stack);
+      // credentials not loaded
+      else {
+        console.log('Access key:', AWS.config.credentials.accessKeyId);
+        console.log('Secret access key:', AWS.config.credentials.secretAccessKey);
+      }
+    });
+
     console.log('worksubmit constructor finished');
   }
 
@@ -74,7 +83,7 @@ class WorkSubmitService {
     // data.
     return this.sts.getCallerIdentity({})
       .promise()
-      .then((data) => `https://sqs.${AWS.SQS.region}.amazonaws.com/${data.Account}/${this.workQueueName}`);
+      .then((data) => { console.log(data); return `https://sqs.${AWS.SQS.region}.amazonaws.com/${data.Account}/${this.workQueueName}`; });
   }
 
   /**
