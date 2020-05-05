@@ -42,6 +42,8 @@ spec:
         tier: "{{ .Values.application.tier }}"
         release: {{ .Release.Name }}
     spec:
+      # TODO: this needs to be refactored -- currently this service account needs to be created dynamically
+      serviceAccountName: api-service-account
       imagePullSecrets:
 {{ toYaml .Values.image.secrets | indent 10 }}
       containers:
