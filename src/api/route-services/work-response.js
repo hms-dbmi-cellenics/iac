@@ -14,9 +14,11 @@ class WorkResponseService {
       workResponse, specObj.components.schemas.WorkResponse, specObj.components.schemas,
     );
 
+    /*
     if (!res.valid) {
       throw new Error(res.errors);
     }
+    */
 
     this.workResponse = workResponse;
     this.io = io;
