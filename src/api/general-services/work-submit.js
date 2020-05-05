@@ -95,6 +95,10 @@ class WorkSubmitService {
                     value: this.workQueueName,
                   },
                   {
+                    name: 'GITLAB_ENVIRONMENT_NAME',
+                    value: `${config.clusterEnv}`,
+                  },
+                  {
                     name: 'AWS_ACCESS_KEY_ID',
                     valueFrom: {
                       secretKeyRef: {
