@@ -6,6 +6,7 @@ const config = require('../../config');
 
 class WorkSubmitService {
   constructor(workRequest) {
+    console.log('worksubmit constructor started');
     this.kc = new k8s.KubeConfig();
     this.kc.loadFromDefault();
 
@@ -24,6 +25,8 @@ class WorkSubmitService {
       .digest('hex');
 
     this.workQueueName = `queue-job-${this.workerHash}-${config.clusterEnv}.fifo`;
+
+    console.log('worksubmit constructor finished');
   }
 
   /**
@@ -31,6 +34,8 @@ class WorkSubmitService {
    * worker.
    */
   async createQueue() {
+    console.log('createQueue start start');
+
     const q = await this.sqs.createQueue({
       QueueName: this.workQueueName,
       Attributes: {
@@ -39,7 +44,11 @@ class WorkSubmitService {
       },
     }).promise();
 
+    console.log('createQueue finished.');
+
     const { QueueUrl: queueUrl } = q;
+
+    console.log('returning createqueue');
 
     return queueUrl;
   }
@@ -50,6 +59,7 @@ class WorkSubmitService {
    * @param {string} queueUrl adsas
    */
   sendMessageToQueue(queueUrl) {
+    console.log('sendMessageToQueue start');
     return this.sqs.sendMessage({
       MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
@@ -142,6 +152,8 @@ class WorkSubmitService {
   }
 
   async submitWork() {
+    console.log('before creating queue');
+
     await this.createQueue().then(
       (queueUrl) => this.sendMessageToQueue(queueUrl),
     );
