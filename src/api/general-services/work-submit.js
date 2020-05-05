@@ -146,6 +146,8 @@ class WorkSubmitService {
       (queueUrl) => this.sendMessageToQueue(queueUrl),
     );
 
+    console.log('sent to queue');
+
     this.createWorker().catch((e) => {
       if (e.statusCode !== 409) {
         throw new Error(e);

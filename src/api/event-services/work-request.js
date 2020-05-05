@@ -23,6 +23,7 @@ class WorkRequestService {
 
   handleRequest() {
     const workSubmitService = new WorkSubmitService(this.workRequest);
+    console.log('submitting request...');
     workSubmitService.submitWork();
   }
 }

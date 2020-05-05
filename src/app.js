@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+require('log-timestamp');
 const express = require('express');
 const expressLoader = require('./loaders/express');
 const config = require('./config');
