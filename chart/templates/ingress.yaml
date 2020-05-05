@@ -1,0 +1,68 @@
+{{- if and (.Values.service.enabled) (eq .Values.application.track "stable") -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "appname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version| replace "+" "_" }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+{{- if .Values.ingress.annotations }}
+{{ toYaml .Values.ingress.annotations | indent 4 }}
+{{- end }}
+{{- with .Values.ingress.modSecurity }}
+{{- if .enabled }}
+    nginx.ingress.kubernetes.io/modsecurity-transaction-id: "$server_name-$request_id"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRuleEngine {{ .secRuleEngine | default "DetectionOnly" | title }}
+{{- range $rule := .secRules }}
+{{ (include "secrule" $rule) | indent 6 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .Values.prometheus.metrics }}
+    nginx.ingress.kubernetes.io/server-snippet: |-
+      location /metrics {
+          deny all;
+      }
+
+{{- end }}
+spec:
+{{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+{{- if .Values.service.commonName }}
+    - {{ template "hostname" .Values.service.commonName }}
+{{- end }}
+    - {{ template "hostname" .Values.service.url }}
+{{- if .Values.service.additionalHosts }}
+{{- range $host := .Values.service.additionalHosts }}
+    - {{ $host }}
+{{- end -}}
+{{- end }}
+    secretName: {{ .Values.ingress.tls.secretName | default (printf "%s-tls" (include "fullname" .)) }}
+{{- end }}
+  rules:
+  - host: {{ template "hostname" .Values.service.url }}
+    http:
+      &httpRule
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: {{ .Values.service.externalPort }}
+{{- if .Values.service.commonName }}
+  - host: {{ template "hostname" .Values.service.commonName }}
+    http:
+      <<: *httpRule
+{{- end -}}
+{{- if .Values.service.additionalHosts }}
+{{- range $host := .Values.service.additionalHosts }}
+  - host: {{ $host }}
+    http:
+      <<: *httpRule
+{{- end -}}
+{{- end -}}
+{{- end -}}
