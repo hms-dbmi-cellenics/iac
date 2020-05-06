@@ -19,7 +19,7 @@ module.exports = {
       return;
     }
 
-    console.log('message parsed');
+    console.log('message parsed', msg);
 
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
