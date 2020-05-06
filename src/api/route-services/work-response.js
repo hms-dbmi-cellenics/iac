@@ -101,7 +101,7 @@ class WorkResponseService {
 
       this.io.to(response.socketId).emit(`WorkResponse-${response.uuid}`, response);
 
-      console.log('response sent out');
+      console.log('response sent out', response);
     });
   }
 }
