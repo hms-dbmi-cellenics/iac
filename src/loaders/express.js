@@ -6,10 +6,6 @@ const http = require('http');
 const io = require('socket.io');
 
 module.exports = async (app) => {
-  app.get('/status', (req, res) => {
-    res.status(200).end();
-  });
-
   // Useful if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
   // It shows the real origin IP in the heroku or Cloudwatch logs
   app.enable('trust proxy');
