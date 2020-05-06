@@ -10,9 +10,6 @@ module.exports = {
   'work#response': async (req, res) => {
     let msg;
 
-    console.log('message received', req.body);
-
-    /*
     // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
@@ -22,7 +19,7 @@ module.exports = {
       return;
     }
 
-    console.log('message parsed');
+    console.log('message parsed', msg);
 
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
@@ -66,6 +63,5 @@ module.exports = {
     // SNS is really dumb, so we can just send back a generic response.
     // It doesn't really care what we do afterwards.
     res.status(200).send('ok');
-    */
   },
 };
