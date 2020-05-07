@@ -23,10 +23,27 @@ describe('tests for experiment route', () => {
       });
   });
 
-  it('Find cell sets by experiment id works', async (done) => {
+  // eslint-disable-next-line arrow-parens
+  it('Find cell sets by experiment id works', async done => {
     const { app } = await expressLoader(express());
     request(app)
       .get('/v1/experiments/someId/cellSets')
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        // there is no point testing for the values of the response body
+        // - if something is wrong, the schema validator will catch it
+        return done();
+      });
+  });
+
+  // eslint-disable-next-line arrow-parens
+  it('Can successfully generate mock data', async done => {
+    const { app } = await expressLoader(express());
+    request(app)
+      .post('/v1/experiments/generate')
       .expect(200)
       .end((err, res) => {
         if (err) {

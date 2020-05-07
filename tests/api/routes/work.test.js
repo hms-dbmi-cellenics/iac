@@ -143,8 +143,51 @@ describe('tests for experiment route', () => {
       });
   });
 
+  // eslint-disable-next-line arrow-parens
+  it('Returns an error when message in sns is malformed', async done => {
+    const { app } = await expressLoader(express());
+
+    jest.mock('sns-validator', () => function () {
+      return {
+        validate: (returnMsg, callback) => {
+          callback(null, {
+            Type: 'Notification',
+            Message: JSON.stringify(),
+          });
+        },
+      };
+    });
+
+    const error = jest.spyOn(global.console, 'error');
+    const mockHandleResponse = jest.fn();
+    jest.mock('../../../src/api/route-services/work-response',
+      () => jest.fn().mockImplementation(() => ({ handleResponse: mockHandleResponse })));
+
+    request(app)
+      .post('/v1/workResults')
+      .send(validMsg)
+      .set('Content-type', 'text/plain')
+      .expect(200)
+      .end(() => {
+        expect(error).toHaveBeenCalledTimes(1);
+        expect(mockHandleResponse).toHaveBeenCalledTimes(0);
+        return done();
+      });
+  });
+
   // eslint - disable - next - line arrow - parens
-  it('Get malformatted work results', async (done) => done());
+  it('Get malformatted work results returns an error', async (done) => {
+    const { app } = await expressLoader(express());
+
+    const brokenMsg = JSON.stringify();
+
+    request(app)
+      .post('/v1/workResults')
+      .send(brokenMsg)
+      .set('Content-type', 'text/plain')
+      .expect(500)
+      .end(() => done());
+  });
 
   afterEach(() => {
     /**
