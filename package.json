@@ -4,7 +4,7 @@
   "description": "Node.js API for the single-cell pipeline.",
   "main": "index.js",
   "scripts": {
-    "test": "exit 0",
+    "test": "jest",
     "dev": "nodemon src/app.js",
     "start": "node src/app.js"
   },
@@ -36,9 +36,12 @@
     "uuid": "^7.0.3"
   },
   "devDependencies": {
+    "aws-sdk-mock": "^5.1.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.2",
-    "nodemon": "^2.0.3"
+    "jest": "^26.0.1",
+    "nodemon": "^2.0.3",
+    "supertest": "^4.0.2"
   }
 }

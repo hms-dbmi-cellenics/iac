@@ -11,6 +11,7 @@ class ExperimentService {
   }
 
   async getExperimentData(experimentId) {
+    console.log('In the real thing');
     let key = { experimentId };
     key = AWS.DynamoDB.Converter.marshall(key);
 
