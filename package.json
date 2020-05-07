@@ -4,7 +4,7 @@
   "description": "Node.js API for the single-cell pipeline.",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "dev": "nodemon src/app.js",
     "start": "node src/app.js"
   },
@@ -43,5 +43,10 @@
     "jest": "^26.0.1",
     "nodemon": "^2.0.3",
     "supertest": "^4.0.2"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "**/*.js"
+    ]
   }
 }

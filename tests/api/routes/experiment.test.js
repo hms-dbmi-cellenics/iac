@@ -1,9 +1,9 @@
 /* eslint-env jest */
 const express = require('express');
 const request = require('supertest');
-const expressLoader = require('../../loaders/express');
+const expressLoader = require('../../../src/loaders/express');
 
-jest.mock('../route-services/experiment');
+jest.mock('../../../src/api/route-services/experiment');
 
 describe('tests for experiment route', () => {
   // eslint-disable-next-line arrow-parens
