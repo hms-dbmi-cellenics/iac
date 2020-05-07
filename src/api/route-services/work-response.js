@@ -97,9 +97,11 @@ class WorkResponseService {
 
       return responseForClient;
     }).then((response) => {
-      console.log('response processed');
+      console.log('response processed, sending to', response.request.socketId);
 
-      this.io.to(response.socketId).emit(`WorkResponse-${response.uuid}`, response);
+      const socketID = response.request.socketId;
+
+      this.io.to(socketID).emit(`WorkResponse-${response.uuid}`, response);
 
       console.log('response sent out', response);
     });
