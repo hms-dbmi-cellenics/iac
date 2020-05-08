@@ -4,50 +4,11 @@ const config = require('../../config');
 
 class ExperimentService {
   constructor() {
-    this.dynamodb = new AWS.DynamoDB({
-      region: 'eu-west-2',
-    });
     this.tableName = `experiments-${config.clusterEnv}`;
-  }
-
-  async getExperimentData(experimentId) {
-    console.log('In the real thing');
-    let key = { experimentId };
-    key = AWS.DynamoDB.Converter.marshall(key);
-
-    const params = {
-      TableName: this.tableName,
-      Key: key,
-      ProjectionExpression: 'experimentId, experimentName',
-    };
-
-    const data = await this.dynamodb.getItem(params).promise();
-    const prettyData = AWS.DynamoDB.Converter.unmarshall(data.Item);
-
-    return prettyData;
-  }
-
-  async getCellSets(experimentId) {
-    let key = { experimentId };
-    key = AWS.DynamoDB.Converter.marshall(key);
-
-    const params = {
-      TableName: this.tableName,
-      Key: key,
-      ProjectionExpression: 'cellSets',
-    };
-
-    const data = await this.dynamodb.getItem(params).promise();
-    const prettyData = AWS.DynamoDB.Converter.unmarshall(data.Item);
-
-    return prettyData;
-  }
-
-  generateMockData() {
-    let mockData = {
+    this.mockData = AWS.DynamoDB.Converter.marshall({
       experimentId: '5e959f9c9f4b120771249001',
       experimentName: 'TGFB1 experiment',
-      matrixPath: 'balbad',
+      matrixPath: 'biomage-results/tgfb1-3-BMP9.h5ad',
       cellSets: [
         {
           key: 1,
@@ -91,16 +52,56 @@ class ExperimentService {
           ],
         },
       ],
-    };
-    mockData = AWS.DynamoDB.Converter.marshall(mockData);
+    });
+  }
+
+  async getExperimentData(experimentId) {
+    const dynamodb = new AWS.DynamoDB({
+      region: 'eu-west-2',
+    });
+    let key = { experimentId };
+    key = AWS.DynamoDB.Converter.marshall(key);
 
     const params = {
       TableName: this.tableName,
-      Item: mockData,
+      Key: key,
+      ProjectionExpression: 'experimentId, experimentName',
     };
 
+    const data = await dynamodb.getItem(params).promise();
+    const prettyData = AWS.DynamoDB.Converter.unmarshall(data.Item);
+    return prettyData;
+  }
 
-    return this.dynamodb.putItem(params).promise();
+  async getCellSets(experimentId) {
+    const dynamodb = new AWS.DynamoDB({
+      region: 'eu-west-2',
+    });
+    let key = { experimentId };
+    key = AWS.DynamoDB.Converter.marshall(key);
+
+    const params = {
+      TableName: this.tableName,
+      Key: key,
+      ProjectionExpression: 'cellSets',
+    };
+
+    const data = await dynamodb.getItem(params).promise();
+    const prettyData = AWS.DynamoDB.Converter.unmarshall(data.Item);
+
+    return prettyData;
+  }
+
+  generateMockData() {
+    const dynamodb = new AWS.DynamoDB({
+      region: 'eu-west-2',
+    });
+
+    const params = {
+      TableName: this.tableName,
+      Item: this.mockData,
+    };
+    return dynamodb.putItem(params).promise();
   }
 }
 
