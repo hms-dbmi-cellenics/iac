@@ -46,7 +46,7 @@ module.exports = {
 
           const workResult = JSON.parse(message.Message);
 
-          console.log('workresult parsed');
+          console.log('workresult parsed: ', workResult);
 
 
           const responseService = new WorkResponseService(io, workResult);

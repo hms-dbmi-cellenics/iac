@@ -20,13 +20,14 @@ class WorkResponseService {
 
     this.workResponse = workResponse;
     this.io = io;
-    this.s3 = new AWS.S3();
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async processS3PathType(workResponse) {
     console.log('processs3pathtype called');
 
     const s3Promises = [];
+    const s3 = new AWS.S3();
 
     workResponse.results
       .filter((result) => result.type === 's3-path')
@@ -40,12 +41,10 @@ class WorkResponseService {
           ResponseContentEncoding: result['content-encoding'] || 'utf-8',
         };
 
-        s3Promises.push(this.s3.getObject(params).promise());
+        s3Promises.push(s3.getObject(params).promise());
       });
 
     const result = await Promise.all(s3Promises).then((values) => {
-      console.log('all promises in s3 resolved');
-
       const processed = [];
 
       values.forEach((value) => {
@@ -56,18 +55,15 @@ class WorkResponseService {
         });
       });
 
-      console.log('decoded...');
-
       return processed;
     });
-
-    console.log('returning from s3 process');
 
     return result;
   }
 
   // eslint-disable-next-line class-methods-use-this
   async processInlineType(workResponse) {
+    console.log('processInlineType called');
     const inlineResults = workResponse.results
       .filter((result) => result.type === 'inline')
       .map((result) => {
@@ -80,29 +76,23 @@ class WorkResponseService {
   }
 
 
-  async handleResponse() {
-    console.log('handleResponse');
-
-    Promise.all(
+  handleResponse() {
+    return Promise.all(
       [this.processS3PathType(this.workResponse), this.processInlineType(this.workResponse)],
     ).then((results) => {
-      console.log('all promises resolved');
-
-
       const responseForClient = this.workResponse;
       responseForClient.results = results.flat();
 
-      console.log('response flattened');
-
-
       return responseForClient;
     }).then((response) => {
-      console.log('response processed, sending to', response.request.socketId);
-
       const { uuid, socketId } = response.request;
-      this.io.to(socketId).emit(`WorkResponse-${uuid}`, response);
+      try {
+        this.io.to(socketId).emit(`WorkResponse-${uuid}`, response);
+      } catch (e) {
+        console.error('Error trying to send result over sockets: ', e);
+      }
 
-      console.log('response sent out', response);
+      console.log('response sent out');
     });
   }
 }
