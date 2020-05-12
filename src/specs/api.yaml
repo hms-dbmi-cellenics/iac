@@ -45,6 +45,13 @@ paths:
                       - test
                       - staging
                       - production
+                  clusterEnv: 
+                    type: string
+                    enum:
+                      - development
+                      - test
+                      - staging
+                      - production
       description: Returns a status on the health of the API.
   /workResults:
     post:

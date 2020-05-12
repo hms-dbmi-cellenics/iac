@@ -3,6 +3,8 @@ const express = require('express');
 const request = require('supertest');
 const expressLoader = require('../../../src/loaders/express');
 
+jest.mock('../../../src/config');
+
 describe('tests for the healthcheck route', () => {
   // eslint-disable-next-line arrow-parens
   it('Check health', async done => {
@@ -17,7 +19,7 @@ describe('tests for the healthcheck route', () => {
         }
         expect(res.body.status).toBe('up');
         expect(res.body.env).toBe('test');
-        expect(res.body.clusterEnv).toBe('staging');
+        expect(res.body.clusterEnv).toBe('test');
         return done();
       });
   });

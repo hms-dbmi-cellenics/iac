@@ -3,20 +3,12 @@ const crypto = require('crypto');
 const k8s = require('@kubernetes/client-node');
 const config = require('../../config');
 
-
 class WorkSubmitService {
   constructor(workRequest) {
     this.kc = new k8s.KubeConfig();
     this.kc.loadFromDefault();
 
-    this.k8sCoreApi = this.kc.makeApiClient(k8s.CoreV1Api);
     this.k8sBatchApi = this.kc.makeApiClient(k8s.BatchV1Api);
-
-    this.sqs = new AWS.SQS({
-      region: config.awsRegion,
-    });
-
-    this.sts = new AWS.STS();
 
     this.workRequest = workRequest;
 
@@ -33,7 +25,10 @@ class WorkSubmitService {
    * worker.
    */
   async createQueue() {
-    const q = await this.sqs.createQueue({
+    const sqs = new AWS.SQS({
+      region: config.awsRegion,
+    });
+    const q = await sqs.createQueue({
       QueueName: this.workQueueName,
       Attributes: {
         FifoQueue: 'true',
@@ -52,7 +47,10 @@ class WorkSubmitService {
    */
   sendMessageToQueue(queueUrl) {
     console.log('in the function...');
-    return this.sqs.sendMessage({
+    const sqs = new AWS.SQS({
+      region: config.awsRegion,
+    });
+    return sqs.sendMessage({
       MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
       MessageGroupId: 'work',
@@ -61,7 +59,7 @@ class WorkSubmitService {
 
   getQueueUrl() {
     return config.awsAccountIdPromise
-      .then((id) => `https://sqs.${config.awsRegion}.amazonaws.com/${id}/${this.workQueueName}`);
+      .then((accountId) => `https://sqs.${config.awsRegion}.amazonaws.com/${accountId}/${this.workQueueName}`);
   }
 
   /**
@@ -149,19 +147,21 @@ class WorkSubmitService {
   }
 
   async submitWork() {
-    this.getQueueUrl().then(
-      (queueUrl) => { console.log('before queueurl...'); return this.sendMessageToQueue(queueUrl); },
-    ).then((a) => console.log(a)).catch((e) => {
-      if (e.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw e; }
-
-      this.createQueue().then((queueUrl) => this.sendMessageToQueue(queueUrl));
-    });
-
     this.createWorker().catch((e) => {
       if (e.statusCode !== 409) {
         throw new Error(e);
       }
     });
+
+    return this.getQueueUrl()
+      .then(
+        (queueUrl) => this.sendMessageToQueue(queueUrl),
+      ).then().catch((e) => {
+        if (e.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw e; }
+        this.createQueue().then((queueUrl) => this.sendMessageToQueue(queueUrl));
+      })
+      // todo: is that ok?
+      .then(() => 'success');
   }
 }
 

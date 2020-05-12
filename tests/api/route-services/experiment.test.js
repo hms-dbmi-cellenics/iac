@@ -3,6 +3,9 @@ const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
 const ExperimentService = require('../../../src/api/route-services/experiment');
 
+jest.mock('../../../src/config');
+
+
 describe('tests for the experiment service', () => {
   // eslint-disable-next-line arrow-parens
   it('Get experiment data works', async done => {
@@ -31,7 +34,7 @@ describe('tests for the experiment service', () => {
       .then((data) => {
         expect(data).toEqual(marshalledData);
         expect(getItemSpy).toHaveBeenCalledWith({
-          TableName: 'experiments-staging',
+          TableName: 'experiments-test',
           Key: { experimentId: { S: '12345' } },
           ProjectionExpression: 'experimentId, experimentName',
         });
@@ -75,7 +78,7 @@ describe('tests for the experiment service', () => {
         expect(data).toEqual(marshalledData);
         expect(getItemSpy).toHaveBeenCalledWith(
           {
-            TableName: 'experiments-staging',
+            TableName: 'experiments-test',
             Key: { experimentId: { S: '12345' } },
             ProjectionExpression: 'cellSets',
           },
@@ -100,7 +103,7 @@ describe('tests for the experiment service', () => {
         expect(a).toEqual({ hello: 'world' });
         expect(putItemSpy).toHaveBeenCalledWith(
           {
-            TableName: 'experiments-staging',
+            TableName: 'experiments-test',
             Item: e.mockData,
           },
         );
