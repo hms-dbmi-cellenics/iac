@@ -1,13 +1,6 @@
 /* eslint-env jest */
 const k8s = jest.genMockFromModule('@kubernetes/client-node');
 
-const mockExperimentData = jest.fn((x) => new Promise((resolve, reject) => {
-  resolve({
-    experimentId: x,
-    experimentName: 'my mocky name',
-  });
-}));
-
 const mockBatchV1Api = jest.fn(() => ({
   createNamespacedJob: jest.fn(() => {
     console.log('creating a fake namespace obj');

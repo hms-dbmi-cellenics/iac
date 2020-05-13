@@ -160,7 +160,6 @@ class WorkSubmitService {
         if (e.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw e; }
         this.createQueue().then((queueUrl) => this.sendMessageToQueue(queueUrl));
       })
-      // todo: is that ok?
       .then(() => 'success');
   }
 }

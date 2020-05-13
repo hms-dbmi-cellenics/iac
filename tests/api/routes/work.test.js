@@ -3,12 +3,15 @@
 const express = require('express');
 const request = require('supertest');
 const https = require('https');
+const _ = require('lodash');
 
 const expressLoader = require('../../../src/loaders/express');
 
 const workResponse = require('../../../src/api/route-services/work-response');
 
-const validMsg = JSON.stringify({
+jest.mock('sns-validator');
+
+const basicMsg = JSON.stringify({
   MessageId: 'da8827d4-ffc2-5efb-82c1-70f929b2081d',
   ResponseMetadata: {
     RequestId: '826314a1-e99f-5fe7-b845-438c3fef9901',
@@ -27,19 +30,13 @@ describe('tests for experiment route', () => {
   // eslint-disable-next-line arrow-parens
   it('Validating the response throws an error', async done => {
     const { app } = await expressLoader(express());
-    jest.mock('sns-validator', () => function () {
-      return {
-        validate: (msg, callback) => {
-          callback(Error('Error: Message missing required keys.'), 'error');
-        },
-      };
-    });
     const error = jest.spyOn(global.console, 'error');
+    const invalidMsg = _.cloneDeep(basicMsg);
     https.get = jest.fn();
 
     request(app)
       .post('/v1/workResults')
-      .send(validMsg)
+      .send(invalidMsg)
       .set('Content-type', 'text/plain')
       .expect(200)
       .end(() => {
@@ -52,19 +49,10 @@ describe('tests for experiment route', () => {
   // eslint-disable-next-line arrow-parens
   it('Can handle message subscribtion', async done => {
     const { app } = await expressLoader(express());
-
-    jest.mock('sns-validator', () => function () {
-      return {
-        validate: (returnMsg, callback) => {
-          callback(null, {
-            Type: 'SubscriptionConfirmation',
-            SubscribeURL: 'https://bla.com',
-          });
-        },
-      };
-    });
-
     const error = jest.spyOn(global.console, 'error');
+    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
+    validMsg.Type = 'SubscriptionConfirmation';
+    validMsg = JSON.stringify(validMsg);
     https.get = jest.fn();
 
     request(app)
@@ -79,22 +67,13 @@ describe('tests for experiment route', () => {
       });
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Can handle message unsubscribtion', async done => {
+  // // eslint-disable-next-line arrow-parens
+  it('Can handle message unsubscribtion', async (done) => {
     const { app } = await expressLoader(express());
-
-    jest.mock('sns-validator', () => function () {
-      return {
-        validate: (returnMsg, callback) => {
-          callback(null, {
-            Type: 'UnsubscribeConfirmation',
-            SubscribeURL: 'https://bla.com',
-          });
-        },
-      };
-    });
-
     const error = jest.spyOn(global.console, 'error');
+    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
+    validMsg.Type = 'UnsubscribeConfirmation';
+    validMsg = JSON.stringify(validMsg);
     https.get = jest.fn();
 
     request(app)
@@ -109,22 +88,12 @@ describe('tests for experiment route', () => {
       });
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Can handle notifications', async done => {
+  // // eslint-disable-next-line arrow-parens
+  it('Can handle notifications', async (done) => {
     const { app } = await expressLoader(express());
-
-    jest.mock('sns-validator', () => function () {
-      return {
-        validate: (returnMsg, callback) => {
-          callback(null, {
-            Type: 'Notification',
-            Message: JSON.stringify({
-              hello: 'world',
-            }),
-          });
-        },
-      };
-    });
+    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
+    validMsg.Type = 'Notification';
+    validMsg = JSON.stringify(validMsg);
 
     const error = jest.spyOn(global.console, 'error');
     const mockHandleResponse = jest.fn();
@@ -143,20 +112,13 @@ describe('tests for experiment route', () => {
       });
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Returns an error when message in sns is malformed', async done => {
+  // // eslint-disable-next-line arrow-parens
+  it('Returns an error when message in sns is malformed', async (done) => {
     const { app } = await expressLoader(express());
 
-    jest.mock('sns-validator', () => function () {
-      return {
-        validate: (returnMsg, callback) => {
-          callback(null, {
-            Type: 'Notification',
-            Message: JSON.stringify(),
-          });
-        },
-      };
-    });
+    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
+    validMsg.Type = 'NotificationMalformed';
+    validMsg = JSON.stringify(validMsg);
 
     const error = jest.spyOn(global.console, 'error');
     const mockHandleResponse = jest.fn();
@@ -175,7 +137,7 @@ describe('tests for experiment route', () => {
       });
   });
 
-  // eslint - disable - next - line arrow - parens
+  // // eslint - disable - next - line arrow - parens
   it('Get malformatted work results returns an error', async (done) => {
     const { app } = await expressLoader(express());
 

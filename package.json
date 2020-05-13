@@ -29,6 +29,7 @@
     "express": "^4.17.1",
     "express-openapi-validator": "^3.12.7",
     "js-yaml": "^3.13.1",
+    "lodash": "^4.17.15",
     "log-timestamp": "^0.3.0",
     "sns-validator": "^0.3.4",
     "socket.io": "^2.3.0",
