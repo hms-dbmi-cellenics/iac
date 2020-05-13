@@ -3,6 +3,8 @@ const express = require('express');
 const request = require('supertest');
 const expressLoader = require('../../../src/loaders/express');
 
+jest.mock('../../../src/config');
+
 jest.mock('../../../src/api/route-services/experiment');
 
 describe('tests for experiment route', () => {

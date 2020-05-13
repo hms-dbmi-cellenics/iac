@@ -10,6 +10,8 @@ const expressLoader = require('../../../src/loaders/express');
 const workResponse = require('../../../src/api/route-services/work-response');
 
 jest.mock('sns-validator');
+jest.mock('../../../src/config');
+
 
 const basicMsg = JSON.stringify({
   MessageId: 'da8827d4-ffc2-5efb-82c1-70f929b2081d',
