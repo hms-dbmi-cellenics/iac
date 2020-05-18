@@ -1585,7 +1585,7 @@ class ExperimentService {
       Key: key,
       UpdateExpression: 'set cellSets = :x',
       ExpressionAttributeValues: {
-        ':x': AWS.DynamoDB.Converter.marshall(cellSetData),
+        ':x': 'wasda', // AWS.DynamoDB.Converter.marshall(cellSetData),
       },
     };
 
