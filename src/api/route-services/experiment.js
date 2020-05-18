@@ -8,7 +8,7 @@ class ExperimentService {
     this.mockData = AWS.DynamoDB.Converter.marshall({
       experimentId: '5e959f9c9f4b120771249001',
       experimentName: 'TGFB1 experiment',
-      matrixPath: 'biomage-results/tgfb1-3-BMP9.h5ad',
+      matrixPath: 'julian-sep-19-intermediate-data/tgfb1-4-control.h5ad',
       cellSets: [
         {
           key: 1,
