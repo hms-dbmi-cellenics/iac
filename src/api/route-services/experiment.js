@@ -1580,7 +1580,7 @@ class ExperimentService {
 
     key = AWS.DynamoDB.Converter.marshall(key);
 
-    const data = AWS.DynamoDB.Converter.marshall({ cellSetData });
+    const data = AWS.DynamoDB.Converter.marshall({ ':x': cellSetData });
 
     console.log(data);
 
@@ -1588,9 +1588,7 @@ class ExperimentService {
       TableName: this.tableName,
       Key: key,
       UpdateExpression: 'set cellSets = :x',
-      ExpressionAttributeValues: {
-        ':x': data,
-      },
+      ExpressionAttributeValues: data,
     };
 
     const result = await dynamodb.updateItem(params).promise();
