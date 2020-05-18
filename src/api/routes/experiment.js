@@ -14,6 +14,7 @@ module.exports = {
       .catch(next);
   },
   'experiment#updateCellSets': (req, res, next) => {
+    console.log(req.body);
     experimentService.updateCellSets(req.params.experimentId, req.body)
       .then((data) => res.json(data))
       .catch(next);
