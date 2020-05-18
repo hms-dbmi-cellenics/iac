@@ -1580,7 +1580,7 @@ class ExperimentService {
 
     key = AWS.DynamoDB.Converter.marshall(key);
 
-    const data = AWS.DynamoDB.Converter.marshall(cellSetData);
+    const data = AWS.DynamoDB.Converter.marshall({ cellSetData });
 
     console.log(data);
 
