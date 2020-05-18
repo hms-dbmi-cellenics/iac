@@ -10,6 +10,8 @@ module.exports = {
   'work#response': async (req, res) => {
     let msg;
 
+    console.log('we got something to parse...');
+
     // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
