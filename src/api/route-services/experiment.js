@@ -18,7 +18,7 @@ class ExperimentService {
             {
               key: 'c4',
               name: 'Cluster 4',
-              color: '#CCCCCC',
+              color: '#e377c2',
               cellIds: [
                 'GAAATGATCAGAATAG-1-control',
                 'CTGGACGGTTCAGCGC-1-control',
@@ -188,7 +188,7 @@ class ExperimentService {
             {
               key: 'c2',
               name: 'Cluster 1',
-              color: '#CCCCCC',
+              color: '#8c564b',
               cellIds: [
                 'GGTGGCTGTGTTCCTC-1-control',
                 'ACACCAATCGCAGTCG-1-control',
@@ -482,7 +482,7 @@ class ExperimentService {
             {
               key: 'c3',
               name: 'Cluster 3',
-              color: '#CCCCCC',
+              color: '#9467bd',
               cellIds: [
                 'TAATTCCAGTCAACAA-1-control',
                 'TCTTTGAAGCTACTAC-1-control',
@@ -741,7 +741,7 @@ class ExperimentService {
             {
               key: 'c6',
               name: 'Cluster 6',
-              color: '#CCCCCC',
+              color: '#d62728',
               cellIds: [
                 'GGCTTGGTCGGATTAC-1-control',
                 'GTAACCAGTAGGGAGG-1-control',
@@ -777,7 +777,7 @@ class ExperimentService {
             {
               key: 'c5',
               name: 'Cluster 1',
-              color: '#CCCCCC',
+              color: '#2ca02c',
               cellIds: [
                 'ACGTAGTGTTTAGACC-1-control',
                 'TTTCAGTTCGTGGAAG-1-control',
@@ -863,7 +863,7 @@ class ExperimentService {
             {
               key: 'c6',
               name: 'Cluster 2',
-              color: '#CCCCCC',
+              color: '#ff7f0e',
               cellIds: [
                 'GGTTGTAGTGGTCTTA-1-control',
                 'AGTTAGCCACTCCGAG-1-control',
@@ -1151,7 +1151,7 @@ class ExperimentService {
             {
               key: 'c7',
               name: 'Cluster 0',
-              color: '#CCCCCC',
+              color: '#1f77b4',
               cellIds: [
                 'CGTGTCTTCATGCCGG-1-control',
                 'GAGTTTGAGTAGGATT-1-control',
