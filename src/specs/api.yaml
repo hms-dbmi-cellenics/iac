@@ -45,7 +45,7 @@ paths:
                       - test
                       - staging
                       - production
-                  clusterEnv: 
+                  clusterEnv:
                     type: string
                     enum:
                       - development
@@ -172,6 +172,22 @@ paths:
         required: true
         schema:
           type: string
+    put:
+      summary: ''
+      operationId: updateExperimentCellSetsById
+      x-eov-operation-id: 'experiment#updateCellSets'
+      x-eov-operation-handler: routes/experiment
+      responses:
+        '200':
+          description: OK
+      description: Updates the cell set information in the database with a modified tree.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CellSets'
 components:
   securitySchemes: {}
   schemas:

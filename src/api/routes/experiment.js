@@ -13,6 +13,11 @@ module.exports = {
       .then((data) => res.json(data))
       .catch(next);
   },
+  'experiment#updateCellSets': (req, res, next) => {
+    experimentService.updateCellSets(req.params.experimentId, req.body)
+      .then((data) => res.json(data))
+      .catch(next);
+  },
   'experiment#generateMock': (_, res, next) => {
     experimentService.generateMockData()
       .then((r) => res.json(r))

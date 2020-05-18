@@ -1572,6 +1572,28 @@ class ExperimentService {
     return prettyData;
   }
 
+  async updateCellSets(experimentId, cellSetData) {
+    const dynamodb = new AWS.DynamoDB({
+      region: 'eu-west-2',
+    });
+    let key = { experimentId };
+
+    key = AWS.DynamoDB.Converter.marshall(key);
+
+    const params = {
+      TableName: this.tableName,
+      Key: key,
+      UpdateExpression: 'set cellSets = :x',
+      ExpressionAttributeValues: {
+        ':x': AWS.DynamoDB.Converter.marshall(cellSetData),
+      },
+    };
+
+    const data = await dynamodb.updateItem(params).promise();
+
+    return cellSetData;
+  }
+
   generateMockData() {
     const dynamodb = new AWS.DynamoDB({
       region: 'eu-west-2',
