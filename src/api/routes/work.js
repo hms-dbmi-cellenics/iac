@@ -15,6 +15,7 @@ module.exports = {
       msg = JSON.parse(req.body);
     } catch (error) {
       res.status(500).send('nok');
+      console.error('JSON cannot be parsed', error);
       return;
     }
 
