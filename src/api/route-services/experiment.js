@@ -1591,7 +1591,7 @@ class ExperimentService {
       ExpressionAttributeValues: data,
     };
 
-    const result = await dynamodb.updateItem(params).promise();
+    await dynamodb.updateItem(params).promise();
 
     return cellSetData;
   }

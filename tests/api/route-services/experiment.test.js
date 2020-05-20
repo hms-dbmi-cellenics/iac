@@ -88,6 +88,44 @@ describe('tests for the experiment service', () => {
   });
 
   // eslint-disable-next-line arrow-parens
+  it('Update experiment cell sets works', async done => {
+    const e = new ExperimentService();
+
+    const testData = [
+      {
+        name: 'Empty cluster',
+        key: 'empty',
+        color: '#ff00ff',
+        children: [],
+        cellIds: [],
+      },
+    ];
+
+    AWSMock.setSDKInstance(AWS);
+    const putItemSpy = jest.fn((x) => x);
+    AWSMock.mock('DynamoDB', 'updateItem', (params, callback) => {
+      putItemSpy(params);
+      callback(null, []); // We do not care about the return value here, it is not used.
+    });
+
+    const marshalledTestData = AWS.DynamoDB.Converter.marshall({ ':x': testData });
+
+    e.updateCellSets('12345', testData)
+      .then((returnValue) => {
+        expect(returnValue).toEqual(testData);
+        expect(putItemSpy).toHaveBeenCalledWith(
+          {
+            TableName: 'experiments-test',
+            Key: { experimentId: { S: '12345' } },
+            UpdateExpression: 'set cellSets = :x',
+            ExpressionAttributeValues: marshalledTestData,
+          },
+        );
+      })
+      .then(() => done());
+  });
+
+  // eslint-disable-next-line arrow-parens
   it('Generate mock data works', async done => {
     const e = new ExperimentService();
 

@@ -180,6 +180,13 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/CellSets'
       description: Updates the cell set information in the database with a modified tree.
       requestBody:
         content:
@@ -187,7 +194,8 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/CellSets'
+                allOf:
+                  - $ref: '#/components/schemas/CellSets'
 components:
   securitySchemes: {}
   schemas:
@@ -217,12 +225,11 @@ components:
           type: string
     CellSets:
       type: object
+      title: ''
       properties:
         key:
-          type: integer
+          type: string
           format: int32
-          minimum: 0
-          exclusiveMinimum: false
         name:
           type: string
         rootNode:
