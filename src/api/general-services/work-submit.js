@@ -149,6 +149,8 @@ class WorkSubmitService {
   async submitWork() {
     this.createWorker().catch((e) => {
       if (e.statusCode !== 409) {
+        console.log(e);
+        console.log(e.statusCode);
         throw new Error(e);
       }
     });
