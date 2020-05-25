@@ -306,7 +306,9 @@ components:
           format: date-time
           description: 'The timeout parameter set by the client. While processing work, all work items whose timeout field is past the current time will be discarded along the work processing chain.'
         body:
-          $ref: '#/components/schemas/WorkSchemaGetEmbedding'
+          oneOf:
+            - $ref: '#/components/schemas/WorkSchemaGetEmbedding'
+            - $ref: '#/components/schemas/WorkSchemaListGenes'
         experimentId:
           type: string
           description: The ID of the experiment for which this work was created.
@@ -331,9 +333,43 @@ components:
             - tsne
             - umap
           description: The type of embedding to compute.
-        filter:
-          type: string
-          description: 'The cell set whose embedding will be computed. If left undefined, the embedding will be computed on all cells.'
       required:
         - name
         - type
+    WorkSchemaListGenes:
+      title: WorkSchemaListGenes
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: ListGenes
+          description: The name of the work submitted. Should be `ListGenes`.
+        selectFields:
+          type: array
+          minItems: 1
+          description: An array of fields to return as a result.
+          items:
+            type: string
+        orderBy:
+          type: string
+          description: What field to order the results by.
+        orderDirection:
+          type: string
+          pattern: '^(asc)|(desc)|(ASC)|(DESC)$'
+          description: 'The direction of the ordering (ASC, DESC)'
+        offset:
+          type: integer
+          minimum: 0
+          description: Which element of the query view to start returning results from.
+        limit:
+          type: integer
+          minimum: 0
+          description: How many results to return.
+      required:
+        - name
+        - selectFields
+        - orderBy
+        - orderDirection
+        - offset
+        - limit
+      description: ''
