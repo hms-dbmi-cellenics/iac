@@ -9,17 +9,22 @@ const AWS = require('aws-sdk');
 // environment.
 if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
   switch (process.env.GITLAB_ENVIRONMENT_NAME) {
-    case 'development':
-      process.env.NODE_ENV = 'development';
-      break;
     case 'staging':
       process.env.NODE_ENV = 'production';
+      process.env.CLUSTER_ENV = process.envGITLAB_ENVIRONMENT_NAME;
       break;
     case 'production':
       process.env.NODE_ENV = 'production';
+      process.env.CLUSTER_ENV = process.envGITLAB_ENVIRONMENT_NAME;
       break;
     default:
-      throw new Error('Invalid cluster environment name');
+      // We are probably on a review branch or other deployment.
+      // Default to production for node environment and staging for
+      // all cluster services.
+
+      process.env.NODE_ENV = 'production';
+      process.env.CLUSTER_ENV = 'staging';
+      break;
   }
 }
 
@@ -44,7 +49,7 @@ async function getAwsAccountId() {
 // is deployed for development.
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
-  clusterEnv: process.env.GITLAB_ENVIRONMENT_NAME || 'staging',
+  clusterEnv: process.env.CLUSTER_ENV || 'staging',
   awsRegion: process.env.AWS_DEFAULT_REGION || 'eu-west-2',
   awsAccountIdPromise: getAwsAccountId(),
   api: {
