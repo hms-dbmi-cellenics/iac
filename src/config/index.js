@@ -11,11 +11,11 @@ if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
   switch (process.env.GITLAB_ENVIRONMENT_NAME) {
     case 'staging':
       process.env.NODE_ENV = 'production';
-      process.env.CLUSTER_ENV = process.envGITLAB_ENVIRONMENT_NAME;
+      process.env.CLUSTER_ENV = process.env.GITLAB_ENVIRONMENT_NAME;
       break;
     case 'production':
       process.env.NODE_ENV = 'production';
-      process.env.CLUSTER_ENV = process.envGITLAB_ENVIRONMENT_NAME;
+      process.env.CLUSTER_ENV = process.env.GITLAB_ENVIRONMENT_NAME;
       break;
     default:
       // We are probably on a review branch or other deployment.
