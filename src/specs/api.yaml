@@ -350,6 +350,9 @@ components:
           description: An array of fields to return as a result.
           items:
             type: string
+        geneNamesFilter:
+          type: string
+          description: The pattern by which to filter the names of the genes to return
         orderBy:
           type: string
           description: What field to order the results by.
