@@ -376,3 +376,24 @@ components:
         - offset
         - limit
       description: ''
+    WorkSchemaDifferentialExpression:
+      title: WorkSchemaDifferentialExpression
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of this work -- must be `DifferentialExpression`.
+          pattern: DifferentialExpression
+        cellSet:
+          type: string
+          description: The cell set we run DE on.
+        compareWith:
+          type: string
+          description: The cell set to compare against -- it is either a key of a cell set or `rest`.
+        maxNum:
+          type: integer
+          description: 'The top number of genes to return ordered by the `zScore`. If blank, all genes are returned.'
+      required:
+        - name
+        - cellSet
+        - compareWith
