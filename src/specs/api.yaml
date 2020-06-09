@@ -309,6 +309,8 @@ components:
           oneOf:
             - $ref: '#/components/schemas/WorkSchemaGetEmbedding'
             - $ref: '#/components/schemas/WorkSchemaListGenes'
+            - $ref: '#/components/schemas/WorkSchemaDifferentialExpression'
+            - $ref: '#/components/schemas/WorkSchemaGeneExpression'
         experimentId:
           type: string
           description: The ID of the experiment for which this work was created.
@@ -339,6 +341,7 @@ components:
     WorkSchemaListGenes:
       title: WorkSchemaListGenes
       type: object
+      description: ''
       properties:
         name:
           type: string
@@ -350,9 +353,6 @@ components:
           description: An array of fields to return as a result.
           items:
             type: string
-        geneNamesFilter:
-          type: string
-          description: The pattern by which to filter the names of the genes to return
         orderBy:
           type: string
           description: What field to order the results by.
@@ -368,6 +368,9 @@ components:
           type: integer
           minimum: 0
           description: How many results to return.
+        geneNamesFilter:
+          type: string
+          description: The pattern by which to filter the names of the genes to return.
       required:
         - name
         - selectFields
@@ -375,7 +378,6 @@ components:
         - orderDirection
         - offset
         - limit
-      description: ''
     WorkSchemaDifferentialExpression:
       title: WorkSchemaDifferentialExpression
       type: object
@@ -397,3 +399,62 @@ components:
         - name
         - cellSet
         - compareWith
+    WorkSchemaGeneExpression:
+      title: WorkSchemaGeneExpression
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of this task. Must be `GeneExpression`.
+          pattern: GeneExpression
+        cellSets:
+          description: The cell sets to fetch expression data for. Can be a list of cell set keys or `all` for all cells in the experiment.
+          oneOf:
+            - type: string
+              pattern: all
+            - type: array
+              items:
+                type: string
+        genes:
+          type: array
+          description: A list of genes to compute expression data for.
+          items:
+            type: string
+        scale:
+          type: boolean
+          description: Whether to perform feature scaling (normalization to unit variance and zero mean). Defaults to `false` if not specified.
+          default: 'false'
+      required:
+        - name
+        - cellSets
+        - genes
+    WorkResponseGeneExpression:
+      title: WorkResponseGeneExpression
+      type: object
+      description: The response schema for the `GeneExpression` task.
+      properties:
+        cells:
+          type: array
+          description: 'The list of cells that the expression data corresponds to. The cell list order is pre-determined, that is, if cell A comes before cell B in one response, A will always come before B in all responses.'
+          items:
+            type: string
+        data:
+          type: array
+          description: The expression data.
+          items:
+            type: object
+            properties:
+              geneName:
+                type: string
+                description: The name of the gene for which the data was requested.
+              expression:
+                type: array
+                description: 'The array of expression values, raw or scaled, depending on the setting.'
+                items:
+                  type: number
+            required:
+              - geneName
+              - expression
+      required:
+        - cells
+        - data
