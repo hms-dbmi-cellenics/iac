@@ -10,7 +10,7 @@ class ExperimentService {
 
   async getExperimentData(experimentId) {
     const dynamodb = new AWS.DynamoDB({
-      region: 'eu-west-2',
+      region: config.awsRegion,
     });
     let key = { experimentId };
     key = AWS.DynamoDB.Converter.marshall(key);
@@ -28,7 +28,7 @@ class ExperimentService {
 
   async getCellSets(experimentId) {
     const dynamodb = new AWS.DynamoDB({
-      region: 'eu-west-2',
+      region: config.awsRegion,
     });
     let key = { experimentId };
     key = AWS.DynamoDB.Converter.marshall(key);
@@ -47,7 +47,7 @@ class ExperimentService {
 
   async updateCellSets(experimentId, cellSetData) {
     const dynamodb = new AWS.DynamoDB({
-      region: 'eu-west-2',
+      region: config.awsRegion,
     });
     let key = { experimentId };
 
@@ -71,7 +71,7 @@ class ExperimentService {
 
   generateMockData() {
     const dynamodb = new AWS.DynamoDB({
-      region: 'eu-west-2',
+      region: config.awsRegion,
     });
 
     const params = {
