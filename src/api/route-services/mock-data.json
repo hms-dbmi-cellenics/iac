@@ -2698,8 +2698,8 @@
           ]
        },
        {
-          "key":"custom",
-          "name":"Custom cell sets",
+          "key":"scratchpad",
+          "name":"Scratchpad",
           "rootNode":true
        }
     ]
