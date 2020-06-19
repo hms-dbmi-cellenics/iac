@@ -79,7 +79,7 @@ class ExperimentService {
       Item: this.mockData,
     };
 
-    dynamodb.putItem(params).promise();
+    await dynamodb.putItem(params).promise();
 
     return mockData;
   }
