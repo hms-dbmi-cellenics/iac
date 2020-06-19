@@ -18,6 +18,11 @@ class WorkResponseService {
       throw new Error(res.errors);
     }
 
+    const { timeout } = workResponse.request;
+    if (Date.parse(timeout) <= Date.now()) {
+      throw new Error(`Work response will not be handled as timeout of ${timeout} is in the past...`);
+    }
+
     this.workResponse = workResponse;
     this.io = io;
   }

@@ -7,13 +7,12 @@ jest.mock('../../../src/config');
 jest.mock('@kubernetes/client-node');
 
 describe('tests for the work-submit service', () => {
-  // eslint-disable-next-line arrow-parens
-  it('Can submit work', async done => {
+  it('Can submit work', async (done) => {
     const workRequest = {
       uuid: '12345',
       socketId: '6789',
       experimentId: 'my-experiment',
-      timeout: '2021-01-01T00:00:00Z',
+      timeout: '2099-01-01T00:00:00Z',
       body: { name: 'GetEmbedding', type: 'pca' },
     };
 
