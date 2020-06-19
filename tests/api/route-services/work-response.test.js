@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-env jest */
 const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
@@ -25,9 +26,9 @@ describe('tests for the work-response service', () => {
     setIoMock();
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('An error gets thrown during validation', async done => {
+  it('Throws during validation if invalid data is supplied', async (done) => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const w = new WorkResponseService(null, {});
     } catch (e) {
       expect(e.message).toEqual('Error: Unable to validate an empty value for property: rootModel');
@@ -35,14 +36,46 @@ describe('tests for the work-response service', () => {
     }
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Can consume work response with a single inline item', async done => {
+  it('Throws during validation if the timeout has expired', async (done) => {
+    try {
+      const workResponse = {
+        request: {
+          uuid: '55',
+          socketId: 'mysocketid',
+          experimentId: '5e959f9c9f4b120771249001',
+          timeout: '2001-01-01T00:00:00Z',
+          body: {
+            name: 'GetEmbedding',
+            type: 'pca',
+          },
+        },
+        results: [
+          {
+            'content-type': 'application/json',
+            'content-encoding': 'utf-8',
+            body: '[[-17.86727523803711, 4.7951226234436035], [2.4647858142852783, -4.940079689025879]]',
+            type: 'inline',
+          },
+        ],
+      };
+
+      // eslint-disable-next-line no-unused-vars
+      const w = new WorkResponseService(null, workResponse);
+    } catch (e) {
+      expect(e.message).toMatch(
+        /^Work response will not be handled as timeout/,
+      );
+      return done();
+    }
+  });
+
+  it('Can consume work response with a single inline item', async (done) => {
     const workResponse = {
       request: {
         uuid: '55',
         socketId: 'mysocketid',
         experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2021-01-01T00:00:00Z',
+        timeout: '2099-01-01T00:00:00Z',
         body: {
           name: 'GetEmbedding',
           type: 'pca',
@@ -70,14 +103,13 @@ describe('tests for the work-response service', () => {
     });
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Can consume work response with multiple inline items', async done => {
+  it('Can consume work response with multiple inline items', async (done) => {
     const workResponse = {
       request: {
         uuid: '55',
         socketId: 'mysocketid',
         experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2021-01-01T00:00:00Z',
+        timeout: '2099-01-01T00:00:00Z',
         body: {
           name: 'GetEmbedding',
           type: 'pca',
@@ -118,14 +150,13 @@ describe('tests for the work-response service', () => {
     });
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Can consume work response with a single processS3PathType item', async done => {
+  it('Can consume work response with a single processS3PathType item', async (done) => {
     const workResponse = {
       request: {
         uuid: '55',
         socketId: 'mysocketid',
         experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2021-01-01T00:00:00Z',
+        timeout: '2099-01-01T00:00:00Z',
         body: {
           name: 'GetEmbedding',
           type: 'pca',
@@ -182,14 +213,13 @@ describe('tests for the work-response service', () => {
     });
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Can consume work response with different types of items', async done => {
+  it('Can consume work response with different types of items', async (done) => {
     const workResponse = {
       request: {
         uuid: '55',
         socketId: 'mysocketid',
         experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2021-01-01T00:00:00Z',
+        timeout: '2099-01-01T00:00:00Z',
         body: {
           name: 'GetEmbedding',
           type: 'pca',

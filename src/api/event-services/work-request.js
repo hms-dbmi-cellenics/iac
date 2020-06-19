@@ -18,12 +18,17 @@ class WorkRequestService {
       throw new Error(res.errors);
     }
 
+    const { timeout } = workRequest;
+    if (Date.parse(timeout) <= Date.now()) {
+      throw new Error(`Work request will not be handled as timeout of ${timeout} is in the past...`);
+    }
+
     this.workRequest = workRequest;
   }
 
   handleRequest() {
     const workSubmitService = new WorkSubmitService(this.workRequest);
-    console.log('submitting request...');
+    console.warn('submitting request...');
     workSubmitService.submitWork();
   }
 }

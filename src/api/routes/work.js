@@ -46,11 +46,8 @@ module.exports = {
 
         try {
           const io = req.app.get('io');
-
           const workResult = JSON.parse(message.Message);
-
           console.log('workresult parsed: ', workResult);
-
 
           const responseService = new WorkResponseService(io, workResult);
           responseService.handleResponse();
