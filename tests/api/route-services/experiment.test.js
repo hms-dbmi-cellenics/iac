@@ -138,7 +138,7 @@ describe('tests for the experiment service', () => {
 
     e.generateMockData()
       .then((a) => {
-        expect(a).toEqual({ hello: 'world' });
+        expect(a).toEqual(AWS.DynamoDB.Converter.unmarshall(e.mockData));
         expect(putItemSpy).toHaveBeenCalledWith(
           {
             TableName: 'experiments-test',

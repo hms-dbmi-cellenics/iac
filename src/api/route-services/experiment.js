@@ -69,7 +69,7 @@ class ExperimentService {
     return cellSetData;
   }
 
-  generateMockData() {
+  async generateMockData() {
     const dynamodb = new AWS.DynamoDB({
       region: config.awsRegion,
     });
@@ -78,7 +78,10 @@ class ExperimentService {
       TableName: this.tableName,
       Item: this.mockData,
     };
-    return dynamodb.putItem(params).promise();
+
+    dynamodb.putItem(params).promise();
+
+    return mockData;
   }
 }
 
