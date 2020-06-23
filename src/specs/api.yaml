@@ -451,10 +451,18 @@ components:
                 type: array
                 description: 'The array of expression values, raw or scaled, depending on the setting.'
                 items:
-                  type: number
+                  type: number 
             required:
               - geneName
               - expression
+        minExpression:
+          type: number
+          description: "The minimum expression value of that gene" 
+        maxExpression:
+          type: number
+          description: "The maximum expression value of that gene"
       required:
         - cells
         - data
+        - minExpression
+        - maxExpression
