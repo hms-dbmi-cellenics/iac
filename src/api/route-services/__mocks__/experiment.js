@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 const mockExperimentData = jest.fn((experimentId) => new Promise((resolve) => {
   resolve({
     experimentId,

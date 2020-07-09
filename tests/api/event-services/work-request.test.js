@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 const WorkRequestService = require('../../../src/api/event-services/work-request');
 
 describe('tests for the work-request service', () => {

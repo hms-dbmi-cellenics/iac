@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const config = require('../../config');
 const mockData = require('./mock-data.json');
+const logger = require('../../utils/logging');
 
 class ExperimentService {
   constructor() {
@@ -55,7 +56,7 @@ class ExperimentService {
 
     const data = AWS.DynamoDB.Converter.marshall({ ':x': cellSetData });
 
-    console.log(data);
+    logger.log(data);
 
     const params = {
       TableName: this.tableName,

@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const Validator = require('swagger-model-validator');
 const AWS = require('aws-sdk');
+const logger = require('../../utils/logging');
 
 class WorkResponseService {
   constructor(io, workResponse) {
@@ -29,7 +30,7 @@ class WorkResponseService {
 
   // eslint-disable-next-line class-methods-use-this
   async processS3PathType(workResponse) {
-    console.log('processs3pathtype called');
+    logger.log('processs3pathtype called');
 
     const s3Promises = [];
     const s3 = new AWS.S3();
@@ -68,7 +69,7 @@ class WorkResponseService {
 
   // eslint-disable-next-line class-methods-use-this
   async processInlineType(workResponse) {
-    console.log('processInlineType called');
+    logger.log('processInlineType called');
     const inlineResults = workResponse.results
       .filter((result) => result.type === 'inline')
       .map((result) => {
@@ -81,24 +82,19 @@ class WorkResponseService {
   }
 
 
-  handleResponse() {
-    return Promise.all(
+  async handleResponse() {
+    const results = await Promise.all(
       [this.processS3PathType(this.workResponse), this.processInlineType(this.workResponse)],
-    ).then((results) => {
-      const responseForClient = this.workResponse;
-      responseForClient.results = results.flat();
-
-      return responseForClient;
-    }).then((response) => {
-      const { uuid, socketId } = response.request;
-      try {
-        this.io.to(socketId).emit(`WorkResponse-${uuid}`, response);
-      } catch (e) {
-        console.error('Error trying to send result over sockets: ', e);
-      }
-
-      console.log('response sent out');
-    });
+    );
+    const responseForClient = this.workResponse;
+    responseForClient.results = results.flat();
+    const { uuid, socketId } = responseForClient.request;
+    try {
+      this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
+    } catch (e) {
+      logger.error('Error trying to send result over sockets: ', e);
+    }
+    logger.log('response sent out');
   }
 }
 

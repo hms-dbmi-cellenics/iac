@@ -1,4 +1,3 @@
-/* eslint-env jest */
 const express = require('express');
 const request = require('supertest');
 const expressLoader = require('../../../src/loaders/express');
@@ -6,8 +5,7 @@ const expressLoader = require('../../../src/loaders/express');
 jest.mock('../../../src/config');
 
 describe('tests for the healthcheck route', () => {
-  // eslint-disable-next-line arrow-parens
-  it('Check health', async done => {
+  it('Check health', async (done) => {
     const { app } = await expressLoader(express());
 
     request(app)
