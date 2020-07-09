@@ -10,7 +10,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -18,8 +18,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -36,7 +36,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -44,8 +44,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -62,7 +62,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -70,8 +70,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -88,7 +88,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -96,8 +96,8 @@ Object {
   "skipAvailabilityZoneCheck": true,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -114,7 +114,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -122,8 +122,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -140,7 +140,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -148,8 +148,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -166,7 +166,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -174,8 +174,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
@@ -192,7 +192,7 @@ Object {
   },
   "master": Object {
     "az": "eu-west-2b",
-    "host": "biomage-cache-001.lmoszc.0001.euw2.cache.amazonaws.com",
+    "host": "bic1ja6rekd5urqg-001.lmoszc.0001.euw2.cache.amazonaws.com",
     "port": "6379",
   },
   "redisGetTimeout": 3000,
@@ -200,8 +200,8 @@ Object {
   "skipAvailabilityZoneCheck": false,
   "slaves": Array [
     Object {
-      "az": "eu-west-2b",
-      "host": "biomage-cache-002.lmoszc.0001.euw2.cache.amazonaws.com",
+      "az": "eu-west-2a",
+      "host": "bic1ja6rekd5urqg-002.lmoszc.0001.euw2.cache.amazonaws.com",
       "port": "6379",
     },
   ],
