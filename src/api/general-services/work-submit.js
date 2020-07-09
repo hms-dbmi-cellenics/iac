@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const crypto = require('crypto');
 const k8s = require('@kubernetes/client-node');
 const config = require('../../config');
+const logger = require('../../utils/logging');
 
 class WorkSubmitService {
   constructor(workRequest) {
@@ -45,32 +46,31 @@ class WorkSubmitService {
    * formatted task to the Job via an SQS queue.
    * @param {string} queueUrl adsas
    */
-  sendMessageToQueue(queueUrl) {
-    console.log('in the function...');
+  async sendMessageToQueue(queueUrl) {
+    logger.log('in the function...');
     const sqs = new AWS.SQS({
       region: config.awsRegion,
     });
-    return sqs.sendMessage({
+    await sqs.sendMessage({
       MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
       MessageGroupId: 'work',
     }).promise();
   }
 
-  getQueueUrl() {
-    return config.awsAccountIdPromise
-      .then((accountId) => `https://sqs.${config.awsRegion}.amazonaws.com/${accountId}/${this.workQueueName}`);
+  async getQueueUrl() {
+    const accountId = await config.awsAccountIdPromise;
+    return `https://sqs.${config.awsRegion}.amazonaws.com/${accountId}/${this.workQueueName}`;
   }
 
   /**
     * Launches a Kubernetes `Job` with the appropriate configuration.
     */
-  createWorker() {
+  async createWorker() {
     // TODO: this needs to be set to `development` when we have separate environments deployed.
     const namespaceName = `worker-18327207-${config.clusterEnv}`;
 
-
-    return this.k8sBatchApi.createNamespacedJob(namespaceName, {
+    await this.k8sBatchApi.createNamespacedJob(namespaceName, {
       apiVersion: 'batch/v1',
       kind: 'Job',
       metadata: {
@@ -147,22 +147,22 @@ class WorkSubmitService {
   }
 
   async submitWork() {
-    this.createWorker().catch((e) => {
-      if (e.statusCode !== 409) {
-        console.log(e);
-        console.log(e.statusCode);
-        throw new Error(e);
+    try {
+      await this.createWorker();
+      const queueUrl = await this.getQueueUrl();
+      await this.sendMessageToQueue(queueUrl);
+      return 'success';
+    } catch (error) {
+      if (error.statusCode !== 409) {
+        logger.trace(error);
+        logger.error(error.statusCode);
+        throw new Error(error);
       }
-    });
-
-    return this.getQueueUrl()
-      .then(
-        (queueUrl) => this.sendMessageToQueue(queueUrl),
-      ).then().catch((e) => {
-        if (e.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw e; }
-        this.createQueue().then((queueUrl) => this.sendMessageToQueue(queueUrl));
-      })
-      .then(() => 'success');
+      if (error.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw error; }
+      const queueUrl = await this.createQueue();
+      await this.sendMessageToQueue(queueUrl);
+      return 'success';
+    }
   }
 }
 

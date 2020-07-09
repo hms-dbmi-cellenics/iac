@@ -1,16 +1,19 @@
 
-/* eslint-env jest */
 const express = require('express');
 const request = require('supertest');
 const https = require('https');
 const _ = require('lodash');
-
+const logger = require('../../../src/utils/logging');
 const expressLoader = require('../../../src/loaders/express');
-
-const workResponse = require('../../../src/api/route-services/work-response');
 
 jest.mock('sns-validator');
 jest.mock('../../../src/config');
+jest.mock('../../../src/utils/logging', () => ({
+  trace: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  log: jest.fn(),
+}));
 
 
 const basicMsg = JSON.stringify({
@@ -29,135 +32,103 @@ const basicMsg = JSON.stringify({
 });
 
 describe('tests for experiment route', () => {
-  // eslint-disable-next-line arrow-parens
-  it('Validating the response throws an error', async done => {
-    const { app } = await expressLoader(express());
-    const error = jest.spyOn(global.console, 'error');
-    const invalidMsg = _.cloneDeep(basicMsg);
-    https.get = jest.fn();
-
-    request(app)
-      .post('/v1/workResults')
-      .send(invalidMsg)
-      .set('Content-type', 'text/plain')
-      .expect(200)
-      .end(() => {
-        expect(error).toHaveBeenCalledTimes(1);
-        expect(https.get).toHaveBeenCalledTimes(0);
-        return done();
-      });
+  afterEach(() => {
+    logger.log.mockClear();
+    logger.error.mockClear();
   });
-
-  // eslint-disable-next-line arrow-parens
-  it('Can handle message subscribtion', async done => {
-    const { app } = await expressLoader(express());
-    const error = jest.spyOn(global.console, 'error');
-    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
-    validMsg.Type = 'SubscriptionConfirmation';
-    validMsg = JSON.stringify(validMsg);
-    https.get = jest.fn();
-
-    request(app)
-      .post('/v1/workResults')
-      .send(validMsg)
-      .set('Content-type', 'text/plain')
-      .expect(200)
-      .end(() => {
-        expect(error).toHaveBeenCalledTimes(0);
-        expect(https.get).toHaveBeenCalledTimes(1);
-        return done();
-      });
-  });
-
-  // // eslint-disable-next-line arrow-parens
-  it('Can handle message unsubscribtion', async (done) => {
-    const { app } = await expressLoader(express());
-    const error = jest.spyOn(global.console, 'error');
-    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
-    validMsg.Type = 'UnsubscribeConfirmation';
-    validMsg = JSON.stringify(validMsg);
-    https.get = jest.fn();
-
-    request(app)
-      .post('/v1/workResults')
-      .send(validMsg)
-      .set('Content-type', 'text/plain')
-      .expect(200)
-      .end(() => {
-        expect(error).toHaveBeenCalledTimes(0);
-        expect(https.get).toHaveBeenCalledTimes(1);
-        return done();
-      });
-  });
-
-  // // eslint-disable-next-line arrow-parens
-  it('Can handle notifications', async (done) => {
+  it('Can handle notifications', async () => {
     const { app } = await expressLoader(express());
     let validMsg = _.cloneDeep(JSON.parse(basicMsg));
     validMsg.Type = 'Notification';
     validMsg = JSON.stringify(validMsg);
 
-    const error = jest.spyOn(global.console, 'error');
     const mockHandleResponse = jest.fn();
     jest.mock('../../../src/api/route-services/work-response',
       () => jest.fn().mockImplementation(() => ({ handleResponse: mockHandleResponse })));
 
-    request(app)
+    await request(app)
       .post('/v1/workResults')
       .send(validMsg)
       .set('Content-type', 'text/plain')
-      .expect(200)
-      .end(() => {
-        expect(error).toHaveBeenCalledTimes(0);
-        expect(mockHandleResponse).toHaveBeenCalledTimes(1);
-        return done();
-      });
+      .expect(200);
+    expect(logger.error).toHaveBeenCalledTimes(0);
+    expect(mockHandleResponse).toHaveBeenCalledTimes(1);
+  });
+  it('Validating the response throws an error', async () => {
+    const { app } = await expressLoader(express());
+    const invalidMsg = _.cloneDeep(basicMsg);
+    https.get = jest.fn();
+
+    await request(app)
+      .post('/v1/workResults')
+      .send(invalidMsg)
+      .set('Content-type', 'text/plain')
+      .expect(200);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(https.get).toHaveBeenCalledTimes(0);
   });
 
-  // // eslint-disable-next-line arrow-parens
-  it('Returns an error when message in sns is malformed', async (done) => {
+  it('Can handle message subscribtion', async () => {
+    const { app } = await expressLoader(express());
+    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
+    validMsg.Type = 'SubscriptionConfirmation';
+    validMsg = JSON.stringify(validMsg);
+    https.get = jest.fn();
+
+    await request(app)
+      .post('/v1/workResults')
+      .send(validMsg)
+      .set('Content-type', 'text/plain')
+      .expect(200);
+    expect(logger.error).toHaveBeenCalledTimes(0);
+    expect(https.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('Can handle message unsubscribtion', async () => {
+    const { app } = await expressLoader(express());
+    let validMsg = _.cloneDeep(JSON.parse(basicMsg));
+    validMsg.Type = 'UnsubscribeConfirmation';
+    validMsg = JSON.stringify(validMsg);
+    https.get = jest.fn();
+
+    await request(app)
+      .post('/v1/workResults')
+      .send(validMsg)
+      .set('Content-type', 'text/plain')
+      .expect(200);
+    expect(logger.error).toHaveBeenCalledTimes(0);
+    expect(https.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('Get malformatted work results returns an error', async () => {
+    const { app } = await expressLoader(express());
+
+    const brokenMsg = JSON.stringify();
+
+    await request(app)
+      .post('/v1/workResults')
+      .send(brokenMsg)
+      .set('Content-type', 'text/plain')
+      .expect(500);
+  });
+  it('Returns an error when message in sns is malformed', async () => {
     const { app } = await expressLoader(express());
 
     let validMsg = _.cloneDeep(JSON.parse(basicMsg));
     validMsg.Type = 'NotificationMalformed';
     validMsg = JSON.stringify(validMsg);
 
-    const error = jest.spyOn(global.console, 'error');
     const mockHandleResponse = jest.fn();
     jest.mock('../../../src/api/route-services/work-response',
       () => jest.fn().mockImplementation(() => ({ handleResponse: mockHandleResponse })));
 
-    request(app)
+    await request(app)
       .post('/v1/workResults')
       .send(validMsg)
       .set('Content-type', 'text/plain')
-      .expect(200)
-      .end(() => {
-        expect(error).toHaveBeenCalledTimes(1);
-        expect(mockHandleResponse).toHaveBeenCalledTimes(0);
-        return done();
-      });
-  });
+      .expect(200);
 
-  // // eslint - disable - next - line arrow - parens
-  it('Get malformatted work results returns an error', async (done) => {
-    const { app } = await expressLoader(express());
-
-    const brokenMsg = JSON.stringify();
-
-    request(app)
-      .post('/v1/workResults')
-      .send(brokenMsg)
-      .set('Content-type', 'text/plain')
-      .expect(500)
-      .end(() => done());
-  });
-
-  afterEach(() => {
-    /**
-     * Most important since b'coz of caching, the mocked implementations sometimes does not reset
-     */
-    jest.resetModules();
-    jest.restoreAllMocks();
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(mockHandleResponse).toHaveBeenCalledTimes(0);
   });
 });

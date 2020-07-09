@@ -3,6 +3,8 @@ const https = require('https');
 
 const MessageValidator = require('sns-validator');
 const WorkResponseService = require('../route-services/work-response');
+const logger = require('../../utils/logging');
+
 
 const validator = new MessageValidator();
 
@@ -10,24 +12,23 @@ module.exports = {
   'work#response': async (req, res) => {
     let msg;
 
-    console.log('we got something to parse...', req.body.length);
+    logger.log('we got something to parse...', req.body.length);
 
     // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
     } catch (error) {
       res.status(500).send('nok');
-      // console.error('JSON cannot be parsed', error);
       return;
     }
 
-    console.log('message parsed', msg);
+    logger.log('message parsed', msg);
 
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
       // Ignore errors.
       if (err) {
-        console.error(
+        logger.error(
           'Error validating the SNS response: ', err,
         );
         return;
@@ -41,18 +42,18 @@ module.exports = {
 
       // Notifications are passed on to the service for processing.
       if (message.Type === 'Notification') {
-        console.log('notification type message');
+        logger.log('notification type message');
 
 
         try {
           const io = req.app.get('io');
           const workResult = JSON.parse(message.Message);
-          console.log('workresult parsed: ', workResult);
+          logger.log('workresult parsed: ', workResult);
 
           const responseService = new WorkResponseService(io, workResult);
           responseService.handleResponse();
         } catch (e) {
-          console.error(
+          logger.error(
             'Error processing the work response message: ', e,
           );
         }

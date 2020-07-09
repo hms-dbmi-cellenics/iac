@@ -28,7 +28,7 @@ class WorkRequestService {
 
   handleRequest() {
     const workSubmitService = new WorkSubmitService(this.workRequest);
-    console.warn('submitting request...');
+    console.info('submitting request...');
     workSubmitService.submitWork();
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-env jest */
 const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
 const ExperimentService = require('../../../src/api/route-services/experiment');
@@ -7,8 +6,7 @@ jest.mock('../../../src/config');
 
 
 describe('tests for the experiment service', () => {
-  // eslint-disable-next-line arrow-parens
-  it('Get experiment data works', async done => {
+  it('Get experiment data works', async (done) => {
     const unmarshalledData = {
       Item: {
         experimentId: { S: '12345' },
@@ -42,8 +40,7 @@ describe('tests for the experiment service', () => {
       .then(() => done());
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Get cell sets works', async done => {
+  it('Get cell sets works', async (done) => {
     const e = new ExperimentService();
 
     const unmarshalledData = {
@@ -87,8 +84,7 @@ describe('tests for the experiment service', () => {
       .then(() => done());
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Update experiment cell sets works', async done => {
+  it('Update experiment cell sets works', async (done) => {
     const e = new ExperimentService();
 
     const testData = [
@@ -125,8 +121,7 @@ describe('tests for the experiment service', () => {
       .then(() => done());
   });
 
-  // eslint-disable-next-line arrow-parens
-  it('Generate mock data works', async done => {
+  it('Generate mock data works', async (done) => {
     const e = new ExperimentService();
 
     AWSMock.setSDKInstance(AWS);

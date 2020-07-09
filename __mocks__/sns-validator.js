@@ -1,4 +1,3 @@
-/* eslint-env jest */
 const mockValidate = jest.fn((msg, callback) => {
   if (msg.Type === 'SubscriptionConfirmation' || msg.Type === 'UnsubscribeConfirmation') {
     return callback(null, {

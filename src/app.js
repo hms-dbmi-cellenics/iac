@@ -3,6 +3,7 @@ require('log-timestamp');
 const express = require('express');
 const expressLoader = require('./loaders/express');
 const config = require('./config');
+const logger = require('./utils/logging');
 
 async function startServer() {
   const { app, server, socketIo: io } = await expressLoader(express());
@@ -10,7 +11,7 @@ async function startServer() {
 
   // Set up handlers for SocketIO events.
   io.on('connection', (socket) => {
-    console.log('connected');
+    logger.log('connected');
     // eslint-disable-next-line global-require
     require('./api/events')(socket);
   });
@@ -20,8 +21,8 @@ async function startServer() {
     if (err) {
       process.exit(1);
     }
-    console.log(`NODE_ENV: ${process.env.NODE_ENV}, cluster env: ${config.clusterEnv}`);
-    console.log(`Server listening on port: ${config.port}`);
+    logger.log(`NODE_ENV: ${process.env.NODE_ENV}, cluster env: ${config.clusterEnv}`);
+    logger.log(`Server listening on port: ${config.port}`);
   });
 }
 

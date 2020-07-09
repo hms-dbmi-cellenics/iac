@@ -1,8 +1,11 @@
 /* eslint-disable consistent-return */
-/* eslint-env jest */
 const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
+
+jest.mock('../../../src/utils/logging', () => ({
+  log: jest.fn(),
+}));
 
 let io;
 let emitSpy;
