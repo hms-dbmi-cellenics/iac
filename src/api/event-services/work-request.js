@@ -26,10 +26,10 @@ class WorkRequestService {
     this.workRequest = workRequest;
   }
 
-  handleRequest() {
+  async handleRequest() {
     const workSubmitService = new WorkSubmitService(this.workRequest);
     console.info('submitting request...');
-    workSubmitService.submitWork();
+    await workSubmitService.submitWork();
   }
 }
 

@@ -1,17 +1,17 @@
 module.exports = {
-  error: (error) => {
-    console.error(error);
+  error: (...args) => {
+    console.error(args);
   },
-  warn: (message) => {
-    console.warn(message);
+  warn: (...args) => {
+    console.warn(args);
   },
-  debug: (message) => {
-    console.debug(message);
+  debug: (...args) => {
+    console.debug(args);
   },
-  log: (message) => {
-    console.log(message);
+  log: (...args) => {
+    console.log(args);
   },
-  trace: (error) => {
-    console.trace(error);
+  trace: (...args) => {
+    console.trace(args);
   },
 };
