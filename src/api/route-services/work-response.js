@@ -4,6 +4,8 @@ const path = require('path');
 const Validator = require('swagger-model-validator');
 const AWS = require('aws-sdk');
 const logger = require('../../utils/logging');
+const { cacheSetResponse } = require('../../utils/cache-request');
+
 
 class WorkResponseService {
   constructor(io, workResponse) {
@@ -90,9 +92,10 @@ class WorkResponseService {
     responseForClient.results = results.flat();
     const { uuid, socketId } = responseForClient.request;
     try {
+      await cacheSetResponse(responseForClient);
       this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
     } catch (e) {
-      logger.error('Error trying to send result over sockets: ', e);
+      logger.error('Error trying to cache data and send result over sockets: ', e);
     }
     logger.log('response sent out');
   }
