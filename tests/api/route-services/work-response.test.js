@@ -5,6 +5,12 @@ const WorkResponseService = require('../../../src/api/route-services/work-respon
 
 jest.mock('../../../src/utils/logging', () => ({
   log: jest.fn(),
+  error: jest.fn(),
+}));
+
+jest.mock('../../../src/utils/cache-request', () => ({
+  cacheSetResponse: jest.fn(),
+  cacheGetRequest: jest.fn(),
 }));
 
 let io;
