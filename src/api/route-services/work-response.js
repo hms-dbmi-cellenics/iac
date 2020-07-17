@@ -21,11 +21,6 @@ class WorkResponseService {
       throw new Error(res.errors);
     }
 
-    const { timeout } = workResponse.request;
-    if (Date.parse(timeout) <= Date.now()) {
-      throw new Error(`Work response will not be handled as timeout of ${timeout} is in the past...`);
-    }
-
     this.workResponse = workResponse;
     this.io = io;
   }
@@ -90,10 +85,12 @@ class WorkResponseService {
     );
     const responseForClient = this.workResponse;
     responseForClient.results = results.flat();
-    const { uuid, socketId } = responseForClient.request;
+    const { uuid, socketId, timeout } = responseForClient.request;
     try {
       await cacheSetResponse(responseForClient);
-      this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
+      if (Date.parse(timeout) > Date.now()) {
+        this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
+      }
     } catch (e) {
       logger.error('Error trying to cache data and send result over sockets: ', e);
     }
