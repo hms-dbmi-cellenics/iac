@@ -17,7 +17,7 @@ module.exports = (socket) => {
         socket,
       );
     } catch (e) {
-      logger.error('Error while parsing schema for WorkRequest event:', e);
+      logger.error('Error while creating WorkRequest event:', e);
       logger.trace(e);
     }
   });
