@@ -400,35 +400,6 @@ components:
         - name
         - cellSet
         - compareWith
-    WorkSchemaGeneExpression:
-      title: WorkSchemaGeneExpression
-      type: object
-      properties:
-        name:
-          type: string
-          description: The name of this task. Must be `GeneExpression`.
-          pattern: GeneExpression
-        cellSets:
-          description: The cell sets to fetch expression data for. Can be a list of cell set keys or `all` for all cells in the experiment.
-          oneOf:
-            - type: string
-              pattern: all
-            - type: array
-              items:
-                type: string
-        genes:
-          type: array
-          description: A list of genes to compute expression data for.
-          items:
-            type: string
-        scale:
-          type: boolean
-          description: Whether to perform feature scaling (normalization to unit variance and zero mean). Defaults to `false` if not specified.
-          default: 'false'
-      required:
-        - name
-        - cellSets
-        - genes
     WorkResponseGeneExpression:
       title: WorkResponseGeneExpression
       type: object
@@ -475,6 +446,26 @@ components:
           type: string
           description: The name of this task. Must be `GeneExpressionNew`.
           pattern: GeneExpressionNew
+        genes:
+          type: array
+          description: A list of genes to compute expression data for.
+          items:
+            type: string
+        scale:
+          type: boolean
+          description: Whether to perform feature scaling (normalization to unit variance and zero mean). Defaults to `false` if not specified.
+          default: 'false'
+      required:
+        - name
+        - genes
+    WorkSchemaGeneExpression:
+      title: WorkSchemaGeneExpression
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of this task. Must be `GeneExpression`.
+          pattern: GeneExpression
         genes:
           type: array
           description: A list of genes to compute expression data for.
