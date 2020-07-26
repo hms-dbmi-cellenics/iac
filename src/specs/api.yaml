@@ -311,7 +311,6 @@ components:
             - $ref: '#/components/schemas/WorkSchemaListGenes'
             - $ref: '#/components/schemas/WorkSchemaDifferentialExpression'
             - $ref: '#/components/schemas/WorkSchemaGeneExpression'
-            - $ref: '#/components/schemas/WorkSchemaGeneExpressionNew'
         experimentId:
           type: string
           description: The ID of the experiment for which this work was created.
@@ -438,26 +437,6 @@ components:
         - data
         - minExpression
         - maxExpression
-    WorkSchemaGeneExpressionNew:
-      title: WorkSchemaGeneExpressionNew
-      type: object
-      properties:
-        name:
-          type: string
-          description: The name of this task. Must be `GeneExpressionNew`.
-          pattern: GeneExpressionNew
-        genes:
-          type: array
-          description: A list of genes to compute expression data for.
-          items:
-            type: string
-        scale:
-          type: boolean
-          description: Whether to perform feature scaling (normalization to unit variance and zero mean). Defaults to `false` if not specified.
-          default: 'false'
-      required:
-        - name
-        - genes
     WorkSchemaGeneExpression:
       title: WorkSchemaGeneExpression
       type: object
