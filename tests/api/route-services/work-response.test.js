@@ -3,10 +3,7 @@ const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
 
-jest.mock('../../../src/utils/logging', () => ({
-  log: jest.fn(),
-  error: jest.fn(),
-}));
+jest.mock('../../../src/utils/logging');
 
 jest.mock('../../../src/utils/cache-request', () => ({
   cacheSetResponse: jest.fn(),

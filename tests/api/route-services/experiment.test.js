@@ -3,7 +3,7 @@ const AWSMock = require('aws-sdk-mock');
 const ExperimentService = require('../../../src/api/route-services/experiment');
 
 jest.mock('../../../src/config');
-
+jest.mock('../../../src/utils/logging');
 
 describe('tests for the experiment service', () => {
   it('Get experiment data works', async (done) => {

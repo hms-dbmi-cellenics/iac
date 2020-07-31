@@ -1,23 +1,15 @@
-const WorkRequestService = require('../event-services/work-request');
+const handleWorkRequest = require('../event-services/work-request');
 const logger = require('../../utils/logging');
-const { cacheGetRequest } = require('../../utils/cache-request');
 
-const handleRequestCallback = async (data) => {
-  const requestService = new WorkRequestService(data);
-  await requestService.handleRequest();
-};
 
 module.exports = (socket) => {
   socket.on('WorkRequest', async (data) => {
-    logger.log('We have work', data);
+    logger.log('Work submitted from client:', data);
+
     try {
-      await cacheGetRequest(
-        data,
-        handleRequestCallback,
-        socket,
-      );
+      await handleWorkRequest(data, socket);
     } catch (e) {
-      logger.error('Error while creating WorkRequest event:', e);
+      logger.error('Error while processing WorkRequest event:', e);
       logger.trace(e);
     }
   });

@@ -12,11 +12,7 @@ const redis = new Redis({
 cache.redisClient.master.redis = redis;
 cache.redisClient.slave.redis = redis;
 
-jest.mock('../../src/utils/logging', () => ({
-  trace: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-}));
+jest.mock('../../src/utils/logging');
 
 jest.mock('../../src/cache/redis-client', () => jest.fn(() => ({
   createClient: jest.fn(),
