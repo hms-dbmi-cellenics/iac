@@ -8,12 +8,7 @@ const expressLoader = require('../../../src/loaders/express');
 
 jest.mock('sns-validator');
 jest.mock('../../../src/config');
-jest.mock('../../../src/utils/logging', () => ({
-  trace: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  log: jest.fn(),
-}));
+jest.mock('../../../src/utils/logging');
 
 
 const basicMsg = JSON.stringify({

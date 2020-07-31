@@ -2,11 +2,7 @@ const logger = require('../../src/utils/logging');
 const RedisClient = require('../../src/cache/redis-client');
 const RedisWrapper = require('../../src/cache/redis-wrapper');
 
-jest.mock('../../src/utils/logging', () => ({
-  trace: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-}));
+jest.mock('../../src/utils/logging');
 
 jest.mock('../../src/cache/aws-utilities', () => jest.fn((value) => new Promise((resolve, reject) => {
   if (value === 'placement/availability-zone') {

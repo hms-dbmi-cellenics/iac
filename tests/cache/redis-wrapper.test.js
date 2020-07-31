@@ -7,11 +7,7 @@ jest.mock('ioredis', () => jest.fn(() => ({
   connect: jest.fn(() => Promise.resolve()),
 })));
 
-jest.mock('../../src/utils/logging', () => ({
-  trace: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-}));
+jest.mock('../../src/utils/logging');
 
 const clock = jest.useFakeTimers();
 

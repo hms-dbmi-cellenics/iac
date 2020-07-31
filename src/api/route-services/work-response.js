@@ -5,7 +5,7 @@ const Validator = require('swagger-model-validator');
 const AWS = require('aws-sdk');
 const logger = require('../../utils/logging');
 const { cacheSetResponse } = require('../../utils/cache-request');
-
+const { handlePagination } = require('../../utils/handlePagination');
 
 class WorkResponseService {
   constructor(io, workResponse) {
@@ -78,23 +78,33 @@ class WorkResponseService {
     return inlineResults;
   }
 
-
   async handleResponse() {
     const results = await Promise.all(
       [this.processS3PathType(this.workResponse), this.processInlineType(this.workResponse)],
     );
+
     const responseForClient = this.workResponse;
     responseForClient.results = results.flat();
-    const { uuid, socketId, timeout } = responseForClient.request;
+
+    const {
+      uuid, socketId, timeout, pagination,
+    } = responseForClient.request;
+
     try {
       await cacheSetResponse(responseForClient);
+      // Order results according to the pagination
+      if (pagination) {
+        responseForClient.results = handlePagination(results, pagination);
+      }
+
       if (Date.parse(timeout) > Date.now()) {
         this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
       }
+
+      logger.log('response sent out');
     } catch (e) {
-      logger.error('Error trying to cache data and send result over sockets: ', e);
+      logger.error('Error trying to cache or paginate data: ', e);
     }
-    logger.log('response sent out');
   }
 }
 
