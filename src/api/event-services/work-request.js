@@ -26,7 +26,7 @@ const handleWorkRequest = async (workRequest, socket) => {
 
   try {
     logger.log(`Trying to fetch response to request ${uuid} from cache...`);
-    const cachedResponse = await cacheGetRequest(this.workRequest);
+    const cachedResponse = await cacheGetRequest(workRequest);
     logger.log(`We found a cached response for ${uuid}. Checking if pagination is needed...`);
 
     if (pagination) {
