@@ -37,6 +37,7 @@ class Cache {
     }
 
     try {
+      logger.log('***** just about to set cache with data: ', data);
       await client.setex(key, ttl || cacheDuration, data);
     } catch (error) {
       logger.error(error, `Failed to store a cache item with key '${key}'`, this.configuration);
@@ -91,7 +92,8 @@ class Cache {
       ) {
         this.l1Cache.set(key, response);
       }
-      logger.log('******* RESPONSE: ', response);
+      logger.log('******* RESPONSE: ');
+      logger.log(Object.keys(response));
       response.responseFrom = 'redis';
       return response;
     } catch (error) {
