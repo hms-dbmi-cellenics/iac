@@ -1,5 +1,6 @@
 const hash = require('object-hash');
 const cache = require('../cache');
+const logger = require('./logging');
 
 const createObjectHash = (object) => hash.MD5(object);
 
@@ -33,6 +34,7 @@ const cacheSetResponse = async (data, ttl = 900) => {
     experimentId: data.request.experimentId,
     body: data.request.body,
   });
+  logger.log(`***** putting data ${data} in cache under key ${key}`);
   await cache.set(key, data, ttl);
 };
 
