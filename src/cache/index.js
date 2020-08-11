@@ -82,6 +82,7 @@ class Cache {
     try {
       const response = await this._redisGet(key, this.configuration);
       if (!response) {
+        logger.log('****** response not in cache');
         return null;
       }
       const cacheHitDuration = now() - requestDateTime;
@@ -90,6 +91,7 @@ class Cache {
       ) {
         this.l1Cache.set(key, response);
       }
+      logger.log('******* RESPONSE: ', response);
       response.responseFrom = 'redis';
       return response;
     } catch (error) {
