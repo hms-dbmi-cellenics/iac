@@ -86,7 +86,6 @@ class WorkResponseService {
     const responseForClient = this.workResponse;
     responseForClient.results = results.flat();
 
-    logger.log('****** responseForClient: ', responseForClient);
     const {
       uuid, socketId, timeout, pagination,
     } = responseForClient.request;

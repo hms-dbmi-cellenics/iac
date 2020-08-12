@@ -5,7 +5,7 @@ const cache = require('../../src/cache');
 
 const redis = new Redis({
   data: {
-    existInRedis: { result: 'valueInRedis' },
+    existInRedis: JSON.stringify({ result: 'valueInRedis' }),
   },
 });
 
