@@ -12,12 +12,13 @@ module.exports = {
   'work#response': async (req, res) => {
     let msg;
 
-    logger.log('we got something to parse...', req.body.length);
+    logger.log('we got response back to parse...', req.body.length);
 
     // First let's try parsing the body. It should be JSON.
     try {
       msg = JSON.parse(req.body);
     } catch (error) {
+      logger.trace('Parsing error: ', error);
       res.status(500).send('nok');
       return;
     }

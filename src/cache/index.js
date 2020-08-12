@@ -37,8 +37,9 @@ class Cache {
     }
 
     try {
-      logger.log('***** just about to set cache with data: ', data);
-      await client.setex(key, ttl || cacheDuration, data);
+      // IMPORTANT: the data that is set to the cache MUST be stringified, because setex does not support setting objects
+      const stringifiedData = JSON.stringify(data);
+      await client.setex(key, ttl || cacheDuration, stringifiedData);
     } catch (error) {
       logger.error(error, `Failed to store a cache item with key '${key}'`, this.configuration);
       if (this.redisClient && this.redisClient.master) {
@@ -61,9 +62,13 @@ class Cache {
       let result;
       if (this.configuration.redisGetTimeout) {
         result = await Promise.race([timeout(this.configuration.redisGetTimeout), client.get(key)]);
+        // unstringify the data
+        result = JSON.parse(result);
         return result;
       }
       result = await client.get(key);
+      // unstringify the data
+      result = JSON.parse(result);
       return result;
     } catch (error) {
       logger.error('Failed to get item from cache', error);
@@ -83,7 +88,6 @@ class Cache {
     try {
       const response = await this._redisGet(key, this.configuration);
       if (!response) {
-        logger.log('****** response not in cache');
         return null;
       }
       const cacheHitDuration = now() - requestDateTime;
@@ -92,8 +96,7 @@ class Cache {
       ) {
         this.l1Cache.set(key, response);
       }
-      logger.log('******* RESPONSE: ');
-      logger.log(Object.keys(response));
+
       response.responseFrom = 'redis';
       return response;
     } catch (error) {

@@ -25,7 +25,7 @@ const cacheGetRequest = async (
     return payload;
   }
 
-  throw new CacheMissError(`No cache entry found for ${data} at key ${key}`);
+  throw new CacheMissError(`No cache entry found for key ${key}`);
 };
 
 
@@ -34,7 +34,7 @@ const cacheSetResponse = async (data, ttl = 900) => {
     experimentId: data.request.experimentId,
     body: data.request.body,
   });
-  logger.log(`***** putting data ${data} in cache under key ${key}`);
+  logger.log(`Putting data in cache under key ${key}`);
   await cache.set(key, data, ttl);
 };
 
