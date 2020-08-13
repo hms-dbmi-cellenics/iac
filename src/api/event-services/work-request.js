@@ -22,7 +22,7 @@ const validateRequest = (workRequest) => {
 };
 
 const handleWorkRequest = async (workRequest, socket) => {
-  const { uuid, socketId, pagination } = workRequest;
+  const { uuid, pagination } = workRequest;
 
   try {
     logger.log(`Trying to fetch response to request ${uuid} from cache...`);
@@ -34,8 +34,8 @@ const handleWorkRequest = async (workRequest, socket) => {
       cachedResponse.results = handlePagination(cachedResponse.results, pagination);
       logger.log('Paginated');
     }
-
-    socket.to(socketId).emit(`WorkResponse-${uuid}`, cachedResponse);
+    socket.emit(`WorkResponse-${uuid}`, cachedResponse);
+    logger.log(`Response sent back to ${uuid}`);
   } catch (e) {
     logger.log(`Cache miss on ${uuid}, sending it to the worker... ${e}`);
     validateRequest(workRequest);

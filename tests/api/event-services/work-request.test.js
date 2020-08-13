@@ -41,6 +41,7 @@ const setIoMock = () => {
 
   io = {
     to: toSpy,
+    emit: emitSpy,
   };
 };
 
