@@ -9,6 +9,7 @@ const expressLoader = require('../../../src/loaders/express');
 jest.mock('sns-validator');
 jest.mock('../../../src/config');
 jest.mock('../../../src/utils/logging');
+jest.mock('../../../src/cache', () => jest.fn());
 
 
 const basicMsg = JSON.stringify({
@@ -37,7 +38,7 @@ describe('tests for experiment route', () => {
     validMsg.Type = 'Notification';
     validMsg = JSON.stringify(validMsg);
 
-    const mockHandleResponse = jest.fn();
+    const mockHandleResponse = jest.fn(() => { console.log('I am a mock!!!! '); });
     jest.mock('../../../src/api/route-services/work-response',
       () => jest.fn().mockImplementation(() => ({ handleResponse: mockHandleResponse })));
 
