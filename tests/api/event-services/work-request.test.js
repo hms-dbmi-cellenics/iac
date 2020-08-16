@@ -1,31 +1,38 @@
 const handleWorkRequest = require('../../../src/api/event-services/work-request');
-const cacheRequest = require('../../../src/utils/cache-request');
 const handlePagination = require('../../../src/utils/handlePagination');
+const cache = require('../../../src/cache');
+
+let mockCacheKey;
 
 jest.mock('../../../src/utils/handlePagination');
-jest.mock('../../../src/utils/cache-request', () => ({
-  cacheGetRequest: jest.fn().mockResolvedValue({
-    results: [
-      {
-        body: JSON.stringify({
-          rows:
-            [
-              {
-                name: 'z',
-              },
-              {
-                name: 'c',
-              },
-              {
-                name: 'a',
-              },
-            ],
-        }),
-      },
-    ],
+jest.mock('../../../src/cache', () => ({
+  get: jest.fn((key) => {
+    if (key === mockCacheKey) {
+      return {
+        results: [
+          {
+            body: JSON.stringify({
+              rows:
+                [
+                  {
+                    name: 'z',
+                  },
+                  {
+                    name: 'c',
+                  },
+                  {
+                    name: 'a',
+                  },
+                ],
+            }),
+          },
+        ],
+      };
+    }
+    return null;
   }),
+  set: jest.fn(),
 }));
-
 
 let io;
 let emitSpy;
@@ -60,6 +67,7 @@ describe('tests for handleWorkRequest', () => {
 
 
   it('Throws when an old timeout is encountered.', async () => {
+    mockCacheKey = 'notThere';
     expect.assertions(1);
 
     const workRequest = {
@@ -67,12 +75,12 @@ describe('tests for handleWorkRequest', () => {
       socketId: '6789',
       experimentId: 'my-experiment',
       timeout: '2001-01-01T00:00:00Z',
-      body: { name: 'GetEmbedding', type: 'pca' },
+      body: { name: 'GetEmbedding', type: 'tsne' },
     };
 
     try {
       // eslint-disable-next-line no-unused-vars
-      const w = await handleWorkRequest(workRequest);
+      const w = await handleWorkRequest(workRequest, io);
     } catch (e) {
       expect(e.message).toMatch(
         /^Work request will not be handled as timeout/,
@@ -81,6 +89,7 @@ describe('tests for handleWorkRequest', () => {
   });
 
   it('Triggers pagination when pagination is specified and result is cached already.', async () => {
+    mockCacheKey = '60c032929784c904d0276967cb920b57';
     const workRequest = {
       uuid: '12345',
       socketId: '6789',
@@ -99,7 +108,7 @@ describe('tests for handleWorkRequest', () => {
     };
 
     await handleWorkRequest(workRequest, io);
-    expect(cacheRequest.cacheGetRequest).toHaveBeenCalledTimes(1);
+    expect(cache.get).toHaveBeenCalledTimes(1);
     expect(handlePagination.handlePagination).toHaveBeenCalledTimes(1);
   });
 });
