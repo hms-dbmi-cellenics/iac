@@ -32,10 +32,12 @@ describe('handlePagination', () => {
 
     const output = handlePagination(results, pagination);
     const body = JSON.parse(output[0].body).rows;
+    const { total } = JSON.parse(output[0].body);
     expect(body.length <= pagination.limit).toEqual(true);
 
     expect(body[0].name).toEqual('a');
     expect(body[1].name).toEqual('c');
+    expect(total).toEqual(3);
   });
 
   it('orders by property appropriately when descending', async () => {
@@ -68,9 +70,11 @@ describe('handlePagination', () => {
 
     const output = handlePagination(results, pagination);
     const body = JSON.parse(output[0].body).rows;
+    const { total } = JSON.parse(output[0].body);
     expect(body.length <= pagination.limit).toEqual(true);
 
     expect(body[0].name).toEqual('z');
     expect(body[1].name).toEqual('c');
+    expect(total).toEqual(3);
   });
 });
