@@ -79,14 +79,14 @@ class WorkResponseService {
   }
 
   async handleResponse() {
-    const results = await Promise.all(
+    let processedResults = await Promise.all(
       [this.processS3PathType(this.workResponse), this.processInlineType(this.workResponse)],
     );
 
-    console.log('*** Results: ', results);
+    processedResults = processedResults.flat();
 
     const responseForClient = this.workResponse;
-    responseForClient.results = results.flat();
+    responseForClient.results = processedResults;
 
     const {
       uuid, socketId, timeout, pagination,
@@ -96,7 +96,7 @@ class WorkResponseService {
       await cacheSetResponse(responseForClient);
       // Order results according to the pagination
       if (pagination) {
-        responseForClient.results = handlePagination(results, pagination);
+        responseForClient.results = handlePagination(processedResults, pagination);
       }
 
       if (Date.parse(timeout) > Date.now()) {
