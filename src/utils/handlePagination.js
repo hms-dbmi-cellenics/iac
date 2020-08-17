@@ -5,14 +5,14 @@ const handlePagination = (results, pagination) => {
     orderBy, orderDirection, offset, limit, responseKey,
   } = pagination;
 
-  console.log('*** trying to paginate this: ', results, pagination);
   const body = JSON.parse(results[responseKey].body);
   let { rows } = body;
+  const total = rows.length;
   rows = _.orderBy(rows, [orderBy], [orderDirection.toLowerCase()]);
   rows = rows.slice(offset, offset + limit);
 
   // eslint-disable-next-line no-param-reassign
-  results[responseKey].body = JSON.stringify({ ...body, rows });
+  results[responseKey].body = JSON.stringify({ ...body, rows, total });
 
   return results;
 };
