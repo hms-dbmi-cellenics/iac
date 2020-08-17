@@ -2,6 +2,11 @@
 const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
+const { handlePagination } = require('../../../src/utils/handlePagination');
+
+jest.mock('../../../src/utils/handlePagination', () => ({
+  handlePagination: jest.fn(),
+}));
 
 jest.mock('../../../src/utils/logging');
 
@@ -267,6 +272,56 @@ describe('tests for the work-response service', () => {
           ResponseContentEncoding: 'utf-8',
         },
       );
+      return done();
+    });
+  });
+
+  it('Can produce paginated work response', async (done) => {
+    const pagination = {
+      orderBy: 'qval',
+      orderDirection: 'ASC',
+      offset: 0,
+      limit: 50,
+      responseKey: 0,
+    };
+    const workResponse = {
+      request: {
+        uuid: '31773720-f17d-4214-ab47-9025518cd444',
+        socketId: '0g-7oXVVok9brYMGAAAg',
+        experimentId: '5e959f9c9f4b120771249001',
+        timeout: '2020-08-17T08:17:52.026Z',
+        body: {
+          name: 'DifferentialExpression',
+          cellSet: 'louvain-0',
+          compareWith: 'louvain-1',
+        },
+        pagination,
+      },
+      results: [
+        {
+          'content-type': 'application/json',
+          'content-encoding': 'utf-8',
+          body: '{"rows": [{"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "A"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "B"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "C"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "D"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "E"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "F"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "G"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "H"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "I"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "J"}]}',
+          type: 'inline',
+        },
+      ],
+    };
+
+    const w = new WorkResponseService(io, workResponse);
+    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
+    expectedResponse.results
+      .forEach((res) => delete res.type);
+    expectedResponse.results[0].body = 'my amazing body';
+
+    w.handleResponse().then(() => {
+      expect(handlePagination).toHaveBeenCalledTimes(1);
+      expect(handlePagination).toHaveBeenCalledWith([
+        {
+          'content-type': 'application/json',
+          'content-encoding': 'utf-8',
+          body: '{"rows": [{"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "A"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "B"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "C"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "D"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "E"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "F"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "G"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "H"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "I"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "J"}]}',
+        },
+      ], pagination);
       return done();
     });
   });
