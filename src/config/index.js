@@ -1,5 +1,7 @@
 const dotenv = require('dotenv');
 const AWS = require('aws-sdk');
+const logger = require('../utils/logging');
+
 
 // If we are not deployed on GitLab (AWS/k8s), the environment is given by
 // NODE_ENV, or development if NODE_ENV is not set.
@@ -21,7 +23,6 @@ if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
       // We are probably on a review branch or other deployment.
       // Default to production for node environment and staging for
       // all cluster services.
-
       process.env.NODE_ENV = 'production';
       process.env.CLUSTER_ENV = 'staging';
       break;
@@ -45,14 +46,26 @@ async function getAwsAccountId() {
   return data.Account;
 }
 
-// TODO: clusterEnv needs to be set to development when an AWS/k8s cluster
-// is deployed for development.
-module.exports = {
+
+const config = {
   port: parseInt(process.env.PORT, 10) || 3000,
-  clusterEnv: process.env.CLUSTER_ENV || 'staging',
+  clusterEnv: process.env.CLUSTER_ENV || 'development',
   awsRegion: process.env.AWS_DEFAULT_REGION || 'eu-west-2',
   awsAccountIdPromise: getAwsAccountId(),
   api: {
     prefix: '/',
   },
 };
+
+// We are in the `development` clusterEnv, meaning we run on
+// InfraMock. Set up API accordingly.
+if (config.clusterEnv === 'development') {
+  logger.log('We are running on a development cluster, patching AWS to use InfraMock endpoint...');
+  AWS.config.update({
+    endpoint: 'http://localhost:4566',
+    sslEnabled: false,
+    s3ForcePathStyle: true,
+  });
+}
+
+module.exports = config;

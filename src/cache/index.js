@@ -37,7 +37,8 @@ class Cache {
     }
 
     try {
-      // IMPORTANT: the data that is set to the cache MUST be stringified, because setex does not support setting objects
+      // IMPORTANT: the data that is set to the cache MUST be stringified,
+      // because setex does not support setting objects.
       const stringifiedData = JSON.stringify(data);
       await client.setex(key, ttl || cacheDuration, stringifiedData);
     } catch (error) {
