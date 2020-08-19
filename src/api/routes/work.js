@@ -4,7 +4,7 @@ const https = require('https');
 const MessageValidator = require('sns-validator');
 const WorkResponseService = require('../route-services/work-response');
 const logger = require('../../utils/logging');
-
+const config = require('../../config');
 
 const validator = new MessageValidator();
 
@@ -27,24 +27,29 @@ module.exports = {
 
     // Asynchronously validate and process the message.
     validator.validate(msg, (err, message) => {
-      // Ignore errors.
-      if (err) {
-        logger.error(
-          'Error validating the SNS response: ', err,
-        );
-        return;
+      if (config.clusterEnv !== 'development') {
+        if (err) {
+          logger.error(
+            'Error validating the SNS response: ', err,
+          );
+          return;
+        }
+
+        // Handle subscripton and unsubscription automatically.
+        if (message.Type === 'SubscriptionConfirmation'
+          || message.Type === 'UnsubscribeConfirmation') {
+          https.get(message.SubscribeURL);
+        }
       }
 
-      // Handle subscripton and unsubscription automatically.
-      if (message.Type === 'SubscriptionConfirmation'
-        || message.Type === 'UnsubscribeConfirmation') {
-        https.get(message.SubscribeURL);
+      if (config.clusterEnv === 'development' && err) {
+        // eslint-disable-next-line no-param-reassign
+        message = msg;
       }
 
       // Notifications are passed on to the service for processing.
       if (message.Type === 'Notification') {
         logger.log('notification type message');
-
 
         try {
           const io = req.app.get('io');

@@ -1,5 +1,7 @@
 const sanitiseGlobalConfiguration = require('../../src/cache/sanitiser');
 
+jest.mock('../../src/config');
+
 describe('sanitiser', () => {
   beforeEach(() => {
     jest.clearAllMocks();

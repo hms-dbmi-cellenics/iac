@@ -7,13 +7,11 @@
 process.env.NODE_ENV = 'test';
 
 function getAwsAccountId() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     resolve('test-account-id');
   });
 }
 
-// TODO: clusterEnv needs to be set to development when an AWS/k8s cluster
-// is deployed for development.
 module.exports = {
   port: 3000,
   clusterEnv: 'test',

@@ -18,7 +18,11 @@ class WorkSubmitService {
       .update(this.workRequest.experimentId)
       .digest('hex');
 
-    this.workQueueName = `queue-job-${this.workerHash}-${config.clusterEnv}.fifo`;
+    if (config.clusterEnv === 'development') {
+      this.workQueueName = 'development-queue.fifo';
+    } else {
+      this.workQueueName = `queue-job-${this.workerHash}-${config.clusterEnv}.fifo`;
+    }
   }
 
   /**
@@ -38,6 +42,7 @@ class WorkSubmitService {
     }).promise();
 
     const { QueueUrl: queueUrl } = q;
+
     return queueUrl;
   }
 
@@ -75,7 +80,11 @@ class WorkSubmitService {
     * Launches a Kubernetes `Job` with the appropriate configuration.
     */
   async createWorker() {
-    // TODO: this needs to be set to `development` when we have separate environments deployed.
+    if (config.clusterEnv === 'development') {
+      logger.log('Not creating a worker because we are running locally...');
+      return;
+    }
+
     const namespaceName = `worker-18327207-${config.clusterEnv}`;
 
     try {
