@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
+
 const ExperimentService = require('../../../src/api/route-services/experiment');
 
 jest.mock('../../../src/config');
