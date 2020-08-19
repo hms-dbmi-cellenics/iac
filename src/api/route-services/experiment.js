@@ -1,38 +1,35 @@
-const AWS = require('aws-sdk');
 const config = require('../../config');
 const mockData = require('./mock-data.json');
 const logger = require('../../utils/logging');
+const { createDynamoDbInstance, convertToJsObject, convertToDynamoDbRecord } = require('../../utils/dynamoDb');
+
 
 class ExperimentService {
   constructor() {
     this.tableName = `experiments-${config.clusterEnv}`;
-    this.mockData = AWS.DynamoDB.Converter.marshall(mockData);
+    this.mockData = convertToDynamoDbRecord(mockData);
   }
 
   async getExperimentData(experimentId) {
-    const dynamodb = new AWS.DynamoDB({
-      region: config.awsRegion,
-    });
+    const dynamodb = createDynamoDbInstance();
     let key = { experimentId };
-    key = AWS.DynamoDB.Converter.marshall(key);
+    key = convertToDynamoDbRecord(key);
 
     const params = {
       TableName: this.tableName,
       Key: key,
       ProjectionExpression: 'experimentId, experimentName',
     };
-
     const data = await dynamodb.getItem(params).promise();
-    const prettyData = AWS.DynamoDB.Converter.unmarshall(data.Item);
+
+    const prettyData = convertToJsObject(data.Item);
     return prettyData;
   }
 
   async getCellSets(experimentId) {
-    const dynamodb = new AWS.DynamoDB({
-      region: config.awsRegion,
-    });
+    const dynamodb = createDynamoDbInstance();
     let key = { experimentId };
-    key = AWS.DynamoDB.Converter.marshall(key);
+    key = convertToDynamoDbRecord(key);
 
     const params = {
       TableName: this.tableName,
@@ -41,20 +38,18 @@ class ExperimentService {
     };
 
     const data = await dynamodb.getItem(params).promise();
-    const prettyData = AWS.DynamoDB.Converter.unmarshall(data.Item);
+    const prettyData = convertToJsObject(data.Item);
 
     return prettyData;
   }
 
   async updateCellSets(experimentId, cellSetData) {
-    const dynamodb = new AWS.DynamoDB({
-      region: config.awsRegion,
-    });
+    const dynamodb = createDynamoDbInstance();
     let key = { experimentId };
 
-    key = AWS.DynamoDB.Converter.marshall(key);
+    key = convertToDynamoDbRecord(key);
 
-    const data = AWS.DynamoDB.Converter.marshall({ ':x': cellSetData });
+    const data = convertToDynamoDbRecord({ ':x': cellSetData });
 
     logger.log(data);
 
@@ -71,17 +66,13 @@ class ExperimentService {
   }
 
   async generateMockData() {
-    const dynamodb = new AWS.DynamoDB({
-      region: config.awsRegion,
-    });
-
+    const dynamodb = createDynamoDbInstance();
     const params = {
       TableName: this.tableName,
       Item: this.mockData,
     };
 
     await dynamodb.putItem(params).promise();
-
     return mockData;
   }
 }
