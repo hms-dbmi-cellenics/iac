@@ -38,7 +38,7 @@ describe('tests for experiment route', () => {
     validMsg.Type = 'Notification';
     validMsg = JSON.stringify(validMsg);
 
-    const mockHandleResponse = jest.fn(() => { console.log('I am a mock!!!! '); });
+    const mockHandleResponse = jest.fn(() => { });
     jest.mock('../../../src/api/route-services/work-response',
       () => jest.fn().mockImplementation(() => ({ handleResponse: mockHandleResponse })));
 

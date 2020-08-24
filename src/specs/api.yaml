@@ -340,6 +340,47 @@ components:
               type: integer
               minimum: 0
               description: The response to apply pagination to.
+            filters:
+              type: array
+              items:
+                anyOf:
+                  - description: 'Filter column by value (minimum and maximum). Useful for numeric values, e.g. filtering on `pvalue`/`qvalue`.'
+                    properties:
+                      columnName:
+                        type: string
+                        description: The column name the filter is applied to.
+                      type:
+                        type: string
+                        pattern: numeric
+                        description: The type of filter. Must be `numeric` for this type of filter.
+                      min:
+                        type: number
+                        description: The minimum (inclusive) value that will be shown of a given column name.
+                        default: 'null'
+                      max:
+                        type: number
+                        description: The maximum (inclusive) value that will be shown of a given column name.
+                        default: 'null'
+                    required:
+                      - columnName
+                      - type
+                  - description: Filter column by text (w/ wildcards). Useful for string-based filters.
+                    properties:
+                      columnName:
+                        type: string
+                        description: The name of the column the filter will be applied to.
+                      type:
+                        type: string
+                        description: The type of filter. Must be `text` for this type of filter.
+                        pattern: text
+                      expression:
+                        type: string
+                        description: The wildcarded text to filter by.
+                    required:
+                      - columnName
+                      - type
+                      - expression
+                type: object
           required:
             - orderBy
             - orderDirection

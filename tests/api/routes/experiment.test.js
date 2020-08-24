@@ -73,7 +73,6 @@ describe('tests for experiment route', () => {
       .expect(200, newData)
       .end((err) => {
         if (err) {
-          console.log('WE HAVE ERROR', err);
           return done(err);
         }
         // there is no point testing for the values of the response body
