@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle */
+const _ = require('lodash');
 const sanitiseGlobalConfiguration = require('./sanitiser');
 const createMemCache = require('./mem-cache');
 const RedisClient = require('./redis-client');
@@ -35,7 +36,6 @@ class Cache {
       logger.warn(null, 'Redis client is not ready for cache set', this.configuration);
       return;
     }
-
     try {
       // IMPORTANT: the data that is set to the cache MUST be stringified,
       // because setex does not support setting objects.
@@ -80,11 +80,16 @@ class Cache {
   }
 
   async _cachePeek(key) {
+    // IMPORTANT: the l1 cache stores /references/, not /values/, so
+    // the results you get from l1 MUST be cloned so it can be modified
+    // downstream without modifying the cache at a given key.
+
     const requestDateTime = now();
+
     const l1Result = this.l1Cache.get(key);
     if (l1Result) {
       l1Result.responseFrom = 'l1Cache';
-      return l1Result;
+      return _.cloneDeep(l1Result);
     }
     try {
       const response = await this._redisGet(key, this.configuration);
@@ -99,7 +104,7 @@ class Cache {
       }
 
       response.responseFrom = 'redis';
-      return response;
+      return _.cloneDeep(response);
     } catch (error) {
       logger.error(error, `Failed getting redis cache for key '${key}'`, 'cachePeek', this.configuration);
       logger.trace(error);

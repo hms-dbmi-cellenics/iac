@@ -19,6 +19,9 @@ const cacheGetRequest = async (
     experimentId: data.experimentId,
     body: data.body,
   });
+  logger.log(`Looking up data in cache under key ${key}`);
+
+
   const payload = await cache.get(key);
 
   if (payload) {

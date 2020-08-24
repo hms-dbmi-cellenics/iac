@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
     "coverage": "jest --coverage",
     "dev": "nodemon src/app.js",
     "start": "node src/app.js"
@@ -35,6 +36,7 @@
     "lodash": "^4.17.15",
     "log-timestamp": "^0.3.0",
     "lru-cache": "^5.1.1",
+    "micromatch": "^4.0.2",
     "object-hash": "^2.0.3",
     "sns-validator": "^0.3.4",
     "socket.io": "^2.3.0",
