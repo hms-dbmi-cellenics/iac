@@ -19,7 +19,7 @@ module.exports = async (app) => {
   // up to the size of the max SNS topic limit (256k), it defaults to 100kb.
   app.use(bodyParser.urlencoded({ extended: false, limit: '1mb', parameterLimit: 300000 }));
   app.use(bodyParser.text({ extended: false, limit: '1mb', parameterLimit: 300000 }));
-  app.use(bodyParser.json({ extended: false, limit: '1mb', parameterLimit: 300000 }));
+  app.use(bodyParser.json({ extended: false, limit: '10mb', parameterLimit: 300000 }));
 
   await new OpenApiValidator({
     apiSpec: path.join(__dirname, '..', 'specs', 'api.yaml'),

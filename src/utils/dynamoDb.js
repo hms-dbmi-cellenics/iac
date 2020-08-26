@@ -5,7 +5,9 @@ const createDynamoDbInstance = () => new AWS.DynamoDB({
   region: config.awsRegion,
 });
 
-const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(data);
+const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(
+  data, { convertEmptyValues: true },
+);
 const convertToJsObject = (data) => AWS.DynamoDB.Converter.unmarshall(data);
 
 module.exports = { createDynamoDbInstance, convertToDynamoDbRecord, convertToJsObject };

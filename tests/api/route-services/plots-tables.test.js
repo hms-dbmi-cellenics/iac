@@ -1,12 +1,24 @@
 const AWSMock = require('aws-sdk-mock');
 const AWS = require('aws-sdk');
 const PlotsTablesService = require('../../../src/api/route-services/plots-tables');
+const { convertToDynamoDbRecord } = require('../../../src/utils/dynamoDb');
+
 
 jest.mock('../../../src/config');
 jest.mock('../../../src/utils/logging');
 
 const socket = jest.fn();
 const emit = jest.fn();
+
+// Mock dates so snapshots don't drift.
+const constantDate = new Date('2020-01-01T00:00:00.000Z');
+/* eslint no-global-assign:off */
+Date = class extends Date {
+  constructor() {
+    return constantDate;
+  }
+};
+
 socket.emit = emit;
 
 const EXPERIMENT_ID = '1';
@@ -49,7 +61,9 @@ describe('Test Plot Config Service', () => {
 
   it('read operation, read data from database', async () => {
     const data = {
-      foo: 'bar', baz: [1, 2, 3],
+      Item: convertToDynamoDbRecord({
+        foo: 'bar', baz: [1, 2, 3],
+      }),
     };
 
     const getItem = jest.fn();

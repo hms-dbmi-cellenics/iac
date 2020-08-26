@@ -4,9 +4,9 @@ const plotsTablesService = new PlotsTablesService();
 
 module.exports = {
   'plots-tables#create': (req, res, next) => {
-    const { experimentId, plotUuid, data } = req.params;
+    const { experimentId, plotUuid } = req.params;
 
-    plotsTablesService.create(experimentId, plotUuid, data)
+    plotsTablesService.create(experimentId, plotUuid, req.body)
       .then((response) => res.json(response))
       .catch(next);
   },
@@ -15,12 +15,19 @@ module.exports = {
 
     plotsTablesService.read(experimentId, plotUuid)
       .then((response) => res.json(response))
+      .catch((e) => {
+        if (e.message.includes('not found')) {
+          res.status(404).send('');
+        } else {
+          throw e;
+        }
+      })
       .catch(next);
   },
   'plots-tables#update': (req, res, next) => {
-    const { experimentId, plotUuid, data } = req.params;
+    const { experimentId, plotUuid } = req.params;
 
-    plotsTablesService.create(experimentId, plotUuid, data)
+    plotsTablesService.create(experimentId, plotUuid, req.body)
       .then((response) => res.json(response))
       .catch(next);
   },
