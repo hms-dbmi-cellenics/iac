@@ -8,22 +8,24 @@ class PlotsTablesService {
   }
 
   async create(experimentId, plotUuid, data) {
-    const plotConfig = convertToDynamoDbRecord({
+    const tableData = {
       ...data,
       experimentId,
       plotUuid,
-    });
+      lastUpdated: new Date().toISOString(),
+    };
+
+    const plotConfig = convertToDynamoDbRecord(tableData);
 
     const params = {
       TableName: this.tableName,
       Item: plotConfig,
     };
+
     const dynamodb = createDynamoDbInstance();
+    await dynamodb.putItem(params).promise();
 
-    const response = await dynamodb.putItem(params).promise();
-    const prettyResponse = convertToJsObject(response.Item);
-
-    return prettyResponse;
+    return tableData;
   }
 
   async read(experimentId, plotUuid) {
@@ -37,10 +39,15 @@ class PlotsTablesService {
       Key: key,
     };
     const dynamodb = createDynamoDbInstance();
-    const response = await dynamodb.getItem(params).promise();
-    const prettyResponse = convertToJsObject(response.Item);
 
-    return prettyResponse;
+    const response = await dynamodb.getItem(params).promise();
+
+    if (response.Item) {
+      const prettyResponse = convertToJsObject(response.Item);
+      return prettyResponse;
+    }
+
+    throw Error('Plot not found');
   }
 
   async delete(experimentId, plotUuid) {
