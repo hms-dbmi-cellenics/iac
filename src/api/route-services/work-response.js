@@ -92,8 +92,16 @@ class WorkResponseService {
       uuid, socketId, timeout, pagination,
     } = responseForClient.request;
 
+    const { cacheable } = responseForClient.response;
+
     try {
-      await cacheSetResponse(responseForClient);
+      if (cacheable) {
+        logger.log('Response will be cached.');
+        await cacheSetResponse(responseForClient);
+      } else {
+        logger.log('Skipping caching as `cacheable` is set to false.');
+      }
+
       // Order results according to the pagination
       if (pagination) {
         responseForClient.results = handlePagination(processedResults, pagination);

@@ -335,8 +335,21 @@ components:
               - body
         request:
           $ref: '#/components/schemas/WorkRequest'
+        response:
+          type: object
+          required:
+            - cacheable
+            - error
+          properties:
+            cacheable:
+              type: boolean
+              description: Whether the result should be cached.
+            error:
+              type: boolean
+              description: "Whether there's been an error."
       required:
         - results
+        - response
     ApiError:
       title: ApiError
       type: object
@@ -595,6 +608,7 @@ components:
         - $ref: '#/components/schemas/WorkSchemaListGenes'
         - $ref: '#/components/schemas/WorkSchemaDifferentialExpression'
         - $ref: '#/components/schemas/WorkSchemaGeneExpression'
+        - $ref: '#/components/schemas/WorkSchemaClusterCells'
       title: WorkRequestBodies
       description: Valid work request bodies.
     PlotTableConfig:
@@ -621,3 +635,25 @@ components:
       required:
         - type
         - config
+    WorkSchemaClusterCells:
+      title: WorkSchemaClusterCells
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the work. Must be `ClusterCells`.
+        cellSetName:
+          type: string
+          description: The name under which the cell set group should be saved.
+        params:
+          type: object
+        type:
+          type: string
+          description: The type of clustering algorithm to use.
+          enum:
+            - louvain
+            - leiden
+      required:
+        - name
+        - cellSetName
+        - type
