@@ -4,6 +4,8 @@ const AWSMock = require('aws-sdk-mock');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
 const { handlePagination } = require('../../../src/utils/handlePagination');
 
+const { cacheSetResponse } = require('../../../src/utils/cache-request');
+
 jest.mock('../../../src/utils/handlePagination', () => ({
   handlePagination: jest.fn(),
 }));
@@ -53,7 +55,7 @@ describe('tests for the work-response service', () => {
   afterEach(() => {
     AWSMock.restore('S3');
     jest.resetModules();
-    jest.restoreAllMocks();
+    jest.resetAllMocks();
     getObjectSpy.mockReset();
   });
 
@@ -78,6 +80,10 @@ describe('tests for the work-response service', () => {
           name: 'GetEmbedding',
           type: 'pca',
         },
+      },
+      response: {
+        error: false,
+        cacheable: true,
       },
       results: [
         {
@@ -104,6 +110,10 @@ describe('tests for the work-response service', () => {
           name: 'GetEmbedding',
           type: 'pca',
         },
+      },
+      response: {
+        cacheable: true,
+        error: false,
       },
       results: [
         {
@@ -138,6 +148,10 @@ describe('tests for the work-response service', () => {
           name: 'GetEmbedding',
           type: 'pca',
         },
+      },
+      response: {
+        cacheable: true,
+        error: false,
       },
       results: [
         {
@@ -184,6 +198,10 @@ describe('tests for the work-response service', () => {
           name: 'GetEmbedding',
           type: 'pca',
         },
+      },
+      response: {
+        cacheable: true,
+        error: false,
       },
       results: [
         {
@@ -232,6 +250,10 @@ describe('tests for the work-response service', () => {
           name: 'GetEmbedding',
           type: 'pca',
         },
+      },
+      response: {
+        cacheable: true,
+        error: false,
       },
       results: [
         {
@@ -297,6 +319,10 @@ describe('tests for the work-response service', () => {
         },
         pagination,
       },
+      response: {
+        cacheable: true,
+        error: false,
+      },
       results: [
         {
           'content-type': 'application/json',
@@ -322,6 +348,76 @@ describe('tests for the work-response service', () => {
           body: '{"rows": [{"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "A"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "B"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "C"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "D"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "E"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "F"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "G"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "H"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "I"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "J"}]}',
         },
       ], pagination);
+      return done();
+    });
+  });
+
+  it('Does not cache response when `cacheable` is set to false', async (done) => {
+    const workResponse = {
+      request: {
+        uuid: '55',
+        socketId: 'mysocketid',
+        experimentId: '5e959f9c9f4b120771249001',
+        timeout: '2099-01-01T00:00:00Z',
+        body: {
+          name: 'GetEmbedding',
+          type: 'pca',
+        },
+      },
+      response: {
+        cacheable: false,
+        error: false,
+      },
+      results: [
+        {
+          'content-type': 'application/json',
+          'content-encoding': 'utf-8',
+          body: '[[-17.86727523803711, 4.7951226234436035], [2.4647858142852783, -4.940079689025879]]',
+          type: 'inline',
+        },
+      ],
+    };
+    const w = new WorkResponseService(io, workResponse);
+    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
+    delete expectedResponse.results[0].type;
+
+    w.handleResponse().then(() => {
+      expect(cacheSetResponse).toHaveBeenCalledTimes(0);
+      return done();
+    });
+  });
+
+  it('Caches response when `cacheable` is set to false', async (done) => {
+    const workResponse = {
+      request: {
+        uuid: '55',
+        socketId: 'mysocketid',
+        experimentId: '5e959f9c9f4b120771249001',
+        timeout: '2099-01-01T00:00:00Z',
+        body: {
+          name: 'GetEmbedding',
+          type: 'pca',
+        },
+      },
+      response: {
+        cacheable: true,
+        error: false,
+      },
+      results: [
+        {
+          'content-type': 'application/json',
+          'content-encoding': 'utf-8',
+          body: '[[-17.86727523803711, 4.7951226234436035], [2.4647858142852783, -4.940079689025879]]',
+          type: 'inline',
+        },
+      ],
+    };
+    const w = new WorkResponseService(io, workResponse);
+    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
+    delete expectedResponse.results[0].type;
+
+    w.handleResponse().then(() => {
+      expect(cacheSetResponse).toHaveBeenCalledTimes(1);
       return done();
     });
   });
