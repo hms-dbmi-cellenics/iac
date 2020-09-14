@@ -60,12 +60,6 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: lint
-        name: Lint changed template against schema
-        uses: scottbrenner/cfn-lint-action@master
-        with:
-          args: ${{ matrix.template }}
-
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -89,6 +83,22 @@ jobs:
           echo "::set-output name=stack-name::$BASE_NAME"
         env:
           FILE_NAME: ${{ matrix.template }}
+
+      - id: check-lint
+        name: Check if deployment or validation is required
+        run: |-
+          if ["${{ github.ref == 'master' }}" -eq "true"]
+          then
+            echo "We are pushing to master, deploying instead of validating."
+            echo "::set-output name=no-execute-changes::0"
+          else
+            echo "We are not pushing to master (probably a PR), validating instead of deploying."
+            echo "::set-output name=no-execute-changes::1"
+          fi
+        env:
+          FILE_NAME: ${{ matrix.template }}
+  
+          ${{ github.ref != 'master' }}
       
       # Only generate the changeset (validate) the template when not
       # the commit is not a push to master.
@@ -101,7 +111,7 @@ jobs:
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          no-execute-changeset: ${{ github.ref != 'master' }}
+          no-execute-changeset: ${{ steps.check-lint.no-execute-changes }}
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       # Only generate the changeset (validate) the template when not
@@ -115,5 +125,5 @@ jobs:
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          no-execute-changeset: ${{ github.ref != 'master' }}
+          no-execute-changeset: ${{ steps.check-lint.no-execute-changes }}
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
