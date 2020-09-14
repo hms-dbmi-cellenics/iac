@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up ElastiCache Redis cluster [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the cluster need to be created.
+  CachePort:
+    Default: '6379'
+    Type: String
+  
+
+Outputs:
+  ElastiCachePrimaryEndpointAddress:
+    Description: Address to use to connect to Primary Cluster endpoint
+    Value: !GetAtt CacheClustersWithReplication.PrimaryEndPoint.Address
+  
+  ElastiCachePrimaryEndpointPort:
+    Description: Port to use to connect to all cluster endpoints
+    Value: !GetAtt CacheClustersWithReplication.PrimaryEndPoint.Port
+  
+  ElastiCacheReplicaAdresses:
+    Description: Adresses for connecting to Read Replica endpoints
+    Value: !Join [ ", ", [!GetAtt CacheClustersWithReplication.ReadEndPoint.Addresses]]
+  
+  ElastiCacheLogicalName:
+    Description: ElastiCache Cluster Instance Logical Name
+    Value: !Ref CacheClustersWithReplication
+
+Resources:
+  # arn is of the format arn:${Partition}:elasticache:${Region}:${Account}:replicationgroup:${ReplicationGroupId}
+  # see https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazonelasticache.html
+  CacheClustersWithReplication:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      ReplicationGroupId: !Sub "biomage-redis-${Environment}"
+      ReplicationGroupDescription: !Sub "Biomage ElastiCache cluster for environment ${Environment}"
+      CacheNodeType: cache.t2.micro
+      CacheSubnetGroupName: !Ref CacheSubnetGroup
+      Engine: redis
+      NumCacheClusters: 2
+      Port: !Ref CachePort
+      AutomaticFailoverEnabled: true
+      TransitEncryptionEnabled: true
+      #NOTE: for HIPAA compliance this should be specified
+      #AuthToken:
+      PreferredMaintenanceWindow: Sun:04:00-Sun:05:00
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}"
+        - Key: StackName
+          Value: !Ref AWS::StackName
+      SecurityGroupIds:
+        - !Ref CacheSecurityGroup
+  
+  CacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "Biomage ElastiCache security group for ${Environment}"
+      SecurityGroupEgress: []
+      SecurityGroupIngress:
+        - CidrIp: 10.0.0.0/8
+          FromPort: !Ref CachePort
+          IpProtocol: tcp
+          ToPort: !Ref CachePort
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-security-group"
+        - Key: StackName
+          Value: !Ref AWS::StackName
+      VpcId:
+        Fn::ImportValue:
+          !Sub "eksctl-biomage-${Environment}-cluster::VPC"
+  
+  CacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: !Sub "Biomage subnet group for ${Environment}"
+      SubnetIds:
+        Fn::Split:
+          - ','
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
