@@ -84,6 +84,10 @@ jobs:
         env:
           FILE_NAME: ${{ matrix.template }}
 
+      # aws-actions/aws-cloudformation-github-deploy@v1 takes
+      # 0/1 instead of true/false so we have to cast between them.
+      # there is no builtin for this in GitLab so this step serves this
+      # purpose.
       - id: check-lint
         name: Check if deployment or validation is required
         run: |-
@@ -95,11 +99,7 @@ jobs:
             echo "We are not pushing to master (probably a PR), validating instead of deploying."
             echo "::set-output name=no-execute-changes::1"
           fi
-        env:
-          FILE_NAME: ${{ matrix.template }}
-  
-          ${{ github.ref != 'master' }}
-      
+            
       # Only generate the changeset (validate) the template when not
       # the commit is not a push to master.
       - id: deploy-template
