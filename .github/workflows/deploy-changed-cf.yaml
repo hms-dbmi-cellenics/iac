@@ -60,6 +60,12 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
+      - id: lint
+        name: Lint template
+        uses: scottbrenner/cfn-lint-action@master
+        with:
+          args: ${{ matrix.template }}
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -70,7 +76,7 @@ jobs:
 
       # This is only necessary for IAM Service Account roles.
       - id: get-oidc
-        if: ${{ contains(matrix.template, 'irsa-') }}
+        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'master' }}
         name: Get OIDC provider information for IRSA role
         run: |-
           OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
@@ -83,47 +89,25 @@ jobs:
           echo "::set-output name=stack-name::$BASE_NAME"
         env:
           FILE_NAME: ${{ matrix.template }}
-
-      # aws-actions/aws-cloudformation-github-deploy@v1 takes
-      # 0/1 instead of true/false so we have to cast between them.
-      # there is no builtin for this in GitLab so this step serves this
-      # purpose.
-      - id: check-lint
-        name: Check if deployment or validation is required
-        run: |-
-          if ["${{ github.ref == 'master' }}" -eq "true"]
-          then
-            echo "We are pushing to master, deploying instead of validating."
-            echo "::set-output name=no-execute-changeset::0"
-          else
-            echo "We are not pushing to master (probably a PR), validating instead of deploying."
-            echo "::set-output name=no-execute-changeset::1"
-          fi
-            
-      # Only generate the changeset (validate) the template when not
-      # the commit is not a push to master.
+      
       - id: deploy-template
-        name: Deploy/validate CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') }}
+        name: Deploy CloudFormation template
+        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'master' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          no-execute-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      # Only generate the changeset (validate) the template when not
-      # the commit is not a push to master.
       - id: deploy-irsa-template
-        if: ${{ contains(matrix.template, 'irsa-') }}
-        name: Deploy/validate IRSA CloudFormation template
+        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'master' }}
+        name: Deploy IRSA CloudFormation template
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          no-execute-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
