@@ -33,9 +33,12 @@ Outputs:
     Value: !Ref CacheClustersWithReplication
 
 Resources:
+  # arn is of the format arn:${Partition}:elasticache:${Region}:${Account}:replicationgroup:${ReplicationGroupId}
+  # see https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazonelasticache.html
   CacheClustersWithReplication:
     Type: AWS::ElastiCache::ReplicationGroup
     Properties:
+      ReplicationGroupId: !Sub "biomage-redis-${Environment}"
       ReplicationGroupDescription: !Sub "Biomage ElastiCache cluster for environment ${Environment}"
       CacheNodeType: cache.t2.micro
       CacheSubnetGroupName: !Ref CacheSubnetGroup
@@ -82,21 +85,3 @@ Resources:
         Fn::Split:
           - ','
           - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
-  
-Outputs:
-  PrimaryAddress:
-    Export:
-      Name: !Sub "${AWS::StackName}::PrimaryAddress"
-    Value: !GetAtt CacheClustersWithReplication.PrimaryEndPoint.Address
-  PrimaryPort:
-    Export:
-      Name: !Sub "${AWS::StackName}::PrimaryPort"
-    Value: !GetAtt CacheClustersWithReplication.PrimaryEndPoint.Port
-  ReplicaAddresses:
-    Export:
-      Name: !Sub "${AWS::StackName}::ReplicaAddresses"
-    Value: !GetAtt CacheClustersWithReplication.ReadEndPoint.Addresses
-  ReplicaPorts:
-    Export:
-      Name: !Sub "${AWS::StackName}::ReplicaPorts"
-    Value: !GetAtt CacheClustersWithReplication.ReadEndPoint.Ports
