@@ -1,9 +1,17 @@
 name: Deploy changed CloudFormation templates
 on:
   push:
+    branches:
+      - master
     paths:
-    - 'cf/**.yaml'
-    - 'cf/**.yml'
+      - 'cf/**.yaml'
+      - 'cf/**.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'cf/**.yaml'
+      - 'cf/**.yml'
 
 jobs:
   get-modified-templates:
@@ -52,6 +60,12 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
+      - id: lint
+        name: Lint changed template against schema
+        uses: scottbrenner/cfn-lint-action@master
+        with:
+          args: ${{ matrix.template }}
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -76,8 +90,10 @@ jobs:
         env:
           FILE_NAME: ${{ matrix.template }}
       
+      # Only generate the changeset (validate) the template when not
+      # the commit is not a push to master.
       - id: deploy-template
-        name: Deploy CloudFormation template
+        name: Deploy/validate CloudFormation template
         if: ${{ !contains(matrix.template, 'irsa-') }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -85,17 +101,19 @@ jobs:
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
+          no-execute-changeset: ${{ github.ref != 'master' }}
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
+      # Only generate the changeset (validate) the template when not
+      # the commit is not a push to master.
       - id: deploy-irsa-template
         if: ${{ contains(matrix.template, 'irsa-') }}
-        name: Deploy IRSA CloudFormation template
+        name: Deploy/validate IRSA CloudFormation template
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
+          no-execute-changeset: ${{ github.ref != 'master' }}
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
-  
