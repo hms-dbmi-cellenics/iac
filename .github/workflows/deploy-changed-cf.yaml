@@ -94,10 +94,10 @@ jobs:
           if ["${{ github.ref == 'master' }}" -eq "true"]
           then
             echo "We are pushing to master, deploying instead of validating."
-            echo "::set-output name=no-execute-changes::0"
+            echo "::set-output name=no-execute-changeset::0"
           else
             echo "We are not pushing to master (probably a PR), validating instead of deploying."
-            echo "::set-output name=no-execute-changes::1"
+            echo "::set-output name=no-execute-changeset::1"
           fi
             
       # Only generate the changeset (validate) the template when not
@@ -111,7 +111,7 @@ jobs:
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          no-execute-changeset: ${{ steps.check-lint.no-execute-changes }}
+          no-execute-changeset: ${{ steps.check-lint.no-execute-changeset }}
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       # Only generate the changeset (validate) the template when not
@@ -125,5 +125,5 @@ jobs:
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          no-execute-changeset: ${{ steps.check-lint.no-execute-changes }}
+          no-execute-changeset: ${{ steps.check-lint.no-execute-changeset }}
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
