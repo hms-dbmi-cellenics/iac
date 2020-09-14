@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: worker-refs-pull-15-merge
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: worker
+  namespace: worker-refs-pull-15-merge
+spec:
+  releaseName: worker
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart/
+    ref: master
+  values:
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-production

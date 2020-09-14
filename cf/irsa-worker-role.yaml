@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up role for the worker [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+
+  OIDCProvider:
+    Type: String
+    Description: The OIDC provider
+  
+Resources:
+  WorkerRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub "worker-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Fn::Sub:
+          |-
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
+                  },
+                  "Action": "sts:AssumeRoleWithWebIdentity",
+                  "Condition": {
+                    "StringLike": {
+                      "${OIDCProvider}:sub": "system:serviceaccount:worker-*:deployment-runner"
+                    }
+                  }
+                }
+              ]
+            }
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-list-objects-in-source-buckets-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:ListBucket'
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}"
+        - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:GetObject'
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+        - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:PutObject'
+                Resource:
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
+        - PolicyName: !Sub "can-read-from-worker-queue-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sqs:ReceiveMessage'
+                  - 'sqs:DeleteMessage'
+                  - 'sqs:GetQueueUrl'
+                Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"      
+        - PolicyName: !Sub "can-push-to-sns-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'sns:Publish'
+                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}"
+        - PolicyName: !Sub "can-manage-tables-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGet*"
+                  - "dynamodb:DescribeStream"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Get*"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:BatchWrite*"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:Update*"
+                  - "dynamodb:PutItem"
+
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"

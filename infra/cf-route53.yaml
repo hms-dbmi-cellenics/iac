@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up DNS records for the NGINX Ingress Controller.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - production
+    Description: The environment for which the SNS topic needs to be created.
+
+  LoadBalancerUrl:
+    Type: String
+    Description: The URL of the load balancer to deploy.
+
+  DomainName:
+    Type: String
+    Default: biomage.net.
+    Description: The URL of the load balancer to deploy.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+    
+Resources: 
+  IngressControllerMapping:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: !Ref DomainName
+      Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
+      RecordSets:
+      - Name: !Join ['.', [!If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
+        Type: CNAME
+        TTL: '900'
+        ResourceRecords:
+        - !Ref LoadBalancerUrl
+      - Name: !Join ['.', ['*', !If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
+        Type: CNAME
+        TTL: '900'
+        ResourceRecords:
+        - !Ref LoadBalancerUrl

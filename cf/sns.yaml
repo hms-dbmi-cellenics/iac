@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up SNS topics for Biomage SCP [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the SNS topic needs to be created.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+  isDev: !Equals [!Ref Environment, "development"]
+
+Resources: 
+  SNSTopic: 
+    Type: AWS::SNS::Topic
+    Properties: 
+      KmsMasterKeyId: "alias/aws/sns"
+      Subscription: 
+        - Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/workResults",
+                    !If [isDev, "http://host.docker.internal:3000/v1/workResults",
+                     !Sub "https://api.scp-${Environment}.biomage.net/v1/workResults"]]
+          Protocol: "https"
+      TopicName: !Sub "work-results-${Environment}"

@@ -1,0 +1,20 @@
+name: Prevent pull requests modifying Flux CI paths
+
+on:
+  pull_request:
+    types: [opened]
+    paths:
+        - 'releases/**'
+        - '!**.md'
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: superbrothers/close-pull-request@v2
+      with:
+        comment: |-
+            Pull requests may not modify the `releases/` directory.
+            
+            Check the [README](https://github.com/biomage-ltd/iac/blob/master/releases/README.md) for more details.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

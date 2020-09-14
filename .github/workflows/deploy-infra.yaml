@@ -1,0 +1,303 @@
+name: Deploy Biomage infrastructure on AWS
+on: 
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'AWS Region to deploy to'
+        required: true
+
+
+jobs:
+  check-secrets:
+    name: Check if secrets are defined
+    runs-on: ubuntu-latest
+    steps:
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.DEPLOY_KEY_ACCESS_TOKEN }}" ]
+          then
+            echo GitHub deploy key access token not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo Make sure you launch this job using the biomage devops tools, and not from GitHub.
+            echo Launching from GitHub directly is not supported to ensure cluster credentials are not
+            echo kept in the repository.
+            false
+          fi
+
+  create-eks-cluster:
+    name: Create EKS cluster
+    runs-on: ubuntu-latest
+    needs: check-secrets
+    strategy:
+      matrix:
+        environment: ['production']
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+      AWS_REGION: ${{ github.event.inputs.region }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.region }}
+      
+      - id: install-yq
+        name: Install yq for modifying the eksctl yaml spec.
+        run: |-
+          sudo snap install yq
+      
+      - id: fill-metadata
+        name: Add name and region to the eksctl file.
+        run: |-
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region $AWS_REGION > /tmp/cluster-$CLUSTER_ENV.yaml
+          cat /tmp/cluster-$CLUSTER_ENV.yaml
+      
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+      
+      - id: create-clusters
+        name: Attempt to create clusters from spec.
+        # this job will always pass, irrespective of whether creation was successful or not.
+        # this is because the cluster may already exist. we will check for this condition
+        # on failure in the next step
+        continue-on-error: true
+        run: |-
+          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
+
+          eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
+          echo "::set-output name=outcome::created"
+      - id: check-for-failure
+        name: Check for reason of failure if cluster creation failed.
+        if: steps.create-clusters.outcome == 'failure'
+        run: |-
+          # Check if failure was caused by an already exists exception.
+          # If not, the job should fail.
+          ALREADY_EXISTS=$(grep AlreadyExistsException /tmp/eksctl-$CLUSTER_ENV.log | wc -l | xargs)
+          if [ $ALREADY_EXISTS -ne 1 ]
+          then
+            echo Step failed for reason other than stack already existing.
+            echo Job failing...
+            echo "::set-output name=reason::error"
+            false
+          fi
+
+          echo Cluster already exists.
+          echo "::set-output name=reason::already-exists"
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: update-identitymapping
+        name: Add cluster admin rights to everyone on the list.
+        run: |-
+          while IFS= read -r user
+          do
+            echo "Adding cluster admin rights to $user"
+            eksctl create iamidentitymapping \
+              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
+              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+              --group system:masters \
+              --username biomage-admin
+          done < "infra/cluster_admins"
+
+      - id: update-nodegroup
+        name: Attempt to update node groups for existing cluster.
+        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+        run: |-
+          eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+          eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+
+      # note: iam service accounts should really be created from within the helm chart as seen here:
+      # https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
+      - id: update-serviceaccounts
+        name: Attempt to update IAM service accounts for existing cluster.
+        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+        run: |-
+          eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
+          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+          eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+
+  configure-cluster:
+    name: Configure Kubernetes resources (nginx ingress, flux, Helm) on the EKS cluster
+    runs-on: ubuntu-latest
+    needs: create-eks-cluster
+    strategy:
+      matrix:
+        environment: ['production']
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+      DEPLOY_KEY_ACCESS_TOKEN: ${{ secrets.DEPLOY_KEY_ACCESS_TOKEN }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+      
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.region }}
+
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      
+      - id: deploy-nginx-ingress
+        name: Deploy NGINX Ingress Controller
+        run: |-
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.35.0/deploy/static/provider/aws/deploy.yaml
+          ELB_URL=$(kubectl get services --namespace ingress-nginx ingress-nginx-controller --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "ELB deployed under $ELB_URL"
+          echo "::set-output name=elb-url::$ELB_URL"
+
+      - id: deploy-route53
+        name: Deploy Route 53 DNS records to ELB
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }},LoadBalancerUrl=${{ steps.deploy-nginx-ingress.outputs.elb-url }}"
+          name: "biomage-k8s-route53-${{ matrix.environment }}"
+          template: 'infra/cf-route53.yaml'
+          no-fail-on-empty-changeset: "1"
+
+      - id: create-flux-namespace
+        name: Attempt to create flux namespace
+        continue-on-error: true
+        run: |-
+          kubectl create namespace flux
+      
+      - id: install-fluxctl
+        name: Install fluxctl
+        run: |-
+          sudo snap install fluxctl --classic
+      
+      - id: install-helm
+        name: Install Helm
+        run: |-
+          sudo snap install helm --classic
+      
+      - id: install-flux
+        name: Deploy flux
+        run: |-
+          helm repo add fluxcd https://charts.fluxcd.io
+          kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
+
+          helm upgrade flux fluxcd/flux \
+            --set git.url=git@github.com:$GITHUB_REPOSITORY \
+            --namespace flux \
+            --install --wait
+       
+          helm upgrade helm-operator fluxcd/helm-operator \
+            --set git.ssh.secretName=flux-git-deploy \
+            --set helm.versions=v3 \
+            --namespace flux \
+            --install --wait
+      
+      - id: get-public-key
+        name: Get flux SSH deploy key
+        run: |-
+          fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
+      
+      - id: add-key-to-github
+        name: Add Flux deploy key to GitHub repository
+        run: |-
+          # find existing key IDs. save them to a file
+          curl \
+            -H"Authorization: token $DEPLOY_KEY_ACCESS_TOKEN"\
+            https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
+            | jq '.[] | .id ' > /tmp/key_ids
+          
+          # iterate through them and delete all existing deploy keys
+          cat /tmp/key_ids | \
+            while read _id; do
+              echo "- delete  deploy key: $_id"
+              curl \
+                -X "DELETE"\
+                -H"Authorization: token $DEPLOY_KEY_ACCESS_TOKEN"\
+                https://api.github.com/repos/$GITHUB_REPOSITORY/keys/$_id 2>/dev/null
+            done
+
+          # add the keyfile to github
+          echo
+          echo "+ flux deploy key:"
+          echo -n ">> "
+          {
+            curl \
+              -i\
+              -H"Authorization: token $DEPLOY_KEY_ACCESS_TOKEN"\
+              --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
+            {
+              "title" : "Flux CI -- $(date)",
+              "key" : "$(cat ~/flux.pub)",
+              "read_only" : false
+            }
+          EOF
+          } 2>/dev/null | tee /tmp/create_key_result | head -1
+
+          # check if key was created
+          KEY_CREATED=$(grep 201 /tmp/create_key_result | wc -l | xargs)
+          if [ $KEY_CREATED -eq 0 ]
+          then
+            echo
+            echo Key creation failed. Full response shown below:
+            cat /tmp/create_key_result
+            false
+          fi
+
+      - id: create-cert-manager-namespace
+        name: Attempt to create cert-manager namespace
+        continue-on-error: true
+        run: |-
+          kubectl create namespace cert-manager
+
+      - id: install-cert-manager-chart
+        name: Install cert-manager chart
+        run: |-
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+
+          helm upgrade \
+            cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --version v1.0.1 \
+            --set installCRDs=true \
+            --install --wait
+
+      # see this article for more details
+      # https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes
+      - id: deploy-le-issuers
+        name: Deploy Let's Encrypt issuers
+        run: |-
+          helm upgrade "cert-manager-issuers" infra/k8s-cert-manager-issuers \
+            --create-namespace \
+            --install --wait \
+            --namespace=cert-manager

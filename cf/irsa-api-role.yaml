@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up role for the API [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+
+  OIDCProvider:
+    Type: String
+    Description: The OIDC provider
+  
+Resources:
+  APIRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub "api-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Fn::Sub:
+          |-
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
+                  },
+                  "Action": "sts:AssumeRoleWithWebIdentity",
+                  "Condition": {
+                    "StringLike": {
+                      "${OIDCProvider}:sub": "system:serviceaccount:api-*:deployment-runner"
+                    }
+                  }
+                }
+              ]
+            }
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-create-worker-queue-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'sqs:CreateQueue'
+                Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+        - PolicyName: !Sub "can-send-to-worker-queue-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'sqs:SendMessage'
+                Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+        - PolicyName: !Sub "can-manage-tables-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGet*"
+                  - "dynamodb:DescribeStream"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Get*"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:BatchWrite*"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:Update*"
+                  - "dynamodb:PutItem"
+
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
+        - PolicyName: !Sub "can-download-objects-from-result-buckets-${Environment}"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:GetObject'
+                Resource:
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"

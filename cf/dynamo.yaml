@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up DynamoDB tables for Biomage SCP [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the tables need to be created.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+  isDev: !Equals [!Ref Environment, "development"]
+
+Resources: 
+  ExperimentTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: !Sub "experiments-${Environment}"
+      AttributeDefinitions: 
+        - 
+          AttributeName: "experimentId"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "experimentId"
+          KeyType: "HASH"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      BillingMode: "PROVISIONED"
+  PlotsTablesTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: !Sub "plots-tables-${Environment}"
+      AttributeDefinitions:
+        - 
+          AttributeName: "plotUuid"
+          AttributeType: "S"
+        - 
+          AttributeName: "experimentId"
+          AttributeType: "S"
+      KeySchema:
+        - 
+          AttributeName: "plotUuid"
+          KeyType: "HASH"
+        - 
+          AttributeName: "experimentId"
+          KeyType: "RANGE"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      BillingMode: "PROVISIONED"
