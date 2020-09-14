@@ -29,7 +29,7 @@ jobs:
             ERROR=true
           fi
 
-          if [ -z "${{ secrets.DEPLOY_KEY_ACCESS_TOKEN }}" ]
+          if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
           then
             echo GitHub deploy key access token not defined.
             ERROR=true
@@ -153,7 +153,7 @@ jobs:
         environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
-      DEPLOY_KEY_ACCESS_TOKEN: ${{ secrets.DEPLOY_KEY_ACCESS_TOKEN }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     steps:
       - id: checkout
         name: Check out source code
@@ -232,7 +232,7 @@ jobs:
         run: |-
           # find existing key IDs. save them to a file
           curl \
-            -H"Authorization: token $DEPLOY_KEY_ACCESS_TOKEN"\
+            -H"Authorization: token $API_TOKEN_GITHUB"\
             https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
             | jq '.[] | .id ' > /tmp/key_ids
           
@@ -242,7 +242,7 @@ jobs:
               echo "- delete  deploy key: $_id"
               curl \
                 -X "DELETE"\
-                -H"Authorization: token $DEPLOY_KEY_ACCESS_TOKEN"\
+                -H"Authorization: token $API_TOKEN_GITHUB"\
                 https://api.github.com/repos/$GITHUB_REPOSITORY/keys/$_id 2>/dev/null
             done
 
@@ -253,7 +253,7 @@ jobs:
           {
             curl \
               -i\
-              -H"Authorization: token $DEPLOY_KEY_ACCESS_TOKEN"\
+              -H"Authorization: token $API_TOKEN_GITHUB"\
               --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
             {
               "title" : "Flux CI -- $(date)",
