@@ -113,20 +113,6 @@ jobs:
           echo Cluster already exists.
           echo "::set-output name=reason::already-exists"
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: update-identitymapping
-        name: Add cluster admin rights to everyone on the list.
-        run: |-
-          while IFS= read -r user
-          do
-            echo "Adding cluster admin rights to $user"
-            eksctl create iamidentitymapping \
-              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group system:masters \
-              --username biomage-admin
-          done < "infra/cluster_admins"
-
       - id: update-nodegroup
         name: Attempt to update node groups for existing cluster.
         if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
@@ -301,3 +287,52 @@ jobs:
             --create-namespace \
             --install --wait \
             --namespace=cert-manager
+
+      - id: deploy-read-only-group
+        name: Deploy read-only permission definition for cluster
+        run: |-
+          helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
+            --install --wait
+
+      - id: remove-identitymappings
+        name: Remove all previous identity mappings for IAM users
+        run: |-
+          eksctl get iamidentitymapping --cluster=biomage-production --region=eu-west-1 --output=json | \
+          jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
+
+          while IFS= read -r user
+          do
+            echo "Remove rights of $user"
+            eksctl delete iamidentitymapping \
+              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
+              --arn $user
+              --all
+          done < "/tmp/users_to_remove"
+    
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: update-identitymapping-admin
+        name: Add cluster admin rights to everyone on the admin list.
+        run: |-
+          while IFS= read -r user
+          do
+            echo "Adding cluster admin rights to $user"
+            eksctl create iamidentitymapping \
+              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
+              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+              --group system:masters \
+              --username $user
+          done < "infra/cluster_admins"
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: update-identitymapping
+        name: Add cluster read-only rights to everyone on the user list.
+        run: |-
+          while IFS= read -r user
+          do
+            echo "Adding cluster read-only rights to $user"
+            eksctl create iamidentitymapping \
+              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
+              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+              --group read-only \
+              --username $user
+          done < "infra/cluster_users"
