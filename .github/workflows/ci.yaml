@@ -1,5 +1,11 @@
 name: Build and Deploy the API
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
   test:
     name: Run tests
