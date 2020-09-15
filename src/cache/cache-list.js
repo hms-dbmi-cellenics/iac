@@ -1,3 +1,26 @@
+const AWS = require('aws-sdk');
+const config = require('../../config');
+
+const getRedisEndpoints = async () => {
+  const ec = new AWS.ElastiCache({
+    region: config.awsRegion,
+  });
+
+  var params = {
+    Marker: 'STRING_VALUE',
+    MaxRecords: 'NUMBER_VALUE',
+    ReplicationGroupId: 'STRING_VALUE'
+  };
+
+  const cluster = await ec.describeReplicationGroups({
+    ReplicationGroupId: `biomage-redis-${clusterEnv}`
+  }).promise();
+
+
+  // biomage - redis - production
+}
+
+
 module.exports = {
   'eu-west-1': {
     master: {
