@@ -294,6 +294,12 @@ jobs:
           helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
             --install --wait
 
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+      
       - id: remove-identitymappings
         name: Remove all previous identity mappings for IAM users
         run: |-
