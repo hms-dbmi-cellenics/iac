@@ -9,15 +9,15 @@ const logger = require('../utils/logging');
 // If we are, assign NODE_ENV based on the GitLab (AWS/k8s cluster) environment.
 // If NODE_ENV is set, that will take precedence over the GitLab
 // environment.
-if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
-  switch (process.env.GITLAB_ENVIRONMENT_NAME) {
+if (process.env.K8S_ENV && !process.env.NODE_ENV) {
+  switch (process.env.K8S_ENV) {
     case 'staging':
       process.env.NODE_ENV = 'production';
-      process.env.CLUSTER_ENV = process.env.GITLAB_ENVIRONMENT_NAME;
+      process.env.CLUSTER_ENV = process.env.K8S_ENV;
       break;
     case 'production':
       process.env.NODE_ENV = 'production';
-      process.env.CLUSTER_ENV = process.env.GITLAB_ENVIRONMENT_NAME;
+      process.env.CLUSTER_ENV = process.env.K8S_ENV;
       break;
     default:
       // We are probably on a review branch or other deployment.
@@ -29,7 +29,7 @@ if (process.env.GITLAB_ENVIRONMENT_NAME && !process.env.NODE_ENV) {
   }
 }
 
-if (!process.env.GITLAB_ENVIRONMENT_NAME) {
+if (!process.env.K8S_ENV) {
   process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 }
 
@@ -50,7 +50,7 @@ async function getAwsAccountId() {
 const config = {
   port: parseInt(process.env.PORT, 10) || 3000,
   clusterEnv: process.env.CLUSTER_ENV || 'development',
-  awsRegion: process.env.AWS_DEFAULT_REGION || 'eu-west-2',
+  awsRegion: process.env.AWS_DEFAULT_REGION || 'eu-west-1',
   awsAccountIdPromise: getAwsAccountId(),
   api: {
     prefix: '/',

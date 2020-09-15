@@ -38,6 +38,6 @@ pushed to the SNS topic the API is configured to listen to.
 If you want to test a custom response that you wrote yourself, you can use `aws-cli` pointed to the InfraMock endpoint.
 Then you can push mocked worker responses as follows:
 
-        aws --endpoint-url=http://localhost:4566 sns publish --topic-arn arn:aws:sns:eu-west-2:000000000000:work-results-development --message "$(< payload.json)"
+        aws --endpoint-url=http://localhost:4566 sns publish --topic-arn arn:aws:sns:eu-west-1:000000000000:work-results-development --message "$(< payload.json)"
 
 from the file `payload.json`.

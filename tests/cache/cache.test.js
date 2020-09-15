@@ -36,7 +36,7 @@ jest.mock('lru-cache', () => jest.fn().mockImplementation(() => ({
 
 jest.mock('../../src/cache/aws-utilities', () => jest.fn((value) => new Promise((resolve, reject) => {
   if (value === 'placement/availability-zone') {
-    resolve('eu-west-2b');
+    resolve('eu-west-1b');
   } else {
     reject(new Error('error'));
   }

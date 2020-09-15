@@ -85,7 +85,9 @@ class WorkSubmitService {
       return;
     }
 
-    const namespaceName = `worker-18327207-${config.clusterEnv}`;
+    const accountId = await config.awsAccountIdPromise;
+    const namespaceName = 'worker-refs-heads-master';
+    const imageUrl = `${accountId}.dkr.ecr.${config.awsRegion}.amazonaws.com/worker:refs-heads-master-latest`;
 
     try {
       await this.k8sBatchApi.createNamespacedJob(namespaceName, {
@@ -111,53 +113,21 @@ class WorkSubmitService {
               containers: [
                 {
                   name: `job-${this.workerHash}-container`,
-                  image: 'registry.gitlab.com/biomage/worker/master',
+                  image: imageUrl,
                   env: [
                     {
                       name: 'WORK_QUEUE',
                       value: this.workQueueName,
                     },
                     {
-                      name: 'GITLAB_ENVIRONMENT_NAME',
+                      name: 'K8S_ENV',
                       value: `${config.clusterEnv}`,
-                    },
-                    {
-                      name: 'AWS_ACCESS_KEY_ID',
-                      valueFrom: {
-                        secretKeyRef: {
-                          name: `${config.clusterEnv}-secret`,
-                          key: 'AWS_ACCESS_KEY_ID',
-                        },
-                      },
-                    },
-                    {
-                      name: 'AWS_SECRET_ACCESS_KEY',
-                      valueFrom: {
-                        secretKeyRef: {
-                          name: `${config.clusterEnv}-secret`,
-                          key: 'AWS_SECRET_ACCESS_KEY',
-                        },
-                      },
-                    },
-                    {
-                      name: 'AWS_DEFAULT_REGION',
-                      valueFrom: {
-                        secretKeyRef: {
-                          name: `${config.clusterEnv}-secret`,
-                          key: 'AWS_DEFAULT_REGION',
-                        },
-                      },
-
                     },
                   ],
                 },
               ],
+              serviceAccountName: 'deployment-runner',
               restartPolicy: 'OnFailure',
-              imagePullSecrets: [
-                {
-                  name: 'worker-image-pull-secrets',
-                },
-              ],
             },
           },
         },
