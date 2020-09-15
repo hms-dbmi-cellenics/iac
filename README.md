@@ -23,27 +23,43 @@ type, storage size, or any other property, you must delete the old node group fr
 and add a new one with a different name. eksctl will then appropriately drain and set up node groups.
 
 The name of the EKS cluster is always `biomage-$ENVIRONMENT`, where `$ENVIRONMENT` is the cluster environment
-(`staging` or `production`).
+(`staging` or `production`). Currently, we only have `production` environment set up.
 
 ### Accessing the cluster
-
-By default, eksctl only grants cluster admin rights to the user that created the cluster, i.e. the CI
+FYI: By default, eksctl only grants cluster admin rights to the user that created the cluster, i.e. the CI
 user for the GitHub repo. The file `infra/cluster_admins` contains a list of IAM users for whom admin
-rights will be granted. Once the pipeline runs, you can use:
+rights will be granted. The file `infra/cluster_users` contains a list of IAM users that have only user rights
+granted.
 
-    # removing the old config is might be useful so there is only one cluster that is
-    # accessible to you at any given time. this prevents accidental operations on
-    # the wrong cluster.
+#### 1. Make sure you have the correct aws credentials set in your `~/.aws/credentials` file. 
+
+To check if your credentials are correct, try running step 2. If step 2 fails with an error saying `error: You must be logged in to the server (Unauthorized)` this means that your current credentials are wrong. In that case, talk to Iva or Marcell to give you correct ones.
+
+#### 2. Configure kube config to point to the right cluster.
+This step guides you through how to configure your kubeconfig file in order to have access to the
+cluster locally.
+In a new terminal, execute the following commands:
+
+    # remove the old config so that accidental operations on the
+    # wrong cluster are prevented.
     $ rm ~/.kube/config
 
-    # grant access to cluster
+    # grant access to the cluster. Currently, we only have one 
+    # environment - production, so put "production" in place of # "$ENVIRONMENT"
     $ aws eks update-kubeconfig --name biomage-$ENVIRONMENT --region eu-west-1
 
-    # get nodes
+    # Verify that all worked fine: execute get nodes command
+    # If everything is working, you should see something similar to this:
+    # NAME                                           STATUS   ROLES    AGE   VERSION
+    # ip-192-168-33-132.eu-west-1.compute.internal   Ready    <none>   40h   v1
+    # ip-192-168-81-140.eu-west-1.compute.internal   Ready    <none>   40h   v1
+
     $ kubectl get nodes
 
-This will edit your kubeconfig file and allow you to access the cluster. To access the cluster graphically,
-download and install [lens](https://k8slens.dev/).
+
+#### 3. Access the cluster graphically
+This step is optional and lets you use a nice intuitive user interface to interact with Kubernetes.
+Simply download and install [lens](https://k8slens.dev/) and then follow the instructions specified there.
 
 ### Ingress
 
