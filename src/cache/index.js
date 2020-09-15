@@ -121,9 +121,6 @@ class Cache {
 
     try {
       const response = await this._redisGet(key, this.configuration);
-      if (!response) {
-        return null;
-      }
 
       const cacheHitDuration = now() - requestDateTime;
       if (
