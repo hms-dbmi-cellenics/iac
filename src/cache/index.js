@@ -63,7 +63,7 @@ class Cache {
     const { client, status, ready } = this.getClientAndStatus('primary');
 
     if (!ready) {
-      logger.warn('reddis:primary', `Cannot SETEX to ${key} as client is in status ${status}`);
+      logger.warn('redis:primary', `Cannot SETEX to ${key} as client is in status ${status}`);
       return;
     }
 
@@ -74,7 +74,7 @@ class Cache {
       await client.setex(key, ttl || cacheDuration, stringifiedData);
     } catch (error) {
       logger.error();
-      logger.error(`reddis:primary Cannot SETEX from ${key} as an error occurred: ${error.message}`);
+      logger.error(`redis:primary Cannot SETEX from ${key} as an error occurred: ${error.message}`);
       logger.error();
     }
   }
@@ -83,7 +83,7 @@ class Cache {
     const { client, status, ready } = this.getClientAndStatus('primary');
 
     if (!ready) {
-      const message = `reddis:reader Cannot GET from ${key} as client is in status ${status}`;
+      const message = `redis:reader Cannot GET from ${key} as client is in status ${status}`;
       logger.warn(message);
       throw new Error(message);
     }
@@ -101,7 +101,7 @@ class Cache {
       result = JSON.parse(result);
       return result;
     } catch (error) {
-      const message = `reddis:reader Cannot GET from ${key} as an error occurred: ${error.message}`;
+      const message = `redis:reader Cannot GET from ${key} as an error occurred: ${error.message}`;
       logger.error(message);
       throw new Error(message);
     }
