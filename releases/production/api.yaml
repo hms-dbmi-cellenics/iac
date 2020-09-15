@@ -32,7 +32,7 @@ spec:
       repo: biomage-ltd/api
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-5a6fd141ec4585de8113b95ae403f47774da8750
+      tag: refs-heads-master-9d4cbc40fadccd12723998783314cbadb733d3b4
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-production
 
