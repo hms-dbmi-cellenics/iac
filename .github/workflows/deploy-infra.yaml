@@ -297,7 +297,7 @@ jobs:
       - id: remove-identitymappings
         name: Remove all previous identity mappings for IAM users
         run: |-
-          eksctl get iamidentitymapping --cluster=biomage-production --region=eu-west-1 --output=json | \
+          eksctl get iamidentitymapping --cluster=biomage-production --output=json | \
           jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
 
           while IFS= read -r user
