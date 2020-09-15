@@ -323,7 +323,7 @@ jobs:
           do
             echo "Adding cluster admin rights to $user"
             eksctl create iamidentitymapping \
-              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
+              --cluster=biomage-$CLUSTER_ENV \
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
@@ -337,7 +337,7 @@ jobs:
           do
             echo "Adding cluster read-only rights to $user"
             eksctl create iamidentitymapping \
-              --config-file=/tmp/cluster-$CLUSTER_ENV.yaml \
+              --cluster=biomage-$CLUSTER_ENV \
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group read-only \
               --username $user
