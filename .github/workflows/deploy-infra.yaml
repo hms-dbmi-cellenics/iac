@@ -311,7 +311,7 @@ jobs:
             echo "Remove rights of $user"
             eksctl delete iamidentitymapping \
               --cluster=biomage-$CLUSTER_ENV \
-              --arn $user
+              --arn $user \
               --all
           done < "/tmp/users_to_remove"
     
