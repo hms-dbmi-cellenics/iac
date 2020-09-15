@@ -1,6 +1,6 @@
 const handleWorkRequest = require('../../../src/api/event-services/work-request');
 const handlePagination = require('../../../src/utils/handlePagination');
-const cache = require('../../../src/cache');
+const CacheSingleton = require('../../../src/cache');
 
 let mockCacheKey;
 

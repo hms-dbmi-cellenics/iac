@@ -2,11 +2,15 @@
 require('log-timestamp');
 const express = require('express');
 const expressLoader = require('./loaders/express');
+const cacheLoader = require('./loaders/cache');
 const config = require('./config');
+
 const logger = require('./utils/logging');
 
 async function startServer() {
   const { app, server, socketIo: io } = await expressLoader(express());
+  await cacheLoader();
+
   app.set('io', io);
 
   // Set up handlers for SocketIO events.
