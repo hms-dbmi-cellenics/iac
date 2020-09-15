@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Deploys a read-only cluster group
+name: biomage-read-only-group
+version: 1.0.0
