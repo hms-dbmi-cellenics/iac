@@ -15,7 +15,7 @@ function getAwsAccountId() {
 module.exports = {
   port: 3000,
   clusterEnv: 'test',
-  awsRegion: 'eu-west-2',
+  awsRegion: 'eu-west-1',
   awsAccountIdPromise: getAwsAccountId(),
   api: {
     prefix: '/',

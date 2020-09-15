@@ -8,10 +8,9 @@ WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 
 # install app dependencies
-COPY package.json ./
-COPY yarn.lock ./
+COPY package.json package-lock.json ./
 
-RUN yarn install
+RUN npm ci --only=production
 
 # add app
 COPY . ./

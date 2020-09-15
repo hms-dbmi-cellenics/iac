@@ -31,7 +31,7 @@ describe('tests for the work-submit service', () => {
       expect(sendMessageSpy).toHaveBeenCalledWith(
         {
           MessageBody: JSON.stringify(workRequest),
-          QueueUrl: 'https://sqs.eu-west-2.amazonaws.com/test-account-id/queue-job-14d3bd024bd5b20b53f5d3d9ab0db879267c7bf7-test.fifo',
+          QueueUrl: 'https://sqs.eu-west-1.amazonaws.com/test-account-id/queue-job-14d3bd024bd5b20b53f5d3d9ab0db879267c7bf7-test.fifo',
           MessageGroupId: 'work',
         },
       );
