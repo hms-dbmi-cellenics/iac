@@ -25,6 +25,8 @@ jobs:
       run: |-
         npm test
       env:
+        AWS_ACCESS_KEY_ID: 'random-key'
+        AWS_SECRET_ACCESS_KEY: 'randomer-key'
         AWS_DEFAULT_REGION: 'eu-west-1'
 
   build-docker:
