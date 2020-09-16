@@ -29,8 +29,6 @@ jest.mock('ioredis', () => {
   };
 });
 
-// jest.setMock('ioredis', require('ioredis-mock'));
-
 jest.mock('../../src/utils/logging');
 
 describe('cache, always saves to L1', () => {
