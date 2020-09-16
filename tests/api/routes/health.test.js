@@ -1,12 +1,14 @@
 const express = require('express');
 const request = require('supertest');
 const expressLoader = require('../../../src/loaders/express');
+const CacheSingleton = require('../../../src/cache');
 
-jest.mock('../../../src/config');
+jest.mock('../../../src/cache');
 
 describe('tests for the healthcheck route', () => {
   it('Check health', async (done) => {
     const { app } = await expressLoader(express());
+    CacheSingleton.createMock({});
 
     request(app)
       .get('/v1/health')

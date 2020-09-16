@@ -2,9 +2,7 @@ const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
 const WorkSubmitService = require('../../../src/api/general-services/work-submit');
 
-jest.mock('../../../src/config');
 jest.mock('@kubernetes/client-node');
-jest.mock('../../../src/utils/logging');
 
 describe('tests for the work-submit service', () => {
   it('Can submit work', async (done) => {

@@ -1,104 +1,134 @@
 /* eslint-disable no-underscore-dangle */
 const _ = require('lodash');
-const sanitiseGlobalConfiguration = require('./sanitiser');
 const createMemCache = require('./mem-cache');
-const RedisClient = require('./redis-client');
+const createClient = require('./createClient');
 const timeout = require('./timeout');
-const { now, bypassCache } = require('./cache-utils');
+const { CacheMissError, bypassCache } = require('./cache-utils');
 const logger = require('../utils/logging');
 
 class Cache {
   constructor(conf) {
-    if (!Cache.instance) {
-      Cache.instance = this;
+    this.conf = conf;
+
+    // If l1CacheSettings is defined, we will set it up.
+    this.l1Cache = bypassCache;
+
+    const { l1CacheSettings } = this.conf;
+    if (l1CacheSettings) {
+      const { size, ttl } = l1CacheSettings;
+
+      logger.log(`Setting up L1 (in-memory) cache, size: ${size}, TTL: ${ttl}`);
+      this.l1Cache = createMemCache({ size, ttl });
+
+      if (!this.l1Cache) {
+        logger.log('L1 cache could not be loaded. Bypassing...');
+      }
     }
-    this.configuration = sanitiseGlobalConfiguration(conf);
-    if (this.configuration.l1CacheSettings) {
-      const { size, ttl } = this.configuration.l1CacheSettings;
-      this._initL1Cache(createMemCache({ size, ttl }));
-    }
-    this.redisClient = new RedisClient(this.configuration);
-    return Cache.instance;
+
+    logger.log('Now setting up Redis connections...');
+
+    const endpoints = ['primary', 'reader'];
+    const connections = endpoints.map((endpoint) => {
+      const { host, port } = this.conf[endpoint];
+      const { retryDelay } = this.conf;
+
+      return createClient({
+        host, port, retryDelay, endpoint,
+      });
+    });
+
+    this.clients = Object.fromEntries(_.zip(endpoints, connections));
+
+    return this;
   }
 
-  _initL1Cache(l1Cache) {
-    this.l1Cache = l1Cache || bypassCache;
+
+  getClientAndStatus(endpoint) {
+    const client = this.clients[endpoint];
+    if (!client) {
+      return { status: 'invalid endpoint name', ready: false };
+    }
+
+    const { status } = client;
+    return {
+      client, status, ready: status === 'ready',
+    };
   }
 
   // set value should not be used independently as it might cause cache poisoning
   async set(key, data, ttl) {
-    const { cacheDuration } = this.configuration;
     if (ttl <= 0) return;
-    const client = (this.redisClient && this.redisClient.master.isHealthy)
-      ? this.redisClient.master.redis
-      : undefined;
-    if (!client) {
-      logger.warn(null, 'Redis client is not ready for cache set', this.configuration);
+    const { cacheDuration } = this.conf;
+    const { client, status, ready } = this.getClientAndStatus('primary');
+
+    if (!ready) {
+      logger.warn('redis:primary', `Cannot SETEX to ${key} as client is in status ${status}`);
       return;
     }
+
     try {
       // IMPORTANT: the data that is set to the cache MUST be stringified,
       // because setex does not support setting objects.
       const stringifiedData = JSON.stringify(data);
       await client.setex(key, ttl || cacheDuration, stringifiedData);
     } catch (error) {
-      logger.error(error, `Failed to store a cache item with key '${key}'`, this.configuration);
-      if (this.redisClient && this.redisClient.master) {
-        this.redisClient.master.checkStatus();
-      }
+      logger.error();
+      logger.error(`redis:primary Cannot SETEX from ${key} as an error occurred: ${error.message}`);
+      logger.error();
     }
   }
 
   async _redisGet(key) {
-    if (!this.redisClient) {
-      throw new Error('Redis client undefined');
+    const { client, status, ready } = this.getClientAndStatus('primary');
+
+    if (!ready) {
+      const message = `redis:reader Cannot GET from ${key} as client is in status ${status}`;
+      logger.warn(message);
+      throw new Error(message);
     }
 
-    if (!(this.redisClient.slave.isHealthy && this.redisClient.slave.redis)) {
-      throw new Error('Redis client not ready/healthy');
-    }
-
-    const client = this.redisClient.slave.redis;
     try {
       let result;
-      if (this.configuration.redisGetTimeout) {
-        result = await Promise.race([timeout(this.configuration.redisGetTimeout), client.get(key)]);
-        // unstringify the data
-        result = JSON.parse(result);
-        return result;
+
+      if (this.conf.redisGetTimeout) {
+        result = await Promise.race([timeout(this.conf.redisGetTimeout), client.get(key)]);
+      } else {
+        result = await client.get(key);
       }
-      result = await client.get(key);
+
+      if (!result) {
+        throw new Error(`No value found in Redis cache under key ${key}`);
+      }
+
       // unstringify the data
       result = JSON.parse(result);
       return result;
     } catch (error) {
-      logger.error('Failed to get item from cache', error);
-      logger.trace(error);
-      this.redisClient.slave.checkStatus();
+      const message = `Cannot GET from ${key} as an error occurred: ${error.message}`;
+      logger.error('redis:reader', message);
+      throw new Error(message);
     }
-    return null;
   }
 
-  async _cachePeek(key) {
+  async get(key) {
     // IMPORTANT: the l1 cache stores /references/, not /values/, so
     // the results you get from l1 MUST be cloned so it can be modified
     // downstream without modifying the cache at a given key.
-
+    const now = () => new Date();
     const requestDateTime = now();
-
     const l1Result = this.l1Cache.get(key);
+
     if (l1Result) {
       l1Result.responseFrom = 'l1Cache';
       return _.cloneDeep(l1Result);
     }
+
     try {
-      const response = await this._redisGet(key, this.configuration);
-      if (!response) {
-        return null;
-      }
+      const response = await this._redisGet(key, this.conf);
       const cacheHitDuration = now() - requestDateTime;
-      if (this.configuration.l1CacheSettings
-        && (cacheHitDuration >= this.configuration.l1CacheSettings.minLatencyToStore)
+      if (
+        this.conf.l1CacheSettings
+        && (cacheHitDuration >= this.conf.l1CacheSettings.minLatencyToStore)
       ) {
         this.l1Cache.set(key, response);
       }
@@ -106,27 +136,44 @@ class Cache {
       response.responseFrom = 'redis';
       return _.cloneDeep(response);
     } catch (error) {
-      logger.error(error, `Failed getting redis cache for key '${key}'`, 'cachePeek', this.configuration);
-      logger.trace(error);
-      if (this.redisClient && this.redisClient.slave) {
-        this.redisClient.slave.checkStatus();
-      }
+      logger.error(`cache:get Cache lookup for key ${key} failed:`, error.message);
+      throw new CacheMissError(error.message);
     }
-    return null;
   }
 
-  async get(key) {
-    const result = await this._cachePeek(key);
-    return result;
-  }
+  isReady() {
+    let ready = true;
 
-  areConnectionsHealthy() {
-    return this.redisClient
-      && this.redisClient.master.isHealthy
-      && this.redisClient.slave.isHealthy;
+    Object.values(this.clients).forEach((client) => {
+      ready = ready && (client.status === 'ready');
+    });
+
+    return ready;
   }
 }
 
-const instance = new Cache();
+const CacheSingleton = (() => {
+  let instance;
 
-module.exports = instance;
+  const createInstance = (conf) => {
+    const object = new Cache(conf);
+    return object;
+  };
+
+  return {
+    get: (conf) => {
+      if (!instance) {
+        instance = createInstance(conf);
+        return instance;
+      }
+
+      if (conf && conf !== instance.conf) {
+        throw new Error('The configuration specified does not match the instance configuration.');
+      }
+
+      return instance;
+    },
+  };
+})();
+
+module.exports = CacheSingleton;

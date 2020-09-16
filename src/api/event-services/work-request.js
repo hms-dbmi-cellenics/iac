@@ -1,6 +1,7 @@
 const WorkSubmitService = require('../general-services/work-submit');
 const logger = require('../../utils/logging');
-const { cacheGetRequest, CacheMissError } = require('../../utils/cache-request');
+const { cacheGetRequest } = require('../../utils/cache-request');
+const { CacheMissError } = require('../../cache/cache-utils');
 const { handlePagination } = require('../../utils/handlePagination');
 const validateRequest = require('../../utils/schema-validator');
 
@@ -22,7 +23,8 @@ const handleWorkRequest = async (workRequest, socket) => {
     logger.log(`Response sent back to ${uuid}`);
   } catch (e) {
     if (e instanceof CacheMissError) {
-      logger.log(`Cache miss on ${uuid}, sending it to the worker... ${e}`);
+      logger.log(e.message);
+      logger.log(`Cache miss on ${uuid}, sending it to the worker...`);
       validateRequest(workRequest, 'WorkRequest');
       const { timeout } = workRequest;
       if (Date.parse(timeout) <= Date.now()) {
@@ -31,8 +33,7 @@ const handleWorkRequest = async (workRequest, socket) => {
       const workSubmitService = new WorkSubmitService(workRequest);
       await workSubmitService.submitWork();
     } else {
-      logger.log('Unexpected error happened while trying to process cached response.');
-      logger.trace(e);
+      logger.log('Unexpected error happened while trying to process cached response:', e.message);
     }
   }
 };

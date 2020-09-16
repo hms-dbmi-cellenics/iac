@@ -1,90 +1,83 @@
 /* eslint-disable consistent-return */
-const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
+const AWS = require('aws-sdk');
+const ioClient = require('socket.io-client');
+const ioServer = require('socket.io');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
-const { handlePagination } = require('../../../src/utils/handlePagination');
+const CacheSingleton = require('../../../src/cache');
 
-const { cacheSetResponse } = require('../../../src/utils/cache-request');
-
-jest.mock('../../../src/utils/handlePagination', () => ({
-  handlePagination: jest.fn(),
-}));
-
-jest.mock('../../../src/utils/logging');
-
-jest.mock('../../../src/utils/cache-request', () => ({
-  cacheSetResponse: jest.fn(),
-  cacheGetRequest: jest.fn(),
-}));
-
-let io;
-let emitSpy;
-let toSpy;
-
-const setIoMock = () => {
-  emitSpy = jest.fn();
-
-  const mockEmit = {
-    emit: emitSpy,
-  };
-  toSpy = jest.fn(() => mockEmit);
-
-  io = {
-    to: toSpy,
-  };
-};
-
-const s3Object = {
-  AcceptRanges: 'bytes',
-  LastModified: '2020-05-09T13:51:33.000Z',
-  ContentLength: 223889,
-  ETag: '"1aaac7d75617d2eea36c3d11de3106ec"',
-  ContentEncoding: 'utf-8',
-  ContentType: 'application/json',
-  Metadata: {},
-  Body: 'my amazing body',
-};
-
-AWSMock.setSDKInstance(AWS);
-const getObjectSpy = jest.fn((x) => x);
+jest.mock('../../../src/cache');
 
 describe('tests for the work-response service', () => {
-  beforeEach(() => {
-    setIoMock();
-  });
-  afterEach(() => {
-    AWSMock.restore('S3');
-    jest.resetModules();
-    jest.resetAllMocks();
-    getObjectSpy.mockReset();
+  let io;
+  let client;
+
+  const S3_RESULT_ID = '509520fe-d329-437d-8752-b5868ad59425/48637d30-a88d-481e-b8cc-5eedd7e3af1c';
+  const S3_BUCKET_NAME = 'worker-results-staging';
+  const OBJECT_CONTENT = 'my amazing body';
+
+  const responseFormat = {
+    request: {
+      uuid: '55',
+      socketId: null,
+      experimentId: '5e959f9c9f4b120771249001',
+      timeout: '2099-01-01T00:00:00Z',
+      body: {
+        name: 'GetEmbedding',
+        type: 'pca',
+      },
+    },
+    response: {
+      error: false,
+      cacheable: true,
+    },
+  };
+
+  beforeAll(() => {
+    CacheSingleton.createMock({});
+    io = ioServer.listen(3001);
   });
 
-  it('Throws during validation if invalid data is supplied', async (done) => {
+  beforeEach((done) => {
+    AWSMock.setSDKInstance(AWS);
+    client = ioClient.connect('http://localhost:3001', {
+      'reconnection delay': 0,
+      'reopen delay': 0,
+      'force new connection': true,
+      transports: ['websocket'],
+    });
+
+    client.on('connect', () => {
+      responseFormat.request.socketId = client.id;
+      done();
+    });
+  });
+
+  afterEach(() => {
+    AWSMock.restore();
+
+    if (client.connected) {
+      client.disconnect();
+    }
+  });
+
+  afterAll(() => {
+    io.close();
+  });
+
+  it('Throws during validation if invalid data is supplied', (done) => {
     try {
-      // eslint-disable-next-line no-unused-vars
-      const w = new WorkResponseService(null, {});
+      // eslint-disable-next-line no-new
+      new WorkResponseService(io, {});
     } catch (e) {
       expect(e.message).toEqual('Error: Unable to validate an empty value for property: rootModel');
       return done();
     }
   });
 
-  it('Throws during handling response if the timeout has expired', async () => {
+  it('Does not send back timed-out items', async () => {
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2001-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
-      response: {
-        error: false,
-        cacheable: true,
-      },
+      ...responseFormat,
       results: [
         {
           'content-type': 'application/json',
@@ -94,27 +87,18 @@ describe('tests for the work-response service', () => {
         },
       ],
     };
-    const wr = new WorkResponseService(null, workResponse);
+
+    client.on('message', () => {
+      throw new Error('Timeout expired, socket should not have had message sent to it.');
+    });
+
+    const wr = new WorkResponseService(io, workResponse);
     await wr.handleResponse();
-    expect(emitSpy).toHaveBeenCalledTimes(0);
   });
 
   it('Can consume work response with a single inline item', async (done) => {
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2099-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
-      response: {
-        cacheable: true,
-        error: false,
-      },
+      ...responseFormat,
       results: [
         {
           'content-type': 'application/json',
@@ -124,35 +108,22 @@ describe('tests for the work-response service', () => {
         },
       ],
     };
+
     const w = new WorkResponseService(io, workResponse);
     const expectedResponse = JSON.parse(JSON.stringify(workResponse));
     delete expectedResponse.results[0].type;
 
-    w.handleResponse().then(() => {
-      expect(toSpy).toHaveBeenCalledTimes(1);
-      expect(toSpy).toHaveBeenCalledWith('mysocketid');
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      expect(emitSpy).toHaveBeenCalledWith('WorkResponse-55', expectedResponse);
-      return done();
+    client.on(`WorkResponse-${workResponse.request.uuid}`, (res) => {
+      expect(res).toEqual(expectedResponse);
+      done();
     });
+
+    await w.handleResponse();
   });
 
   it('Can consume work response with multiple inline items', async (done) => {
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2099-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
-      response: {
-        cacheable: true,
-        error: false,
-      },
+      ...responseFormat,
       results: [
         {
           'content-type': 'application/json',
@@ -173,93 +144,71 @@ describe('tests for the work-response service', () => {
           type: 'inline',
         }],
     };
+
     const w = new WorkResponseService(io, workResponse);
     const expectedResponse = JSON.parse(JSON.stringify(workResponse));
     expectedResponse.results
       .forEach((res) => delete res.type);
 
-    w.handleResponse().then(() => {
-      expect(toSpy).toHaveBeenCalledTimes(1);
-      expect(toSpy).toHaveBeenCalledWith('mysocketid');
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      expect(emitSpy).toHaveBeenCalledWith('WorkResponse-55', expectedResponse);
-      return done();
+    client.on(`WorkResponse-${workResponse.request.uuid}`, (res) => {
+      expect(res).toEqual(expectedResponse);
+      done();
     });
+
+    await w.handleResponse();
   });
 
   it('Can consume work response with a single processS3PathType item', async (done) => {
+    expect.assertions(3);
+
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2099-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
-      response: {
-        cacheable: true,
-        error: false,
-      },
+      ...responseFormat,
       results: [
         {
           'content-type': 'application/json',
           'content-encoding': 'utf-8',
-          body: 'worker-results-staging/509520fe-d329-437d-8752-b5868ad59425/48637d30-a88d-481e-b8cc-5eedd7e3af1c',
+          body: `${S3_BUCKET_NAME}/${S3_RESULT_ID}`,
           type: 's3-path',
         },
       ],
     };
-    AWSMock.mock('S3', 'getObject', (params, callback) => {
-      getObjectSpy(params);
-      callback(null, s3Object);
-    });
-    const w = new WorkResponseService(io, workResponse);
-    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
-    delete expectedResponse.results[0].type;
-    expectedResponse.results[0].body = 'my amazing body';
 
-    w.handleResponse().then(() => {
-      expect(toSpy).toHaveBeenCalledTimes(1);
-      expect(toSpy).toHaveBeenCalledWith('mysocketid');
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      expect(emitSpy).toHaveBeenCalledWith('WorkResponse-55', expectedResponse);
-      expect(getObjectSpy).toHaveBeenCalledTimes(1);
-      expect(getObjectSpy).toHaveBeenCalledWith(
-        {
-          Bucket: 'worker-results-staging',
-          Key: '509520fe-d329-437d-8752-b5868ad59425/48637d30-a88d-481e-b8cc-5eedd7e3af1c',
-          ResponseContentType: 'application/json',
-          ResponseContentEncoding: 'utf-8',
-        },
-      );
-      return done();
+    AWSMock.mock('S3', 'getObject', (params, callback) => {
+      const { Bucket, Key } = params;
+
+      expect(Bucket).toEqual(S3_BUCKET_NAME);
+      expect(Key).toEqual(S3_RESULT_ID);
+
+      callback(null, {
+        ContentEncoding: 'utf-8',
+        ContentType: 'application/json',
+        Body: OBJECT_CONTENT,
+      });
     });
+
+    client.on(`WorkResponse-${workResponse.request.uuid}`, (res) => {
+      const expectedResponse = JSON.parse(JSON.stringify(workResponse));
+      delete expectedResponse.results[0].type;
+      expectedResponse.results[0].body = 'my amazing body';
+
+      expect(res).toEqual(expectedResponse);
+      done();
+    });
+
+    const w = new WorkResponseService(io, workResponse);
+    await w.handleResponse();
   });
 
   it('Can consume work response with different types of items', async (done) => {
+    expect.assertions(3);
+
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2099-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
-      response: {
-        cacheable: true,
-        error: false,
-      },
+      ...responseFormat,
       results: [
         {
           'content-type': 'application/json',
           'content-encoding': 'utf-8',
-          body: 'worker-results-staging/509520fe-d329-437d-8752-b5868ad59425/48637d30-a88d-481e-b8cc-5eedd7e3af1c',
+          body: `${S3_BUCKET_NAME}/${S3_RESULT_ID}`,
           type: 's3-path',
         },
         {
@@ -270,32 +219,31 @@ describe('tests for the work-response service', () => {
         },
       ],
     };
-    AWSMock.mock('S3', 'getObject', (params, callback) => {
-      getObjectSpy(params);
-      callback(null, s3Object);
-    });
-    const w = new WorkResponseService(io, workResponse);
-    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
-    expectedResponse.results
-      .forEach((res) => delete res.type);
-    expectedResponse.results[0].body = 'my amazing body';
 
-    w.handleResponse().then(() => {
-      expect(toSpy).toHaveBeenCalledTimes(1);
-      expect(toSpy).toHaveBeenCalledWith('mysocketid');
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      expect(emitSpy).toHaveBeenCalledWith('WorkResponse-55', expectedResponse);
-      expect(getObjectSpy).toHaveBeenCalledTimes(1);
-      expect(getObjectSpy).toHaveBeenCalledWith(
-        {
-          Bucket: 'worker-results-staging',
-          Key: '509520fe-d329-437d-8752-b5868ad59425/48637d30-a88d-481e-b8cc-5eedd7e3af1c',
-          ResponseContentType: 'application/json',
-          ResponseContentEncoding: 'utf-8',
-        },
-      );
-      return done();
+    AWSMock.mock('S3', 'getObject', (params, callback) => {
+      const { Bucket, Key } = params;
+
+      expect(Bucket).toEqual(S3_BUCKET_NAME);
+      expect(Key).toEqual(S3_RESULT_ID);
+
+      callback(null, {
+        ContentEncoding: 'utf-8',
+        ContentType: 'application/json',
+        Body: OBJECT_CONTENT,
+      });
     });
+
+    client.on(`WorkResponse-${workResponse.request.uuid}`, (res) => {
+      const expectedResponse = JSON.parse(JSON.stringify(workResponse));
+      delete expectedResponse.results[0].type;
+      expectedResponse.results[0].body = 'my amazing body';
+
+      expect(res).toEqual(expectedResponse);
+      done();
+    });
+
+    const w = new WorkResponseService(io, workResponse);
+    await w.handleResponse();
   });
 
   it('Can produce paginated work response', async (done) => {
@@ -303,70 +251,54 @@ describe('tests for the work-response service', () => {
       orderBy: 'qval',
       orderDirection: 'ASC',
       offset: 0,
-      limit: 50,
+      limit: 2,
       responseKey: 0,
     };
+
+    const RESPONSE_BODY = '{"rows": [{"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "A"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "B"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "C"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "D"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "E"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "F"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "G"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "H"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "I"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "J"}]}';
+
     const workResponse = {
+      ...responseFormat,
       request: {
-        uuid: '31773720-f17d-4214-ab47-9025518cd444',
-        socketId: '0g-7oXVVok9brYMGAAAg',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2020-08-17T08:17:52.026Z',
-        body: {
-          name: 'DifferentialExpression',
-          cellSet: 'louvain-0',
-          compareWith: 'louvain-1',
-        },
+        ...responseFormat.request,
         pagination,
       },
-      response: {
-        cacheable: true,
-        error: false,
-      },
       results: [
         {
           'content-type': 'application/json',
           'content-encoding': 'utf-8',
-          body: '{"rows": [{"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "A"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "B"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "C"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "D"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "E"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "F"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "G"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "H"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "I"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "J"}]}',
+          body: RESPONSE_BODY,
           type: 'inline',
         },
       ],
     };
 
-    const w = new WorkResponseService(io, workResponse);
-    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
-    expectedResponse.results
-      .forEach((res) => delete res.type);
-    expectedResponse.results[0].body = 'my amazing body';
+    client.on(`WorkResponse-${workResponse.request.uuid}`, (res) => {
+      const expectedResponse = JSON.parse(JSON.stringify(workResponse));
+      // eslint-disable-next-line no-param-reassign
+      expectedResponse.results.forEach((result) => delete result.type);
 
-    w.handleResponse().then(() => {
-      expect(handlePagination).toHaveBeenCalledTimes(1);
-      expect(handlePagination).toHaveBeenCalledWith([
-        {
-          'content-type': 'application/json',
-          'content-encoding': 'utf-8',
-          body: '{"rows": [{"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "A"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "B"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "C"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "D"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "E"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "F"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "G"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "H"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "I"}, {"pval": 0.2, "qval": 0.3, "log2fc": 2.4, "gene_names": "J"}]}',
-        },
-      ], pagination);
-      return done();
+      const expectedBody = JSON.parse(RESPONSE_BODY);
+      expectedBody.total = expectedBody.rows.length;
+      expectedBody.rows = expectedBody.rows.slice(0, pagination.limit);
+      expectedResponse.results[0].body = JSON.stringify(expectedBody);
+
+      expect(res).toEqual(expectedResponse);
+      done();
     });
+
+    const w = new WorkResponseService(io, workResponse);
+    await w.handleResponse();
   });
 
-  it('Does not cache response when `cacheable` is set to false', async (done) => {
+  it('Does not cache response when `cacheable` is set to false', async () => {
+    CacheSingleton.createMock({});
+
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2099-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
+      ...responseFormat,
       response: {
+        ...responseFormat.response,
         cacheable: false,
-        error: false,
       },
       results: [
         {
@@ -377,32 +309,19 @@ describe('tests for the work-response service', () => {
         },
       ],
     };
-    const w = new WorkResponseService(io, workResponse);
-    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
-    delete expectedResponse.results[0].type;
 
-    w.handleResponse().then(() => {
-      expect(cacheSetResponse).toHaveBeenCalledTimes(0);
-      return done();
-    });
+    const w = new WorkResponseService(io, workResponse);
+    await w.handleResponse();
+
+    const cache = CacheSingleton.get();
+    expect(cache.mockGetItems()).toEqual({});
   });
 
-  it('Caches response when `cacheable` is set to false', async (done) => {
+  it('Caches response when `cacheable` is set to true', async () => {
+    CacheSingleton.createMock({});
+
     const workResponse = {
-      request: {
-        uuid: '55',
-        socketId: 'mysocketid',
-        experimentId: '5e959f9c9f4b120771249001',
-        timeout: '2099-01-01T00:00:00Z',
-        body: {
-          name: 'GetEmbedding',
-          type: 'pca',
-        },
-      },
-      response: {
-        cacheable: true,
-        error: false,
-      },
+      ...responseFormat,
       results: [
         {
           'content-type': 'application/json',
@@ -412,13 +331,11 @@ describe('tests for the work-response service', () => {
         },
       ],
     };
-    const w = new WorkResponseService(io, workResponse);
-    const expectedResponse = JSON.parse(JSON.stringify(workResponse));
-    delete expectedResponse.results[0].type;
 
-    w.handleResponse().then(() => {
-      expect(cacheSetResponse).toHaveBeenCalledTimes(1);
-      return done();
-    });
+    const w = new WorkResponseService(io, workResponse);
+    await w.handleResponse();
+
+    const cache = CacheSingleton.get();
+    expect(Object.values(cache.mockGetItems())).toEqual([workResponse]);
   });
 });

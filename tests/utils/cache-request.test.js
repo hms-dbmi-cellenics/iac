@@ -1,47 +1,45 @@
-const { cacheSetResponse, cacheGetRequest, CacheMissError } = require('../../src/utils/cache-request');
-const cache = require('../../src/cache');
+const MockSocket = require('socket.io-mock');
+const { cacheSetResponse, cacheGetRequest } = require('../../src/utils/cache-request');
+const { CacheMissError } = require('../../src/cache/cache-utils');
 
-jest.mock('../../src/cache', () => ({
-  get: jest.fn((key) => {
-    if (key === '7b18513d240c9ad9dfd003a39a6be9fb') return { result: 'valueInL1' };
-    return null;
-  }),
-  set: jest.fn(),
-}));
+const CacheSingleton = require('../../src/cache');
 
-const request = {
-  uuid: 'requestUuid',
-  socketId: 'socketio.id',
-  experimentId: 'experimentId',
-  timeout: 6000,
-  body: {
-    name: 'ListGenes',
-    selectFields: ['gene_names', 'dispersions'],
-    orderBy: 'name',
-    orderDirection: 'ASC',
-    offset: 10,
-    limit: 15,
-  },
-};
+jest.mock('../../src/cache');
 
-const response = {
-  request,
-  result: ['some result'],
-};
+describe('cache(Get/Set)Request', () => {
+  const request = {
+    uuid: 'requestUuid',
+    socketId: 'socketio.id',
+    experimentId: 'experimentId',
+    timeout: 6000,
+    body: {
+      name: 'ListGenes',
+      selectFields: ['gene_names', 'dispersions'],
+      orderBy: 'name',
+      orderDirection: 'ASC',
+      offset: 10,
+      limit: 15,
+    },
+  };
 
-const callback = jest.fn();
-const socket = jest.fn();
-const emit = jest.fn();
-socket.to = jest.fn(() => ({
-  emit,
-}));
+  const response = {
+    request,
+    result: ['some result'],
+  };
 
-describe('cache', () => {
-  afterEach(() => {
-    callback.mockClear();
-    socket.mockClear();
-    socket.to.mockClear();
-    emit.mockClear();
+  let cache;
+  let socket;
+
+  beforeAll(() => {
+    CacheSingleton.createMock({
+      '7b18513d240c9ad9dfd003a39a6be9fb': { result: 'valueInL1' },
+    });
+
+    cache = CacheSingleton.get();
+  });
+
+  beforeEach(() => {
+    socket = new MockSocket();
   });
 
   it('cacheGetRequest, cache miss', async () => {
@@ -50,7 +48,7 @@ describe('cache', () => {
     let result;
 
     try {
-      result = await cacheGetRequest(request, callback, socket);
+      result = await cacheGetRequest(request, () => null, socket);
     } catch (e) {
       expect(e).toBeInstanceOf(CacheMissError);
     }
@@ -61,13 +59,15 @@ describe('cache', () => {
 
   it('cacheGetRequest, cache hit', async () => {
     const newRequest = { ...request, experimentId: 'newExperimentId' };
-    const result = await cacheGetRequest(newRequest, callback, socket);
+    const result = await cacheGetRequest(newRequest, () => null, socket);
+
     expect(result).toEqual({ result: 'valueInL1' });
     expect(cache.get).toHaveBeenCalledWith('7b18513d240c9ad9dfd003a39a6be9fb');
   });
 
   it('cacheSetResponse', async () => {
     await cacheSetResponse(response);
+
     expect(cache.set).toHaveBeenCalledWith('6ae8b54798a716938d34ebea01d40307', {
       request,
       result: response.result,

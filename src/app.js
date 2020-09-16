@@ -2,16 +2,20 @@
 require('log-timestamp');
 const express = require('express');
 const expressLoader = require('./loaders/express');
+const cacheLoader = require('./loaders/cache');
 const config = require('./config');
+
 const logger = require('./utils/logging');
 
 async function startServer() {
   const { app, server, socketIo: io } = await expressLoader(express());
+  await cacheLoader();
+
   app.set('io', io);
 
   // Set up handlers for SocketIO events.
   io.on('connection', (socket) => {
-    logger.log('connected');
+    logger.log(`Client with socket ID ${socket.id} successsfully connected.`);
     // eslint-disable-next-line global-require
     require('./api/events')(socket);
   });
