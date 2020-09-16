@@ -20,9 +20,12 @@ const CacheMock = jest.fn().mockImplementation((conf, initialState) => {
     return null;
   });
 
+  const isReady = () => true;
   const mockGetItems = () => state;
 
-  return { get, set, mockGetItems };
+  return {
+    get, set, isReady, mockGetItems,
+  };
 });
 
 const CacheMockSingleton = (() => {
