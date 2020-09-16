@@ -36,11 +36,11 @@ describe('tests for the work-response service', () => {
 
   beforeAll(() => {
     CacheSingleton.createMock({});
-    AWSMock.setSDKInstance(AWS);
     io = ioServer.listen(3001);
   });
 
   beforeEach((done) => {
+    AWSMock.setSDKInstance(AWS);
     client = ioClient.connect('http://localhost:3001', {
       'reconnection delay': 0,
       'reopen delay': 0,
