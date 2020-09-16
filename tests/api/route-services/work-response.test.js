@@ -62,6 +62,10 @@ describe('tests for the work-response service', () => {
     }
   });
 
+  afterAll(() => {
+    io.close();
+  });
+
   it('Throws during validation if invalid data is supplied', async (done) => {
     try {
       // eslint-disable-next-line no-new

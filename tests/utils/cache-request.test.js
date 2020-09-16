@@ -5,6 +5,7 @@ const { CacheMissError } = require('../../src/cache/cache-utils');
 const CacheSingleton = require('../../src/cache');
 
 jest.mock('../../src/cache');
+jest.mock('../../src/utils/logging');
 
 describe('cache(Get/Set)Request', () => {
   const request = {
