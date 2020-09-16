@@ -5,12 +5,12 @@ const https = require('https');
 const _ = require('lodash');
 const logger = require('../../../src/utils/logging');
 const expressLoader = require('../../../src/loaders/express');
+const CacheSingleton = require('../../../src/cache');
 
 jest.mock('sns-validator');
 jest.mock('../../../src/config');
 jest.mock('../../../src/utils/logging');
-jest.mock('../../../src/cache', () => jest.fn());
-
+jest.mock('../../../src/cache');
 
 const basicMsg = JSON.stringify({
   MessageId: 'da8827d4-ffc2-5efb-82c1-70f929b2081d',
@@ -28,6 +28,9 @@ const basicMsg = JSON.stringify({
 });
 
 describe('tests for experiment route', () => {
+  beforeEach(() => {
+    CacheSingleton.createMock({});
+  });
   afterEach(() => {
     logger.log.mockClear();
     logger.error.mockClear();
