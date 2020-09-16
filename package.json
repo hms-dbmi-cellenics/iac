@@ -57,6 +57,7 @@
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.js"
-    ]
+    ],
+    "modulePathIgnorePatterns": ["<rootDir>/src/.*/__mocks__"]
   }
 }
