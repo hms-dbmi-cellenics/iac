@@ -27,8 +27,6 @@ class WorkResponseService {
 
   // eslint-disable-next-line class-methods-use-this
   async processS3PathType(workResponse) {
-    logger.log('processs3pathtype called');
-
     const s3Promises = [];
     const s3 = new AWS.S3();
 
@@ -66,7 +64,6 @@ class WorkResponseService {
 
   // eslint-disable-next-line class-methods-use-this
   async processInlineType(workResponse) {
-    logger.log('processInlineType called');
     const inlineResults = workResponse.results
       .filter((result) => result.type === 'inline')
       .map((result) => {
@@ -106,15 +103,16 @@ class WorkResponseService {
       if (pagination) {
         responseForClient.results = handlePagination(processedResults, pagination);
       }
-
-      if (Date.parse(timeout) > Date.now()) {
-        this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
-      }
-
-      logger.log('response sent out');
     } catch (e) {
       logger.error('Error trying to cache or paginate data: ', e);
+      return;
     }
+
+    if (Date.parse(timeout) > Date.now()) {
+      this.io.to(socketId).emit(`WorkResponse-${uuid}`, responseForClient);
+    }
+
+    logger.log('Work response sent out.');
   }
 }
 

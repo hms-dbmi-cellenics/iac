@@ -3,7 +3,7 @@ const _ = require('lodash');
 const createMemCache = require('./mem-cache');
 const createClient = require('./createClient');
 const timeout = require('./timeout');
-const { now, bypassCache } = require('./cache-utils');
+const { CacheMissError, bypassCache } = require('./cache-utils');
 const logger = require('../utils/logging');
 
 class Cache {
@@ -22,7 +22,6 @@ class Cache {
 
       if (!this.l1Cache) {
         logger.log('L1 cache could not be loaded. Bypassing...');
-        this.l1Cache = bypassCache;
       }
     }
 
@@ -59,7 +58,7 @@ class Cache {
   // set value should not be used independently as it might cause cache poisoning
   async set(key, data, ttl) {
     if (ttl <= 0) return;
-    const { cacheDuration } = this.configuration;
+    const { cacheDuration } = this.conf;
     const { client, status, ready } = this.getClientAndStatus('primary');
 
     if (!ready) {
@@ -91,18 +90,22 @@ class Cache {
     try {
       let result;
 
-      if (this.configuration.redisGetTimeout) {
-        result = await Promise.race([timeout(this.configuration.redisGetTimeout), client.get(key)]);
+      if (this.conf.redisGetTimeout) {
+        result = await Promise.race([timeout(this.conf.redisGetTimeout), client.get(key)]);
       } else {
         result = await client.get(key);
+      }
+
+      if (!result) {
+        throw new Error(`No value found in Redis cache under key ${key}`);
       }
 
       // unstringify the data
       result = JSON.parse(result);
       return result;
     } catch (error) {
-      const message = `redis:reader Cannot GET from ${key} as an error occurred: ${error.message}`;
-      logger.error(message);
+      const message = `Cannot GET from ${key} as an error occurred: ${error.message}`;
+      logger.error('redis:reader', message);
       throw new Error(message);
     }
   }
@@ -111,6 +114,7 @@ class Cache {
     // IMPORTANT: the l1 cache stores /references/, not /values/, so
     // the results you get from l1 MUST be cloned so it can be modified
     // downstream without modifying the cache at a given key.
+    const now = () => new Date();
     const requestDateTime = now();
     const l1Result = this.l1Cache.get(key);
 
@@ -120,12 +124,11 @@ class Cache {
     }
 
     try {
-      const response = await this._redisGet(key, this.configuration);
-
+      const response = await this._redisGet(key, this.conf);
       const cacheHitDuration = now() - requestDateTime;
       if (
-        this.configuration.l1CacheSettings
-        && (cacheHitDuration >= this.configuration.l1CacheSettings.minLatencyToStore)
+        this.conf.l1CacheSettings
+        && (cacheHitDuration >= this.conf.l1CacheSettings.minLatencyToStore)
       ) {
         this.l1Cache.set(key, response);
       }
@@ -133,13 +136,9 @@ class Cache {
       response.responseFrom = 'redis';
       return _.cloneDeep(response);
     } catch (error) {
-      logger.error();
-      logger.error(error, `Cache lookup for key ${key} failed.`);
-      logger.error(error.message);
-      logger.error();
+      logger.error(`cache:get Cache lookup for key ${key} failed:`, error.message);
+      throw new CacheMissError(error.message);
     }
-
-    return null;
   }
 
   isReady() {

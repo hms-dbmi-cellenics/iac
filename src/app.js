@@ -15,7 +15,7 @@ async function startServer() {
 
   // Set up handlers for SocketIO events.
   io.on('connection', (socket) => {
-    logger.log('connected');
+    logger.log(`Client with socket ID ${socket.id} successsfully connected.`);
     // eslint-disable-next-line global-require
     require('./api/events')(socket);
   });

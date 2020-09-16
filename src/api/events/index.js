@@ -4,7 +4,7 @@ const logger = require('../../utils/logging');
 
 module.exports = (socket) => {
   socket.on('WorkRequest', async (data) => {
-    logger.log('Work submitted from client:', data);
+    logger.log('Work submitted from client', socket.id, ':', data);
 
     try {
       await handleWorkRequest(data, socket);

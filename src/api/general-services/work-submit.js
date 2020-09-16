@@ -52,7 +52,7 @@ class WorkSubmitService {
    * @param {string} queueUrl adsas
    */
   async sendMessageToQueue(queueUrl) {
-    logger.log('in the sendMessageToQueue function...');
+    logger.log(`Sending message to queue ${queueUrl}...`);
     const sqs = new AWS.SQS({
       region: config.awsRegion,
     });

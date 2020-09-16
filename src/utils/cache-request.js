@@ -5,14 +5,6 @@ const logger = require('./logging');
 
 const createObjectHash = (object) => hash.MD5(object);
 
-class CacheMissError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
-
 const cacheGetRequest = async (
   data,
 ) => {
@@ -23,13 +15,9 @@ const cacheGetRequest = async (
 
   logger.log(`Looking up data in cache under key ${key}`);
 
-  const payload = await CacheSingleton.get(key);
-
-  if (payload) {
-    return payload;
-  }
-
-  throw new CacheMissError(`No cache entry found for key ${key}`);
+  const cache = CacheSingleton.get();
+  const payload = await cache.get(key);
+  return payload;
 };
 
 
@@ -41,7 +29,8 @@ const cacheSetResponse = async (data, ttl = 900) => {
 
   logger.log(`Putting data in cache under key ${key}`);
 
-  await CacheSingleton.set(key, data, ttl);
+  const cache = CacheSingleton.get();
+  await cache.set(key, data, ttl);
 };
 
-module.exports = { cacheGetRequest, cacheSetResponse, CacheMissError };
+module.exports = { cacheGetRequest, cacheSetResponse };
