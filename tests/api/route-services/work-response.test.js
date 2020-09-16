@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
-const AWS = require('aws-sdk');
 const AWSMock = require('aws-sdk-mock');
+const AWS = require('aws-sdk');
 const ioClient = require('socket.io-client');
 const ioServer = require('socket.io');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
