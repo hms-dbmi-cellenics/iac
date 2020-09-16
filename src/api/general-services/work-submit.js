@@ -65,7 +65,7 @@ class WorkSubmitService {
 
   async getQueueAndHandleMessage() {
     try {
-      const accountId = await config.awsAccountIdPromise;
+      const accountId = await config.awsAccountIdPromise();
       const queueUrl = `https://sqs.${config.awsRegion}.amazonaws.com/${accountId}/${this.workQueueName}`;
       await this.sendMessageToQueue(queueUrl);
     } catch (error) {
@@ -85,7 +85,7 @@ class WorkSubmitService {
       return;
     }
 
-    const accountId = await config.awsAccountIdPromise;
+    const accountId = await config.awsAccountIdPromise();
     const namespaceName = 'worker-refs-heads-master';
     const imageUrl = `${accountId}.dkr.ecr.${config.awsRegion}.amazonaws.com/worker:refs-heads-master-latest`;
 

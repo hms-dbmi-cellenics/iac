@@ -3,9 +3,6 @@ const AWS = require('aws-sdk');
 const PlotsTablesService = require('../../../src/api/route-services/plots-tables');
 const { convertToDynamoDbRecord } = require('../../../src/utils/dynamoDb');
 
-jest.mock('../../../src/config');
-jest.mock('../../../src/utils/logging');
-
 // Mock dates so snapshots don't drift.
 const constantDate = new Date('2020-01-01T00:00:00.000Z');
 /* eslint no-global-assign:off */

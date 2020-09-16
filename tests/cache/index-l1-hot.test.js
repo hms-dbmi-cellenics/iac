@@ -29,8 +29,6 @@ jest.mock('ioredis', () => {
   };
 });
 
-jest.mock('../../src/utils/logging');
-
 describe('cache, always saves to L1', () => {
   const mockResponse = {
     request: {},

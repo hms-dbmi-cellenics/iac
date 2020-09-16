@@ -8,7 +8,6 @@ const expressLoader = require('../../../src/loaders/express');
 const CacheSingleton = require('../../../src/cache');
 
 jest.mock('sns-validator');
-jest.mock('../../../src/config');
 jest.mock('../../../src/utils/logging');
 jest.mock('../../../src/cache');
 

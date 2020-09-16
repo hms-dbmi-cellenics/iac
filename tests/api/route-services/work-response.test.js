@@ -6,7 +6,6 @@ const ioServer = require('socket.io');
 const WorkResponseService = require('../../../src/api/route-services/work-response');
 const CacheSingleton = require('../../../src/cache');
 
-jest.mock('../../../src/utils/logging');
 jest.mock('../../../src/cache');
 
 describe('tests for the work-response service', () => {
@@ -66,7 +65,7 @@ describe('tests for the work-response service', () => {
     io.close();
   });
 
-  it('Throws during validation if invalid data is supplied', async (done) => {
+  it('Throws during validation if invalid data is supplied', (done) => {
     try {
       // eslint-disable-next-line no-new
       new WorkResponseService(io, {});

@@ -5,8 +5,6 @@ const CacheSingleton = require('../../../src/cache');
 
 jest.mock('../../../src/utils/handlePagination');
 jest.mock('../../../src/cache');
-jest.mock('../../../src/utils/logging');
-
 
 describe('handleWorkRequest', () => {
   let socket;

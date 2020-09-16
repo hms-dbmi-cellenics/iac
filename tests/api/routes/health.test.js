@@ -4,7 +4,6 @@ const expressLoader = require('../../../src/loaders/express');
 const CacheSingleton = require('../../../src/cache');
 
 jest.mock('../../../src/cache');
-jest.mock('../../../src/config');
 
 describe('tests for the healthcheck route', () => {
   it('Check health', async (done) => {
