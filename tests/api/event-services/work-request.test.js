@@ -1,14 +1,49 @@
+const MockSocket = require('socket.io-mock');
 const handleWorkRequest = require('../../../src/api/event-services/work-request');
 const handlePagination = require('../../../src/utils/handlePagination');
 const CacheSingleton = require('../../../src/cache');
 
-let mockCacheKey;
-
 jest.mock('../../../src/utils/handlePagination');
-jest.mock('../../../src/cache', () => ({
-  get: jest.fn((key) => {
-    if (key === mockCacheKey) {
-      return {
+jest.mock('../../../src/cache');
+
+describe('handleWorkRequest', () => {
+  let socket;
+
+  beforeEach(() => {
+    socket = new MockSocket();
+  });
+
+  afterEach(() => {
+    jest.resetModules();
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  it('Throws when an old timeout is encountered.', async () => {
+    // Initialize with an empty cache so a worker hit will be encountered.
+    CacheSingleton.createMock({});
+    expect.assertions(1);
+
+    const workRequest = {
+      uuid: '12345',
+      socketId: '6789',
+      experimentId: 'my-experiment',
+      timeout: '2001-01-01T00:00:00Z',
+      body: { name: 'GetEmbedding', type: 'tsne' },
+    };
+
+    try {
+      await handleWorkRequest(workRequest, socket);
+    } catch (e) {
+      expect(e.message).toMatch(
+        /^Work request will not be handled as timeout/,
+      );
+    }
+  });
+
+  it('Triggers pagination when pagination is specified and result is cached already.', async () => {
+    CacheSingleton.createMock({
+      '60c032929784c904d0276967cb920b57': {
         results: [
           {
             body: JSON.stringify({
@@ -27,69 +62,9 @@ jest.mock('../../../src/cache', () => ({
             }),
           },
         ],
-      };
-    }
-    return null;
-  }),
-  set: jest.fn(),
-}));
+      },
+    });
 
-let io;
-let emitSpy;
-let toSpy;
-
-const setIoMock = () => {
-  emitSpy = jest.fn();
-
-  const mockEmit = {
-    emit: emitSpy,
-  };
-  toSpy = jest.fn(() => mockEmit);
-
-  io = {
-    to: toSpy,
-    emit: emitSpy,
-  };
-};
-
-
-describe('tests for handleWorkRequest', () => {
-  beforeEach(() => {
-    setIoMock();
-  });
-
-
-  afterEach(() => {
-    jest.resetModules();
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
-  });
-
-
-  it('Throws when an old timeout is encountered.', async () => {
-    mockCacheKey = 'notThere';
-    expect.assertions(1);
-
-    const workRequest = {
-      uuid: '12345',
-      socketId: '6789',
-      experimentId: 'my-experiment',
-      timeout: '2001-01-01T00:00:00Z',
-      body: { name: 'GetEmbedding', type: 'tsne' },
-    };
-
-    try {
-      // eslint-disable-next-line no-unused-vars
-      const w = await handleWorkRequest(workRequest, io);
-    } catch (e) {
-      expect(e.message).toMatch(
-        /^Work request will not be handled as timeout/,
-      );
-    }
-  });
-
-  it('Triggers pagination when pagination is specified and result is cached already.', async () => {
-    mockCacheKey = '60c032929784c904d0276967cb920b57';
     const workRequest = {
       uuid: '12345',
       socketId: '6789',
@@ -107,8 +82,8 @@ describe('tests for handleWorkRequest', () => {
       },
     };
 
-    await handleWorkRequest(workRequest, io);
-    expect(cache.get).toHaveBeenCalledTimes(1);
+    await handleWorkRequest(workRequest, socket);
+    expect(CacheSingleton.get().get).toHaveBeenCalledTimes(1);
     expect(handlePagination.handlePagination).toHaveBeenCalledTimes(1);
   });
 });

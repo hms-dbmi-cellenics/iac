@@ -1,5 +1,5 @@
 const logger = require('../utils/logging');
-const generateConfig = require('../cache/generate-config');
+const { generateConfig } = require('../cache/generate-config');
 const CacheSingleton = require('../cache');
 
 module.exports = async () => {

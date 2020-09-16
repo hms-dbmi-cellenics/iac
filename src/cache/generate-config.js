@@ -19,6 +19,11 @@ const updateRedisEndpoints = async () => {
     return {};
   }
 
+  if (env === 'test') {
+    logger.log('Running unit tests, keeping base configuration.');
+    return {};
+  }
+
   const ec = new AWS.ElastiCache({
     region: config.awsRegion,
   });
@@ -58,4 +63,4 @@ const generateConfig = async () => {
   return { ...BASE_CONFIG, ...redisEndpoints };
 };
 
-module.exports = generateConfig;
+module.exports = { generateConfig, BASE_CONFIG };

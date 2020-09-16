@@ -1,11 +1,13 @@
 const express = require('express');
 const request = require('supertest');
 const expressLoader = require('../../../src/loaders/express');
+const cacheLoader = require('../../../src/loaders/cache');
 
 jest.mock('../../../src/config');
 
 describe('tests for the healthcheck route', () => {
   it('Check health', async (done) => {
+    await cacheLoader();
     const { app } = await expressLoader(express());
 
     request(app)
