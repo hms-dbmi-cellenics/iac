@@ -29,11 +29,14 @@ const createClient = (options) => {
       const delay = Math.min(times * 1000, 3000);
       return delay;
     },
-    lazyConnect: this.lazyConnect,
+  });
+
+  redis.on('connect', () => {
+    logger.log(`redis:${endpoint}`, 'Connection successfully established.');
   });
 
   redis.on('ready', () => {
-    logger.log(`redis:${endpoint}`, 'Connection successfully established.');
+    logger.log(`redis:${endpoint}`, 'Connection ready.');
   });
 
   redis.on('error', (error) => {
