@@ -147,6 +147,13 @@ jobs:
           > $DEPLOYMENT_NAME.yaml
 
           cat $DEPLOYMENT_NAME.yaml
+
+      - id: disable-admin-enforcement
+        name: Temporarily disable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          repo: iac
       
       - name: Push changes to iac repo
         uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
@@ -158,3 +165,11 @@ jobs:
           destination_folder: 'releases/${{ matrix.environment }}'
           user_email: 'ci@biomage.net'
           user_name: 'Biomage CI/CD'
+
+      - id: enable admin enforcement
+        name: Re-enable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          repo: iac
