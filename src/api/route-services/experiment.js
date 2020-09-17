@@ -7,6 +7,8 @@ const { createDynamoDbInstance, convertToJsObject, convertToDynamoDbRecord } = r
 class ExperimentService {
   constructor() {
     this.tableName = `experiments-${config.clusterEnv}`;
+
+    mockData.matrixPath = mockData.matrixPath.replace('BUCKET_NAME', `biomage-source-${config.clusterEnv}`);
     this.mockData = convertToDynamoDbRecord(mockData);
   }
 
