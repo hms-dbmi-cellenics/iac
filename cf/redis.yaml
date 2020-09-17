@@ -64,7 +64,8 @@ Resources:
       GroupDescription: !Sub "Biomage ElastiCache security group for ${Environment}"
       SecurityGroupEgress: []
       SecurityGroupIngress:
-        - SourceSecurityGroupId: Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SharedNodeSecurityGroup"
+        - SourceSecurityGroupId: 
+            Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SharedNodeSecurityGroup"
           FromPort: !Ref CachePort
           IpProtocol: tcp
           ToPort: !Ref CachePort
