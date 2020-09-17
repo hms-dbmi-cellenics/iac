@@ -1,7 +1,7 @@
 {
    "experimentId":"5e959f9c9f4b120771249001",
    "experimentName":"TGFB1 experiment",
-   "matrixPath":"biomage-source/basic-filtered.h5ad",
+   "matrixPath":"BUCKET_NAME/basic-filtered.h5ad",
    "cellSets":[
       {
          "key":"louvain",
