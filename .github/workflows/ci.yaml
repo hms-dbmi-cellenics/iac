@@ -153,6 +153,7 @@ jobs:
         uses: benjefferies/branch-protection-bot@master
         with:
           access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
           repo: iac
       
       - name: Push changes to iac repo
@@ -172,4 +173,5 @@ jobs:
         if: always()
         with:
           access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
           repo: iac
