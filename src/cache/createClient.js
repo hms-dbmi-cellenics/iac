@@ -7,6 +7,7 @@ const createClient = (options) => {
   const redis = new Redis({
     host,
     port,
+    tls: {},
     reconnectOnError: (err) => {
       const targetError = 'READONLY';
 
