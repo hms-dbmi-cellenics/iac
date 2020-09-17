@@ -166,7 +166,7 @@ jobs:
           user_email: 'ci@biomage.net'
           user_name: 'Biomage CI/CD'
 
-      - id: enable admin enforcement
+      - id: enable-admin-enforcement
         name: Re-enable admin enforcement
         uses: benjefferies/branch-protection-bot@master
         if: always()
