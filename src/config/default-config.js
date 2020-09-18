@@ -32,35 +32,37 @@ if (!process.env.K8S_ENV) {
   process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 }
 
-
 const envFound = dotenv.config();
 if (!envFound) {
   throw new Error("Couldn't find .env file");
 }
 
+const awsRegion = process.env.AWS_DEFAULT_REGION || 'eu-west-1';
+
 async function getAwsAccountId() {
-  const sts = new AWS.STS();
+  const sts = new AWS.STS({
+    region: awsRegion,
+  });
 
   const data = await sts.getCallerIdentity({}).promise();
   return data.Account;
 }
 
-
 const config = {
   port: parseInt(process.env.PORT, 10) || 3000,
   clusterEnv: process.env.CLUSTER_ENV || 'development',
-  awsRegion: process.env.AWS_DEFAULT_REGION || 'eu-west-1',
+  awsRegion,
   awsAccountIdPromise: getAwsAccountId,
   api: {
     prefix: '/',
   },
 };
 
-
 // We are in the `development` clusterEnv, meaning we run on
 // InfraMock. Set up API accordingly.
 if (config.clusterEnv === 'development') {
   logger.log('We are running on a development cluster, patching AWS to use InfraMock endpoint...');
+  config.awsAccountIdPromise = async () => '000000000000';
   AWS.config.update({
     endpoint: 'http://localhost:4566',
     sslEnabled: false,
