@@ -1,10 +1,11 @@
 const Redis = require('ioredis');
 const logger = require('../utils/logging');
+const config = require('../config');
 
 const createClient = (options) => {
   const { host, port, endpoint } = options;
 
-  const redis = new Redis({
+  const clientOptions = {
     host,
     port,
     tls: {},
@@ -30,7 +31,15 @@ const createClient = (options) => {
       const delay = Math.min(times * 1000, 3000);
       return delay;
     },
-  });
+  };
+
+  if (config.clusterEnv === 'development') {
+    logger.log('Running in development, patching out TLS connection.');
+    clientOptions.tls = null;
+  }
+
+
+  const redis = new Redis(clientOptions);
 
   redis.on('connect', () => {
     logger.log(`redis:${endpoint}`, 'Connection successfully established.');

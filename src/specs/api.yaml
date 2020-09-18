@@ -125,21 +125,6 @@ paths:
         in: path
         required: true
         description: ID of the experiment to find.
-  /experiments/generate:
-    post:
-      tags:
-        - experiments
-      summary: Generate mock data
-      operationId: generateExperimentMockData
-      x-eov-operation-id: 'experiment#generateMock'
-      x-eov-operation-handler: routes/experiment
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema: {}
-      description: Generates mock data into the pipeline DynamoDB database.
   '/experiments/{experimentId}/cellSets':
     get:
       tags:
