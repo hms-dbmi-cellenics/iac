@@ -5,12 +5,6 @@ const mockExperimentData = jest.fn((experimentId) => new Promise((resolve) => {
   });
 }));
 
-const mockGenerateMockData = jest.fn(() => new Promise((resolve) => {
-  resolve({
-    everything: 'is fine',
-  });
-}));
-
 const mockGetCellSets = jest.fn(() => new Promise((resolve) => {
   resolve({
     cellSets: [
@@ -48,7 +42,6 @@ const mock = jest.fn().mockImplementation(() => ({
   getExperimentData: mockExperimentData,
   getCellSets: mockGetCellSets,
   updateCellSets: mockUpdateCellSets,
-  generateMockData: mockGenerateMockData,
 }));
 
 module.exports = mock;

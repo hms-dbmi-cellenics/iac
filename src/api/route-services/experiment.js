@@ -66,17 +66,6 @@ class ExperimentService {
 
     return cellSetData;
   }
-
-  async generateMockData() {
-    const dynamodb = createDynamoDbInstance();
-    const params = {
-      TableName: this.tableName,
-      Item: this.mockData,
-    };
-
-    await dynamodb.putItem(params).promise();
-    return mockData;
-  }
 }
 
 module.exports = ExperimentService;

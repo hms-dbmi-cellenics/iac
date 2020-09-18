@@ -119,29 +119,6 @@ describe('tests for the experiment service', () => {
       .then(() => done());
   });
 
-  it('Generate mock data works', async (done) => {
-    const e = new ExperimentService();
-
-    AWSMock.setSDKInstance(AWS);
-    const putItemSpy = jest.fn((x) => x);
-    AWSMock.mock('DynamoDB', 'putItem', (params, callback) => {
-      putItemSpy(params);
-      callback(null, { hello: 'world' });
-    });
-
-    e.generateMockData()
-      .then((a) => {
-        expect(a).toEqual(AWS.DynamoDB.Converter.unmarshall(e.mockData));
-        expect(putItemSpy).toHaveBeenCalledWith(
-          {
-            TableName: 'experiments-test',
-            Item: e.mockData,
-          },
-        );
-      })
-      .then(() => done());
-  });
-
   afterEach(() => {
     AWSMock.restore('DynamoDB');
   });

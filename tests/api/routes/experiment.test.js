@@ -79,21 +79,6 @@ describe('tests for experiment route', () => {
       });
   });
 
-  it('Can successfully generate mock data', async (done) => {
-    const { app } = await expressLoader(express());
-    request(app)
-      .post('/v1/experiments/generate')
-      .expect(200)
-      .end((err) => {
-        if (err) {
-          return done(err);
-        }
-        // there is no point testing for the values of the response body
-        // - if something is wrong, the schema validator will catch it
-        return done();
-      });
-  });
-
   afterEach(() => {
     /**
      * Most important since b'coz of caching, the mocked implementations sometimes does not reset

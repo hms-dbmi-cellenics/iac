@@ -18,12 +18,4 @@ module.exports = {
       .then((data) => res.json(data))
       .catch(next);
   },
-  'experiment#generateMock': (_, res, next) => {
-    experimentService.generateMockData()
-      .then((r) => res.json(r))
-      .catch((e) => {
-        res.status(500).json({ error: e });
-      })
-      .catch(next);
-  },
 };
