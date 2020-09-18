@@ -56,6 +56,7 @@ class WorkSubmitService {
     const sqs = new AWS.SQS({
       region: config.awsRegion,
     });
+
     await sqs.sendMessage({
       MessageBody: JSON.stringify(this.workRequest),
       QueueUrl: queueUrl,
@@ -64,12 +65,19 @@ class WorkSubmitService {
   }
 
   async getQueueAndHandleMessage() {
+    if (config.clusterEnv === 'development') {
+      logger.log('In development, directly creating a queue...');
+      const queueUrl = await this.createQueue();
+      await this.sendMessageToQueue(queueUrl);
+      return 'success';
+    }
+
     try {
       const accountId = await config.awsAccountIdPromise();
       const queueUrl = `https://sqs.${config.awsRegion}.amazonaws.com/${accountId}/${this.workQueueName}`;
       await this.sendMessageToQueue(queueUrl);
     } catch (error) {
-      if (error.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw error; }
+      // if (error.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw error; }
       const queueUrl = await this.createQueue();
       await this.sendMessageToQueue(queueUrl);
     }
