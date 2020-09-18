@@ -77,7 +77,7 @@ class WorkSubmitService {
       const queueUrl = `https://sqs.${config.awsRegion}.amazonaws.com/${accountId}/${this.workQueueName}`;
       await this.sendMessageToQueue(queueUrl);
     } catch (error) {
-      // if (error.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw error; }
+      if (error.code !== 'AWS.SimpleQueueService.NonExistentQueue') { throw error; }
       const queueUrl = await this.createQueue();
       await this.sendMessageToQueue(queueUrl);
     }
