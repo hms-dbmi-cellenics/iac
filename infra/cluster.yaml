@@ -8,7 +8,10 @@ iam:
   withOIDC: true
 
 nodeGroups:
-  - name: ng-1
+  - name: ng-2
     instanceType: m5.xlarge
-    desiredCapacity: 2
+    desiredCapacity: 1
     volumeSize: 20
+    iam:
+      withAddonPolicies:
+        ebs: true
