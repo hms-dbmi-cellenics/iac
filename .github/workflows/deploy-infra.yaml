@@ -289,6 +289,18 @@ jobs:
             --install --wait \
             --namespace=cert-manager
 
+      - id: install-ebs-csi-driver
+        name: Install AWS EBS Container Storage Interface (CSI) drivers
+        run: |-
+          helm install \
+            --namespace kube-system \
+            --name aws-ebs-csi-driver \
+            --set enableVolumeScheduling=true \
+            --set enableVolumeResizing=true \
+            --set enableVolumeSnapshot=true \
+            --install --wait \
+            https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/v0.6.0/helm-chart.tgz
+      
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
         run: |-
