@@ -122,6 +122,7 @@ class WorkSubmitService {
                 {
                   name: `job-${this.workerHash}-container`,
                   image: imageUrl,
+                  imagePullPolicy: 'Always',
                   env: [
                     {
                       name: 'WORK_QUEUE',
