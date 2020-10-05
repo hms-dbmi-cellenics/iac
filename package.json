@@ -22,7 +22,7 @@
   },
   "homepage": "https://gitlab.com/biomage/api#readme",
   "dependencies": {
-    "@kubernetes/client-node": "^0.12.0",
+    "@kubernetes/client-node": "^0.12.2",
     "aws-sdk": "^2.663.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
