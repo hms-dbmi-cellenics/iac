@@ -1,16 +1,11 @@
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
-const k8s = require('@kubernetes/client-node');
-const config = require('../../config');
-const logger = require('../../utils/logging');
+const createWorkerResources = require('./create-worker-k8s');
+const config = require('../../../config');
+const logger = require('../../../utils/logging');
 
 class WorkSubmitService {
   constructor(workRequest) {
-    this.kc = new k8s.KubeConfig();
-    this.kc.loadFromDefault();
-
-    this.k8sBatchApi = this.kc.makeApiClient(k8s.BatchV1Api);
-
     this.workRequest = workRequest;
 
     this.workerHash = crypto
@@ -93,54 +88,9 @@ class WorkSubmitService {
       return;
     }
 
-    const accountId = await config.awsAccountIdPromise();
-    const namespaceName = 'worker-refs-heads-master';
-    const imageUrl = `${accountId}.dkr.ecr.${config.awsRegion}.amazonaws.com/worker:refs-heads-master-latest`;
 
     try {
-      await this.k8sBatchApi.createNamespacedJob(namespaceName, {
-        apiVersion: 'batch/v1',
-        kind: 'Job',
-        metadata: {
-          name: `job-${this.workerHash}`,
-          labels: {
-            job: this.workerHash,
-            experimentId: this.workRequest.experimentId,
-          },
-        },
-        spec: {
-          template: {
-            metadata: {
-              name: `job-${this.workerHash}-template`,
-              labels: {
-                job: this.workerHash,
-                experimentId: this.workRequest.experimentId,
-              },
-            },
-            spec: {
-              containers: [
-                {
-                  name: `job-${this.workerHash}-container`,
-                  image: imageUrl,
-                  imagePullPolicy: 'Always',
-                  env: [
-                    {
-                      name: 'WORK_QUEUE',
-                      value: this.workQueueName,
-                    },
-                    {
-                      name: 'K8S_ENV',
-                      value: `${config.clusterEnv}`,
-                    },
-                  ],
-                },
-              ],
-              serviceAccountName: 'deployment-runner',
-              restartPolicy: 'OnFailure',
-            },
-          },
-        },
-      });
+      await createWorkerResources(this);
     } catch (error) {
       if (error.statusCode !== 409) {
         logger.trace(error);
