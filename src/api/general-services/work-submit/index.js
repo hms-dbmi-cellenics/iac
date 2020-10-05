@@ -88,16 +88,7 @@ class WorkSubmitService {
       return;
     }
 
-
-    try {
-      await createWorkerResources(this);
-    } catch (error) {
-      if (error.statusCode !== 409) {
-        logger.trace(error);
-        logger.error(error.statusCode);
-        throw new Error(error);
-      }
-    }
+    await createWorkerResources(this);
   }
 
   async submitWork() {
