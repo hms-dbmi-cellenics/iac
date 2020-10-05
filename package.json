@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --silent",
+    "test:loud": "jest",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand --silent",
     "coverage": "jest --coverage --silent",
     "dev": "nodemon src/app.js",

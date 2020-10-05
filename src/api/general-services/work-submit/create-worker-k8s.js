@@ -1,13 +1,15 @@
 const k8s = require('@kubernetes/client-node');
 const config = require('../../../config');
 
-const kc = new k8s.KubeConfig();
-kc.loadFromDefault();
-
 const createWorkerResources = async (service) => {
   const namespaceName = 'worker-refs-heads-master';
-  const k8sBatchApi = kc.makeApiClient(k8s.BatchV1Api);
+
+  const kc = new k8s.KubeConfig();
+  kc.loadFromDefault();
+
   const k8sCoreApi = kc.makeApiClient(k8s.CoreV1Api);
+  const k8sBatchApi = kc.makeApiClient(k8s.BatchV1Api);
+
   const accountId = await config.awsAccountIdPromise();
   const imageUrl = `${accountId}.dkr.ecr.${config.awsRegion}.amazonaws.com/worker:refs-heads-master-latest`;
 
