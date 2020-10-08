@@ -3,7 +3,5 @@ workQueueName: FILLED_IN_BY_API
 clusterEnv: FILLED_IN_BY_API
 namespace: worker-refs-pull-11-merge
 images:
-  python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-11-merge-177088d8f0079ac47eacd2fe1eeef4de27947339
-  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-11-merge-177088d8f0079ac47eacd2fe1eeef4de27947339
-metadata:
-  namespace: worker-refs-pull-11-merge
+  python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-11-merge-eaf04fd44a0c33daa935c9067e78e2c7e92f4143
+  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-11-merge-eaf04fd44a0c33daa935c9067e78e2c7e92f4143
