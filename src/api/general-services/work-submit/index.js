@@ -83,7 +83,7 @@ class WorkSubmitService {
    * Launches a Kubernetes `Job` with the appropriate configuration.
    */
   async createWorker() {
-    if (config.clusterEnv === 'development') {
+    if (config.clusterEnv === 'development' || config.clusterEnv === 'test') {
       logger.log('Not creating a worker because we are running locally...');
       return;
     }
