@@ -12,6 +12,10 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --only=production
 
+# Install Helm
+RUN apk add --no-cache bash curl openssl
+RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
 # add app
 COPY . ./
 
