@@ -36,9 +36,9 @@ const constructChartValues = async (service) => {
 const createWorkerResources = async (service) => {
   const { workerHash } = service;
   const HELM_BINARY = '/usr/local/bin/helm';
+  const execFile = util.promisify(childProcess.execFile);
 
   // Download value template from Git repository. Fill in needed things.
-  const execFile = util.promisify(childProcess.execFile);
   const instanceConfig = await constructChartValues(service);
   const { name } = tmp.fileSync();
   await fs.writeFile(name, YAML.stringify(instanceConfig));
@@ -57,13 +57,13 @@ const createWorkerResources = async (service) => {
     let { stdout: release } = await execFile(HELM_BINARY, params);
     release = JSON.parse(release);
 
-    logger.log(`Release ${release.name} successfully created.`);
+    logger.log(`Worker instance ${release.name} successfully created.`);
   } catch (error) {
     if (!error.stderr || !error.stderr.includes('release: already exists')) {
       throw error;
     }
 
-    logger.log('Release is being created by another process, skipping...');
+    logger.log('Worker instance is being created by another process, skipping...');
   }
 };
 
