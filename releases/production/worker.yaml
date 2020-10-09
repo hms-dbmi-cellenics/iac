@@ -12,7 +12,7 @@ spec:
   releaseName: worker
   chart:
     git: git@github.com:biomage-ltd/worker
-    path: chart/
+    path: chart-infra/
     ref: master
   values:
     serviceAccount:
