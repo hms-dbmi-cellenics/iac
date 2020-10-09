@@ -1,7 +1,0 @@
-experimentId: FILLED_IN_BY_API
-workQueueName: FILLED_IN_BY_API
-clusterEnv: FILLED_IN_BY_API
-namespace: FILLED_IN_BY_CI
-images:
-  python: FILLED_IN_BY_CI
-  r: FILLED_IN_BY_CI
