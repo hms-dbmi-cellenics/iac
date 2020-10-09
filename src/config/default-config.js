@@ -56,6 +56,7 @@ const config = {
   api: {
     prefix: '/',
   },
+  workerInstanceConfigUrl: 'https://raw.githubusercontent.com/biomage-ltd/iac/master/charts/worker-instance.yaml',
 };
 
 // We are in the `development` clusterEnv, meaning we run on

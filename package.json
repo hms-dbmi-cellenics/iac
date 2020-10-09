@@ -31,17 +31,21 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-openapi-validator": "^3.12.7",
+    "github-download-directory": "^2.0.0",
     "ioredis": "^4.17.3",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.19",
     "log-timestamp": "^0.3.0",
     "lru-cache": "^5.1.1",
     "micromatch": "^4.0.2",
+    "node-fetch": "^2.6.1",
     "object-hash": "^2.0.3",
     "sns-validator": "^0.3.4",
     "socket.io": "^2.3.0",
     "swagger-model-validator": "^3.0.18",
-    "uuid": "^7.0.3"
+    "tmp-promise": "^3.0.2",
+    "uuid": "^7.0.3",
+    "yaml": "^1.10.0"
   },
   "devDependencies": {
     "ioredis-mock": "^4.21.1",
