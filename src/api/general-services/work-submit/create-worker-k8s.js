@@ -6,7 +6,7 @@ const fetch = require('node-fetch');
 const YAML = require('yaml');
 const { Downloader } = require('github-download-directory');
 const config = require('../../../config');
-
+const logger = require('../../../utils/logging');
 
 const constructChartValues = async (service) => {
   const { workQueueName } = service;
@@ -49,9 +49,22 @@ const createWorkerResources = async (service) => {
   });
   await custom.download('biomage-ltd', 'worker', 'chart-instance');
 
-  const params = `upgrade ${workerHash} chart-instance/ --namespace ${instanceConfig.namespace} --install --wait -o json`.split(' ');
-  const releases = await execFile(HELM_BINARY, params);
-  console.log(JSON.parse(releases.stdout));
+
+  // Attempt to deploy the worker.
+  try {
+    const params = `upgrade worker-${workerHash} chart-instance/ --namespace ${instanceConfig.namespace} -f ${name} --install --wait -o json`.split(' ');
+
+    let { stdout: release } = await execFile(HELM_BINARY, params);
+    release = JSON.parse(release);
+
+    logger.log(`Release ${release.name} successfully created.`);
+  } catch (error) {
+    if (!error.stderr || !error.stderr.includes('release: already exists')) {
+      throw error;
+    }
+
+    logger.log('Release is being created by another process, skipping...');
+  }
 };
 
 module.exports = createWorkerResources;
