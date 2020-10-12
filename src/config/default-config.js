@@ -53,9 +53,11 @@ const config = {
   clusterEnv: process.env.CLUSTER_ENV || 'development',
   awsRegion,
   awsAccountIdPromise: getAwsAccountId,
+  githubToken: process.env.READONLY_API_TOKEN_GITHUB,
   api: {
     prefix: '/',
   },
+  workerInstanceConfigUrl: 'https://raw.githubusercontent.com/biomage-ltd/iac/master/charts/worker-instance.yaml',
 };
 
 // We are in the `development` clusterEnv, meaning we run on

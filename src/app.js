@@ -25,6 +25,7 @@ async function startServer() {
     if (err) {
       process.exit(1);
     }
+
     logger.log(`NODE_ENV: ${process.env.NODE_ENV}, cluster env: ${config.clusterEnv}`);
     logger.log(`Server listening on port: ${config.port}`);
   });

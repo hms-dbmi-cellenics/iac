@@ -34,6 +34,8 @@ describe('tests for the work-submit service', () => {
         },
       );
       return done();
+    }).catch((e) => {
+      throw new Error(e);
     });
   });
 
