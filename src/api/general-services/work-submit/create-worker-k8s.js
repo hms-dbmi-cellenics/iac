@@ -45,7 +45,7 @@ const createWorkerResources = async (service) => {
 
   // Download the chart from the worker repository.
   const custom = new Downloader({
-    github: { auth: '64ed5ec7a15c641069525e5c43464ead8bbdc20b' },
+    github: { auth: config.githubToken },
   });
   await custom.download('biomage-ltd', 'worker', 'chart-instance');
 
