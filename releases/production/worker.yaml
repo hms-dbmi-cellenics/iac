@@ -8,6 +8,8 @@ kind: HelmRelease
 metadata:
   name: worker
   namespace: worker-refs-heads-master
+  tags:
+    githubSha: ce08409acef92937ce2c8e0a1c1393f9f7d91cfc
 spec:
   releaseName: worker
   chart:
