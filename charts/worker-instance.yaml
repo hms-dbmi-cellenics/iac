@@ -4,5 +4,5 @@ clusterEnv: FILLED_IN_BY_API
 storageSize: FILLED_IN_BY_API
 namespace: worker-refs-heads-master
 images:
-  python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b88a166a76ffd83d8a3f06d14f1b40248b58491d
-  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b88a166a76ffd83d8a3f06d14f1b40248b58491d
+  python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-51fb122d0d2016c4a3a12333f6464504786cbcd2
+  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-51fb122d0d2016c4a3a12333f6464504786cbcd2
