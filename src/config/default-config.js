@@ -53,6 +53,7 @@ const config = {
   clusterEnv: process.env.CLUSTER_ENV || 'development',
   awsRegion,
   awsAccountIdPromise: getAwsAccountId,
+  githubToken: process.env.READONLY_API_TOKEN_GITHUB,
   api: {
     prefix: '/',
   },
