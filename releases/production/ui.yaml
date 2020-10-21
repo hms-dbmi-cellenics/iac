@@ -25,7 +25,7 @@ spec:
       repo: biomage-ltd/ui
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-f216e78bc00c811dafe002d80f54cdbe1e3d3052
+      tag: refs-heads-master-ead3d716c8ff7f01dbb6a30d2951633612c59b29
     service:
       additionalHosts:
         - scp.biomage.net
