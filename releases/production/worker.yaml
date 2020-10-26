@@ -9,7 +9,7 @@ metadata:
   name: worker
   namespace: worker-refs-heads-master
   tags:
-    githubSha: 471b375881222e757049f5fb210b7630192d62bb
+    githubSha: a32d1e76de2d65c0ef8781927a0528e8a9236c06
 spec:
   releaseName: worker
   chart:
