@@ -50,7 +50,7 @@ jobs:
     needs: check-secrets
     strategy:
       matrix:
-        environment: ['production']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       AWS_REGION: ${{ github.event.inputs.region }}
@@ -136,7 +136,7 @@ jobs:
     needs: create-eks-cluster
     strategy:
       matrix:
-        environment: ['production']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
