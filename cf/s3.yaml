@@ -11,10 +11,6 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-  isDev: !Equals [!Ref Environment, "development"]
-
 Resources:
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
