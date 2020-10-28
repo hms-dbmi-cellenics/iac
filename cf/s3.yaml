@@ -30,6 +30,7 @@ Resources:
           - Id: DeleteContentAfterTwoDays
             Status: "Enabled"
             ExpirationInDays: 3
+  
   # The bucket that contains the count matrix files used for the experiments.
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -40,6 +41,7 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+  
   # The bucket that contains the original unfiltered versions of the count matrix files used for the experiments.
   OriginalFilesBucket:
     Type: AWS::S3::Bucket
