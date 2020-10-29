@@ -22,7 +22,7 @@ Expand the name of the chart.
 {{- if (eq .Values.kubernetes.env "production") -}}
 {{- printf "%s.scp.biomage.net" (split "/" .Values.biomageCi.repo)._1 -}}
 {{- else -}}
-{{- printf "%s-%s-%s.scp.biomage.net" (split "/" .Values.biomageCi.repo)._1 .Values.kubernetes.env .Values.biomageCi.sandboxId -}}
+{{- printf "%s-%s.scp-%s.biomage.net" (split "/" .Values.biomageCi.repo)._1 .Values.biomageCi.sandboxId .Values.kubernetes.env -}}
 {{- end -}}
 {{- end -}}
 
