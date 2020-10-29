@@ -8,10 +8,11 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+    sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 spec:
   scaleTargetRef:
     kind: Deployment
-    name: {{ template "appname" . }}
+    name: {{ template "appname_with_ref" . }}
     apiVersion: apps/v1beta1
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}

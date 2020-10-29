@@ -7,6 +7,7 @@ metadata:
   labels:
     app: {{ template "appname" . }}
     ref: "{{ .Values.biomageCi.ref }}"
+    sandboxId: "{{ .Values.biomageCi.sandboxId }}"
     release: {{ .Release.Name }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     heritage: {{ .Release.Service }}
@@ -17,6 +18,7 @@ spec:
     matchLabels:
       app: {{ template "appname" . }}
       ref: "{{ .Values.biomageCi.ref }}"
+      sandboxId: "{{ .Values.biomageCi.sandboxId }}"
       release: {{ .Release.Name }}
 
   replicas: {{ .Values.replicaCount }}
@@ -57,6 +59,9 @@ spec:
         - name: K8S_ENV
           value: {{ .Values.kubernetes.env | quote }}
         
+        - name: SANDBOX_ID
+          value: {{ .Values.biomageCi.sandboxId | quote }}
+
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}

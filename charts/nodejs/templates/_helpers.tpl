@@ -7,7 +7,11 @@ Expand the name of the chart.
 {{- end -}}
 
 {{- define "appname" -}}
+{{- if (eq .Values.kubernetes.env "production") -}}
 {{- printf "%s" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name .Values.biomageCi.sandboxId | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "appname_with_ref" -}}
@@ -18,7 +22,7 @@ Expand the name of the chart.
 {{- if (eq .Values.kubernetes.env "production") -}}
 {{- printf "%s.scp.biomage.net" (split "/" .Values.biomageCi.repo)._1 -}}
 {{- else -}}
-{{- printf "%s.scp-%s.biomage.net" (split "/" .Values.biomageCi.repo)._1 .Values.kubernetes.env -}}
+{{- printf "%s-%s-%s.scp.biomage.net" (split "/" .Values.biomageCi.repo)._1 .Values.kubernetes.env .Values.biomageCi.sandboxId -}}
 {{- end -}}
 {{- end -}}
 
