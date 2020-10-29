@@ -37,6 +37,7 @@ spec:
       labels:
         app: {{ template "appname" . }}
         ref: "{{ .Values.biomageCi.ref }}"
+        sandboxId: "{{ .Values.biomageCi.sandboxId }}"
         release: {{ .Release.Name }}
 
     spec:
