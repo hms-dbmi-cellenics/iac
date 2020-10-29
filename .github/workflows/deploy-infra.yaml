@@ -221,7 +221,7 @@ jobs:
           curl \
             -H"Authorization: token $API_TOKEN_GITHUB"\
             https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
-            | jq '.[] | .id ' > /tmp/key_ids
+            | jq '.[] | select(.title | contains("$CLUSTER_ENV")) | .id' > /tmp/key_ids
           
           # iterate through them and delete all existing deploy keys
           cat /tmp/key_ids | \
@@ -243,7 +243,7 @@ jobs:
               -H"Authorization: token $API_TOKEN_GITHUB"\
               --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
             {
-              "title" : "Flux CI -- $(date)",
+              "title" : "Flux CI -- $CLUSTER_ENV -- $(date)",
               "key" : "$(cat ~/flux.pub)",
               "read_only" : false
             }
