@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: worker-STAGING_SANDBOX_ID
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: worker
+  namespace: worker-STAGING_SANDBOX_ID
+  tags:
+    githubSha: 81f947dd800aaabae5158196db5cd1318f2c9283
+spec:
+  releaseName: worker
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: refs/pull/33/merge
+  values:
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+    images:
+      r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-33-merge-81f947dd800aaabae5158196db5cd1318f2c9283-r
+      python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-33-merge-81f947dd800aaabae5158196db5cd1318f2c9283-python
