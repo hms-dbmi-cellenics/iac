@@ -9,13 +9,13 @@ metadata:
   name: worker
   namespace: worker-refs-pull-32-merge
   tags:
-    githubSha: f986c9e89f660d1df6832039244a9408c3f0d3c5
+    githubSha: 0c2a0a05e58cc6c7f57e2d87d4395e17caea085a
 spec:
   releaseName: worker
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: master
+    ref: refs/pull/32/merge
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
