@@ -24,5 +24,5 @@ spec:
       repo: biomage-ltd/ui
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-pull-32-merge-d4c98b03f721b5c003fed0ee33c1fd3f3927eec3
+      tag: refs-pull-32-merge-20da63485ecc53c7a24e34daadf92dd5d34c8685
   # filled in by CI. do not modify.
