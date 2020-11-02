@@ -1,4 +1,4 @@
-{{- if and (.Values.service.enabled) (eq .Values.biomageCi.ref "refs-heads-master") -}}
+{{- if .Values.service.enabled -}}
 apiVersion: v1
 kind: Service
 
@@ -30,6 +30,6 @@ spec:
 
   selector:
     app: {{ template "appname" . }}
-    ref: "{{ .Values.biomageCi.ref }}"
+    sandboxId: "{{ .Values.biomageCi.sandboxId }}"
     release: {{ .Release.Name }}
 {{- end -}}
