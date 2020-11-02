@@ -9,13 +9,13 @@ metadata:
   name: worker
   namespace: worker-refs-heads-master
   tags:
-    githubSha: 9cc0716a96d0b0d5c7db2f7afae72e5b16976902
+    githubSha: 8604e88ae0df23ef1f2fb07b4226956c997d8127
 spec:
   releaseName: worker
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: master
+    ref: refs/heads/master
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-production
