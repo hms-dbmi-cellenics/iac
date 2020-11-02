@@ -28,11 +28,10 @@ spec:
     kubernetes:
       env: staging
     biomageCi:
-      ref: refs-pull-25-merge
       repo: biomage-ltd/api
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-pull-25-merge-a81a86f59724dfd7ae9a77e2fa4b87917913c62e
+      tag: refs-pull-25-merge-301f994e406df79bce0274eb9547d581c960a21f
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
