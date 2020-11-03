@@ -16,15 +16,16 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: master
+    ref: refs/heads/master
   values:
     kubernetes:
       env: production
     biomageCi:
       repo: biomage-ltd/ui
+      sandboxId: default
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-df8e2edb9873a577e1c1807b6b0b3d4dc87dc313
+      tag: refs-heads-master-448bf3b615f21c5a2a228b4ef77ada0550f458f3
     service:
       additionalHosts:
         - scp.biomage.net
