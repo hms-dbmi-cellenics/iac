@@ -9,16 +9,16 @@ metadata:
   name: worker
   namespace: worker-STAGING_SANDBOX_ID
   tags:
-    githubSha: c83da5ea22839b7740d44b3cafc762bc91c78a00
+    githubSha: ccb85f202124dd0a320f2499cb1898b08145888b
 spec:
   releaseName: worker
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: c83da5ea22839b7740d44b3cafc762bc91c78a00
+    ref: refs/pull/34/merge
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     images:
-      r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-34-merge-c83da5ea22839b7740d44b3cafc762bc91c78a00-r
-      python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-34-merge-c83da5ea22839b7740d44b3cafc762bc91c78a00-python
+      r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-34-merge-ccb85f202124dd0a320f2499cb1898b08145888b-r
+      python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-34-merge-ccb85f202124dd0a320f2499cb1898b08145888b-python
