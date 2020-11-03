@@ -20,7 +20,7 @@ jobs:
       - id: add-manifest-to-repo
         name: Add manifest file to repository.
         run: |-
-          echo "$MANIFEST" | base64 -d -o ./releases/staging/$SANDBOX_ID.yaml
+          echo "$MANIFEST" | base64 -d > ./releases/staging/$SANDBOX_ID.yaml
         env:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
