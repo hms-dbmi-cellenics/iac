@@ -24,7 +24,29 @@ jobs:
         env:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
+      - id: disable-admin-enforcement
+        name: Temporarily disable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: false
+          retries: 8
+
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+
+      - id: enable-admin-enforcement
+        name: Re-enable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: true
+          retries: 8
