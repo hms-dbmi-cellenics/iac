@@ -16,7 +16,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: master
+    ref: refs/heads/master
   values:
     service:
       externalPort: 3000
@@ -29,9 +29,10 @@ spec:
       env: production
     biomageCi:
       repo: biomage-ltd/api
+      sandboxId: default
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-f15a32da9942b2a94b214193f28b106a6aa043e1
+      tag: refs-heads-master-9a943f88f736e6fa1e7cc5860ad347a2763e71a4
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-production
 
