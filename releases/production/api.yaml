@@ -32,7 +32,7 @@ spec:
       sandboxId: default
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-9a943f88f736e6fa1e7cc5860ad347a2763e71a4
+      tag: refs-heads-master-c8715b3acda19ccb92b019fb96f755fef3117cc7
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-production
 
