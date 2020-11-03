@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       manifest:
-        description: 'The manifest file to deploy'
+        description: 'The manifest file to deploy (base64 encoded)'
         required: true
       sandbox-id:
         description: 'The sandbox ID to deploy under'
@@ -20,7 +20,7 @@ jobs:
       - id: add-manifest-to-repo
         name: Add manifest file to repository.
         run: |-
-          echo "$MANIFEST" > ./releases/staging/$SANDBOX_ID.yaml
+          echo "$MANIFEST" | base64 -d -o ./releases/staging/$SANDBOX_ID.yaml
         env:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
