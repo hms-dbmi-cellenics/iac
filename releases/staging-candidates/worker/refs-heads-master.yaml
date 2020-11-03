@@ -9,7 +9,7 @@ metadata:
   name: worker
   namespace: worker-STAGING_SANDBOX_ID
   tags:
-    githubSha: 85da81e7bd3b7db7f4d19af2661060576416b272
+    githubSha: 21665a53f1316844de1140f1fa104ac357e4ae67
 spec:
   releaseName: worker
   chart:
@@ -20,5 +20,5 @@ spec:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     images:
-      r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-85da81e7bd3b7db7f4d19af2661060576416b272-r
-      python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-85da81e7bd3b7db7f4d19af2661060576416b272-python
+      r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-21665a53f1316844de1140f1fa104ac357e4ae67-r
+      python: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-21665a53f1316844de1140f1fa104ac357e4ae67-python
