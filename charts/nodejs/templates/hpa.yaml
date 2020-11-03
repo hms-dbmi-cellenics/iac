@@ -12,7 +12,7 @@ metadata:
 spec:
   scaleTargetRef:
     kind: Deployment
-    name: {{ template "appname_with_ref" . }}
+    name: {{ template "appname" . }}
     apiVersion: apps/v1beta1
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}

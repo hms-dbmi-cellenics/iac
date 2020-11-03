@@ -3,10 +3,9 @@ apiVersion: {{ default "apps/v1" .Values.deploymentApiVersion }}
 kind: Deployment
 
 metadata:
-  name: {{ template "appname_with_ref" . }}
+  name: {{ template "appname" . }}
   labels:
     app: {{ template "appname" . }}
-    ref: "{{ .Values.biomageCi.ref }}"
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
     release: {{ .Release.Name }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
@@ -17,7 +16,6 @@ spec:
   selector:
     matchLabels:
       app: {{ template "appname" . }}
-      ref: "{{ .Values.biomageCi.ref }}"
       sandboxId: "{{ .Values.biomageCi.sandboxId }}"
       release: {{ .Release.Name }}
 
@@ -36,7 +34,6 @@ spec:
 {{- end }}
       labels:
         app: {{ template "appname" . }}
-        ref: "{{ .Values.biomageCi.ref }}"
         sandboxId: "{{ .Values.biomageCi.sandboxId }}"
         release: {{ .Release.Name }}
 

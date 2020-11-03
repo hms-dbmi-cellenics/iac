@@ -14,10 +14,6 @@ Expand the name of the chart.
 {{- end -}}
 {{- end -}}
 
-{{- define "appname_with_ref" -}}
-{{- printf "%s-%s" (include "appname" .) .Values.biomageCi.ref | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "hostname" -}}
 {{- if (eq .Values.kubernetes.env "production") -}}
 {{- printf "%s.scp.biomage.net" (split "/" .Values.biomageCi.repo)._1 -}}

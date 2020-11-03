@@ -1,4 +1,4 @@
-{{- if and (.Values.service.enabled) (eq .Values.biomageCi.ref "refs-heads-master") -}}
+{{- if .Values.service.enabled -}}
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 

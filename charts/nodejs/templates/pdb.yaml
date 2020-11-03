@@ -19,7 +19,6 @@ spec:
   selector:
     matchLabels:
       app: {{ template "appname" . }}
-      ref: "{{ .Values.biomageCi.ref }}"
       release: {{ .Release.Name }}
       sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 {{- end }}
