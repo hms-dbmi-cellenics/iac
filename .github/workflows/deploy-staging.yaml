@@ -1,0 +1,30 @@
+name: Deploy a staging environment
+on: 
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: 'The manifest file to deploy'
+        required: true
+      sandbox-id:
+        description: 'The sandbox ID to deploy under'
+        required: true
+
+jobs:
+  deploy-staging:
+    name: Deploy staging environment
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+      - id: add-manifest-to-repo
+        name: Add manifest file to repository.
+        run: |-
+          echo "$MANIFEST" > ./releases/staging/$SANDBOX_ID.yaml
+        env:
+          MANIFEST: ${{ github.event.inputs.manifest }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+      - id: push-deployment
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
