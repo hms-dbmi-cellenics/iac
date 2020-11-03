@@ -10,13 +10,13 @@ metadata:
   namespace: ui-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-33-merge-*
 spec:
   releaseName: ui
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/pull/33/merge
   values:
     kubernetes:
       env: staging
@@ -25,5 +25,5 @@ spec:
       sandboxId: STAGING_SANDBOX_ID
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-448bf3b615f21c5a2a228b4ef77ada0550f458f3
+      tag: refs-pull-33-merge-cb1f398025814b75001785cb6a123ade9be84762
   # filled in by CI. do not modify.
