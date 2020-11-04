@@ -25,5 +25,5 @@ spec:
       sandboxId: STAGING_SANDBOX_ID
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-448bf3b615f21c5a2a228b4ef77ada0550f458f3
+      tag: refs-heads-master-d25668ff09fc4f90476d0fba60574e2a54cc9ccb
   # filled in by CI. do not modify.
