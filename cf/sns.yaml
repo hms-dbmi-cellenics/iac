@@ -10,6 +10,10 @@ Parameters:
       - staging
       - production
     Description: The environment for which the SNS topic needs to be created.
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this topic is created for.
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -23,6 +27,6 @@ Resources:
       Subscription: 
         - Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/workResults",
                     !If [isDev, "http://host.docker.internal:3000/v1/workResults",
-                     !Sub "https://api.scp-${Environment}.biomage.net/v1/workResults"]]
+                     !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/workResults"]]
           Protocol: "https"
       TopicName: !Sub "work-results-${Environment}"
