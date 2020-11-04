@@ -8,18 +8,47 @@ on:
       sandbox-id:
         description: 'The sandbox ID to deploy under'
         required: true
+      secrets:
+        description: 'Encrypted secrets to use for this task'
+        required: true
 
 jobs:
   deploy-staging:
     name: Deploy staging environment
     runs-on: ubuntu-latest
     steps:
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.region }}
+      
+      - id: install-aws-cli
+        name: Install AWS CLI
+        uses: chrislennon/action-aws-cli@v1.1
+
+      - id: decrypt-secrets
+        name: Decrypt credentials from user.
+        run: |-
+            aws kms decrypt \
+              --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-keypair \
+              --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
+              --output text --query Plaintext | base64 --decode > secret
+            
+            echo secret
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CIPHERTEXT: ${{ github.event.inputs.secrets }}
+
       - id: checkout
         name: Check out source code
         uses: actions/checkout@v2
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
-      
+
       - id: add-manifest-to-repo
         name: Add manifest file to repository.
         run: |-
