@@ -61,6 +61,25 @@ jobs:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
+      - id: set-name
+        name: Set name of the CloudFormation stack
+        run: |-
+          BASE_NAME=biomage-sns-staging-$SANDBOX_ID
+          echo "::set-output name=stack-name::$BASE_NAME"
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+      
+      - id: deploy-template
+        name: Deploy CloudFormation template
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }},SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: cf/sns.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
