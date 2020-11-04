@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up groups for handing out permissions to AWS resources [managed by github.com/biomage-ltd/iac]
+
+Resources:
+  EngineeringGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: engineering
+      Policies:
+        # TODO: CF should support creating asymmetric KMS keys by end of November 2020 or so.
+        # when that happens, refactor this to create the policy from the key's CF file,
+        # and have the group assume the policy created by that file instead of inlining and
+        # hardcoding the key ID
+        - PolicyName: allow-iac-encryption
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey
+                  - kms:Encrypt
+                Resource:
+                  - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/985e49a2-5a49-485c-911e-0705c271fa47"
