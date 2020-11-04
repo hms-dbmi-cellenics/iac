@@ -32,12 +32,16 @@ jobs:
       - id: decrypt-secrets
         name: Decrypt credentials from user.
         run: |-
-            aws kms decrypt \
+            SECRETS="$(aws kms decrypt \
               --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
-              --output text --query Plaintext | base64 --decode > secret
+              --output text --query Plaintext)"
             
-            cat secret
+            GITHUB_API_TOKEN="$(echo $SECRETS | base64 --decode | jq -r '.github_api_token')"
+            
+            echo "::add-mask::$SECRETS"
+            echo "::add-mask::$GITHUB_API_TOKEN"
+            echo "::set-output name=github-api-token::$GITHUB_API_TOKEN"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -47,7 +51,7 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
         with:
-          token: ${{ secrets.API_TOKEN_GITHUB }}
+          token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
 
       - id: add-manifest-to-repo
         name: Add manifest file to repository.
@@ -61,7 +65,7 @@ jobs:
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
         with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          access-token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
           owner: biomage-ltd
           repo: iac
           enforce_admins: false
@@ -77,7 +81,7 @@ jobs:
         uses: benjefferies/branch-protection-bot@master
         if: always()
         with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          access-token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
           owner: biomage-ltd
           repo: iac
           enforce_admins: true
