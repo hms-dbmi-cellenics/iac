@@ -29,4 +29,4 @@ Resources:
                     !If [isDev, "http://host.docker.internal:3000/v1/workResults",
                      !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/workResults"]]
           Protocol: "https"
-      TopicName: !Sub "work-results-${Environment}"
+      TopicName: !Sub "work-results-${Environment}-${SandboxID}"
