@@ -62,7 +62,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: set-name
-        name: Set name of the CloudFormation stack
+        name: Set name of the CloudFormation stack for SNS topic
         run: |-
           BASE_NAME=biomage-sns-staging-$SANDBOX_ID
           echo "::set-output name=stack-name::$BASE_NAME"
@@ -70,7 +70,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
       
       - id: deploy-template
-        name: Deploy CloudFormation template
+        name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
