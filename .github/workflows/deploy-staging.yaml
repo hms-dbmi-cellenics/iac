@@ -33,11 +33,11 @@ jobs:
         name: Decrypt credentials from user.
         run: |-
             aws kms decrypt \
-              --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-keypair \
+              --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
               --output text --query Plaintext | base64 --decode > secret
             
-            echo secret
+            cat secret
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
