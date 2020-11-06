@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ui-default
+  name: ui-STAGING_SANDBOX_ID
   labels:
-    sandboxId: default
+    sandboxId: STAGING_SANDBOX_ID
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   name: ui
-  namespace: ui-default
+  namespace: ui-STAGING_SANDBOX_ID
   labels:
-    sandboxId: default
+    sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
@@ -20,18 +20,15 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: master
+    ref: STAGING_CHART_REF
   values:
     kubernetes:
-      env: production
+      env: staging
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: default
+      sandboxId: STAGING_SANDBOX_ID
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
       tag: refs-heads-master-3abc221c9c8dd57283ecf4a6c4a14136a9a2b3c1
-    service:
-      additionalHosts:
-        - scp.biomage.net
   # filled in by CI. do not modify.

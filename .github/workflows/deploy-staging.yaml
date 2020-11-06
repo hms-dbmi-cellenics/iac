@@ -1,0 +1,123 @@
+name: Deploy a staging environment
+on: 
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: 'The manifest file to deploy (base64 encoded)'
+        required: true
+      sandbox-id:
+        description: 'The sandbox ID to deploy under'
+        required: true
+      secrets:
+        description: 'Encrypted secrets to use for this task'
+        required: true
+
+jobs:
+  deploy-staging:
+    name: Deploy staging environment
+    runs-on: ubuntu-latest
+    steps:
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      
+      - id: install-aws-cli
+        name: Install AWS CLI
+        uses: chrislennon/action-aws-cli@v1.1
+
+      - id: decrypt-secrets
+        name: Decrypt credentials from user.
+        run: |-
+            SECRETS="$(aws kms decrypt \
+              --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-secret-key \
+              --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
+              --output text --query Plaintext)"
+            
+            DEPLOYMENT_AWS_ACCESS_KEY_ID="$(echo $SECRETS | base64 --decode | jq -r '.access_key')"
+            DEPLOYMENT_AWS_SECRET_ACCESS_KEY="$(echo $SECRETS | base64 --decode | jq -r '.secret_key')"
+            DEPLOYMENT_GITHUB_API_TOKEN="$(echo $SECRETS | base64 --decode | jq -r '.github_api_token')"
+
+            echo "::add-mask::$SECRETS"
+            
+            echo "::add-mask::$DEPLOYMENT_AWS_ACCESS_KEY_ID"
+            echo "::add-mask::$DEPLOYMENT_AWS_SECRET_ACCESS_KEY"
+            echo "::add-mask::$DEPLOYMENT_GITHUB_API_TOKEN"
+
+            echo "::set-output name=aws-access-key::$DEPLOYMENT_AWS_ACCESS_KEY_ID"
+            echo "::set-output name=aws-secret-access-key::$DEPLOYMENT_AWS_SECRET_ACCESS_KEY"
+            echo "::set-output name=github-api-token::$DEPLOYMENT_GITHUB_API_TOKEN"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CIPHERTEXT: ${{ github.event.inputs.secrets }}
+
+      - id: setup-aws-submitted
+        name: Configure AWS credentials with submitted details
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ steps.decrypt-secrets.outputs.aws-access-key }}
+          aws-secret-access-key: ${{ steps.decrypt-secrets.outputs.aws-secret-access-key }}
+          aws-region: eu-west-1
+
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+        with:
+          token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
+
+      - id: add-manifest-to-repo
+        name: Add manifest file to repository.
+        run: |-
+          echo "$MANIFEST" | base64 -d > ./releases/staging/$SANDBOX_ID.yaml
+        env:
+          MANIFEST: ${{ github.event.inputs.manifest }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
+      - id: set-name
+        name: Set name of the CloudFormation stack for SNS topic
+        run: |-
+          BASE_NAME=biomage-sns-staging-$SANDBOX_ID
+          echo "::set-output name=stack-name::$BASE_NAME"
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+      
+      - id: deploy-template
+        name: Deploy CloudFormation stack for SNS topic
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: cf/sns.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: disable-admin-enforcement
+        name: Temporarily disable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        with:
+          access-token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: false
+          retries: 8
+
+      - id: push-deployment
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+
+      - id: enable-admin-enforcement
+        name: Re-enable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access-token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: true
+          retries: 8

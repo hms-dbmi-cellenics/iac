@@ -98,6 +98,7 @@ networkPolicy:
 biomageCi:
   ref: refs-heads-master
   repo: biomage-ltd/ui
+  sandboxId: default
 
 kubernetes:
   env: production

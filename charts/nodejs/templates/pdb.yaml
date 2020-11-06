@@ -8,6 +8,7 @@ metadata:
       chart: "{{ .Chart.Name }}-{{ .Chart.Version| replace "+" "_" }}"
       release: {{ .Release.Name }}
       heritage: {{ .Release.Service }}
+      sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 spec:
 {{- if .Values.podDisruptionBudget.minAvailable }}
   minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
@@ -18,6 +19,6 @@ spec:
   selector:
     matchLabels:
       app: {{ template "appname" . }}
-      ref: "{{ .Values.biomageCi.ref }}"
       release: {{ .Release.Name }}
+      sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 {{- end }}
