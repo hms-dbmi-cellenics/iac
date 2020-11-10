@@ -85,7 +85,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'sns:Publish'
-                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}"
+                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
         - PolicyName: !Sub "can-manage-tables-${Environment}"
           PolicyDocument:
             Version: 2012-10-17

@@ -1,13 +1,17 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ui-refs-heads-master
+  name: ui-default
+  labels:
+    sandboxId: default
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   name: ui
-  namespace: ui-refs-heads-master
+  namespace: ui-default
+  labels:
+    sandboxId: default
   annotations:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
@@ -21,11 +25,12 @@ spec:
     kubernetes:
       env: production
     biomageCi:
-      ref: refs-heads-master
       repo: biomage-ltd/ui
+      sandboxId: default
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      tag: refs-heads-master-4aa8f5165ae838714fe85b2e27adeef94e73186b
+      repository: ui
+      tag: refs-heads-master-3abc221c9c8dd57283ecf4a6c4a14136a9a2b3c1
     service:
       additionalHosts:
         - scp.biomage.net
