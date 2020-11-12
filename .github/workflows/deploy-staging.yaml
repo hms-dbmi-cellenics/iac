@@ -1,16 +1,16 @@
 name: Deploy a staging environment
 on: 
-  workflow_dispatch:
-    inputs:
-      manifest:
-        description: 'The manifest file to deploy (base64 encoded)'
-        required: true
-      sandbox-id:
-        description: 'The sandbox ID to deploy under'
-        required: true
-      secrets:
-        description: 'Encrypted secrets to use for this task'
-        required: true
+#   workflow_dispatch:
+#     inputs:
+#       manifest:
+#         description: 'The manifest file to deploy (base64 encoded)'
+#         required: true
+#       sandbox-id:
+#         description: 'The sandbox ID to deploy under'
+#         required: true
+#       secrets:
+#         description: 'Encrypted secrets to use for this task'
+#         required: true
 
 jobs:
   deploy-staging:
