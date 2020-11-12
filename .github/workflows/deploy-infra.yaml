@@ -200,6 +200,7 @@ jobs:
           helm upgrade flux fluxcd/flux \
             --set git.url=git@github.com:$GITHUB_REPOSITORY \
             --set git.path="releases/$CLUSTER_ENV" \
+            --set syncGarbageCollection.enabled=true \
             --namespace flux \
             --install --wait
        
