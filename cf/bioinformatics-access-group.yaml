@@ -15,7 +15,7 @@ Resources:
   BioinformaticsAccessGroup: 
     Type: AWS::IAM::Group
     Properties: 
-      GroupName: "bioinformatics-data-ingest-access"
+      GroupName: !Sub "bioinformatics-data-ingest-${Environment}-access"
       Policies:
         - PolicyName: "can-access-s3-aws-console"
           PolicyDocument:
@@ -26,7 +26,7 @@ Resources:
                 Resource:
                   - "arn:aws:s3:::*"
         
-        - PolicyName: "can-upload-prod-source"
+        - PolicyName: !Sub "can-upload-${Environment}-source"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -34,10 +34,10 @@ Resources:
                 Action:
                   - 's3:PutObject'
                 Resource:
-                  - "arn:aws:s3:::biomage-originals-production/*"
-                  - "arn:aws:s3:::biomage-source-production/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
 
-        - PolicyName: "can-list-prod-source"
+        - PolicyName: !Sub "can-list-${Environment}-source"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -46,10 +46,10 @@ Resources:
                   - 's3:ListBucket'
                   - 's3:GetBucketLocation'
                 Resource:
-                  - "arn:aws:s3:::biomage-originals-production"
-                  - "arn:aws:s3:::biomage-source-production"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}"
 
-        - PolicyName: "can-update-production-experiment-data"
+        - PolicyName: !Sub "can-update-${Environment}-experiment-data"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -57,4 +57,4 @@ Resources:
                 Action:
                   - 'dynamodb::PutItem'
                 Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-production"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
