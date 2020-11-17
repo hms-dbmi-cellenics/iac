@@ -61,3 +61,10 @@ Resources:
                 Action: 'sns:*'
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
 
+        - PolicyName: !Sub "can-manage-${Environment}-elasticache"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'elasticache:*'
+                Resource: !Sub "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:biomage-redis-${Environment}"
