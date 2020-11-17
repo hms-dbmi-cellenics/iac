@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up access rights to a given environment for development [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the access group is created.
+
+Resources: 
+  DeveloperAccessGroup: 
+    Type: AWS::IAM::Group
+    Properties: 
+      GroupName: !Sub "engineer-${Environment}-access"
+      Policies: 
+        - PolicyName: !Sub "can-manage-${Environment}-sqs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'sqs:*'
+                Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+        
+        - PolicyName: !Sub "can-manage-${Environment}-dynamo"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "dynamodb:*"
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
+
+        - PolicyName: "can-access-s3-aws-console"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 's3:ListAllMyBuckets'
+                Resource:
+                  - "arn:aws:s3:::*"
+
+        - PolicyName: !Sub "can-manage-${Environment}-s3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource:
+                  - !Sub "arn:aws:s3:::*-${Environment}/*"
+
+        - PolicyName: !Sub "can-manage-${Environment}-sns"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'sns:*'
+                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
+

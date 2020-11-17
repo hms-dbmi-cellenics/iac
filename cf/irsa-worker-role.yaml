@@ -44,7 +44,7 @@ Resources:
       Policies:
         - PolicyName: !Sub "can-list-objects-in-source-buckets-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:ListBucket'
@@ -54,7 +54,7 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}"
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:GetObject'
@@ -63,7 +63,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:PutObject'
@@ -71,7 +71,7 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
         - PolicyName: !Sub "can-read-from-worker-queue-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -81,14 +81,14 @@ Resources:
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"      
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 'sns:Publish'
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
         - PolicyName: !Sub "can-manage-tables-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:

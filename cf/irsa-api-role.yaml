@@ -44,21 +44,21 @@ Resources:
       Policies:
         - PolicyName: !Sub "can-create-worker-queue-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 'sqs:CreateQueue'
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
         - PolicyName: !Sub "can-send-to-worker-queue-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 'sqs:SendMessage'
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
         - PolicyName: !Sub "can-manage-tables-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -78,7 +78,7 @@ Resources:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
         - PolicyName: !Sub "can-download-objects-from-result-buckets-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:GetObject'
@@ -86,7 +86,7 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 'elasticache:DescribeReplicationGroups'
