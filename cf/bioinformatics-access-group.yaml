@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Set up permissions for bioinformatics to manage the data ingest script [managed by github.com/biomage-ltd/iac]
 
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the access group is created.
+
 Resources: 
   BioinformaticsAccessGroup: 
     Type: AWS::IAM::Group
