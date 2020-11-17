@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up SNS topics for Biomage SCP [managed by github.com/biomage-ltd/iac]
+Description: Set up permissions for bioinformatics to manage the data ingest script [managed by github.com/biomage-ltd/iac]
 
 Resources: 
   StagingAccessGroup: 
@@ -9,7 +9,7 @@ Resources:
       Policies:
         - PolicyName: "can-access-s3-aws-console"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:ListAllMyBuckets'
@@ -18,7 +18,7 @@ Resources:
         
         - PolicyName: "can-upload-prod-source"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -29,7 +29,7 @@ Resources:
 
         - PolicyName: "can-list-prod-source"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -41,7 +41,7 @@ Resources:
 
         - PolicyName: "can-update-production-experiment-data"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:

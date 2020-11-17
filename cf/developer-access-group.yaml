@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up management groups for staging environments [managed by github.com/biomage-ltd/iac]
+Description: Set up access rights to a given environment for development [managed by github.com/biomage-ltd/iac]
 
 Parameters:
   Environment:
@@ -19,7 +19,7 @@ Resources:
       Policies: 
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 'sqs:*'
@@ -27,7 +27,7 @@ Resources:
         
         - PolicyName: !Sub "can-manage-${Environment}-dynamo"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: "dynamodb:*"
@@ -37,7 +37,7 @@ Resources:
 
         - PolicyName: "can-access-s3-aws-console"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:ListAllMyBuckets'
@@ -46,7 +46,7 @@ Resources:
 
         - PolicyName: !Sub "can-manage-${Environment}-s3"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 's3:*'
@@ -55,7 +55,7 @@ Resources:
 
         - PolicyName: !Sub "can-manage-${Environment}-sns"
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: 'sns:*'
