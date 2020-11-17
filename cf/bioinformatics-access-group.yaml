@@ -38,3 +38,13 @@ Resources:
                 Resource:
                   - "arn:aws:s3:::biomage-originals-production"
                   - "arn:aws:s3:::biomage-source-production"
+
+        - PolicyName: "can-update-production-experiment-data"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb::PutItem'
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-production"
