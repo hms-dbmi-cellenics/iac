@@ -12,7 +12,7 @@ Parameters:
     Description: The environment for which the access group is created.
 
 Resources: 
-  StagingAccessGroup: 
+  DeveloperAccessGroup: 
     Type: AWS::IAM::Group
     Properties: 
       GroupName: !Sub "engineer-${Environment}-access"
