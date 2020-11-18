@@ -27,8 +27,10 @@ jobs:
       
       - id: install-aws-cli
         name: Install AWS CLI
-        uses: chrislennon/action-aws-cli@v1.1
-
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 2
+      
       - id: decrypt-secrets
         name: Decrypt credentials from user.
         run: |-
