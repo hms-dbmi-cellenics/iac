@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 9d7c0c377e3213307251326c06ccbd3c07b39b31
+    ref: 176e82c03a510fcb8cec7ff441c31a3c9646c614
   releaseName: ui
   values:
     biomageCi:
@@ -53,7 +53,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 9d7c0c377e3213307251326c06ccbd3c07b39b31
+    ref: 176e82c03a510fcb8cec7ff441c31a3c9646c614
   releaseName: api
   values:
     biomageCi:
@@ -97,14 +97,13 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 37fe702d51a4b34f2d165a197d508dd77cde3495
+    ref: f08c4b5033fe8c6d318deae7bc3777e198f266b2
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-37fe702d51a4b34f2d165a197d508dd77cde3495-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f08c4b5033fe8c6d318deae7bc3777e198f266b2-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-37fe702d51a4b34f2d165a197d508dd77cde3495-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f08c4b5033fe8c6d318deae7bc3777e198f266b2-r
     sandboxId: demo-pinned
-    ignoreTimeout: true
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
