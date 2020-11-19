@@ -105,5 +105,6 @@ spec:
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f08c4b5033fe8c6d318deae7bc3777e198f266b2-r
     sandboxId: demo-pinned
+    ignoreTimeout: true
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
