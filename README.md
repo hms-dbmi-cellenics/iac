@@ -23,10 +23,10 @@ type, storage size, or any other property, you must delete the old node group fr
 and add a new one with a different name. eksctl will then appropriately drain and set up node groups.
 
 The name of the EKS cluster is always `biomage-$ENVIRONMENT`, where `$ENVIRONMENT` is the cluster environment
-(`staging` or `production`). Currently, we only have `production` environment set up.
+(`staging` or `production`).
 
 ### Accessing the cluster
-FYI: By default, eksctl only grants cluster admin rights to the user that created the cluster, i.e. the CI
+By default, eksctl only grants cluster admin rights to the user that created the cluster, i.e. the CI
 user for the GitHub repo. The file `infra/cluster_admins` contains a list of IAM users for whom admin
 rights will be granted. The file `infra/cluster_users` contains a list of IAM users that have only user rights
 granted.
