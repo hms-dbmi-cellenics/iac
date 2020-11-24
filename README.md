@@ -121,10 +121,10 @@ workflow.
 
 ### Releases
 
-Flux is continuously scanning the `releases/` folder in this directory for updates. When a change
-to a file in the `releases/` folder is found, Flux will automaticlly apply those changes to the Helm chart
-release on the cluster. For example, if a `ui` deployment needs to run on a non-standard port, the *HelmRelease*
-resource corresponding to this deployment is pushed to GitHub, and these changes are automatically picked up
+Flux running on the `$ENVIRONMENT` cluster is continuously scanning the `releases/$ENVIRONMENT/` folder in this directory
+for updates. When a change to a file in the `releases/$ENVIRONMENT/` folder is found, Flux will automaticlly apply those
+changes to the Helm chart release on the cluster. For example, if a `ui` deployment needs to run on a non-standard port,
+the *HelmRelease* resource corresponding to this deployment is pushed to GitHub, and these changes are automatically picked up
 applied on the cluster.
 
 Each repository corresponding to a deployment is responsible for managing its own HelmRelease
