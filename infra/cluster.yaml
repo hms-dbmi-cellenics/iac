@@ -8,9 +8,11 @@ iam:
   withOIDC: true
 
 nodeGroups:
-  - name: ng-3
-    instanceType: m5.xlarge
+  - name: ng-4
+    instanceType: r5.4xlarge
     desiredCapacity: 1
+    minSize: 1
+    maxSize: 3
     volumeSize: 20
     iam:
       withAddonPolicies:
