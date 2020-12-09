@@ -6,13 +6,23 @@ metadata:
 
 iam:
   withOIDC: true
+  serviceAccounts:
+    - metadata:
+      name: dummy-setup-account
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Action:
+              - "s3:*"
+            Resource: '*'
 
 nodeGroups:
-  - name: ng-4
-    instanceType: r5.4xlarge
+  - name: 32-gb-ram-nodes
+    instanceType: r5.xlarge
     desiredCapacity: 1
     minSize: 1
-    maxSize: 3
+    maxSize: 4
     volumeSize: 20
     iam:
       withAddonPolicies:
