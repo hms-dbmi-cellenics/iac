@@ -30,5 +30,5 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-7cf32a0a9b0e36e16285b69522128d1e6c8fbbc2
+      tag: refs-heads-master-870f15c7ec96871045c10bf16a107f8e27674339
   # filled in by CI. do not modify.
