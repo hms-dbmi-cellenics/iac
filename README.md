@@ -23,10 +23,11 @@ type, storage size, or any other property, you must delete the old node group fr
 and add a new one with a different name. eksctl will then appropriately drain and set up node groups.
 
 The name of the EKS cluster is always `biomage-$ENVIRONMENT`, where `$ENVIRONMENT` is the cluster environment
-(`staging` or `production`). Currently, we only have `production` environment set up.
+(`staging` or `production`). You must add `$ENVIRONMENT` as an environment variable or substitute it accordingly
+when you run these commands.
 
 ### Accessing the cluster
-FYI: By default, eksctl only grants cluster admin rights to the user that created the cluster, i.e. the CI
+By default, eksctl only grants cluster admin rights to the user that created the cluster, i.e. the CI
 user for the GitHub repo. The file `infra/cluster_admins` contains a list of IAM users for whom admin
 rights will be granted. The file `infra/cluster_users` contains a list of IAM users that have only user rights
 granted.
@@ -44,8 +45,7 @@ In a new terminal, execute the following commands:
     # wrong cluster are prevented.
     $ rm ~/.kube/config
 
-    # grant access to the cluster. Currently, we only have one 
-    # environment - production, so put "production" in place of # "$ENVIRONMENT"
+    # grant access to the cluster.
     $ aws eks update-kubeconfig --name biomage-$ENVIRONMENT --region eu-west-1
 
     # Verify that all worked fine: execute get nodes command
@@ -121,10 +121,10 @@ workflow.
 
 ### Releases
 
-Flux is continuously scanning the `releases/` folder in this directory for updates. When a change
-to a file in the `releases/` folder is found, Flux will automaticlly apply those changes to the Helm chart
-release on the cluster. For example, if a `ui` deployment needs to run on a non-standard port, the *HelmRelease*
-resource corresponding to this deployment is pushed to GitHub, and these changes are automatically picked up
+Flux running on the `$ENVIRONMENT` cluster is continuously scanning the `releases/$ENVIRONMENT/` folder in this directory
+for updates. When a change to a file in the `releases/$ENVIRONMENT/` folder is found, Flux will automaticlly apply those
+changes to the Helm chart release on the cluster. For example, if a `ui` deployment needs to run on a non-standard port,
+the *HelmRelease* resource corresponding to this deployment is pushed to GitHub, and these changes are automatically picked up
 applied on the cluster.
 
 Each repository corresponding to a deployment is responsible for managing its own HelmRelease
