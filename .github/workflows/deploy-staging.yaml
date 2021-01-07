@@ -100,26 +100,23 @@ jobs:
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
-        uses: benjefferies/branch-protection-bot@master
+        uses: infamous-riddles/branch-guardian@v1
         with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: biomage-ltd
-          repo: iac
-          enforce_admins: false
-          retries: 8
+          PERSONAL-ACCESS-TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+          BASE-BRANCH-PATTERN: 'master'
+          ALLOW-FORCE-PUSHES: true
 
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+          push_options: --force
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
-        uses: benjefferies/branch-protection-bot@master
+        uses: infamous-riddles/branch-guardian@v1
         if: always()
         with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: biomage-ltd
-          repo: iac
-          enforce_admins: true
-          retries: 8
+          PERSONAL-ACCESS-TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+          BASE-BRANCH-PATTERN: 'master'
+          ALLOW-FORCE-PUSHES: false
