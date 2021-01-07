@@ -70,6 +70,8 @@ Resources:
                   - "cloudformation:DescribeStacks"
                   - "cloudformation:CreateStack"
                   - "cloudformation:DeleteStack"
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:DeleteChangeSet"
                 Resource: !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/biomage-*-staging-*/*"
 
         - PolicyName: !Sub "can-manage-${Environment}-elasticache"
