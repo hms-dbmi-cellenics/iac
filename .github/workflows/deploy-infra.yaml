@@ -341,7 +341,7 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/cluster_admins"
+          done < "infra/cluster_admins_$CLUSTER_ENV"
 
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping
