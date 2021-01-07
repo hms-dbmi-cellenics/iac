@@ -61,6 +61,17 @@ Resources:
                 Action: 'sns:*'
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
 
+        - PolicyName: !Sub "can-create-staging-stacks"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:DeleteStack"
+                Resource: !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/biomage-*-staging-*/*"
+
         - PolicyName: !Sub "can-manage-${Environment}-elasticache"
           PolicyDocument:
             Version: "2012-10-17"
