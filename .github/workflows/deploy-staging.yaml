@@ -104,7 +104,7 @@ jobs:
         with:
           PERSONAL-ACCESS-TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
           BASE-BRANCH-PATTERN: 'master'
-          ALLOW-FORCE-PUSHES: true
+          REQUIRED-NUMBER-OF-REVIEWERS: 0
 
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
@@ -119,4 +119,4 @@ jobs:
         with:
           PERSONAL-ACCESS-TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
           BASE-BRANCH-PATTERN: 'master'
-          ALLOW-FORCE-PUSHES: false
+          REQUIRED-NUMBER-OF-REVIEWERS: 1
