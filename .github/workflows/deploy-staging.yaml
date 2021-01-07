@@ -68,8 +68,6 @@ jobs:
       - id: checkout
         name: Check out source code
         uses: actions/checkout@v2
-        with:
-          token: ${{ steps.decrypt-secrets.outputs.github-api-token }}
 
       - id: add-manifest-to-repo
         name: Add manifest file to repository.
@@ -100,11 +98,13 @@ jobs:
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
-        uses: infamous-riddles/branch-guardian@v1
+        uses: benjefferies/branch-protection-bot@master
         with:
-          PERSONAL-ACCESS-TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
-          BASE-BRANCH-PATTERN: 'master'
-          REQUIRED-NUMBER-OF-REVIEWERS: 0
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: false
+          retries: 8
 
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
@@ -114,9 +114,11 @@ jobs:
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
-        uses: infamous-riddles/branch-guardian@v1
+        uses: benjefferies/branch-protection-bot@master
         if: always()
         with:
-          PERSONAL-ACCESS-TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
-          BASE-BRANCH-PATTERN: 'master'
-          REQUIRED-NUMBER-OF-REVIEWERS: 1
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: true
+          retries: 8
