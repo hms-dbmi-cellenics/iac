@@ -18,12 +18,12 @@ iam:
             Resource: '*'
 
 nodeGroups:
-  - name: 32-gb-ram-nodes
+  - name: 32-gb-ram-nodes-more-disk
     instanceType: r5.xlarge
     desiredCapacity: 1
     minSize: 1
     maxSize: 4
-    volumeSize: 20
+    volumeSize: 40
     iam:
       withAddonPolicies:
         ebs: true
