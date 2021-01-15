@@ -27,3 +27,4 @@ nodeGroups:
     iam:
       withAddonPolicies:
         ebs: true
+        autoScaler: true
