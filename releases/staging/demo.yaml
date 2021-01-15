@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-b387f575e1036f1899782e046cb1e6f9277c25a0
+      tag: refs-heads-master-48b40ea849d15a15e0a0b15aef57911d265b74a1
     kubernetes:
       env: staging
 ---
@@ -63,7 +63,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-c4a723716b6d263a7a89729958d21e02941a0264
+      tag: refs-heads-master-833b8c8e32222a98707bd9d098c649ec1cabf360
     kubernetes:
       env: staging
     livenessProbe:
@@ -102,9 +102,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-69e182f695416ac8317fcf49f30fe3cbb67f8f7d-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ca988f03d6d12a9f4257481ddb713791d54b233e-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-7a76f11743b705720a3242dc0762774a8b6233a3-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-21455dc1d43f688062b4c9fb84eee32499b39f30-r
     sandboxId: demo
     ignoreTimeout: true
     serviceAccount:
