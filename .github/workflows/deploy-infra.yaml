@@ -302,7 +302,29 @@ jobs:
             --set enableVolumeSnapshot=true \
             --install --wait \
             
-      
+      - id: deploy-botkube
+        name: Deploy botkube
+        run: |-
+          kubectl create namespace botkube
+
+          helm repo add infracloudio https://infracloudio.github.io/charts
+          helm repo update
+
+          helm install --version v0.11.0 botkube --namespace botkube \
+            -f infra/botkube-configmap.yaml \
+            --set communications.slack.token=${{ secrets.BOTKUBE_ACCESS_TOKEN }} \
+            --set config.settings.clustername=$CLUSTER_ENV \
+            infracloudio/botkube
+
+      - id: deploy-prometheus
+        name: Deploy Prometheus
+        run: |-
+          kubectl create namespace prometheus
+
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+          helm install prometheus --namespace prometheus prometheus-community/prometheus
+
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
         run: |-
