@@ -314,11 +314,12 @@ jobs:
           helm repo add infracloudio https://infracloudio.github.io/charts
           helm repo update
 
-          helm install --version v0.11.0 botkube --namespace botkube \
+          helm upgrade --version v0.11.0 botkube --namespace botkube \
             -f infra/botkube-configmap.yaml \
             --set communications.slack.token=${{ secrets.BOTKUBE_ACCESS_TOKEN }} \
             --set config.settings.clustername=$CLUSTER_ENV \
-            infracloudio/botkube
+            infracloudio/botkube \
+            --install --wait
 
       - id: create-prometheus-namespace
         name: Attempt to create Prometheus namespace
@@ -331,7 +332,7 @@ jobs:
         run: |-
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
-          helm install prometheus --namespace prometheus prometheus-community/prometheus
+          helm upgrade prometheus --namespace prometheus prometheus-community/prometheus --install --wait
 
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
