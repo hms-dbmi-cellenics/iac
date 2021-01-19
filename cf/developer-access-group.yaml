@@ -30,6 +30,11 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
+                Action:
+                  - "dynamodb:Describe*"
+                Resource:
+                  - '*'
+              - Effect: Allow
                 Action: "dynamodb:*"
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
