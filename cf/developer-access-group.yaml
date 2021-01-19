@@ -30,6 +30,9 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
+                Action: "dynamodb:Describe*"
+                Resource: '*'
+              - Effect: Allow
                 Action: "dynamodb:*"
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
@@ -73,6 +76,14 @@ Resources:
                   - "cloudformation:CreateChangeSet"
                   - "cloudformation:DeleteChangeSet"
                 Resource: !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/biomage-*-staging-*/*"
+
+        - PolicyName: !Sub "can-access-${Environment}-eks-cluster"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'eks:DescribeCluster'
+                Resource: !Sub "arn:aws:eks:${AWS::Region}:${AWS::AccountId}:cluster/biomage-${Environment}"
 
         - PolicyName: !Sub "can-manage-${Environment}-elasticache"
           PolicyDocument:
