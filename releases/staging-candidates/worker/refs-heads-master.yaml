@@ -21,12 +21,12 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: af4121e0f9bdfc7efb32f5b06ff81ece999f1756
+    ref: ca875990b9f2ade50a86e16d911c6416d351f90e
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af4121e0f9bdfc7efb32f5b06ff81ece999f1756-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ca875990b9f2ade50a86e16d911c6416d351f90e-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af4121e0f9bdfc7efb32f5b06ff81ece999f1756-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ca875990b9f2ade50a86e16d911c6416d351f90e-python
