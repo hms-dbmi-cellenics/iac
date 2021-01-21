@@ -1,7 +1,9 @@
 const config = require('../../config');
 const mockData = require('./mock-data.json');
 const logger = require('../../utils/logging');
-const { createDynamoDbInstance, convertToJsObject, convertToDynamoDbRecord } = require('../../utils/dynamoDb');
+const {
+  createDynamoDbInstance, convertToJsObject, convertToDynamoDbRecord, configArrayToUpdateObjs,
+} = require('../../utils/dynamoDb');
 
 
 class ExperimentService {
@@ -65,6 +67,43 @@ class ExperimentService {
     await dynamodb.updateItem(params).promise();
 
     return cellSetData;
+  }
+
+  async getProcessingConfig(experimentId) {
+    const dynamodb = createDynamoDbInstance();
+    let key = { experimentId };
+    key = convertToDynamoDbRecord(key);
+
+    const params = {
+      TableName: this.tableName,
+      Key: key,
+      ProjectionExpression: 'processingConfig',
+    };
+
+    const data = await dynamodb.getItem(params).promise();
+    const prettyData = convertToJsObject(data.Item);
+
+    return prettyData;
+  }
+
+  async updateProcessingConfig(experimentId, processingConfig) {
+    const dynamodb = createDynamoDbInstance();
+    let key = { experimentId };
+
+    key = convertToDynamoDbRecord(key);
+    const { updExpr, attrNames, attrValues } = configArrayToUpdateObjs('processingConfig', processingConfig);
+
+    const params = {
+      TableName: this.tableName,
+      Key: key,
+      UpdateExpression: updExpr,
+      ExpressionAttributeNames: attrNames,
+      ExpressionAttributeValues: attrValues,
+      ReturnValues: 'UPDATED_NEW',
+    };
+
+    const result = await dynamodb.updateItem(params).promise();
+    return result;
   }
 }
 
