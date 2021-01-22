@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ui-STAGING_SANDBOX_ID
+  labels:
+    sandboxId: STAGING_SANDBOX_ID
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ui
+  namespace: ui-STAGING_SANDBOX_ID
+  labels:
+    sandboxId: STAGING_SANDBOX_ID
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:refs-pull-78-merge-*
+spec:
+  releaseName: ui
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: STAGING_CHART_REF
+  values:
+    kubernetes:
+      env: staging
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: STAGING_SANDBOX_ID
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-78-merge-42dc07e0721ab859a2976cf77c160a22e84336f6
+  # filled in by CI. do not modify.
