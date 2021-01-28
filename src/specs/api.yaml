@@ -544,7 +544,11 @@ components:
         name:
           type: string
           example: GetEmbedding
+          pattern: GetEmbedding
           description: The name of this work -- must be `GetEmbedding`.
+        config:
+          type: object
+          description: The configuration settings to use for calculation of this embedding.
         type:
           type: string
           enum:
@@ -552,9 +556,18 @@ components:
             - tsne
             - umap
           description: The type of embedding to compute.
+          deprecated: true
       required:
         - name
-        - type
+    WorkResponseGetEmbedding:
+      type: array
+      description: 'The response schema for the `GetEmbedding` task.'
+      items:
+        type: array
+        items:
+          type: number
+          minItems: 2
+          maxItems: 2
     WorkSchemaListGenes:
       title: WorkSchemaListGenes
       type: object
