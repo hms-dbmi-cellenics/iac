@@ -30,4 +30,4 @@ spec:
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-21455dc1d43f688062b4c9fb84eee32499b39f30-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af4121e0f9bdfc7efb32f5b06ff81ece999f1756-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-2b382b113b24e3ee7470f9533d42029547033796-python
