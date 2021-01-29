@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+  name: ui-yoy8znrt1tforoxebc1zpgkabo
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-89-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+  name: ui
+  namespace: ui-yoy8znrt1tforoxebc1zpgkabo
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: yoy8znrt1tforoxebc1zpgkabo
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-89-merge-81caa46263ba942df31d28776e425ab296625436
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+  name: api-yoy8znrt1tforoxebc1zpgkabo
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+  name: api
+  namespace: api-yoy8znrt1tforoxebc1zpgkabo
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: be4b8b22f9e4a6b9aa122f0217a6c45d3fe4d581
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: yoy8znrt1tforoxebc1zpgkabo
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-cc4aca4697a65a1257adaeb1df6e2a76613bebcd
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+  name: worker-yoy8znrt1tforoxebc1zpgkabo
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+  name: worker
+  namespace: worker-yoy8znrt1tforoxebc1zpgkabo
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: f363b83bb4d507282c1b04961044a634083d4460
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f363b83bb4d507282c1b04961044a634083d4460-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f363b83bb4d507282c1b04961044a634083d4460-r
+    sandboxId: yoy8znrt1tforoxebc1zpgkabo
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
