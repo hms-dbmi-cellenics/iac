@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -22,7 +21,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 2b382b113b24e3ee7470f9533d42029547033796
+    ref: c7b8d704891dbf8f6d9a131eca6a597e842be26f
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-production
