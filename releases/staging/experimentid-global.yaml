@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: experimentid-global
+  name: ui-experimentid-global
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-106-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: experimentid-global
+  name: ui
+  namespace: ui-experimentid-global
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: experimentid-global
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-106-merge-bd54b2b35c03f09a494c44e2abb4620174b1334b
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: experimentid-global
+  name: api-experimentid-global
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: experimentid-global
+  name: api
+  namespace: api-experimentid-global
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 4de96186036ee3420c63178a36885e378c73f2da
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: experimentid-global
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-a7efc11cbe6095653263e1420b40db2760d35287
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: experimentid-global
+  name: worker-experimentid-global
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: experimentid-global
+  name: worker
+  namespace: worker-experimentid-global
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: f9f93134520345f60db54967df50d700a84ea991
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-d76b80c47af190ef5b2a1e9c2edfd880a747eb91-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-d76b80c47af190ef5b2a1e9c2edfd880a747eb91-r
+    sandboxId: experimentid-global
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
