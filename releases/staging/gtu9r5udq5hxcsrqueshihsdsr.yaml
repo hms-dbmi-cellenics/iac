@@ -102,7 +102,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-62-merge-6ef148b387a15fb015cc5d63d9fae02a6e093b82-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-62-merge-3d5537897d09a9a38d507eddb4596654e7f1829f-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-62-merge-3d5537897d09a9a38d507eddb4596654e7f1829f-r
     sandboxId: gtu9r5udq5hxcsrqueshihsdsr
