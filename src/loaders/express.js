@@ -4,6 +4,7 @@ const path = require('path');
 const OpenApiValidator = require('express-openapi-validator');
 const http = require('http');
 const io = require('socket.io');
+const logger = require('../utils/logging');
 
 module.exports = async (app) => {
   // Useful if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
@@ -31,6 +32,9 @@ module.exports = async (app) => {
   // Custom error handler.
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
+    logger.log('Error thrown in HTTP request');
+    logger.log(err);
+
     // format errors
     res.status(err.status || 500).json({
       message: err.message,
