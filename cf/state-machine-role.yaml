@@ -25,3 +25,10 @@ Resources:
                 - !Sub states.${AWS::Region}.amazonaws.com
             Action: "sts:AssumeRole"
       Path: "/"
+
+Outputs:
+  Arn:
+    Description: Address to use to connect to Primary Cluster endpoint
+    Value: !Ref StateMachineRole
+    Export:
+      Name: !Sub 'biomage-state-machine-role-${Environment}::ARN'
