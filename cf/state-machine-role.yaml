@@ -29,6 +29,6 @@ Resources:
 Outputs:
   Arn:
     Description: Address to use to connect to Primary Cluster endpoint
-    Value: !Ref StateMachineRole
+    Value: !GetAtt StateMachineRole.Arn
     Export:
       Name: !Sub 'biomage-state-machine-role-${Environment}::ARN'
