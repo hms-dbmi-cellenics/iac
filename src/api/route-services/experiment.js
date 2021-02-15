@@ -101,10 +101,15 @@ class ExperimentService {
 
   async updateProcessingConfig(experimentId, processingConfig) {
     const dynamodb = createDynamoDbInstance();
-    let key = { experimentId };
 
+    let key = { experimentId };
     key = convertToDynamoDbRecord(key);
-    const { updExpr, attrNames, attrValues } = configArrayToUpdateObjs('processingConfig', processingConfig);
+
+    const {
+      updExpr,
+      attrNames,
+      attrValues,
+    } = configArrayToUpdateObjs('processingConfig', processingConfig);
 
     const params = {
       TableName: this.tableName,
@@ -116,7 +121,9 @@ class ExperimentService {
     };
 
     const result = await dynamodb.updateItem(params).promise();
-    return result;
+    const prettyData = convertToJsObject(result.Attributes);
+
+    return prettyData;
   }
 }
 
