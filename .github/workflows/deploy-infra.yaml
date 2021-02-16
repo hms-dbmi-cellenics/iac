@@ -353,6 +353,7 @@ jobs:
           parameter-overrides: "Environment=${{ matrix.environment }}"
           name: "biomage-state-machine-role-${{ matrix.environment }}"
           template: 'infra/cf-state-machine-role.yaml'
+          capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
           no-fail-on-empty-changeset: "1"
       
       - id: remove-identitymappings
