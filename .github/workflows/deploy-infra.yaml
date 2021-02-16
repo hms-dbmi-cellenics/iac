@@ -345,6 +345,15 @@ jobs:
         run: |-
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
+
+      - id: deploy-state-machine-role
+        name: Deploy AWS Step Function (state machine) roles
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: "biomage-state-machine-role-${{ matrix.environment }}"
+          template: 'infra/cf-state-machine-role.yaml'
+          no-fail-on-empty-changeset: "1"
       
       - id: remove-identitymappings
         name: Remove all previous identity mappings for IAM users
@@ -361,6 +370,16 @@ jobs:
               --all
           done < "/tmp/users_to_remove"
     
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: add-state-machine-role
+        name: Grant rights to the state machine IAM role.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
+            --group state-machine-runner-group \
+            --username state-machine-runner
+      
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
