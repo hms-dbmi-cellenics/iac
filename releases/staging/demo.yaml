@@ -102,9 +102,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-55b956646dfd3d56d9fdef008dac4871d3708fb9-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-60c54e5394556d49e7c97fc85117194d17c0519c-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-55b956646dfd3d56d9fdef008dac4871d3708fb9-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-60c54e5394556d49e7c97fc85117194d17c0519c-r
     sandboxId: demo
     ignoreTimeout: true
     serviceAccount:
