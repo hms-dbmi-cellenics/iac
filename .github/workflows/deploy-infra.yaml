@@ -321,19 +321,6 @@ jobs:
             infracloudio/botkube \
             --install --wait
 
-      - id: create-prometheus-namespace
-        name: Attempt to create Prometheus namespace
-        continue-on-error: true
-        run: |-
-          kubectl create namespace prometheus
-
-      - id: deploy-prometheus
-        name: Deploy Prometheus
-        run: |-
-          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-          helm repo update
-          helm upgrade prometheus --namespace prometheus prometheus-community/prometheus --install --wait
-
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
         run: |-
