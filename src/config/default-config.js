@@ -52,6 +52,7 @@ const config = {
   port: parseInt(process.env.PORT, 10) || 3000,
   clusterEnv: process.env.CLUSTER_ENV || 'development',
   sandboxId: process.env.SANDBOX_ID || 'default',
+  workerNamespace: `worker-${process.env.SANDBOX_ID || 'default'}`,
   awsRegion,
   awsAccountIdPromise: getAwsAccountId,
   githubToken: process.env.READONLY_API_TOKEN_GITHUB,
@@ -59,11 +60,13 @@ const config = {
     prefix: '/',
   },
   workerInstanceConfigUrl: 'https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/production/worker.yaml',
+  pipelineInstanceConfigUrl: 'https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/production/pipeline.yaml',
   cachingEnabled: true,
 };
 
 if (config.clusterEnv === 'staging') {
   config.workerInstanceConfigUrl = `https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/staging/${config.sandboxId}.yaml`;
+  config.pipelineInstanceConfigUrl = `https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/staging/${config.sandboxId}.yaml`;
   config.cachingEnabled = false;
 }
 
