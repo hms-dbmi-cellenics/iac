@@ -104,7 +104,7 @@ spec:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-60c54e5394556d49e7c97fc85117194d17c0519c-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-520f1acdd3dbf02c8d7cc3da6544e9e8e09e63f0-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-3c9d040e36a622dbc209c320fb97ef385246d745-r
     sandboxId: demo
     ignoreTimeout: true
     serviceAccount:
