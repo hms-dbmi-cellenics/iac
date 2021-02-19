@@ -13,4 +13,6 @@ metadata:
   labels:
     sandboxId: default
 data:
-  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-e11c52077dd64243394572d85a1df383f0685759
+  r: FILLED_IN_BY_CI
+  images:
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-5fdb9cdf6e5c17ce2304d387ac96b05b21c601a5-remoter-server
