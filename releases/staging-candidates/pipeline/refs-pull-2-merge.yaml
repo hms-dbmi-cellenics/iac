@@ -13,4 +13,4 @@ metadata:
   labels:
     sandboxId: STAGING_SANDBOX_ID
 data:
-  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-2-merge-289ed5c75a27c4c621767e8d722005e81d581814
+  r: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-2-merge-47a3d83a43624c74cc37249e9ada10cf01c637fb
