@@ -38,7 +38,8 @@ const validateRequest = async (request, schemaPath) => {
   );
 
   if (!res.valid) {
-    throw new Error(res.errors);
+    console.error(res.errors);
+    throw new Error(`${res.errors.toString().substring(0, 100)}`);
   }
 };
 
