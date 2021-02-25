@@ -13,6 +13,6 @@ metadata:
   labels:
     sandboxId: STAGING_SANDBOX_ID
 data:
-  r: FILLED_IN_BY_CI
+  dummy: FILLED_IN_BY_CI
   images:
-    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-3-merge-497d348d285448da46ed8bdd06815c9ca6c87366-remoter-server
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-3-merge-8708610a1f092d85acb643b287ed520488b073dd-remoter-server
