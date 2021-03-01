@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: ui-132-worker-76-agi
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-132-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: ui
+  namespace: ui-132-worker-76-agi
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: 132-worker-76-agi
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-132-merge-d0b0b6ee2fb70325fdf91e30f951d1cee55612b7
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: api-132-worker-76-agi
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: api
+  namespace: api-132-worker-76-agi
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 8cd8aae447b317239e13e9b6842ffbb5817ac8f0
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: 132-worker-76-agi
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-132378cc99511551b443f8d864d3839e7ccaa9bc
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: worker-132-worker-76-agi
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-pull-76-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-76-merge-*-r
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: worker
+  namespace: worker-132-worker-76-agi
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: master
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-76-merge-171619c4a1348ca31612a0208320fdac4282fef0-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-76-merge-171619c4a1348ca31612a0208320fdac4282fef0-r
+    sandboxId: 132-worker-76-agi
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: pipeline-132-worker-76-agi
+---
+apiVersion: v1
+data:
+  dummy: FILLED_IN_BY_CI
+  images:
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6874985af84a2d94316dd30cee19b6847a449992-remoter-server
+kind: ConfigMap
+metadata:
+  labels:
+    sandboxId: 132-worker-76-agi
+  name: image-urls
+  namespace: pipeline-132-worker-76-agi
