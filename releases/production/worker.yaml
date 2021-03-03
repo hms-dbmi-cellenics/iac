@@ -28,6 +28,6 @@ spec:
       iamRole: arn:aws:iam::242905224710:role/worker-role-production
     sandboxId: default
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-62aad0d995322a387f4ea527839e33a4029db7f6-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-1e040584c89c4c4650f4d742994df68591143ced-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-7c0273f30a1f4b79f0ea16987bebd3d459b83b52-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-1e040584c89c4c4650f4d742994df68591143ced-python
