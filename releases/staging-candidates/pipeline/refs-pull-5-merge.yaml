@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pipeline-STAGING_SANDBOX_ID
+  labels:
+    sandboxId: STAGING_SANDBOX_ID
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-urls
+  namespace: pipeline-STAGING_SANDBOX_ID
+  labels:
+    sandboxId: STAGING_SANDBOX_ID
+data:
+  dummy: FILLED_IN_BY_CI
+  images:
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-5-merge-29d5e97434467e974f321680b5bf145da8d22568-remoter-server
