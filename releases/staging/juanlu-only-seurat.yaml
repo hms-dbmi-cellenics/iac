@@ -102,7 +102,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-75-merge-65de9e00a89d9b13c9d03da83bfa4fdb6919d527-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-75-merge-c4bff3f3f4adc9eadb06904cb6cfa4874b5c9474-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-75-merge-c4bff3f3f4adc9eadb06904cb6cfa4874b5c9474-r
     sandboxId: juanlu-only-seurat
