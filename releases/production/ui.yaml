@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -30,8 +31,8 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-d0b48521384afd457ec3d9fc5d618be5ab73ce21
+      tag: refs-heads-master-378c8296e84f32b92c50a2d74b4031fcfd1e949d
     service:
       additionalHosts:
-        - scp.biomage.net
+      - scp.biomage.net
   # filled in by CI. do not modify.
