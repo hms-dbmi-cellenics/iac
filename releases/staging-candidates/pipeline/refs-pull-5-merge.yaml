@@ -15,4 +15,5 @@ metadata:
 data:
   dummy: FILLED_IN_BY_CI
   images:
-    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-5-merge-63164411a548739f8444d29914bc9be29b21c1bf-remoter-server
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-5-merge-e43caf390bc681ca5d150351c3b5f387fb4bca19-remoter-server
+    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-5-merge-e43caf390bc681ca5d150351c3b5f387fb4bca19-remoter-client
