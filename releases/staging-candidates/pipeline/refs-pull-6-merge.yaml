@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pipeline-STAGING_SANDBOX_ID
+  labels:
+    sandboxId: STAGING_SANDBOX_ID
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-urls
+  namespace: pipeline-STAGING_SANDBOX_ID
+  labels:
+    sandboxId: STAGING_SANDBOX_ID
+data:
+  dummy: FILLED_IN_BY_CI
+  images:
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-6-merge-065c6b857d8f14e4c620af6c19edea3b0e67fb85-remoter-server
+    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-6-merge-065c6b857d8f14e4c620af6c19edea3b0e67fb85-remoter-client
