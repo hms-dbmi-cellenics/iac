@@ -99,23 +99,18 @@ Resources:
                 Action: "eks:DescribeCluster"
                 Resource:
                   - !Sub "arn:aws:eks:${AWS::Region}:${AWS::AccountId}:cluster/biomage-${Environment}"
-        - PolicyName: !Sub "can-manage-state-machine-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "states:CreateStateMachine"
-                  - "states:UpdateStateMachine"
-                  - "states:StartExecution"
-                Resource:
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-pipeline-${Environment}-*"
         - PolicyName: !Sub "can-manage-execution-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
+                  - "states:DescribeStateMachine"
+                  - "states:CreateStateMachine"
+                  - "states:UpdateStateMachine"
+                  - "states:DescribeExecution"
+                  - "states:StartExecution"
                   - "states:StopExecution"
                 Resource:
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-pipeline-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*:*"
