@@ -62,14 +62,14 @@ const config = {
   workerInstanceConfigUrl: 'https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/production/worker.yaml',
   pipelineInstanceConfigUrl: 'https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/production/pipeline.yaml',
   cachingEnabled: true,
-  corsOriginUrl: 'https://scp.biomage.net/',
+  corsOriginUrl: 'https://scp.biomage.net',
 };
 
 if (config.clusterEnv === 'staging') {
   config.workerInstanceConfigUrl = `https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/staging/${config.sandboxId}.yaml`;
   config.pipelineInstanceConfigUrl = `https://raw.githubusercontent.com/biomage-ltd/iac/master/releases/staging/${config.sandboxId}.yaml`;
   config.cachingEnabled = false;
-  config.corsOriginUrl = `https://ui-${config.clusterEnv}.scp-staging.biomage.net/`;
+  config.corsOriginUrl = `https://ui-${config.clusterEnv}.scp-staging.biomage.net`;
 }
 
 // We are in the `development` clusterEnv, meaning we run on
