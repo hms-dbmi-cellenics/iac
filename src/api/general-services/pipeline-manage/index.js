@@ -8,6 +8,13 @@ const fetch = require('node-fetch');
 const AWS = require('../../../utils/requireAWS');
 const config = require('../../../config');
 const logger = require('../../../utils/logging');
+const ExperimentService = require('../../route-services/experiment');
+
+const deleteCompletedJobs = require('./constructors/delete-complete-jobs');
+const createNewStep = require('./constructors/create-new-step');
+const createNewJobIfNotExist = require('./constructors/create-new-job-if-not-exist');
+
+const experimentService = new ExperimentService();
 
 const getPipelineImages = async () => {
   const response = await fetch(
@@ -41,17 +48,18 @@ const getClusterInfo = async () => {
 };
 
 const constructPipelineStep = (context, step) => {
-  const { XStepType: stepType } = step;
+  const { XStepType: stepType, XConstructorArgs: args } = step;
 
   /* eslint-disable global-require */
   switch (stepType) {
     case 'delete-completed-jobs': {
-      const f = require('./constructors/delete-complete-jobs');
-      return f(context, step);
+      return deleteCompletedJobs(context, step, args);
     }
     case 'create-new-job-if-not-exist': {
-      const f = require('./constructors/create-new-job-if-not-exist');
-      return f(context, step);
+      return createNewJobIfNotExist(context, step, args);
+    }
+    case 'create-new-step': {
+      return createNewStep(context, step, args);
     }
     default: {
       throw new Error(`Invalid state type specified: ${stepType}`);
@@ -74,7 +82,7 @@ const createNewStateMachine = async (context, stateMachine) => {
     .digest('hex');
 
   const params = {
-    name: `biomage-pipeline-${pipelineHash}`,
+    name: `biomage-pipeline-${clusterEnv}-${pipelineHash}`,
     roleArn,
     definition: JSON.stringify(stateMachine),
     loggingConfiguration: { level: 'OFF' },
@@ -125,12 +133,17 @@ const createPipeline = async (experimentId) => {
   const accountId = await config.awsAccountIdPromise();
   const roleArn = `arn:aws:iam::${accountId}:role/state-machine-role-${config.clusterEnv}`;
 
+  logger.log(`Fetching processing settings for ${experimentId}`);
+  const res = await experimentService.getProcessingConfig(experimentId);
+  const { processingConfig } = res;
+
   const context = {
     experimentId,
     accountId,
     roleArn,
     pipelineImages: await getPipelineImages(),
     clusterInfo: await getClusterInfo(),
+    processingConfig,
   };
 
   const skeleton = {
@@ -143,20 +156,77 @@ const createPipeline = async (experimentId) => {
       },
       LaunchNewPipelineWorker: {
         XStepType: 'create-new-job-if-not-exist',
-        Next: 'Wait',
+        Next: 'Filters',
       },
-      Wait: {
-        Type: 'Wait',
-        Seconds: 5,
+      Filters: {
+        Type: 'Parallel',
+        Next: 'DataIntegration',
+        Branches: [{
+          StartAt: 'CellSizeDistributionFilter',
+          States: {
+            CellSizeDistributionFilter: {
+              XStepType: 'create-new-step',
+              XConstructorArgs: {
+                taskName: 'cellSizeDistribution',
+              },
+              Next: 'MitochondrialContentFilter',
+            },
+            MitochondrialContentFilter: {
+              XStepType: 'create-new-step',
+              XConstructorArgs: {
+                taskName: 'mitochondrialContent',
+              },
+              Next: 'ClassifierFilter',
+            },
+            ClassifierFilter: {
+              XStepType: 'create-new-step',
+              XConstructorArgs: {
+                taskName: 'classifier',
+              },
+              Next: 'NumGenesVsNumUmisFilter',
+            },
+            NumGenesVsNumUmisFilter: {
+              XStepType: 'create-new-step',
+              XConstructorArgs: {
+                taskName: 'numGenesVsNumUmis',
+              },
+              Next: 'DoubletScoresFilter',
+            },
+            DoubletScoresFilter: {
+              XStepType: 'create-new-step',
+              XConstructorArgs: {
+                taskName: 'doubletScores',
+              },
+              End: true,
+            },
+          },
+        }],
+      },
+      DataIntegration: {
+        XStepType: 'create-new-step',
+        XConstructorArgs: {
+          taskName: 'dataIntegration',
+        },
+        Next: 'ConfigureEmbedding',
+      },
+      ConfigureEmbedding: {
+        XStepType: 'create-new-step',
+        XConstructorArgs: {
+          taskName: 'configureEmbedding',
+        },
         End: true,
       },
     },
   };
 
-  logger.log('Constructing pipeline from step skeleton...');
+  logger.log('Constructing pipeline steps...');
   const stateMachine = _.cloneDeepWith(skeleton, (o) => {
     if (_.isObject(o) && o.XStepType) {
-      return { ...constructPipelineStep(context, o), XStepType: undefined };
+      return {
+        ...constructPipelineStep(context, o),
+        XStepType: undefined,
+        XConstructorArgs: undefined,
+      };
     }
     return undefined;
   });

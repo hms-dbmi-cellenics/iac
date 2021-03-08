@@ -1,10 +1,18 @@
 const config = require('../../../../config');
 
-const createNewJobIfNotExist = (context, step) => {
+const createNewStep = (context, step, args) => {
   const {
-    clusterInfo, experimentId, pipelineImages, accountId,
+    processingConfig, clusterInfo, experimentId, pipelineImages, accountId,
   } = context;
 
+  const { taskName } = args;
+
+
+  const task = JSON.stringify({
+    experimentId,
+    taskName,
+    config: processingConfig[taskName] || {},
+  });
 
   if (config.clusterEnv === 'development') {
     return {
@@ -14,9 +22,10 @@ const createNewJobIfNotExist = (context, step) => {
       Parameters: {
         FunctionName: `arn:aws:lambda:eu-west-1:${accountId}:function:local-container-launcher`,
         Payload: {
-          image: pipelineImages['remoter-server'],
-          name: 'pipeline-remoter-server',
-          detached: true,
+          image: pipelineImages['remoter-client'],
+          name: 'pipeline-remoter-client',
+          task,
+          detached: false,
         },
       },
     };
@@ -27,7 +36,7 @@ const createNewJobIfNotExist = (context, step) => {
     ...step,
     Type: 'Task',
     Comment: 'Attempts to create a Kubernetes Job for the pipeline server. Will swallow a 409 (already exists) error.',
-    Resource: 'arn:aws:states:::eks:call',
+    Resource: 'arn:aws:states:::eks:runJob.sync',
     Parameters: {
       ClusterName: clusterInfo.name,
       CertificateAuthority: clusterInfo.certAuthority,
@@ -38,18 +47,21 @@ const createNewJobIfNotExist = (context, step) => {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
-          name: `remoter-server-${experimentId}`,
+          name: `remoter-client-${experimentId}`,
         },
         spec: {
           template: {
             metadata: {
-              name: `remoter-server-${experimentId}`,
+              name: `remoter-client-${experimentId}`,
             },
             spec: {
               containers: [
                 {
-                  name: 'remoter-server',
-                  image: pipelineImages['remoter-server'],
+                  name: 'remoter-client',
+                  image: pipelineImages['remoter-client'],
+                  args: [
+                    task,
+                  ],
                 },
               ],
               restartPolicy: 'Never',
@@ -76,4 +88,4 @@ const createNewJobIfNotExist = (context, step) => {
   };
 };
 
-module.exports = createNewJobIfNotExist;
+module.exports = createNewStep;
