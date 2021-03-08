@@ -10,6 +10,7 @@ describe('test for pipeline services', () => {
     AWSMock.restore('StepFunctions');
   });
 
+
   const MockProcessingConfig = {
     Item: {
       processingConfig: {
@@ -37,7 +38,10 @@ describe('test for pipeline services', () => {
       callback(null, mockCluster);
     });
 
-    const createStateMachineSpy = jest.fn((stateMachineObject) => _.omit(stateMachineObject, 'definition'));
+    const createStateMachineSpy = jest.fn(
+      (stateMachineObject) => _.omit(stateMachineObject, ['definition', 'image']),
+    );
+
     AWSMock.mock('StepFunctions', 'createStateMachine', (params, callback) => {
       createStateMachineSpy(params);
       callback(null, { stateMachineArn: 'test-machine' });
@@ -72,7 +76,19 @@ describe('test for pipeline services', () => {
       callback(null, mockCluster);
     });
 
-    const createStateMachineSpy = jest.fn((stateMachineObject) => JSON.parse(stateMachineObject.definition));
+    const createStateMachineSpy = jest.fn(
+
+      // eslint-disable-next-line consistent-return
+      (stateMachineObject) => (_.cloneDeepWith(JSON.parse(stateMachineObject.definition), (o) => {
+        if (_.isObject(o) && o.image) {
+          return {
+            ...o,
+            image: 'MOCK_IMAGE_PATH',
+          };
+        }
+      })),
+    );
+
     AWSMock.mock('StepFunctions', 'createStateMachine', (params, callback) => {
       createStateMachineSpy(params);
       callback(null, { stateMachineArn: 'test-machine' });
