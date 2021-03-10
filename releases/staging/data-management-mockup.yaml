@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: data-management-mockup
+  name: ui-data-management-mockup
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-145-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: data-management-mockup
+  name: ui
+  namespace: ui-data-management-mockup
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: data-management-mockup
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-145-merge-4de3666701db1c87f5f7aee0886da9e77cbcae69
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: data-management-mockup
+  name: api-data-management-mockup
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: data-management-mockup
+  name: api
+  namespace: api-data-management-mockup
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 27434b8b70bd600e5cdc40982549646e8f9ea725
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: data-management-mockup
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-aba577533bc7e03814dc3b338ecf53e8dd51513e
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: data-management-mockup
+  name: worker-data-management-mockup
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: data-management-mockup
+  name: worker
+  namespace: worker-data-management-mockup
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 57769278cea271fc1d97fa8480f7536af83248a3
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-r
+    sandboxId: data-management-mockup
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: data-management-mockup
+  name: pipeline-data-management-mockup
+---
+apiVersion: v1
+data:
+  dummy: FILLED_IN_BY_CI
+  images:
+    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-client
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-server
+kind: ConfigMap
+metadata:
+  labels:
+    sandboxId: data-management-mockup
+  name: image-urls
+  namespace: pipeline-data-management-mockup
