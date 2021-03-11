@@ -122,3 +122,12 @@ Resources:
                   - "states:StopExecution"
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*:*"
+        - PolicyName: !Sub "can-pass-state-machine-executionrole-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:PassRole"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/state-machine-role-${Environment}"
