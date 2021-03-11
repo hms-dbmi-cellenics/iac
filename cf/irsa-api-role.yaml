@@ -110,6 +110,7 @@ Resources:
                   - "states:UpdateStateMachine"
                   - "states:StartExecution"
                   - "states:TagResource"
+                  - "iam:PassRole"
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-pipeline-${Environment}-*"
         - PolicyName: !Sub "can-stop-execution-${Environment}"
