@@ -23,4 +23,4 @@ Resources:
     Properties:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
-        "authenticated": "arn:aws:iam::${AWS::AccountId}:role/ui-role-${Environment}"
+        "authenticated": !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-role-${Environment}"
