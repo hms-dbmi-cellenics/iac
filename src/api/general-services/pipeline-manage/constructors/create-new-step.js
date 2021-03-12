@@ -28,6 +28,13 @@ const createNewStep = (context, step, args) => {
           detached: false,
         },
       },
+      Catch: [
+        {
+          ErrorEquals: ['States.ALL'],
+          ResultPath: '$.error-info',
+          Next: step.XNextOnCatch || step.Next,
+        },
+      ],
     };
   }
 
@@ -41,9 +48,8 @@ const createNewStep = (context, step, args) => {
       ClusterName: clusterInfo.name,
       CertificateAuthority: clusterInfo.certAuthority,
       Endpoint: clusterInfo.endpoint,
-      Method: 'POST',
-      Path: `/apis/batch/v1/namespaces/${config.workerNamespace}/jobs`,
-      RequestBody: {
+      Namespace: config.workerNamespace,
+      Job: {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
@@ -82,7 +88,7 @@ const createNewStep = (context, step, args) => {
       {
         ErrorEquals: ['EKS.409'],
         ResultPath: '$.error-info',
-        Next: step.Next,
+        Next: step.XNextOnCatch || step.Next,
       },
     ],
   };

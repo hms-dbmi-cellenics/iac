@@ -100,7 +100,9 @@ const executeStateMachine = async (stateMachineArn) => {
 
   const { executionArn } = await stepFunctions.startExecution({
     stateMachineArn,
-    input: '{}',
+    input: JSON.stringify({
+      samples: ['single-branch-in-map-state'],
+    }),
     traceHeader: traceId,
   }).promise();
 
@@ -143,15 +145,18 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
       DeleteCompletedPipelineWorker: {
         XStepType: 'delete-completed-jobs',
         Next: 'LaunchNewPipelineWorker',
+        ResultPath: null,
       },
       LaunchNewPipelineWorker: {
         XStepType: 'create-new-job-if-not-exist',
         Next: 'Filters',
+        ResultPath: null,
       },
       Filters: {
-        Type: 'Parallel',
+        Type: 'Map',
         Next: 'DataIntegration',
-        Branches: [{
+        ItemsPath: '$.samples',
+        Iterator: {
           StartAt: 'CellSizeDistributionFilter',
           States: {
             CellSizeDistributionFilter: {
@@ -187,10 +192,15 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
               XConstructorArgs: {
                 taskName: 'doubletScores',
               },
+              XNextOnCatch: 'EndOfMap',
+              End: true,
+            },
+            EndOfMap: {
+              Type: 'Pass',
               End: true,
             },
           },
-        }],
+        },
       },
       DataIntegration: {
         XStepType: 'create-new-step',
@@ -204,6 +214,11 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
         XConstructorArgs: {
           taskName: 'configureEmbedding',
         },
+        XNextOnCatch: 'EndOfPipeline',
+        End: true,
+      },
+      EndOfPipeline: {
+        Type: 'Pass',
         End: true,
       },
     },
@@ -216,6 +231,7 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
         ...constructPipelineStep(context, o),
         XStepType: undefined,
         XConstructorArgs: undefined,
+        XNextOnCatch: undefined,
       };
     }
     return undefined;

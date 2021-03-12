@@ -8,56 +8,51 @@ describe('tests for the experiment service', () => {
     AWSMock.restore('DynamoDB');
   });
 
-  it('Get experiment data works', async (done) => {
-    const unmarshalledData = {
-      Item: {
-        experimentId: { S: '12345' },
-        experimentName: { S: 'TGFB1 experiment' },
-      },
+  const mockDynamoGetItem = (jsData) => {
+    const dynamodbData = {
+      Item: AWS.DynamoDB.Converter.marshall(jsData),
     };
-
-    const marshalledData = {
-      experimentId: '12345',
-      experimentName: 'TGFB1 experiment',
-    };
-
-    const e = new ExperimentService();
-
     const getItemSpy = jest.fn((x) => x);
     AWSMock.setSDKInstance(AWS);
     AWSMock.mock('DynamoDB', 'getItem', (params, callback) => {
       getItemSpy(params);
-      callback(null, unmarshalledData);
+      callback(null, dynamodbData);
     });
+    return getItemSpy;
+  };
 
-    e.getExperimentData('12345')
+  const mockDynamoUpdateItem = () => {
+    const updateItemSpy = jest.fn((x) => x);
+    AWSMock.setSDKInstance(AWS);
+    AWSMock.mock('DynamoDB', 'updateItem', (params, callback) => {
+      updateItemSpy(params);
+      callback(null, {}); // We do not care about the return value here, it is not used.
+    });
+    return updateItemSpy;
+  };
+
+  it('Get experiment data works', async (done) => {
+    const jsData = {
+      experimentId: '12345',
+      experimentName: 'TGFB1 experiment',
+    };
+
+    const getItemSpy = mockDynamoGetItem(jsData);
+
+    (new ExperimentService()).getExperimentData('12345')
       .then((data) => {
-        expect(data).toEqual(marshalledData);
+        expect(data).toEqual(jsData);
         expect(getItemSpy).toHaveBeenCalledWith({
           TableName: 'experiments-test',
           Key: { experimentId: { S: '12345' } },
-          ProjectionExpression: 'experimentId, experimentName',
+          ProjectionExpression: 'experimentId,experimentName',
         });
       })
       .then(() => done());
   });
 
   it('Get cell sets works', async (done) => {
-    const e = new ExperimentService();
-
-    const unmarshalledData = {
-      Item: {
-        cellSets: {
-          L: [
-            { M: { key: { N: 1 }, name: { S: 'set 1' }, color: { S: '#008DA6' } } },
-            { M: { key: { N: 2 }, name: { S: 'set 2' }, color: { S: '#008D56' } } },
-            { M: { key: { N: 3 }, name: { S: 'set 3' }, rootNode: { BOOL: true } } },
-          ],
-        },
-      },
-    };
-
-    const marshalledData = {
+    const jsData = {
       cellSets: [
         { key: 1, name: 'set 1', color: '#008DA6' },
         { key: 2, name: 'set 2', color: '#008D56' },
@@ -65,16 +60,11 @@ describe('tests for the experiment service', () => {
       ],
     };
 
-    AWSMock.setSDKInstance(AWS);
-    const getItemSpy = jest.fn((x) => x);
-    AWSMock.mock('DynamoDB', 'getItem', (params, callback) => {
-      getItemSpy(params);
-      callback(null, unmarshalledData);
-    });
+    const getItemSpy = mockDynamoGetItem(jsData);
 
-    e.getCellSets('12345')
+    (new ExperimentService()).getCellSets('12345')
       .then((data) => {
-        expect(data).toEqual(marshalledData);
+        expect(data).toEqual(jsData);
         expect(getItemSpy).toHaveBeenCalledWith(
           {
             TableName: 'experiments-test',
@@ -87,9 +77,7 @@ describe('tests for the experiment service', () => {
   });
 
   it('Update experiment cell sets works', async (done) => {
-    const e = new ExperimentService();
-
-    const testData = [
+    const jsTestData = [
       {
         name: 'Empty cluster',
         key: 'empty',
@@ -99,24 +87,18 @@ describe('tests for the experiment service', () => {
       },
     ];
 
-    AWSMock.setSDKInstance(AWS);
-    const putItemSpy = jest.fn((x) => x);
-    AWSMock.mock('DynamoDB', 'updateItem', (params, callback) => {
-      putItemSpy(params);
-      callback(null, []); // We do not care about the return value here, it is not used.
-    });
+    const updateItemSpy = mockDynamoUpdateItem();
+    const dynamoTestData = AWS.DynamoDB.Converter.marshall({ ':x': jsTestData });
 
-    const marshalledTestData = AWS.DynamoDB.Converter.marshall({ ':x': testData });
-
-    e.updateCellSets('12345', testData)
+    (new ExperimentService()).updateCellSets('12345', jsTestData)
       .then((returnValue) => {
-        expect(returnValue).toEqual(testData);
-        expect(putItemSpy).toHaveBeenCalledWith(
+        expect(returnValue).toEqual(jsTestData);
+        expect(updateItemSpy).toHaveBeenCalledWith(
           {
             TableName: 'experiments-test',
             Key: { experimentId: { S: '12345' } },
             UpdateExpression: 'set cellSets = :x',
-            ExpressionAttributeValues: marshalledTestData,
+            ExpressionAttributeValues: dynamoTestData,
           },
         );
       })
@@ -124,40 +106,7 @@ describe('tests for the experiment service', () => {
   });
 
   it('Get processing config works', async (done) => {
-    const e = new ExperimentService();
-
-    const unmarshalledData = {
-      Item: {
-        processing: {
-          M: {
-            cellSizeDistribution: {
-              M: {
-                enabled: { BOOL: true },
-                filterSettings: {
-                  M: {
-                    minCellSize: { N: '10800' },
-                    binStep: { N: '200' },
-                  },
-                },
-              },
-            },
-            classifier: {
-              M: {
-                enabled: { BOOL: true },
-                filterSettings: {
-                  M: {
-                    minProbabiliy: { N: '0.8' },
-                    filterThreshold: { N: -1 },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const marshalledData = {
+    const jsData = {
       processing: {
         cellSizeDistribution: {
           enabled: true,
@@ -176,16 +125,11 @@ describe('tests for the experiment service', () => {
       },
     };
 
-    AWSMock.setSDKInstance(AWS);
-    const getItemSpy = jest.fn((x) => x);
-    AWSMock.mock('DynamoDB', 'getItem', (params, callback) => {
-      getItemSpy(params);
-      callback(null, unmarshalledData);
-    });
+    const getItemSpy = mockDynamoGetItem(jsData);
 
-    e.getProcessingConfig('12345')
+    (new ExperimentService()).getProcessingConfig('12345')
       .then((data) => {
-        expect(data).toEqual(marshalledData);
+        expect(data).toEqual(jsData);
         expect(getItemSpy).toHaveBeenCalledWith(
           {
             TableName: 'experiments-test',
@@ -198,8 +142,6 @@ describe('tests for the experiment service', () => {
   });
 
   it('Update processing config works', async (done) => {
-    const e = new ExperimentService();
-
     const testData = [
       {
         name: 'classifier',
@@ -213,16 +155,11 @@ describe('tests for the experiment service', () => {
       },
     ];
 
-    AWSMock.setSDKInstance(AWS);
-    const putItemSpy = jest.fn((x) => x);
-    AWSMock.mock('DynamoDB', 'updateItem', (params, callback) => {
-      putItemSpy(params);
-      callback(null, {}); // We do not care about the return value here, it is not used.
-    });
+    const updateItemSpy = mockDynamoUpdateItem();
 
-    e.updateProcessingConfig('12345', testData)
+    (new ExperimentService()).updateProcessingConfig('12345', testData)
       .then(() => {
-        expect(putItemSpy).toHaveBeenCalledWith(
+        expect(updateItemSpy).toHaveBeenCalledWith(
           {
             TableName: 'experiments-test',
             Key: { experimentId: { S: '12345' } },
@@ -244,6 +181,61 @@ describe('tests for the experiment service', () => {
                 },
               },
             },
+          },
+        );
+      })
+      .then(() => done());
+  });
+
+  it('Get Pipeline Handle works', async (done) => {
+    const handle = {
+      stateMachineArn: 'STATE-MACHINE-ID',
+      executionArn: '',
+    };
+
+    const jsData = {
+      meta: {
+        pipeline: {
+          stateMachineArn: handle.stateMachineArn,
+        },
+        organism: 'mmusculus',
+        type: '10x',
+      },
+    };
+
+    const getItemSpy = mockDynamoGetItem(jsData);
+
+    (new ExperimentService()).getPipelineHandle('12345')
+      .then((data) => {
+        expect(data).toEqual(handle);
+        expect(getItemSpy).toHaveBeenCalledWith(
+          {
+            TableName: 'experiments-test',
+            Key: { experimentId: { S: '12345' } },
+            ProjectionExpression: 'meta',
+          },
+        );
+      })
+      .then(() => done());
+  });
+
+  it('Set Pipeline Handle works', async (done) => {
+    const jsTestData = {
+      stateMachineArn: 'STATE-MACHINE-ID',
+      executionArn: 'EXECUTION-ID',
+    };
+
+    const updateItemSpy = mockDynamoUpdateItem();
+    const dynamoTestData = AWS.DynamoDB.Converter.marshall({ ':x': jsTestData });
+
+    (new ExperimentService()).savePipelineHandle('12345', jsTestData)
+      .then(() => {
+        expect(updateItemSpy).toHaveBeenCalledWith(
+          {
+            TableName: 'experiments-test',
+            Key: { experimentId: { S: '12345' } },
+            UpdateExpression: 'set meta.pipeline = :x',
+            ExpressionAttributeValues: dynamoTestData,
           },
         );
       })
