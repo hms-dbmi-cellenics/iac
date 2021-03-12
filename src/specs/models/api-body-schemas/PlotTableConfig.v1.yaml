@@ -1,4 +1,4 @@
-title: 'Plots & Tables configuration'
+title: Plots & Tables configuration
 type: object
 description: A file specifying the configuration for a given plot/table.
 properties:
@@ -8,24 +8,32 @@ properties:
   plotUuid:
     type: string
     description: The UUID of the plot or table.
-  type:
+  plotType:
     type: string
     description: The type of the plot to be saved. Can be one of the values specified herein.
     enum:
-      - embeddingCategorical
-      - embeddingContinuous
-      - volcano
-      - heatmap
-      - frequency
+      - umisInCells
+      - umisCellRank
+      - mitochondrialContent
+      - mitochondrialReads
+      - classifierContour
+      - genesVsUmisHistogram
+      - genesVsUmisScatterplot
+      - doubletScoreHistogram
       - dataIntegrationEmbedding
       - dataIntegrationFrequency
       - dataIntegrationElbow
+      - embeddingCategorical
+      - embeddingContinuous
       - embeddingPreviewBySample
       - embeddingPreviewByCellSets
       - embeddingPreviewMitochondrialContent
       - embeddingPreviewDoubletScore
+      - volcano
+      - heatmap
+      - frequency
   config:
     type: object
 required:
-  - type
+  - plotType
   - config

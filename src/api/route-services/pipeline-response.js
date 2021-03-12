@@ -3,14 +3,48 @@ const validateRequest = require('../../utils/schema-validator');
 const logger = require('../../utils/logging');
 
 const ExperimentService = require('./experiment');
+const PlotsTablesService = require('./plots-tables');
 
 const experimentService = new ExperimentService();
+const plotsTableService = new PlotsTablesService();
+
+const plotsInTables = {
+  cellSizeDistribution: [
+    'umisInCells',
+    'umisCellRank',
+  ],
+  mitochondrialContent: [
+    'mitochondrialContent',
+    'mitochondrialReads',
+  ],
+  classifier: [
+    'classifierContour',
+  ],
+  numGenesVsNumUmis: [
+    'genesVsUmisHistogram',
+    'genesVsUmisScatterplot',
+  ],
+  doubletScores: [
+    'doubletScoreHistogram',
+  ],
+  dataIntegration: [
+    'dataIntegrationEmbedding',
+    'dataIntegrationFrequency',
+    'dataIntegrationElbow',
+  ],
+  configureEmbedding: [
+    'embeddingPreviewBySample',
+    'embeddingPreviewByCellSets',
+    'embeddingPreviewMitochondrialContent',
+    'embeddingPreviewDoubletScores',
+  ],
+};
 
 const pipelineResponse = async (io, message) => {
   await validateRequest(message, 'PipelineResponse.v1.yaml');
 
   // Fail hard if there was an error.
-  const { response: { error }, input: { experimentId } } = message;
+  const { response: { error }, input: { experimentId, taskName } } = message;
 
   if (error) {
     io.sockets.emit(`ExperimentUpdates-${experimentId}`, message);
@@ -32,7 +66,22 @@ const pipelineResponse = async (io, message) => {
     await validateRequest(output.config, 'ProcessingConfigBodies.v1.yaml');
   }
 
-  const { taskName } = message.input;
+  if (output.plotData) {
+    const plotConfigUploads = plotsInTables[taskName].map((plotUuid) => (
+      plotsTableService.updatePlotData(
+        experimentId,
+        plotUuid,
+        output.plotData,
+      )
+    ));
+
+    logger.log('Uploading plotData for', taskName, 'to DynamoDB');
+
+    // Promise.all stops if it encounters errors.
+    // This handles errors so that error in one upload does not stop others
+    // Resulting promise resolves to an array with the resolve/reject value of p
+    Promise.all(plotConfigUploads.map((p) => p.catch((e) => e)));
+  }
 
   experimentService.updateProcessingConfig(experimentId, [{ name: taskName, body: output.config }]);
 
