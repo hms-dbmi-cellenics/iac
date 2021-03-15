@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: ui-xavier-api63pipeline7
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: ui
+  namespace: ui-xavier-api63pipeline7
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 80d23cd14bb13b0f1c6d2595b3bac62bce27c2db
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: xavier-api63pipeline7
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-7b3d4592aac349527ae455e095c5bb7ddf4bb22c
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: api-xavier-api63pipeline7
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-63-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: api
+  namespace: api-xavier-api63pipeline7
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: xavier-api63pipeline7
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-63-merge-cdd870ea7b084b239860c0f0934ec1db117505d0
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: worker-xavier-api63pipeline7
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:-python
+    filter.fluxcd.io/r: glob:-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: worker
+  namespace: worker-xavier-api63pipeline7
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 25b703562d16735ec5b360b05fd5deddc961aadc
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/:-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/:-r
+    sandboxId: xavier-api63pipeline7
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: pipeline-xavier-api63pipeline7
+---
+apiVersion: v1
+data:
+  dummy: FILLED_IN_BY_CI
+  out:
+    chartRef: 14ea2b28490de8c5d96baf91e2e3d8ecc58d1df5
+    images:
+      remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-14ea2b28490de8c5d96baf91e2e3d8ecc58d1df5-remoter-client
+      remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-14ea2b28490de8c5d96baf91e2e3d8ecc58d1df5-remoter-server
+kind: ConfigMap
+metadata:
+  labels:
+    sandboxId: xavier-api63pipeline7
+  name: image-urls
+  namespace: pipeline-xavier-api63pipeline7
