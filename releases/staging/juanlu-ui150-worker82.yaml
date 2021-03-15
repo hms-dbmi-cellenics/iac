@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: ui-juanlu-ui150-worker82
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-150-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: ui
+  namespace: ui-juanlu-ui150-worker82
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: juanlu-ui150-worker82
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-150-merge-2494341d6d41e8cc8188329f5e216191b28c3ef4
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: api-juanlu-ui150-worker82
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: api
+  namespace: api-juanlu-ui150-worker82
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 32f0abdcfe51f0d9f6e121cd515225313f212978
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: juanlu-ui150-worker82
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-cab3d09ade0e9fac32d1de355c93080793bb1386
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: worker-juanlu-ui150-worker82
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-pull-82-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-82-merge-*-r
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: worker
+  namespace: worker-juanlu-ui150-worker82
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: master
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-82-merge-16a66025a5ec57da5ba0eb90e22ccb04237ffd8c-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-82-merge-16a66025a5ec57da5ba0eb90e22ccb04237ffd8c-r
+    sandboxId: juanlu-ui150-worker82
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: pipeline-juanlu-ui150-worker82
+---
+apiVersion: v1
+data:
+  dummy: FILLED_IN_BY_CI
+  images:
+    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-client
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-server
+kind: ConfigMap
+metadata:
+  labels:
+    sandboxId: juanlu-ui150-worker82
+  name: image-urls
+  namespace: pipeline-juanlu-ui150-worker82
