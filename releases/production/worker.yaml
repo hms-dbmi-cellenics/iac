@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -22,12 +21,12 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: d90ca287ad000e823e4115ad1b527bbd92256791
+    ref: 10e0f4946993299ed1886aeb67ce19943ffa7d6b
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-production
     sandboxId: default
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-10e0f4946993299ed1886aeb67ce19943ffa7d6b-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-d90ca287ad000e823e4115ad1b527bbd92256791-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-10e0f4946993299ed1886aeb67ce19943ffa7d6b-python
