@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: ui-martinfosco-ui151-api64
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-151-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: ui
+  namespace: ui-martinfosco-ui151-api64
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: martinfosco-ui151-api64
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-151-merge-371a97cc5f50e0d26ce164d27558adadb737d120
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: api-martinfosco-ui151-api64
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-64-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: api
+  namespace: api-martinfosco-ui151-api64
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: martinfosco-ui151-api64
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-64-merge-b6f0ad6825b3631bf04e440c25f2bd8b4c7ed5e2
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: worker-martinfosco-ui151-api64
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: worker
+  namespace: worker-martinfosco-ui151-api64
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: bf7c28c3fa9ba5f7d75a315ae1cd2ca4807af1b7
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-bf7c28c3fa9ba5f7d75a315ae1cd2ca4807af1b7-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-bf7c28c3fa9ba5f7d75a315ae1cd2ca4807af1b7-r
+    sandboxId: martinfosco-ui151-api64
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: pipeline-martinfosco-ui151-api64
+---
+apiVersion: v1
+data:
+  dummy: FILLED_IN_BY_CI
+  images:
+    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-client
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-server
+kind: ConfigMap
+metadata:
+  labels:
+    sandboxId: martinfosco-ui151-api64
+  name: image-urls
+  namespace: pipeline-martinfosco-ui151-api64
