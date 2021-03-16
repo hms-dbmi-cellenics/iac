@@ -16,7 +16,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "worker-results-${Environment}"
-      PublicAccessBlockConfiguration: 
+      PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
         IgnorePublicAcls: True
@@ -26,24 +26,35 @@ Resources:
           - Id: DeleteContentAfterTwoDays
             Status: "Enabled"
             ExpirationInDays: 3
-  
+
   # The bucket that contains the count matrix files used for the experiments.
   SourceBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "biomage-source-${Environment}"
-      PublicAccessBlockConfiguration: 
+      PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
-  
+
   # The bucket that contains the original unfiltered versions of the count matrix files used for the experiments.
   OriginalFilesBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "biomage-originals-${Environment}"
-      PublicAccessBlockConfiguration: 
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
+  # The bucket that contains the original unfiltered versions of the count matrix files used for the experiments.
+  UploadedSamples:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-uploaded-samples-${Environment}"
+      PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
         IgnorePublicAcls: True
