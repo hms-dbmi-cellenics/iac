@@ -3,33 +3,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-api60pipelinestatus
-  name: ui-xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
+  name: ui-agi-ui153-api66
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-153-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
   name: ui
-  namespace: ui-xavier-api60pipelinestatus
+  namespace: ui-agi-ui153-api66
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: f75e6304420e079854cc30f718cc71db45195d80
+    ref: master
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: xavier-api60pipelinestatus
+      sandboxId: agi-ui153-api66
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-b7ff26c25daed047c7200f918bb97527f4219cad
+      tag: refs-pull-153-merge-66781df4be11f5353043fb5ca76225f70dc69ed7
     kubernetes:
       env: staging
 ---
@@ -37,19 +37,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-api60pipelinestatus
-  name: api-xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
+  name: api-agi-ui153-api66
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-60-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-66-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
   name: api
-  namespace: api-xavier-api60pipelinestatus
+  namespace: api-agi-ui153-api66
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -59,11 +59,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: xavier-api60pipelinestatus
+      sandboxId: agi-ui153-api66
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-60-merge-5a679ff16c614e19953927ab798dd5ce95c53a6d
+      tag: refs-pull-66-merge-68e5d2a9a2e39172dbf16f893a51c9541bd38992
     kubernetes:
       env: staging
     livenessProbe:
@@ -80,8 +80,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-api60pipelinestatus
-  name: worker-xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
+  name: worker-agi-ui153-api66
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -91,21 +91,21 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
   name: worker
-  namespace: worker-xavier-api60pipelinestatus
+  namespace: worker-agi-ui153-api66
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 57769278cea271fc1d97fa8480f7536af83248a3
+    ref: 0709fcc666cd913f85721a344badcd70b2f638df
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-0709fcc666cd913f85721a344badcd70b2f638df-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-r
-    sandboxId: xavier-api60pipelinestatus
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-0709fcc666cd913f85721a344badcd70b2f638df-r
+    sandboxId: agi-ui153-api66
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -113,18 +113,18 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-api60pipelinestatus
-  name: pipeline-xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
+  name: pipeline-agi-ui153-api66
 ---
 apiVersion: v1
 data:
   dummy: FILLED_IN_BY_CI
   images:
-    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-client
-    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6908d004bc62c439dc8aea26e879c98368ff34ee-remoter-server
+    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-a4a676e326650134dad96357916aeb36c9a0c193-remoter-client
+    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-a4a676e326650134dad96357916aeb36c9a0c193-remoter-server
 kind: ConfigMap
 metadata:
   labels:
-    sandboxId: xavier-api60pipelinestatus
+    sandboxId: agi-ui153-api66
   name: image-urls
-  namespace: pipeline-xavier-api60pipelinestatus
+  namespace: pipeline-agi-ui153-api66

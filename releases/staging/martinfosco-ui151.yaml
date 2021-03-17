@@ -3,19 +3,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui147-api61
-  name: ui-agi-ui147-api61
+    sandboxId: martinfosco-ui151
+  name: ui-martinfosco-ui151
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-147-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-151-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: agi-ui147-api61
+    sandboxId: martinfosco-ui151
   name: ui
-  namespace: ui-agi-ui147-api61
+  namespace: ui-martinfosco-ui151
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -25,11 +25,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: agi-ui147-api61
+      sandboxId: martinfosco-ui151
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-147-merge-e5f02626701186a5ee20b9884a8f91e3201e061b
+      tag: refs-pull-151-merge-28ca211be28312f17410258035f4aefb9d962f16
     kubernetes:
       env: staging
 ---
@@ -37,33 +37,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui147-api61
-  name: api-agi-ui147-api61
+    sandboxId: martinfosco-ui151
+  name: api-martinfosco-ui151
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-61-merge-*
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-ui147-api61
+    sandboxId: martinfosco-ui151
   name: api
-  namespace: api-agi-ui147-api61
+  namespace: api-martinfosco-ui151
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: master
+    ref: 30e91127696e7765b44697f1dc43a49f1dfc23f3
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: agi-ui147-api61
+      sandboxId: martinfosco-ui151
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-61-merge-f5d9090081e0295a8b4f311ddca9ee1213750a8e
+      tag: refs-heads-master-68a25ca7cd0d7be08f3ec70135ffdc32574b564e
     kubernetes:
       env: staging
     livenessProbe:
@@ -80,8 +80,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui147-api61
-  name: worker-agi-ui147-api61
+    sandboxId: martinfosco-ui151
+  name: worker-martinfosco-ui151
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -91,21 +91,21 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-ui147-api61
+    sandboxId: martinfosco-ui151
   name: worker
-  namespace: worker-agi-ui147-api61
+  namespace: worker-martinfosco-ui151
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 57769278cea271fc1d97fa8480f7536af83248a3
+    ref: bf7c28c3fa9ba5f7d75a315ae1cd2ca4807af1b7
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-bf7c28c3fa9ba5f7d75a315ae1cd2ca4807af1b7-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-r
-    sandboxId: agi-ui147-api61
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-bf7c28c3fa9ba5f7d75a315ae1cd2ca4807af1b7-r
+    sandboxId: martinfosco-ui151
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -113,8 +113,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui147-api61
-  name: pipeline-agi-ui147-api61
+    sandboxId: martinfosco-ui151
+  name: pipeline-martinfosco-ui151
 ---
 apiVersion: v1
 data:
@@ -125,6 +125,6 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    sandboxId: agi-ui147-api61
+    sandboxId: martinfosco-ui151
   name: image-urls
-  namespace: pipeline-agi-ui147-api61
+  namespace: pipeline-martinfosco-ui151

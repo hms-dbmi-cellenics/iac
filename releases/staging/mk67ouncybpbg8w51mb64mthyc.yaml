@@ -2,33 +2,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
-  name: ui-juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: ui-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-150-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: ui
-  namespace: ui-juanlu-worker-Seurat-DE
+  namespace: ui-mk67ouncybpbg8w51mb64mthyc
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 04eb50f7c0cad0209ab5538341e9d33ccc33cff3
+    ref: master
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: juanlu-worker-Seurat-DE
+      sandboxId: mk67ouncybpbg8w51mb64mthyc
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-18780d9114c42a8c3afd03f1678137687c291120
+      tag: refs-pull-150-merge-2494341d6d41e8cc8188329f5e216191b28c3ef4
     kubernetes:
       env: staging
 ---
@@ -36,8 +36,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
-  name: api-juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: api-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -46,23 +46,23 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: api
-  namespace: api-juanlu-worker-Seurat-DE
+  namespace: api-mk67ouncybpbg8w51mb64mthyc
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 04eb50f7c0cad0209ab5538341e9d33ccc33cff3
+    ref: 16ce02369b319b3b635dfe66bbcc5b798a43c438
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: juanlu-worker-Seurat-DE
+      sandboxId: mk67ouncybpbg8w51mb64mthyc
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-ef66495ae8d5c772a5a47f4c7625b089737f4aa6
+      tag: refs-heads-master-cab3d09ade0e9fac32d1de355c93080793bb1386
     kubernetes:
       env: staging
     livenessProbe:
@@ -79,20 +79,20 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
-  name: worker-juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: worker-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:-python
-    filter.fluxcd.io/r: glob:-r
+    filter.fluxcd.io/python: glob:refs-pull-82-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-82-merge-*-r
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: worker
-  namespace: worker-juanlu-worker-Seurat-DE
+  namespace: worker-mk67ouncybpbg8w51mb64mthyc
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
@@ -101,10 +101,10 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/:-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-82-merge-16a66025a5ec57da5ba0eb90e22ccb04237ffd8c-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/:-r
-    sandboxId: juanlu-worker-Seurat-DE
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-82-merge-16a66025a5ec57da5ba0eb90e22ccb04237ffd8c-r
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -112,8 +112,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
-  name: pipeline-juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: pipeline-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: v1
 data:
@@ -124,6 +124,6 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    sandboxId: juanlu-worker-Seurat-DE
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: image-urls
-  namespace: pipeline-juanlu-worker-Seurat-DE
+  namespace: pipeline-mk67ouncybpbg8w51mb64mthyc

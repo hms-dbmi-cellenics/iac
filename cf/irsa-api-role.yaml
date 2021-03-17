@@ -120,6 +120,7 @@ Resources:
                 Action:
                   - "states:DescribeExecution"
                   - "states:StopExecution"
+                  - "states:GetExecutionHistory"
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*:*"
         - PolicyName: !Sub "can-pass-state-machine-executionrole-${Environment}"

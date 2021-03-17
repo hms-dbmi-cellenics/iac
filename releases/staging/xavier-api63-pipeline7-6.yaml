@@ -1,31 +1,30 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: ui-demo
+    sandboxId: xavier-api63-pipeline7-6
+  name: ui-xavier-api63-pipeline7-6
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: demo
+    sandboxId: xavier-api63-pipeline7-6
   name: ui
-  namespace: ui-demo
+  namespace: ui-xavier-api63-pipeline7-6
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: master
+    ref: a7015dd7695814510fe571061effaa5083fda697
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: demo
+      sandboxId: xavier-api63-pipeline7-6
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
@@ -37,19 +36,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: api-demo
+    sandboxId: xavier-api63-pipeline7-6
+  name: api-xavier-api63-pipeline7-6
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-63-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: demo
+    sandboxId: xavier-api63-pipeline7-6
   name: api
-  namespace: api-demo
+  namespace: api-xavier-api63-pipeline7-6
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -59,11 +58,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: demo
+      sandboxId: xavier-api63-pipeline7-6
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-68a25ca7cd0d7be08f3ec70135ffdc32574b564e
+      tag: refs-pull-63-merge-3ea8eac91230557457330dbcc767409178851bea
     kubernetes:
       env: staging
     livenessProbe:
@@ -80,8 +79,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: worker-demo
+    sandboxId: xavier-api63-pipeline7-6
+  name: worker-xavier-api63-pipeline7-6
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -89,24 +88,23 @@ metadata:
   annotations:
     filter.fluxcd.io/python: glob:refs-heads-master-*-python
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: demo
+    sandboxId: xavier-api63-pipeline7-6
   name: worker
-  namespace: worker-demo
+  namespace: worker-xavier-api63-pipeline7-6
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: master
+    ref: 443d4c6dff0e497fdbf21d85c433405e81391f5c
   releaseName: worker
   values:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-0709fcc666cd913f85721a344badcd70b2f638df-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-0709fcc666cd913f85721a344badcd70b2f638df-r
-    sandboxId: demo
-    ignoreTimeout: true
+    sandboxId: xavier-api63-pipeline7-6
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -114,17 +112,30 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: pipeline-demo
+    sandboxId: xavier-api63-pipeline7-6
+  name: pipeline-xavier-api63-pipeline7-6
 ---
-apiVersion: v1
-data:
-  dummy: FILLED_IN_BY_CI
-  images:
-    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6874985af84a2d94316dd30cee19b6847a449992-remoter-server
-kind: ConfigMap
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
 metadata:
+  annotations:
+    filter.fluxcd.io/remoter-client: glob:refs-pull-7-merge-*-remoter-client
+    filter.fluxcd.io/remoter-server: glob:refs-pull-7-merge-*-remoter-server
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: demo
-  name: image-urls
-  namespace: pipeline-demo
+    sandboxId: xavier-api63-pipeline7-6
+  name: pipeline-xavier-api63-pipeline7-6
+  namespace: pipeline-xavier-api63-pipeline7-6
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: master
+  releaseName: pipeline
+  values:
+    remoter-client:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-4e82d4a30bdd2747b1664ff32b21a46f2d98f1bf-remoter-client
+    remoter-server:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-4e82d4a30bdd2747b1664ff32b21a46f2d98f1bf-remoter-server
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
