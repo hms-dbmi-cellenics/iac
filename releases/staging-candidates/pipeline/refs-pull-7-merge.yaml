@@ -24,8 +24,8 @@ spec:
     ref: STAGING_CHART_REF
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-ec1f1bf8941643f78cb2f2a538b01f9da3e4c87e-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-4e82d4a30bdd2747b1664ff32b21a46f2d98f1bf-remoter-server
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-ec1f1bf8941643f78cb2f2a538b01f9da3e4c87e-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-4e82d4a30bdd2747b1664ff32b21a46f2d98f1bf-remoter-client
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
