@@ -135,7 +135,7 @@ spec:
   releaseName: pipeline
   values:
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-29378aec19b1f808c9ae9867edfe4677cc736d80-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-2eaf16ff99e3f816d7696b2481cf34aacf2d1dac-remoter-client
     remoter-server:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-29378aec19b1f808c9ae9867edfe4677cc736d80-remoter-server
     serviceAccount:
