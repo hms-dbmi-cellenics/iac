@@ -63,7 +63,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-63-merge-8c15283725fd845d3c50422fb9172709ebaa72e5
+      tag: refs-pull-63-merge-e29c8d2648ca0f4d3c376eb92bc3b4fdd1ba1ef1
     kubernetes:
       env: staging
     livenessProbe:
@@ -137,6 +137,6 @@ spec:
     remoter-client:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-c84cc45d6ab16fffbc463ffc1df1763b8b741f99-remoter-client
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-925900f70211feef3c8d9f60a8c915c383ae6e0d-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-c84cc45d6ab16fffbc463ffc1df1763b8b741f99-remoter-server
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
