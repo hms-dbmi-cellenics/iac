@@ -8,7 +8,7 @@ metadata:
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
-  name: pipeline-STAGING_SANDBOX_ID
+  name: pipeline
   namespace: pipeline-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
@@ -24,8 +24,8 @@ spec:
     ref: STAGING_CHART_REF
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-4e82d4a30bdd2747b1664ff32b21a46f2d98f1bf-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-733b7e70f6c5a59eff759619c4f1a77fb7d95c89-remoter-server
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-4e82d4a30bdd2747b1664ff32b21a46f2d98f1bf-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-733b7e70f6c5a59eff759619c4f1a77fb7d95c89-remoter-client
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
