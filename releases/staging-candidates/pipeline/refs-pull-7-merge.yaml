@@ -23,14 +23,11 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: FILLED_IN_BY_CI
+    ref: STAGING_CHART_REF
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-f565441bcf0d3bb57cc38099a0e70afbe32a4d44-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-0dffa6dfb5f420a1d3b379bcc8ab8cb15dc570ac-remoter-client
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-f565441bcf0d3bb57cc38099a0e70afbe32a4d44-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-0dffa6dfb5f420a1d3b379bcc8ab8cb15dc570ac-remoter-server
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
-data:
-  out:
-    chartRef: STAGING_CHART_REF
