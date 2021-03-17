@@ -8,26 +8,24 @@ metadata:
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
-  name: FILLED_IN_BY_CI
+  name: pipeline-STAGING_SANDBOX_ID
   namespace: pipeline-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/r: FILLED_IN_BY_CI
-    filter.fluxcd.io/python: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: glob:refs-pull-7-merge-*-remoter-server
     filter.fluxcd.io/remoter-client: glob:refs-pull-7-merge-*-remoter-client
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
-  releaseName: FILLED_IN_BY_CI
+  releaseName: pipeline
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
     ref: STAGING_CHART_REF
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-0dffa6dfb5f420a1d3b379bcc8ab8cb15dc570ac-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-7a25a0a5e8be3b56d641c401d7c0d4288e6af10b-remoter-client
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-0dffa6dfb5f420a1d3b379bcc8ab8cb15dc570ac-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-7a25a0a5e8be3b56d641c401d7c0d4288e6af10b-remoter-server
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
