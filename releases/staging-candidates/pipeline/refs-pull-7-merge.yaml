@@ -15,7 +15,7 @@ metadata:
 data:
   dummy: FILLED_IN_BY_CI
   out:
-    chartRef: 86d8fd1cae06c4af794a576ced28c46c4c868525
+    chartRef: 72577b3f4c4482b0a5fd3fe57c00994940944aab
     images:
-      remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-86d8fd1cae06c4af794a576ced28c46c4c868525-remoter-server
-      remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-86d8fd1cae06c4af794a576ced28c46c4c868525-remoter-client
+      remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-72577b3f4c4482b0a5fd3fe57c00994940944aab-remoter-server
+      remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-7-merge-72577b3f4c4482b0a5fd3fe57c00994940944aab-remoter-client
