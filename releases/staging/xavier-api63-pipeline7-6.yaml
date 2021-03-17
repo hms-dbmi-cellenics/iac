@@ -130,7 +130,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: master
+    ref: debug-jira-650
   releaseName: pipeline
   values:
     remoter-client:
