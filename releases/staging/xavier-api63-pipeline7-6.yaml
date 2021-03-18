@@ -63,7 +63,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-63-merge-8edfb1dd46133ce09dc6cf779e1c11ca900c9b24
+      tag: refs-pull-63-merge-7ccbbe09d6ca60c3fd3b982c39bd56dd9636adb8
     kubernetes:
       env: staging
     livenessProbe:
