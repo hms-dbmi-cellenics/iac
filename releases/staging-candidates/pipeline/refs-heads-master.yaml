@@ -5,15 +5,27 @@ metadata:
   labels:
     sandboxId: STAGING_SANDBOX_ID
 ---
-apiVersion: v1
-kind: ConfigMap
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
 metadata:
-  name: image-urls
+  name: pipeline
   namespace: pipeline-STAGING_SANDBOX_ID
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/remoter-server: glob:refs-heads-master-*-remoter-server
+    filter.fluxcd.io/remoter-client: glob:refs-heads-master-*-remoter-client
   labels:
     sandboxId: STAGING_SANDBOX_ID
-data:
-  dummy: FILLED_IN_BY_CI
-  images:
-    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-a4a676e326650134dad96357916aeb36c9a0c193-remoter-server
-    remoter-client: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-a4a676e326650134dad96357916aeb36c9a0c193-remoter-client
+spec:
+  releaseName: pipeline
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: ebe7a737d28df209dc63b9345943861ca744a725
+  values:
+    remoter-server:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-ebe7a737d28df209dc63b9345943861ca744a725-remoter-server
+    remoter-client:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-ebe7a737d28df209dc63b9345943861ca744a725-remoter-client
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
