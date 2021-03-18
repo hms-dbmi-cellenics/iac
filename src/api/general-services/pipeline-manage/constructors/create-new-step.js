@@ -1,24 +1,39 @@
+const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const config = require('../../../../config');
+
 
 const createNewStep = (context, step, args) => {
   const {
-    processingConfig, clusterInfo, experimentId, pipelineImages, accountId,
+    processingConfig, clusterInfo, experimentId, pipelineArtifacts, accountId,
   } = context;
 
   const { taskName } = args;
-
+  const remoterServer = (
+    config.clusterEnv === 'development'
+  ) ? 'host.docker.internal'
+    : `remoter-server-${experimentId}.${config.pipelineNamespace}.svc.cluster.local`;
 
   const task = JSON.stringify({
     experimentId,
     taskName,
     config: processingConfig[taskName] || {},
+    server: remoterServer,
   });
+
+  const stepHash = crypto
+    .createHash('sha1')
+    .update(`${experimentId}-${uuidv4()}`)
+    .digest('hex');
 
   if (config.clusterEnv === 'development') {
     return {
       ...step,
       Type: 'Task',
       Resource: 'arn:aws:states:::lambda:invoke',
+      // TODO: fix this, add some of old output
+      // see https://docs.aws.amazon.com/step-functions/latest/dg/input-output-resultpath.html
+      ResultPath: null,
       Parameters: {
         FunctionName: `arn:aws:lambda:eu-west-1:${accountId}:function:local-container-launcher`,
         Payload: {
@@ -44,30 +59,53 @@ const createNewStep = (context, step, args) => {
     Type: 'Task',
     Comment: 'Attempts to create a Kubernetes Job for the pipeline server. Will swallow a 409 (already exists) error.',
     Resource: 'arn:aws:states:::eks:runJob.sync',
+    // TODO: fix this, add some of old output
+    // see https://docs.aws.amazon.com/step-functions/latest/dg/input-output-resultpath.html
+    ResultPath: null,
     Parameters: {
       ClusterName: clusterInfo.name,
       CertificateAuthority: clusterInfo.certAuthority,
       Endpoint: clusterInfo.endpoint,
-      Namespace: config.workerNamespace,
+      Namespace: config.pipelineNamespace,
+      LogOptions: {
+        RetrieveLogs: true,
+      },
       Job: {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
-          name: `remoter-client-${experimentId}`,
+          name: `remoter-client-${stepHash}`,
+          labels: {
+            sandboxId: config.sandboxId,
+            experimentId,
+            taskName,
+            type: 'pipeline',
+          },
         },
         spec: {
           template: {
             metadata: {
               name: `remoter-client-${experimentId}`,
+              labels: {
+                sandboxId: config.sandboxId,
+                type: 'pipeline',
+              },
             },
             spec: {
               containers: [
                 {
                   name: 'remoter-client',
-                  image: pipelineImages['remoter-client'],
+                  image: pipelineArtifacts['remoter-client'],
                   args: [
                     task,
                   ],
+                  // TODO: this is for multi-sample support for API.
+                  // env: [
+                  //   {
+                  //     name: 'SAMPLE_ID',
+                  //     'value.$': '$',
+                  //   },
+                  // ],
                 },
               ],
               restartPolicy: 'Never',

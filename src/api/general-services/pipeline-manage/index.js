@@ -14,7 +14,7 @@ const constructPipelineStep = require('./constructors/construct-pipeline-step');
 
 const experimentService = new ExperimentService();
 
-const getPipelineImages = async () => {
+const getPipelineArtifacts = async () => {
   const response = await fetch(
     config.pipelineInstanceConfigUrl,
     {
@@ -25,7 +25,11 @@ const getPipelineImages = async () => {
   const txt = await response.text();
   const manifest = YAML.parseAllDocuments(txt);
 
-  return jq.json(manifest, '..|objects|.images//empty');
+  return {
+    chartRef: jq.json(manifest, '..|objects| select(.metadata != null) | select( .metadata.name | contains("pipeline")) | .spec.chart.ref//empty'),
+    'remoter-server': jq.json(manifest, '..|objects|.["remoter-server"].image//empty'),
+    'remoter-client': jq.json(manifest, '..|objects|.["remoter-client"].image//empty'),
+  };
 };
 
 const getClusterInfo = async () => {
@@ -81,6 +85,8 @@ const createNewStateMachine = async (context, stateMachine) => {
       throw e;
     }
 
+    logger.log('State machine already exists, updating...');
+
     stateMachineArn = `arn:aws:states:${config.awsRegion}:${accountId}:stateMachine:${params.name}`;
 
     await stepFunctions.updateStateMachine(
@@ -109,37 +115,9 @@ const executeStateMachine = async (stateMachineArn) => {
   return executionArn;
 };
 
-const createPipeline = async (experimentId, processingConfigUpdates) => {
-  const accountId = await config.awsAccountIdPromise();
-  const roleArn = `arn:aws:iam::${accountId}:role/state-machine-role-${config.clusterEnv}`;
-
-  logger.log(`Fetching processing settings for ${experimentId}`);
-  const processingRes = await experimentService.getProcessingConfig(experimentId);
-  const { processingConfig } = processingRes;
-
-  if (processingConfigUpdates) {
-    processingConfigUpdates.forEach(({ name, body }) => {
-      if (!processingConfig[name]) {
-        processingConfig[name] = body;
-
-        return;
-      }
-
-      _.merge(processingConfig[name], body);
-    });
-  }
-
-  const context = {
-    experimentId,
-    accountId,
-    roleArn,
-    pipelineImages: await getPipelineImages(),
-    clusterInfo: await getClusterInfo(),
-    processingConfig,
-  };
-
+const buildStateMachineDefinition = (context) => {
   const skeleton = {
-    Comment: 'N/A',
+    Comment: `Pipeline for clusterEnv '${config.clusterEnv}'`,
     StartAt: 'DeleteCompletedPipelineWorker',
     States: {
       DeleteCompletedPipelineWorker: {
@@ -227,15 +205,44 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
   logger.log('Constructing pipeline steps...');
   const stateMachine = _.cloneDeepWith(skeleton, (o) => {
     if (_.isObject(o) && o.XStepType) {
-      return {
-        ...constructPipelineStep(context, o),
-        XStepType: undefined,
-        XConstructorArgs: undefined,
-        XNextOnCatch: undefined,
-      };
+      return _.omit(constructPipelineStep(context, o), ['XStepType', 'XConstructorArgs', 'XNextOnCatch']);
     }
     return undefined;
   });
+
+  return stateMachine;
+};
+
+const createPipeline = async (experimentId, processingConfigUpdates) => {
+  const accountId = await config.awsAccountIdPromise();
+  const roleArn = `arn:aws:iam::${accountId}:role/state-machine-role-${config.clusterEnv}`;
+
+  logger.log(`Fetching processing settings for ${experimentId}`);
+  const processingRes = await experimentService.getProcessingConfig(experimentId);
+  const { processingConfig } = processingRes;
+
+  if (processingConfigUpdates) {
+    processingConfigUpdates.forEach(({ name, body }) => {
+      if (!processingConfig[name]) {
+        processingConfig[name] = body;
+
+        return;
+      }
+
+      _.merge(processingConfig[name], body);
+    });
+  }
+
+  const context = {
+    experimentId,
+    accountId,
+    roleArn,
+    pipelineArtifacts: await getPipelineArtifacts(),
+    clusterInfo: await getClusterInfo(),
+    processingConfig,
+  };
+
+  const stateMachine = buildStateMachineDefinition(context);
 
   logger.log('Skeleton constructed, now creating state machine from skeleton...');
   const stateMachineArn = await createNewStateMachine(context, stateMachine);
@@ -249,3 +256,4 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
 
 
 module.exports = createPipeline;
+module.exports.buildStateMachineDefinition = buildStateMachineDefinition;

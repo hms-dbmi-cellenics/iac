@@ -2,7 +2,7 @@ const config = require('../../../../config');
 
 const createNewJobIfNotExist = (context, step) => {
   const {
-    clusterInfo, experimentId, pipelineImages, accountId,
+    clusterInfo, experimentId, pipelineArtifacts, accountId,
   } = context;
 
 
@@ -33,34 +33,43 @@ const createNewJobIfNotExist = (context, step) => {
   return {
     ...step,
     Type: 'Task',
-    Comment: 'Attempts to create a Kubernetes Job for the pipeline server. Will swallow a 409 (already exists) error.',
+    Comment: 'Attempts to create a Kubernetes Job+Service for the pipeline server. Will swallow a 409 (already exists) error.',
     Resource: 'arn:aws:states:::eks:call',
     Parameters: {
       ClusterName: clusterInfo.name,
       CertificateAuthority: clusterInfo.certAuthority,
       Endpoint: clusterInfo.endpoint,
       Method: 'POST',
-      Path: `/apis/batch/v1/namespaces/${config.workerNamespace}/jobs`,
+      Path: `/apis/helm.fluxcd.io/v1/namespaces/${config.pipelineNamespace}/helmreleases`,
       RequestBody: {
-        apiVersion: 'batch/v1',
-        kind: 'Job',
+        apiVersion: 'helm.fluxcd.io/v1',
+        kind: 'HelmRelease',
         metadata: {
           name: `remoter-server-${experimentId}`,
+          namespace: config.pipelineNamespace,
+          annotations: {
+            'fluxcd.io/automated': 'true',
+          },
+          labels: {
+            sandboxId: config.sandboxId,
+            type: 'pipeline',
+          },
         },
         spec: {
-          template: {
-            metadata: {
-              name: `remoter-server-${experimentId}`,
-            },
-            spec: {
-              containers: [
-                {
-                  name: 'remoter-server',
-                  image: pipelineImages['remoter-server'],
-                },
-              ],
-              restartPolicy: 'Never',
-            },
+          releaseName: `remoter-server-${experimentId}`,
+          chart: {
+            git: 'git@github.com:biomage-ltd/pipeline',
+            path: 'remoter-server/chart',
+            ref: pipelineArtifacts.chartRef,
+          },
+          values: {
+            experimentId,
+            image: pipelineArtifacts['remoter-server'],
+            namespace: config.pipelineNamespace,
+            sandboxId: config.sandboxId,
+            awsAccountId: accountId,
+            clusterEnv: config.clusterEnv,
+            awsRegion: config.awsRegion,
           },
         },
       },
