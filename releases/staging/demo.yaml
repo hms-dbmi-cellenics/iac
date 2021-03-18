@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-e2ad922695b120d0c8d4f89ab7bf80f2fa7dd6fb
+      tag: refs-heads-master-94c206974c882d363990e49f14f8cf7d43b9fa4e
     kubernetes:
       env: staging
 ---
@@ -63,7 +63,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-2b6dbe65cc38669150f720dde35caead05d58a77
+      tag: refs-heads-master-0a3270fc8c9f86f1580a6b194e9b647bd190cc1d
     kubernetes:
       env: staging
     livenessProbe:
