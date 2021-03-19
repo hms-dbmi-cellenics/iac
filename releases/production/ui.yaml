@@ -30,7 +30,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-1b9f158a70e54eda55503e9b93e6ace166fb52d8
+      tag: refs-heads-master-b531d371bd79c64439e76769dfb49cccd4d14fc6
     service:
       additionalHosts:
         - scp.biomage.net
