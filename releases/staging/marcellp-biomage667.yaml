@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-biomage667
+  name: ui-marcellp-biomage667
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-158-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: marcellp-biomage667
+  name: ui
+  namespace: ui-marcellp-biomage667
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: marcellp-biomage667
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-158-merge-18c6ff81cb8bb4c529e3cf916f9392e8bb511a4c
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-biomage667
+  name: api-marcellp-biomage667
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-biomage667
+  name: api
+  namespace: api-marcellp-biomage667
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 8ebb74a5c25d1dfdaacc9b6b044b78b7356fcfe7
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: marcellp-biomage667
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-0a3270fc8c9f86f1580a6b194e9b647bd190cc1d
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-biomage667
+  name: worker-marcellp-biomage667
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-biomage667
+  name: worker
+  namespace: worker-marcellp-biomage667
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 9985ae28463678cad185c288ff26153c0d2a712d
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9985ae28463678cad185c288ff26153c0d2a712d-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9985ae28463678cad185c288ff26153c0d2a712d-r
+    sandboxId: marcellp-biomage667
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-biomage667
+  name: pipeline-marcellp-biomage667
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/remoter-client: glob:refs-heads-master-*-remoter-client
+    filter.fluxcd.io/remoter-server: glob:refs-heads-master-*-remoter-server
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-biomage667
+  name: pipeline
+  namespace: pipeline-marcellp-biomage667
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: c9e6924075c2133169fcb9bdbaa872c9f7543f2b
+  releaseName: pipeline
+  values:
+    remoter-client:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-c9e6924075c2133169fcb9bdbaa872c9f7543f2b-remoter-client
+    remoter-server:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-c9e6924075c2133169fcb9bdbaa872c9f7543f2b-remoter-server
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
