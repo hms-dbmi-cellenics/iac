@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -24,7 +25,7 @@ spec:
     ref: 70b84a9d412a212a6f1f6586331d16033d17b8fc
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-70b84a9d412a212a6f1f6586331d16033d17b8fc-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-00e8a36d1fae3ff33a298042366fd6c72ac082ad-remoter-server
     remoter-client:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-70b84a9d412a212a6f1f6586331d16033d17b8fc-remoter-client
     serviceAccount:
