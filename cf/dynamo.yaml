@@ -11,42 +11,50 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
-Resources: 
-  ExperimentTable: 
+Resources:
+  ExperimentTable:
     Type: AWS::DynamoDB::Table
-    Properties: 
+    Properties:
       TableName: !Sub "experiments-${Environment}"
-      AttributeDefinitions: 
-        - 
-          AttributeName: "experimentId"
+      AttributeDefinitions:
+        - AttributeName: "experimentId"
           AttributeType: "S"
-      KeySchema: 
-        - 
-          AttributeName: "experimentId"
+      KeySchema:
+        - AttributeName: "experimentId"
           KeyType: "HASH"
-      ProvisionedThroughput: 
+      ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
       BillingMode: "PROVISIONED"
-  PlotsTablesTable: 
+  PlotsTablesTable:
     Type: AWS::DynamoDB::Table
-    Properties: 
+    Properties:
       TableName: !Sub "plots-tables-${Environment}"
       AttributeDefinitions:
-        - 
-          AttributeName: "plotUuid"
+        - AttributeName: "plotUuid"
           AttributeType: "S"
-        - 
-          AttributeName: "experimentId"
+        - AttributeName: "experimentId"
           AttributeType: "S"
       KeySchema:
-        - 
-          AttributeName: "plotUuid"
+        - AttributeName: "plotUuid"
           KeyType: "HASH"
-        - 
-          AttributeName: "experimentId"
+        - AttributeName: "experimentId"
           KeyType: "RANGE"
-      ProvisionedThroughput: 
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      BillingMode: "PROVISIONED"
+  SamplesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "samples-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: "experimentId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "experimentId"
+          KeyType: "HASH"
+      ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
       BillingMode: "PROVISIONED"
