@@ -25,7 +25,7 @@ spec:
     ref: 40f77f20a7000556f6c445b87d1b9f853e8c75f3
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-40f77f20a7000556f6c445b87d1b9f853e8c75f3-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-23b1f3f4e58e6bc14d8149c341f1983889dae1c2-remoter-server
     remoter-client:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-23b1f3f4e58e6bc14d8149c341f1983889dae1c2-remoter-client
     serviceAccount:
