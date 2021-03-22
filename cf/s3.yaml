@@ -21,11 +21,6 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteContentAfterFifteenDays
-            Status: "Enabled"
-            ExpirationInDays: 15
 
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
