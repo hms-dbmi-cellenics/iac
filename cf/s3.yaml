@@ -12,6 +12,16 @@ Parameters:
     Description: The environment for which the buckets need to be created.
 
 Resources:
+  PlotsTablesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "plots-tables-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
     Properties:
