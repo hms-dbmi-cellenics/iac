@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up Cognito resources for Biomage SCP [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the buckets need to be created.
+
+Resources:
+  FileUploadIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: "file-upload-identity-pool"
+      AllowUnauthenticatedIdentities: false
+
+  FileUploadIdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref FileUploadIdentityPool
+      Roles:
+        "authenticated": !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-role-${Environment}"

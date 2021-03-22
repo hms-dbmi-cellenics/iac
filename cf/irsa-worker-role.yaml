@@ -14,32 +14,31 @@ Parameters:
   OIDCProvider:
     Type: String
     Description: The OIDC provider
-  
+
 Resources:
   WorkerRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Sub "worker-role-${Environment}"
       AssumeRolePolicyDocument:
-        Fn::Sub:
-          |-
-            {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": {
-                    "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
-                  },
-                  "Action": "sts:AssumeRoleWithWebIdentity",
-                  "Condition": {
-                    "StringLike": {
-                      "${OIDCProvider}:sub": "system:serviceaccount:worker-*:deployment-runner"
-                    }
+        Fn::Sub: |-
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
+                },
+                "Action": "sts:AssumeRoleWithWebIdentity",
+                "Condition": {
+                  "StringLike": {
+                    "${OIDCProvider}:sub": "system:serviceaccount:worker-*:deployment-runner"
                   }
                 }
-              ]
-            }
+              }
+            ]
+          }
       Path: /
       Policies:
         - PolicyName: !Sub "can-list-objects-in-source-buckets-${Environment}"
@@ -47,26 +46,28 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 's3:ListBucket'
+                Action: "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}"
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 's3:GetObject'
+                Action: "s3:GetObject"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}/*"
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 's3:PutObject'
+                Action: "s3:PutObject"
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
         - PolicyName: !Sub "can-read-from-worker-queue-${Environment}"
@@ -75,16 +76,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - 'sqs:ReceiveMessage'
-                  - 'sqs:DeleteMessage'
-                  - 'sqs:GetQueueUrl'
-                Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"      
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueUrl"
+                Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 'sns:Publish'
+                Action: "sns:Publish"
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
         - PolicyName: !Sub "can-manage-tables-${Environment}"
           PolicyDocument:

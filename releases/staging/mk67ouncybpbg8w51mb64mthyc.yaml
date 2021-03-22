@@ -1,21 +1,20 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: data-management-mockup
-  name: ui-data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: ui-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-145-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-150-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: ui
-  namespace: ui-data-management-mockup
+  namespace: ui-mk67ouncybpbg8w51mb64mthyc
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -25,11 +24,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: data-management-mockup
+      sandboxId: mk67ouncybpbg8w51mb64mthyc
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-145-merge-fe79ba6e67e81926a30c01bab49d73122395d75b
+      tag: refs-pull-150-merge-2494341d6d41e8cc8188329f5e216191b28c3ef4
     kubernetes:
       env: staging
 ---
@@ -37,8 +36,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: data-management-mockup
-  name: api-data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: api-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -47,23 +46,23 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: api
-  namespace: api-data-management-mockup
+  namespace: api-mk67ouncybpbg8w51mb64mthyc
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 27434b8b70bd600e5cdc40982549646e8f9ea725
+    ref: 16ce02369b319b3b635dfe66bbcc5b798a43c438
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: data-management-mockup
+      sandboxId: mk67ouncybpbg8w51mb64mthyc
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-aba577533bc7e03814dc3b338ecf53e8dd51513e
+      tag: refs-heads-master-cab3d09ade0e9fac32d1de355c93080793bb1386
     kubernetes:
       env: staging
     livenessProbe:
@@ -80,32 +79,32 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: data-management-mockup
-  name: worker-data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: worker-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-heads-master-*-python
-    filter.fluxcd.io/r: glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/python: glob:refs-pull-82-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-82-merge-*-r
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: worker
-  namespace: worker-data-management-mockup
+  namespace: worker-mk67ouncybpbg8w51mb64mthyc
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 57769278cea271fc1d97fa8480f7536af83248a3
+    ref: master
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-82-merge-16a66025a5ec57da5ba0eb90e22ccb04237ffd8c-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-57769278cea271fc1d97fa8480f7536af83248a3-r
-    sandboxId: data-management-mockup
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-82-merge-16a66025a5ec57da5ba0eb90e22ccb04237ffd8c-r
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -113,8 +112,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: data-management-mockup
-  name: pipeline-data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
+  name: pipeline-mk67ouncybpbg8w51mb64mthyc
 ---
 apiVersion: v1
 data:
@@ -125,6 +124,6 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    sandboxId: data-management-mockup
+    sandboxId: mk67ouncybpbg8w51mb64mthyc
   name: image-urls
-  namespace: pipeline-data-management-mockup
+  namespace: pipeline-mk67ouncybpbg8w51mb64mthyc
