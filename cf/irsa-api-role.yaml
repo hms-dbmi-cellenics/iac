@@ -75,6 +75,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}"
         - PolicyName: !Sub "can-download-objects-from-result-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
