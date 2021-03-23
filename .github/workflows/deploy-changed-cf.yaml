@@ -62,7 +62,7 @@ jobs:
 
       - id: lint
         name: Lint template
-        uses: scottbrenner/cfn-lint-action@master
+        uses: scottbrenner/cfn-lint-action@1.6.1
         with:
           args: ${{ matrix.template }}
 
