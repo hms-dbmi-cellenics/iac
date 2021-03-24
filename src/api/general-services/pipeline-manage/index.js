@@ -254,7 +254,7 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
   logger.log(`State machine with ARN ${stateMachineArn} created, launching it...`);
 
   const execInput = {
-    samples: samples.ids.map((sampleUuid) => ({ sampleUuid })),
+    samples: samples.ids.map((sampleUuid, index) => ({ sampleUuid, index })),
   };
 
   const executionArn = await executeStateMachine(stateMachineArn, execInput);
