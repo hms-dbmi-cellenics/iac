@@ -56,7 +56,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
               "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
               "Payload": {
                 "image": "biomage-remoter-client",
-                "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+                "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
                 "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"cellSizeDistribution\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
                 "sampleUuid.$": "$.sampleUuid",
                 "detached": false
@@ -81,7 +81,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
               "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
               "Payload": {
                 "image": "biomage-remoter-client",
-                "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+                "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
                 "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"mitochondrialContent\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
                 "sampleUuid.$": "$.sampleUuid",
                 "detached": false
@@ -106,7 +106,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
               "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
               "Payload": {
                 "image": "biomage-remoter-client",
-                "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+                "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
                 "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"classifier\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
                 "sampleUuid.$": "$.sampleUuid",
                 "detached": false
@@ -131,7 +131,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
               "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
               "Payload": {
                 "image": "biomage-remoter-client",
-                "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+                "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
                 "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"numGenesVsNumUmis\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
                 "sampleUuid.$": "$.sampleUuid",
                 "detached": false
@@ -156,7 +156,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
               "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
               "Payload": {
                 "image": "biomage-remoter-client",
-                "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+                "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
                 "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"doubletScores\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
                 "sampleUuid.$": "$.sampleUuid",
                 "detached": false
@@ -188,7 +188,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
         "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
         "Payload": {
           "image": "biomage-remoter-client",
-          "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+          "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
           "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"dataIntegration\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
           "sampleUuid.$": "$.sampleUuid",
           "detached": false
@@ -213,7 +213,7 @@ exports[`non-tests to document the State Machines - local development 1`] = `
         "FunctionName": "arn:aws:lambda:eu-west-1:mock-account-id:function:local-container-launcher",
         "Payload": {
           "image": "biomage-remoter-client",
-          "name.$": "States.Format('pipeline-remoter-client-{}', $.sampleUuid)",
+          "name.$": "States.Format('pipeline-remoter-client-{}', $$.Map.Item.Index)",
           "task": "{\\"experimentId\\":\\"mock-experiment-id\\",\\"taskName\\":\\"configureEmbedding\\",\\"config\\":{},\\"server\\":\\"host.docker.internal\\"}",
           "sampleUuid.$": "$.sampleUuid",
           "detached": false

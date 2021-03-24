@@ -33,7 +33,7 @@ const createNewStep = (context, step, args) => {
         FunctionName: `arn:aws:lambda:eu-west-1:${accountId}:function:local-container-launcher`,
         Payload: {
           image: 'biomage-remoter-client',
-          'name.$': 'States.Format(\'pipeline-remoter-client-{}\', $.sampleUuid)',
+          'name.$': 'States.Format(\'pipeline-remoter-client-{}\', $$.Map.Item.Index)',
           task,
           'sampleUuid.$': '$.sampleUuid',
           detached: false,
