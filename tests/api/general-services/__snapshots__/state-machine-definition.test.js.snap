@@ -758,7 +758,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                     "env": [
                       {
                         "name": "SAMPLE_ID",
-                        "value.$": "all"
+                        "value": "all"
                       }
                     ]
                   }
@@ -833,7 +833,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                     "env": [
                       {
                         "name": "SAMPLE_ID",
-                        "value.$": "all"
+                        "value": "all"
                       }
                     ]
                   }

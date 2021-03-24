@@ -115,7 +115,7 @@ Array [
                         "env": Array [
                           Object {
                             "name": "SAMPLE_ID",
-                            "value.$": "all",
+                            "value": "all",
                           },
                         ],
                         "image": "MOCK_IMAGE_PATH",
@@ -190,7 +190,7 @@ Array [
                         "env": Array [
                           Object {
                             "name": "SAMPLE_ID",
-                            "value.$": "all",
+                            "value": "all",
                           },
                         ],
                         "image": "MOCK_IMAGE_PATH",

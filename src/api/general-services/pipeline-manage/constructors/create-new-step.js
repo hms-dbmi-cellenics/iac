@@ -101,7 +101,8 @@ const createNewStep = (context, step, args) => {
                   env: [
                     {
                       name: 'SAMPLE_ID',
-                      'value.$': perSample ? '$.sampleUuid' : 'all',
+                      ...perSample && { 'value.$': '$.sampleUuid' },
+                      ...!perSample && { value: 'all' },
                     },
                   ],
                 },
