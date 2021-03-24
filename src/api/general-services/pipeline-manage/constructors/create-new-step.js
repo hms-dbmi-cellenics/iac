@@ -70,7 +70,7 @@ const createNewStep = (context, step, args) => {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
-          'name.$': `States.Format('remoter-client-${stepHash}-{}', $.sampleUuid)`,
+          'name.$': `States.Format('remoter-client-${stepHash}-{}', $$.Map.Item.Index)`,
           labels: {
             sandboxId: config.sandboxId,
             experimentId,
@@ -81,7 +81,7 @@ const createNewStep = (context, step, args) => {
         spec: {
           template: {
             metadata: {
-              'name.$': `States.Format('remoter-client-${stepHash}-{}', $.sampleUuid)`,
+              'name.$': `States.Format('remoter-client-${stepHash}-{}', $$.Map.Item.Index)`,
               labels: {
                 sandboxId: config.sandboxId,
                 type: 'pipeline',
