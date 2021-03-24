@@ -1,7 +1,5 @@
 const uuid = require('uuid');
-const crypto = require('crypto');
 const config = require('../../../../config');
-
 
 const createNewStep = (context, step, args) => {
   const {

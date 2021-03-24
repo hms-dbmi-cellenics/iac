@@ -6,6 +6,7 @@ const createPipeline = require('../../../src/api/general-services/pipeline-manag
 
 jest.mock('uuid', () => ({
   v4: () => 'mock-uuid',
+  parse: (uuid) => Buffer.from(uuid),
 }));
 
 describe('test for pipeline services', () => {
