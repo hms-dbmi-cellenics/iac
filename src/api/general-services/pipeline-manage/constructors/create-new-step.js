@@ -1,4 +1,4 @@
-const uuid = require('uuid');
+const crypto = require('crypto');
 const config = require('../../../../config');
 
 const createNewStep = (context, step, args) => {
@@ -19,17 +19,7 @@ const createNewStep = (context, step, args) => {
     server: remoterServer,
   });
 
-  // UUIDs are 16 bytes long, base64 produces four characters per
-  // three-byte chunk. Since 16 mod 3 = 1, the data needs to be
-  // padded out with `==` to align it to 3-bit chunks. `=` is not
-  // a valid k8s resource character so we can safely remove two
-  // from the end.
-  const stepHash = Buffer.from(
-    uuid.parse(uuid.v4()),
-  ).toString('base64')
-    .slice(0, -2)
-    .replace('+', '-')
-    .replace('/', '.');
+  const stepHash = crypto.randomBytes(5).toString('hex');
 
   if (config.clusterEnv === 'development') {
     return {

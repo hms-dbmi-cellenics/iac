@@ -350,7 +350,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "apiVersion": "batch/v1",
                 "kind": "Job",
                 "metadata": {
-                  "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                  "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                   "labels": {
                     "experimentId": "mock-experiment-id",
                     "taskName": "cellSizeDistribution",
@@ -360,7 +360,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "spec": {
                   "template": {
                     "metadata": {
-                      "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                      "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                       "labels": {
                         "type": "pipeline"
                       }
@@ -425,7 +425,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "apiVersion": "batch/v1",
                 "kind": "Job",
                 "metadata": {
-                  "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                  "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                   "labels": {
                     "experimentId": "mock-experiment-id",
                     "taskName": "mitochondrialContent",
@@ -435,7 +435,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "spec": {
                   "template": {
                     "metadata": {
-                      "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                      "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                       "labels": {
                         "type": "pipeline"
                       }
@@ -500,7 +500,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "apiVersion": "batch/v1",
                 "kind": "Job",
                 "metadata": {
-                  "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                  "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                   "labels": {
                     "experimentId": "mock-experiment-id",
                     "taskName": "classifier",
@@ -510,7 +510,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "spec": {
                   "template": {
                     "metadata": {
-                      "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                      "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                       "labels": {
                         "type": "pipeline"
                       }
@@ -575,7 +575,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "apiVersion": "batch/v1",
                 "kind": "Job",
                 "metadata": {
-                  "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                  "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                   "labels": {
                     "experimentId": "mock-experiment-id",
                     "taskName": "numGenesVsNumUmis",
@@ -585,7 +585,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "spec": {
                   "template": {
                     "metadata": {
-                      "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                      "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                       "labels": {
                         "type": "pipeline"
                       }
@@ -650,7 +650,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "apiVersion": "batch/v1",
                 "kind": "Job",
                 "metadata": {
-                  "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                  "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                   "labels": {
                     "experimentId": "mock-experiment-id",
                     "taskName": "doubletScores",
@@ -660,7 +660,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
                 "spec": {
                   "template": {
                     "metadata": {
-                      "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                      "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                       "labels": {
                         "type": "pipeline"
                       }
@@ -732,7 +732,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
           "apiVersion": "batch/v1",
           "kind": "Job",
           "metadata": {
-            "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+            "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
             "labels": {
               "experimentId": "mock-experiment-id",
               "taskName": "dataIntegration",
@@ -742,7 +742,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
           "spec": {
             "template": {
               "metadata": {
-                "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                 "labels": {
                   "type": "pipeline"
                 }
@@ -807,7 +807,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
           "apiVersion": "batch/v1",
           "kind": "Job",
           "metadata": {
-            "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+            "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
             "labels": {
               "experimentId": "mock-experiment-id",
               "taskName": "configureEmbedding",
@@ -817,7 +817,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
           "spec": {
             "template": {
               "metadata": {
-                "name.$": "States.Format('remoter-client-bW9jay11dW-{}', $.sampleUuid)",
+                "name.$": "States.Format('remoter-client-6173646667-{}', $.sampleUuid)",
                 "labels": {
                   "type": "pipeline"
                 }

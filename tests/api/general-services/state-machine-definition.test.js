@@ -1,9 +1,9 @@
 const config = require('../../../src/config');
 const createPipeline = require('../../../src/api/general-services/pipeline-manage');
 
-jest.mock('uuid', () => ({
-  v4: () => 'mock-uuid',
-  parse: (uuid) => Buffer.from(uuid),
+jest.mock('crypto', () => ({
+  ...jest.requireActual('crypto'),
+  randomBytes: () => Buffer.from('asdfg'),
 }));
 
 const snapshotPlainJsonSerializer = {
