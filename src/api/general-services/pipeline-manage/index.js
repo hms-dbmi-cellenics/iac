@@ -141,6 +141,7 @@ const buildStateMachineDefinition = (context) => {
             CellSizeDistributionFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
+                perSample: true,
                 taskName: 'cellSizeDistribution',
               },
               Next: 'MitochondrialContentFilter',
@@ -148,6 +149,7 @@ const buildStateMachineDefinition = (context) => {
             MitochondrialContentFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
+                perSample: true,
                 taskName: 'mitochondrialContent',
               },
               Next: 'ClassifierFilter',
@@ -155,6 +157,7 @@ const buildStateMachineDefinition = (context) => {
             ClassifierFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
+                perSample: true,
                 taskName: 'classifier',
               },
               Next: 'NumGenesVsNumUmisFilter',
@@ -162,6 +165,7 @@ const buildStateMachineDefinition = (context) => {
             NumGenesVsNumUmisFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
+                perSample: true,
                 taskName: 'numGenesVsNumUmis',
               },
               Next: 'DoubletScoresFilter',
@@ -169,6 +173,7 @@ const buildStateMachineDefinition = (context) => {
             DoubletScoresFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
+                perSample: true,
                 taskName: 'doubletScores',
               },
               XNextOnCatch: 'EndOfMap',
@@ -184,6 +189,7 @@ const buildStateMachineDefinition = (context) => {
       DataIntegration: {
         XStepType: 'create-new-step',
         XConstructorArgs: {
+          perSample: false,
           taskName: 'dataIntegration',
         },
         Next: 'ConfigureEmbedding',
@@ -191,6 +197,7 @@ const buildStateMachineDefinition = (context) => {
       ConfigureEmbedding: {
         XStepType: 'create-new-step',
         XConstructorArgs: {
+          perSample: false,
           taskName: 'configureEmbedding',
         },
         XNextOnCatch: 'EndOfPipeline',

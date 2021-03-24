@@ -96,7 +96,7 @@ Array [
                   "taskName": "configureEmbedding",
                   "type": "pipeline",
                 },
-                "name.$": "States.Format('remoter-client-6173646667-{}', $.index)",
+                "name": "remoter-client-6173646667",
               },
               "spec": Object {
                 "template": Object {
@@ -104,7 +104,7 @@ Array [
                     "labels": Object {
                       "type": "pipeline",
                     },
-                    "name.$": "States.Format('remoter-client-6173646667-{}', $.index)",
+                    "name": "remoter-client-6173646667",
                   },
                   "spec": Object {
                     "containers": Array [
@@ -115,7 +115,7 @@ Array [
                         "env": Array [
                           Object {
                             "name": "SAMPLE_ID",
-                            "value.$": "$.sampleUuid",
+                            "value.$": "all",
                           },
                         ],
                         "image": "MOCK_IMAGE_PATH",
@@ -171,7 +171,7 @@ Array [
                   "taskName": "dataIntegration",
                   "type": "pipeline",
                 },
-                "name.$": "States.Format('remoter-client-6173646667-{}', $.index)",
+                "name": "remoter-client-6173646667",
               },
               "spec": Object {
                 "template": Object {
@@ -179,7 +179,7 @@ Array [
                     "labels": Object {
                       "type": "pipeline",
                     },
-                    "name.$": "States.Format('remoter-client-6173646667-{}', $.index)",
+                    "name": "remoter-client-6173646667",
                   },
                   "spec": Object {
                     "containers": Array [
@@ -190,7 +190,7 @@ Array [
                         "env": Array [
                           Object {
                             "name": "SAMPLE_ID",
-                            "value.$": "$.sampleUuid",
+                            "value.$": "all",
                           },
                         ],
                         "image": "MOCK_IMAGE_PATH",

@@ -6,7 +6,7 @@ const createNewStep = (context, step, args) => {
     processingConfig, clusterInfo, experimentId, pipelineArtifacts, accountId,
   } = context;
 
-  const { taskName } = args;
+  const { taskName, perSample } = args;
   const remoterServer = (
     config.clusterEnv === 'development'
   ) ? 'host.docker.internal'
@@ -33,9 +33,10 @@ const createNewStep = (context, step, args) => {
         FunctionName: `arn:aws:lambda:eu-west-1:${accountId}:function:local-container-launcher`,
         Payload: {
           image: 'biomage-remoter-client',
-          'name.$': 'States.Format(\'pipeline-remoter-client-{}\', $.index)',
+          name: 'pipeline-remoter-client',
           task,
-          'sampleUuid.$': '$.sampleUuid',
+          ...perSample && { 'sampleUuid.$': '$.sampleUuid' },
+          ...!perSample && { sampleUuid: 'all' },
           detached: false,
         },
       },
@@ -70,7 +71,8 @@ const createNewStep = (context, step, args) => {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
-          'name.$': `States.Format('remoter-client-${stepHash}-{}', $.index)`,
+          ...perSample && { 'name.$': `States.Format('remoter-client-${stepHash}-{}', $.index)` },
+          ...!perSample && { name: `remoter-client-${stepHash}` },
           labels: {
             sandboxId: config.sandboxId,
             experimentId,
@@ -81,7 +83,8 @@ const createNewStep = (context, step, args) => {
         spec: {
           template: {
             metadata: {
-              'name.$': `States.Format('remoter-client-${stepHash}-{}', $.index)`,
+              ...perSample && { 'name.$': `States.Format('remoter-client-${stepHash}-{}', $.index)` },
+              ...!perSample && { name: `remoter-client-${stepHash}` },
               labels: {
                 sandboxId: config.sandboxId,
                 type: 'pipeline',
@@ -98,7 +101,7 @@ const createNewStep = (context, step, args) => {
                   env: [
                     {
                       name: 'SAMPLE_ID',
-                      'value.$': '$.sampleUuid',
+                      'value.$': perSample ? '$.sampleUuid' : 'all',
                     },
                   ],
                 },
