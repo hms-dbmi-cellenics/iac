@@ -26,7 +26,10 @@ const createNewStep = (context, step, args) => {
   // from the end.
   const stepHash = Buffer.from(
     uuid.parse(uuid.v4()),
-  ).toString('base64').slice(0, -2);
+  ).toString('base64')
+    .slice(0, -2)
+    .replace('+', '-')
+    .replace('/', '_');
 
   if (config.clusterEnv === 'development') {
     return {
