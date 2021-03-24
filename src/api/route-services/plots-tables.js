@@ -32,7 +32,6 @@ class PlotsTablesService {
   async updatePlotData(experimentId, plotUuid, plotDataKey) {
     const marshalledData = convertToDynamoDbRecord({
       ':plotDataKey': plotDataKey,
-      ':plotType': plotUuid,
       ':config': {},
     });
 
@@ -41,7 +40,7 @@ class PlotsTablesService {
       Key: {
         experimentId: { S: experimentId }, plotUuid: { S: plotUuid },
       },
-      UpdateExpression: 'SET plotDataKey = :plotDataKey, plotType = if_not_exists(plotType, :plotType), config = if_not_exists(config, :config)',
+      UpdateExpression: 'SET plotDataKey = :plotDataKey, config = if_not_exists(config, :config)',
       ExpressionAttributeValues: marshalledData,
       ReturnValues: 'UPDATED_NEW',
     };

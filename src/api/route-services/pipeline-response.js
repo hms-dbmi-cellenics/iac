@@ -9,38 +9,6 @@ const pipelineStatus = require('../general-services/pipeline-status');
 const experimentService = new ExperimentService();
 const plotsTableService = new PlotsTablesService();
 
-const plotsInTables = {
-  cellSizeDistribution: [
-    'cellSizeDistributionHistogram',
-    'cellSizeDistributionKneePlot',
-  ],
-  mitochondrialContent: [
-    'mitochondrialFractionHistogram',
-    'mitochondrialFractionLogHistogram',
-  ],
-  classifier: [
-    'classifierEmptyDropsPlot',
-  ],
-  numGenesVsNumUmis: [
-    'featuresVsUMIsHistogram',
-    'featuresVsUMIsScatterplot',
-  ],
-  doubletScores: [
-    'doubletScoreHistogram',
-  ],
-  dataIntegration: [
-    'dataIntegrationEmbedding',
-    'dataIntegrationFrequency',
-    'dataIntegrationElbow',
-  ],
-  configureEmbedding: [
-    'embeddingPreviewBySample',
-    'embeddingPreviewByCellSets',
-    'embeddingPreviewMitochondrialContent',
-    'embeddingPreviewDoubletScore',
-  ],
-};
-
 const pipelineResponse = async (io, message) => {
   await validateRequest(message, 'PipelineResponse.v1.yaml');
 
@@ -69,11 +37,11 @@ const pipelineResponse = async (io, message) => {
   }
 
   if (output.plotDataKeys) {
-    const plotConfigUploads = plotsInTables[taskName].map((plotUuid) => (
+    const plotConfigUploads = Object.entries(output.plotDataKeys).map(([plotUuid, objKey]) => (
       plotsTableService.updatePlotData(
         experimentId,
         plotUuid,
-        output.plotDataKeys[plotUuid],
+        objKey,
       )
     ));
 
