@@ -29,7 +29,7 @@ const createNewStep = (context, step, args) => {
   ).toString('base64')
     .slice(0, -2)
     .replace('+', '-')
-    .replace('/', '_');
+    .replace('/', '.');
 
   if (config.clusterEnv === 'development') {
     return {
