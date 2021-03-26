@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -24,8 +25,8 @@ spec:
     ref: 0e9061bc7ee90d87551d50c1acdc6103962b306d
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-0e9061bc7ee90d87551d50c1acdc6103962b306d-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-2ae02b20b8701fe956b9de37b31b4484009f7440-remoter-server
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-0e9061bc7ee90d87551d50c1acdc6103962b306d-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-2ae02b20b8701fe956b9de37b31b4484009f7440-remoter-client
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-production
