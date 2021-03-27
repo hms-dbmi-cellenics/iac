@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: ui-rbbtb4equafqp88h43eyfr7o8h
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: ui
+  namespace: ui-rbbtb4equafqp88h43eyfr7o8h
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 877ae5aaeac9f53c52ac5a71ea3a58ad40baf383
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: rbbtb4equafqp88h43eyfr7o8h
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-24d9f2f76cec04f720078eaa9cf6f4a1e39df996
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: api-rbbtb4equafqp88h43eyfr7o8h
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-79-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: api
+  namespace: api-rbbtb4equafqp88h43eyfr7o8h
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: rbbtb4equafqp88h43eyfr7o8h
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-79-merge-2e6994a0ffc9f41ea670d86fff6d28b41d6c52c0
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: worker-rbbtb4equafqp88h43eyfr7o8h
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: worker
+  namespace: worker-rbbtb4equafqp88h43eyfr7o8h
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 0653506198fe48511a651645430dce84f6d615c4
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-0653506198fe48511a651645430dce84f6d615c4-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-0653506198fe48511a651645430dce84f6d615c4-r
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: pipeline-rbbtb4equafqp88h43eyfr7o8h
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/remoter-client: glob:refs-pull-21-merge-*-remoter-client
+    filter.fluxcd.io/remoter-server: glob:refs-pull-21-merge-*-remoter-server
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: rbbtb4equafqp88h43eyfr7o8h
+  name: pipeline
+  namespace: pipeline-rbbtb4equafqp88h43eyfr7o8h
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: master
+  releaseName: pipeline
+  values:
+    remoter-client:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-21-merge-d8c4ced98da7aedd3e20d71fcb2d147fe3e30590-remoter-client
+    remoter-server:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-21-merge-d8c4ced98da7aedd3e20d71fcb2d147fe3e30590-remoter-server
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
