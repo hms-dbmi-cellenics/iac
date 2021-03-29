@@ -21,11 +21,11 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: e50652225449bc59f5feb2ca72d84a7dc1068a61
+    ref: 3cbef2f38be140bb25666e1477613cdb9bb849a0
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-e50652225449bc59f5feb2ca72d84a7dc1068a61-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-3cbef2f38be140bb25666e1477613cdb9bb849a0-remoter-server
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-e50652225449bc59f5feb2ca72d84a7dc1068a61-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-3cbef2f38be140bb25666e1477613cdb9bb849a0-remoter-client
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
