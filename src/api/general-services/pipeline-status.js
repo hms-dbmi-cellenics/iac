@@ -7,8 +7,7 @@ const logger = require('../../utils/logging');
 
 const privateSteps = ['DeleteCompletedPipelineWorker', 'LaunchNewPipelineWorker'];
 
-const getStepsFromExecutionHistory = (history) => {
-  const { events } = history;
+const getStepsFromExecutionHistory = (events) => {
   class Branch {
     constructor(event, makeRoot) {
       this.visited = [event.id];
@@ -117,16 +116,29 @@ const getPipelineStatus = async (experimentId) => {
     const stepFunctions = new AWS.StepFunctions({
       region: config.awsRegion,
     });
+
     execution = await stepFunctions.describeExecution({
       executionArn,
     }).promise();
-    const history = await stepFunctions.getExecutionHistory({
-      executionArn,
-      includeExecutionData: false,
-    }).promise();
 
-    completedSteps = getStepsFromExecutionHistory(history);
-    logger.log(`ExecutionHistory for ARN ${executionArn}: ${history.events.length} events, ${completedSteps.length} completed steps`);
+
+    /* eslint-disable no-await-in-loop */
+    let events = [];
+    let nextToken;
+    do {
+      const history = await stepFunctions.getExecutionHistory({
+        executionArn,
+        includeExecutionData: false,
+        nextToken,
+      }).promise();
+
+      events = [...events, ...history.events];
+      nextToken = history.nextToken;
+    } while (nextToken);
+    /* eslint-enable no-await-in-loop */
+
+    completedSteps = getStepsFromExecutionHistory(events);
+    logger.log(`ExecutionHistory for ARN ${executionArn}: ${events.length} events, ${completedSteps.length} completed steps`);
   }
 
   const response = {
