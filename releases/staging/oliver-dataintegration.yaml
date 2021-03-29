@@ -137,6 +137,6 @@ spec:
     remoter-client:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-22-merge-ce4f7c3f2a189776ab8bd41b2eb4eadc4c734219-remoter-client
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-22-merge-ca1cc578c51264d4942b0bd82e290f1a8dcaf4bb-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-22-merge-ce4f7c3f2a189776ab8bd41b2eb4eadc4c734219-remoter-server
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
