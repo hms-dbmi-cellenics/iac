@@ -16,20 +16,28 @@ class PlotsTablesService {
       lastUpdated: new Date().toDateString(),
     };
 
-    const plotConfig = convertToDynamoDbRecord(tableData);
+    const marshalledData = convertToDynamoDbRecord({
+      ':config': data.config,
+      ':lastUpdated': new Date().toDateString(),
+    });
 
     const params = {
       TableName: this.tableName,
-      Item: plotConfig,
+      Key: {
+        experimentId: { S: experimentId }, plotUuid: { S: plotUuid },
+      },
+      UpdateExpression: 'SET config = :config, lastUpdated = :lastUpdated',
+      ExpressionAttributeValues: marshalledData,
+      ReturnValues: 'UPDATED_NEW',
     };
 
     const dynamodb = createDynamoDbInstance();
-    await dynamodb.putItem(params).promise();
+    await dynamodb.updateItem(params).promise();
 
     return tableData;
   }
 
-  async updatePlotData(experimentId, plotUuid, plotDataKey) {
+  async updatePlotDataKey(experimentId, plotUuid, plotDataKey) {
     const marshalledData = convertToDynamoDbRecord({
       ':plotDataKey': plotDataKey,
       ':config': {},
@@ -102,7 +110,6 @@ class PlotsTablesService {
 
     if (plotDataKey) {
       const { plotData } = await this.readFromS3(plotDataKey);
-
       configToReturn.plotData = plotData || {};
     }
 
