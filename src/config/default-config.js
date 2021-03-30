@@ -40,7 +40,10 @@ if (!envFound) {
 const awsRegion = process.env.AWS_DEFAULT_REGION || 'eu-west-1';
 
 async function getAwsAccountId() {
-  const sts = new AWS.STS({
+  // eslint-disable-next-line global-require
+  const AWSPatched = require('../utils/requireAWS');
+
+  const sts = new AWSPatched.STS({
     region: awsRegion,
   });
 
