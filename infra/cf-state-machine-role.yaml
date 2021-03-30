@@ -25,6 +25,25 @@ Resources:
                 - !Sub states.${AWS::Region}.amazonaws.com
             Action: "sts:AssumeRole"
       Path: "/"
+      Policies:
+        - PolicyName: !Sub "can-trace-xray-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                  - "dynamodb:DescribeTable"
+                  - "xray:GetSamplingRules*"
+                  - "xray:GetSamplingTargets"
+                  - "dynamodb:Scan"
+                  - "dynamodb:BatchWrite*"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:Update*"
+                  - "dynamodb:PutItem"
+                Resource:
+                  - '*'
 
 Outputs:
   Arn:
