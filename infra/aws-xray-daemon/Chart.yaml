@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Deploys the AWS X-Ray Daemon
+name: aws-xray-daemon
+version: 1.0.0
