@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-8e5fdd23e40c7de6e2a8b918597a29b32af0026d
+      tag: refs-heads-master-17299cacc70e5cc6037df91e9773b38538990115
     kubernetes:
       env: staging
 ---
