@@ -40,10 +40,7 @@ if (!envFound) {
 const awsRegion = process.env.AWS_DEFAULT_REGION || 'eu-west-1';
 
 async function getAwsAccountId() {
-  // eslint-disable-next-line global-require
-  const AWSPatched = require('../utils/requireAWS');
-
-  const sts = new AWSPatched.STS({
+  const sts = new AWS.STS({
     region: awsRegion,
   });
 
@@ -58,7 +55,7 @@ const config = {
   workerNamespace: `worker-${process.env.SANDBOX_ID || 'default'}`,
   pipelineNamespace: `pipeline-${process.env.SANDBOX_ID || 'default'}`,
   awsRegion,
-  awsAccountIdPromise: getAwsAccountId,
+  awsAccountIdPromise: getAwsAccountId(),
   githubToken: process.env.READONLY_API_TOKEN_GITHUB,
   api: {
     prefix: '/',
@@ -81,7 +78,7 @@ if (config.clusterEnv === 'staging') {
 if (config.clusterEnv === 'development') {
   logger.log('We are running on a development cluster, patching AWS to use InfraMock endpoint...');
   config.cachingEnabled = false;
-  config.awsAccountIdPromise = async () => '000000000000';
+  config.awsAccountIdPromise = (async () => '000000000000')();
   AWS.config.update({
     endpoint: 'http://localhost:4566',
     sslEnabled: false,
