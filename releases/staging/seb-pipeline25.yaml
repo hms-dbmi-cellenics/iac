@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: seb-pipeline25
+  name: ui-seb-pipeline25
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: seb-pipeline25
+  name: ui
+  namespace: ui-seb-pipeline25
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: ad0b18f84a49d363133c5b243da40bdc392235c1
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: seb-pipeline25
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-a1a1bc9f1ac7ed59d36a4a849f9462b729317140
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: seb-pipeline25
+  name: api-seb-pipeline25
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: seb-pipeline25
+  name: api
+  namespace: api-seb-pipeline25
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: ad0b18f84a49d363133c5b243da40bdc392235c1
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: seb-pipeline25
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-95be8889b2f5fe6cfba59e36876c6c06e13c9a70
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: seb-pipeline25
+  name: worker-seb-pipeline25
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: seb-pipeline25
+  name: worker
+  namespace: worker-seb-pipeline25
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: df5b798f1d116f410ac0509516563ccf08c48066
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-df5b798f1d116f410ac0509516563ccf08c48066-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-df5b798f1d116f410ac0509516563ccf08c48066-r
+    sandboxId: seb-pipeline25
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: seb-pipeline25
+  name: pipeline-seb-pipeline25
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/remoter-client: glob:refs-pull-25-merge-*-remoter-client
+    filter.fluxcd.io/remoter-server: glob:refs-pull-25-merge-*-remoter-server
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: seb-pipeline25
+  name: pipeline
+  namespace: pipeline-seb-pipeline25
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: master
+  releaseName: pipeline
+  values:
+    remoter-client:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-25-merge-4e9fa47a7abce0300f30d0c6bb7e4d4d1d1480b9-remoter-client
+    remoter-server:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-25-merge-4e9fa47a7abce0300f30d0c6bb7e4d4d1d1480b9-remoter-server
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
