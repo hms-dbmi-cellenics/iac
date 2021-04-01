@@ -30,5 +30,5 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-189-merge-b7ca63de610773d26c0e39e5fa60ba7e49ee1759
+      tag: refs-pull-189-merge-f4e1f48adedc26c0490ffcafcf8f606846dcef21
   # filled in by CI. do not modify.
