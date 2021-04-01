@@ -3,42 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: geneerror-ui176-worker92
-  name: ui-geneerror-ui176-worker92
----
-apiVersion: helm.fluxcd.io/v1
-kind: HelmRelease
-metadata:
-  annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-176-merge-*
-    fluxcd.io/automated: 'true'
-  labels:
-    sandboxId: geneerror-ui176-worker92
-  name: ui
-  namespace: ui-geneerror-ui176-worker92
-spec:
-  chart:
-    git: git@github.com:biomage-ltd/iac
-    path: charts/nodejs
-    ref: master
-  releaseName: ui
-  values:
-    biomageCi:
-      repo: biomage-ltd/ui
-      sandboxId: geneerror-ui176-worker92
-    image:
-      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      repository: ui
-      tag: refs-pull-176-merge-8ce8336de7e444b800d7f56aba27632ce63aa60c
-    kubernetes:
-      env: staging
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    sandboxId: geneerror-ui176-worker92
-  name: api-geneerror-ui176-worker92
+    sandboxId: xray-enable
+  name: ui-xray-enable
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -47,23 +13,57 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: geneerror-ui176-worker92
-  name: api
-  namespace: api-geneerror-ui176-worker92
+    sandboxId: xray-enable
+  name: ui
+  namespace: ui-xray-enable
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: f37e0f3feb6c2e6c542d31edb103b562d29f39b5
+    ref: 03940d7c5c174f15d48c28a22df20efeb97c8efb
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: xray-enable
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-a1a1bc9f1ac7ed59d36a4a849f9462b729317140
+    kubernetes:
+      env: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: xray-enable
+  name: api-xray-enable
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-81-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: xray-enable
+  name: api
+  namespace: api-xray-enable
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: master
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: geneerror-ui176-worker92
+      sandboxId: xray-enable
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-dba725eeaf5d72887e4f5edd9ed83551df0d9efc
+      tag: refs-pull-81-merge-9584dd4ec8a3003cd2bee6fa94707d69b04c069f
     kubernetes:
       env: staging
     livenessProbe:
@@ -80,20 +80,20 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: geneerror-ui176-worker92
-  name: worker-geneerror-ui176-worker92
+    sandboxId: xray-enable
+  name: worker-xray-enable
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-pull-92-merge-*-python
-    filter.fluxcd.io/r: glob:refs-pull-92-merge-*-r
+    filter.fluxcd.io/python: glob:refs-pull-93-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-93-merge-*-r
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: geneerror-ui176-worker92
+    sandboxId: xray-enable
   name: worker
-  namespace: worker-geneerror-ui176-worker92
+  namespace: worker-xray-enable
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
@@ -102,10 +102,10 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-92-merge-a7e40c0ba4416631c5a00305cdf2c9920e870234-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-93-merge-0b46632c595f8e2c869cfa6b3c281978b1aff166-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-92-merge-904ed8122d97fb0ce5da3b892336d380347e97ef-r
-    sandboxId: geneerror-ui176-worker92
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-93-merge-00e5f20479902bee951c16184fa561bf695f203b-r
+    sandboxId: xray-enable
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -113,8 +113,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: geneerror-ui176-worker92
-  name: pipeline-geneerror-ui176-worker92
+    sandboxId: xray-enable
+  name: pipeline-xray-enable
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -124,19 +124,19 @@ metadata:
     filter.fluxcd.io/remoter-server: glob:refs-heads-master-*-remoter-server
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: geneerror-ui176-worker92
+    sandboxId: xray-enable
   name: pipeline
-  namespace: pipeline-geneerror-ui176-worker92
+  namespace: pipeline-xray-enable
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: f1b628b86e2edceab3209161bcadf216daf2c39c
+    ref: 6e4be6889ef92d4737d772941087429725dfeede
   releaseName: pipeline
   values:
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-f1b628b86e2edceab3209161bcadf216daf2c39c-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6e4be6889ef92d4737d772941087429725dfeede-remoter-client
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-f1b628b86e2edceab3209161bcadf216daf2c39c-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6e4be6889ef92d4737d772941087429725dfeede-remoter-server
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
