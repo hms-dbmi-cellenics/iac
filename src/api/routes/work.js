@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+const AWSXRay = require('aws-xray-sdk');
 const WorkResponseService = require('../route-services/work-response');
 const logger = require('../../utils/logging');
 const parseSNSMessage = require('../../utils/parse-sns-message');
@@ -11,13 +12,13 @@ module.exports = {
       result = await parseSNSMessage(req);
     } catch (e) {
       logger.error('Parsing initial SNS message failed:', e);
+      AWSXRay.getSegment().addError(e);
 
       res.status(200).send('nok');
       return;
     }
 
     const { io, parsedMessage } = result;
-
     let responseService = null;
 
     try {
@@ -26,6 +27,7 @@ module.exports = {
       logger.error(
         'Error initializing work response service: ', e,
       );
+      AWSXRay.getSegment().addError(e);
 
       res.status(200).send('nok');
       return;
@@ -38,6 +40,8 @@ module.exports = {
         'Error processing the work response message: ', e,
       );
 
+      AWSXRay.getSegment().addError(e);
+
       const { workResponse } = responseService;
       const { socketId, uuid } = workResponse.request;
 
@@ -46,6 +50,7 @@ module.exports = {
         response: {
           cacheable: false,
           error: e.message,
+          trace: AWSXRay.getSegment().trace_id,
         },
       });
 

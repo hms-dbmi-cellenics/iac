@@ -17,6 +17,7 @@ module.exports = async (app) => {
     origin: config.corsOriginUrl,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'],
     credentials: true,
+    exposedHeaders: ['X-Amzn-Trace-Id'],
   }));
 
   // The custom limits are required so that SNS topics can submit work results
@@ -28,7 +29,32 @@ module.exports = async (app) => {
   // Enable AWS XRay
   // eslint-disable-next-line global-require
   AWSXRay.captureHTTPsGlobal(require('http'));
-  app.use(AWSXRay.express.openSegment(`API-${config.clusterEnv}-express`));
+
+  AWSXRay.middleware.setSamplingRules({
+    rules: [
+      {
+        description: 'Health check',
+        http_method: '*',
+        host: '*',
+        url_path: '/v1/health',
+        fixed_target: 0,
+        rate: 0.0,
+      },
+    ],
+    default: {
+      fixed_target: 10,
+      rate: 0.05,
+    },
+    version: 2,
+  });
+
+  app.use(AWSXRay.express.openSegment(`API-${config.clusterEnv}-${config.sandboxId}`));
+
+  app.use((req, res, next) => {
+    res.set('X-Amzn-Trace-Id', `Root=${AWSXRay.getSegment().trace_id}`);
+    AWSXRay.getSegment().addMetadata('podName', config.podName);
+    next();
+  });
 
   app.use(OpenApiValidator.middleware({
     apiSpec: path.join(__dirname, '..', 'specs', 'api.yaml'),
