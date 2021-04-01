@@ -63,6 +63,11 @@ spec:
         - name: AWS_XRAY_DAEMON_ADDRESS
           value: xray-service.default:2000
 
+        - name: K8S_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
