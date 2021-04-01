@@ -102,7 +102,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-93-merge-b09a6d233f0e9d3a6b34019021b44bfecd2cce8c-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-93-merge-5aae995802fb66c6211a3dcddab28ed2cee5ce72-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-93-merge-00e5f20479902bee951c16184fa561bf695f203b-r
     sandboxId: xray-enable
