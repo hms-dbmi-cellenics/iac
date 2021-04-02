@@ -16,6 +16,13 @@ iam:
             Action:
               - "s3:*"
             Resource: '*'
+    - metadata:
+        name: aws-node
+        namespace: kube-system
+        labels:
+          aws-usage: cluster-ops
+      attachPolicyARNs:
+      - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
 nodeGroups:
   - name: prod-ready-nodegroup-1
