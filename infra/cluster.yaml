@@ -18,7 +18,7 @@ iam:
             Resource: '*'
 
 nodeGroups:
-  - name: prod-ready-nodegroup
+  - name: prod-ready-nodegroup-1
     instanceType: r5.4xlarge
     desiredCapacity: 1
     minSize: 1
