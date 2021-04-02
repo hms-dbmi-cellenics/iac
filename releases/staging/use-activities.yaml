@@ -132,7 +132,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: master
+    ref: refs/pull/28/merge
   releaseName: pipeline
   values:
     qc-runner:
