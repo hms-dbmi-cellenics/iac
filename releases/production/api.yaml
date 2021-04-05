@@ -36,7 +36,7 @@ spec:
       enabled: true
       minReplicas: 1
       maxReplicas: 10
-      targetCPUUtilizationPercentage: 60
+      targetCPUUtilizationPercentage: 80
     kubernetes:
       env: production
     biomageCi:
@@ -45,7 +45,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-5a052cb3ef6d2794b2063762794b32f34fa9b858
+      tag: refs-heads-master-944b91db2cbf6551f1a6f0deaeabda23a6434bd6
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-production
 
