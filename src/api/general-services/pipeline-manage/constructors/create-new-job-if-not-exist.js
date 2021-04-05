@@ -2,7 +2,7 @@ const config = require('../../../../config');
 
 const createNewJobIfNotExist = (context, step) => {
   const {
-    clusterInfo, experimentId, pipelineArtifacts, accountId,
+    clusterInfo, experimentId, pipelineArtifacts, accountId, activityArn,
   } = context;
 
 
@@ -17,6 +17,7 @@ const createNewJobIfNotExist = (context, step) => {
           image: 'biomage-pipeline-runner',
           name: 'pipeline-runner',
           detached: true,
+          activityArn,
         },
       },
       Catch: [
@@ -33,7 +34,7 @@ const createNewJobIfNotExist = (context, step) => {
   return {
     ...step,
     Type: 'Task',
-    Comment: 'Attempts to create a Kubernetes Job+Service for the pipeline server. Will swallow a 409 (already exists) error.',
+    Comment: 'Attempts to create a Kubernetes Job+Service for the pipeline runner. Will swallow a 409 (already exists) error.',
     Resource: 'arn:aws:states:::eks:call',
     Parameters: {
       ClusterName: clusterInfo.name,
@@ -45,7 +46,7 @@ const createNewJobIfNotExist = (context, step) => {
         apiVersion: 'helm.fluxcd.io/v1',
         kind: 'HelmRelease',
         metadata: {
-          name: `remoter-server-${experimentId}`,
+          name: `pipeline-${experimentId}`,
           namespace: config.pipelineNamespace,
           annotations: {
             'fluxcd.io/automated': 'true',
@@ -56,20 +57,21 @@ const createNewJobIfNotExist = (context, step) => {
           },
         },
         spec: {
-          releaseName: `remoter-server-${experimentId}`,
+          releaseName: `pipeline-${experimentId}`,
           chart: {
             git: 'git@github.com:biomage-ltd/pipeline',
-            path: 'remoter-server/chart',
+            path: 'qc-runner/chart',
             ref: pipelineArtifacts.chartRef,
           },
           values: {
             experimentId,
-            image: pipelineArtifacts['remoter-server'],
+            image: pipelineArtifacts['qc-runner'],
             namespace: config.pipelineNamespace,
             sandboxId: config.sandboxId,
             awsAccountId: accountId,
             clusterEnv: config.clusterEnv,
             awsRegion: config.awsRegion,
+            activityArn,
           },
         },
       },
