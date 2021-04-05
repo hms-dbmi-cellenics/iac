@@ -12,8 +12,9 @@ metadata:
   namespace: pipeline-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/remoter-server: glob:refs-heads-master-*-remoter-server
-    filter.fluxcd.io/remoter-client: glob:refs-heads-master-*-remoter-client
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/qc-runner: glob:refs-heads-master-*-qc-runner
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -21,11 +22,9 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 6e4be6889ef92d4737d772941087429725dfeede
+    ref: 16a0ec05f7d88f250db45ea18ebf3818cbf6a8bd
   values:
-    remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6e4be6889ef92d4737d772941087429725dfeede-remoter-server
-    remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6e4be6889ef92d4737d772941087429725dfeede-remoter-client
+    qc-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-16a0ec05f7d88f250db45ea18ebf3818cbf6a8bd-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
