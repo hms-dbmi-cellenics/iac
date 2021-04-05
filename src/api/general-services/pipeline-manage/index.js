@@ -29,8 +29,7 @@ const getPipelineArtifacts = async () => {
 
   return {
     chartRef: jq.json(manifest, '..|objects| select(.metadata != null) | select( .metadata.name | contains("pipeline")) | .spec.chart.ref//empty'),
-    'remoter-server': jq.json(manifest, '..|objects|.["remoter-server"].image//empty'),
-    'remoter-client': jq.json(manifest, '..|objects|.["remoter-client"].image//empty'),
+    'qc-runner': jq.json(manifest, '..|objects|.["qc-runner"].image//empty'),
   };
 };
 
@@ -115,6 +114,18 @@ const executeStateMachine = async (stateMachineArn, execInput) => {
   return executionArn;
 };
 
+const createActivity = async (context) => {
+  const stepFunctions = new AWS.StepFunctions({
+    region: config.awsRegion,
+  });
+
+  const { activityArn } = await stepFunctions.createActivity({
+    name: context.activityArn.split(/[: ]+/).pop(),
+  }).promise();
+
+  return activityArn;
+};
+
 const buildStateMachineDefinition = (context) => {
   const skeleton = {
     Comment: `Pipeline for clusterEnv '${config.clusterEnv}'`,
@@ -127,13 +138,13 @@ const buildStateMachineDefinition = (context) => {
       },
       LaunchNewPipelineWorker: {
         XStepType: 'create-new-job-if-not-exist',
-        Next: 'Filters',
+        Next: 'ClassifierFilterMap',
         ResultPath: null,
       },
-      Filters: {
+      ClassifierFilterMap: {
         Type: 'Map',
-        Next: 'DataIntegration',
-        MaxConcurrency: 1,
+        Next: 'CellSizeDistributionFilterMap',
+        ResultPath: null,
         ItemsPath: '$.samples',
         Iterator: {
           StartAt: 'ClassifierFilter',
@@ -144,43 +155,82 @@ const buildStateMachineDefinition = (context) => {
                 perSample: true,
                 taskName: 'classifier',
               },
-              Next: 'CellSizeDistributionFilter',
+              End: true,
             },
+          },
+        },
+      },
+      CellSizeDistributionFilterMap: {
+        Type: 'Map',
+        Next: 'MitochondrialContentFilterMap',
+        ResultPath: null,
+        ItemsPath: '$.samples',
+        Iterator: {
+          StartAt: 'CellSizeDistributionFilter',
+          States: {
             CellSizeDistributionFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
                 perSample: true,
                 taskName: 'cellSizeDistribution',
               },
-              Next: 'MitochondrialContentFilter',
+              End: true,
             },
+          },
+        },
+      },
+      MitochondrialContentFilterMap: {
+        Type: 'Map',
+        Next: 'NumGenesVsNumUmisFilterMap',
+        ResultPath: null,
+        ItemsPath: '$.samples',
+        Iterator: {
+          StartAt: 'MitochondrialContentFilter',
+          States: {
             MitochondrialContentFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
                 perSample: true,
                 taskName: 'mitochondrialContent',
               },
-              Next: 'NumGenesVsNumUmisFilter',
+              End: true,
             },
+          },
+        },
+      },
+      NumGenesVsNumUmisFilterMap: {
+        Type: 'Map',
+        Next: 'DoubletScoresFilterMap',
+        ResultPath: null,
+        ItemsPath: '$.samples',
+        Iterator: {
+          StartAt: 'NumGenesVsNumUmisFilter',
+          States: {
             NumGenesVsNumUmisFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
                 perSample: true,
                 taskName: 'numGenesVsNumUmis',
               },
-              Next: 'DoubletScoresFilter',
+              End: true,
             },
+          },
+        },
+      },
+      DoubletScoresFilterMap: {
+        Type: 'Map',
+        Next: 'DataIntegration',
+        ResultPath: null,
+        ItemsPath: '$.samples',
+        Iterator: {
+          StartAt: 'DoubletScoresFilter',
+          States: {
             DoubletScoresFilter: {
               XStepType: 'create-new-step',
               XConstructorArgs: {
                 perSample: true,
                 taskName: 'doubletScores',
               },
-              XNextOnCatch: 'EndOfMap',
-              End: true,
-            },
-            EndOfMap: {
-              Type: 'Pass',
               End: true,
             },
           },
@@ -200,8 +250,7 @@ const buildStateMachineDefinition = (context) => {
           perSample: false,
           taskName: 'configureEmbedding',
         },
-        XNextOnCatch: 'EndOfPipeline',
-        End: true,
+        Next: 'EndOfPipeline',
       },
       EndOfPipeline: {
         Type: 'Pass',
@@ -247,7 +296,7 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
   // appropriate.
   // eslint-disable-next-line consistent-return
   const mergedProcessingConfig = _.cloneDeepWith(processingConfig, (o) => {
-    if (_.isObject(o) && !o.dataIntegration && o.enabled) {
+    if (_.isObject(o) && !o.dataIntegration && typeof o.enabled === 'boolean') {
       // Find which samples have sample-specific configurations.
       const sampleConfigs = _.intersection(Object.keys(o), samples.ids);
 
@@ -268,6 +317,7 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
     experimentId,
     accountId,
     roleArn,
+    activityArn: `arn:aws:states:${config.awsRegion}:${accountId}:activity:biomage-qc-${config.clusterEnv}-${experimentId}`,
     pipelineArtifacts: await getPipelineArtifacts(),
     clusterInfo: await getClusterInfo(),
     processingConfig: mergedProcessingConfig,
@@ -275,7 +325,12 @@ const createPipeline = async (experimentId, processingConfigUpdates) => {
 
   const stateMachine = buildStateMachineDefinition(context);
 
-  logger.log('Skeleton constructed, now creating state machine from skeleton...');
+  logger.log(stateMachine);
+
+  logger.log('Skeleton constructed, now creating activity if not already present...');
+  const activityArn = await createActivity(context);
+
+  logger.log(`Activity with ARN ${activityArn} created, now creating state machine from skeleton...`);
   const stateMachineArn = await createNewStateMachine(context, stateMachine);
 
   logger.log(`State machine with ARN ${stateMachineArn} created, launching it...`);
