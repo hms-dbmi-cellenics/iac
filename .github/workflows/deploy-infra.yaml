@@ -291,6 +291,14 @@ jobs:
             --install --wait \
             --namespace=cert-manager
 
+      - id: deploy-xray-daemon
+        name: Deploy AWS X-Ray daemon
+        run: |-
+          helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
+            --namespace default \
+            --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
+            --install --wait
+
       - id: install-ebs-csi-driver
         name: Install AWS EBS Container Storage Interface (CSI) drivers
         run: |-

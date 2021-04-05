@@ -16,10 +16,17 @@ iam:
             Action:
               - "s3:*"
             Resource: '*'
+    - metadata:
+        name: aws-node
+        namespace: kube-system
+        labels:
+          aws-usage: cluster-ops
+      attachPolicyARNs:
+      - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
 nodeGroups:
-  - name: 32-gb-ram-nodes-more-disk
-    instanceType: r5.xlarge
+  - name: prod-ready-nodegroup-1
+    instanceType: r5.4xlarge
     desiredCapacity: 1
     minSize: 1
     maxSize: 4

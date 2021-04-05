@@ -12,8 +12,8 @@ metadata:
   namespace: pipeline-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/remoter-server: glob:refs-heads-master-*-remoter-server
-    filter.fluxcd.io/remoter-client: glob:refs-heads-master-*-remoter-client
+    filter.fluxcd.io/remoter-server: glob:refs-pull-20-merge-*-remoter-server
+    filter.fluxcd.io/remoter-client: glob:refs-pull-20-merge-*-remoter-client
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -21,11 +21,11 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 6e4be6889ef92d4737d772941087429725dfeede
+    ref: STAGING_CHART_REF
   values:
     remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6e4be6889ef92d4737d772941087429725dfeede-remoter-server
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-20-merge-0f790a10e6f8d3253b2b2da67771184ba63d687f-remoter-server
     remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6e4be6889ef92d4737d772941087429725dfeede-remoter-client
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-20-merge-0f790a10e6f8d3253b2b2da67771184ba63d687f-remoter-client
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

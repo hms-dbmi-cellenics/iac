@@ -3,33 +3,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: ui-demo
+    sandboxId: use-activities
+  name: ui-use-activities
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: demo
+    sandboxId: use-activities
   name: ui
-  namespace: ui-demo
+  namespace: ui-use-activities
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: master
+    ref: 73596d652c1054885829cf3ac765344290b8a3ae
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: demo
+      sandboxId: use-activities
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-e43259fa84e859b14394027af70309e52bba2ae6
+      tag: refs-heads-master-9429d0b3e7c4b18dd83856b7b021dc061c1c75de
     kubernetes:
       env: staging
 ---
@@ -37,19 +37,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: api-demo
+    sandboxId: use-activities
+  name: api-use-activities
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-83-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: demo
+    sandboxId: use-activities
   name: api
-  namespace: api-demo
+  namespace: api-use-activities
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -59,11 +59,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: demo
+      sandboxId: use-activities
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-91eee5841b8967338e96d1ad21db240b3a9ec2a1
+      tag: refs-pull-83-merge-3ca90c0713218a6c43cd813ad0e05f833cec2703
     kubernetes:
       env: staging
     livenessProbe:
@@ -80,8 +80,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: worker-demo
+    sandboxId: use-activities
+  name: worker-use-activities
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -89,24 +89,23 @@ metadata:
   annotations:
     filter.fluxcd.io/python: glob:refs-heads-master-*-python
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: demo
+    sandboxId: use-activities
   name: worker
-  namespace: worker-demo
+  namespace: worker-use-activities
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: master
+    ref: c824847f93e132f3d65d37d9b0aa0da0fe080c85
   releaseName: worker
   values:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-c824847f93e132f3d65d37d9b0aa0da0fe080c85-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-c824847f93e132f3d65d37d9b0aa0da0fe080c85-r
-    sandboxId: demo
-    ignoreTimeout: true
+    sandboxId: use-activities
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -114,17 +113,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: demo
-  name: pipeline-demo
+    sandboxId: use-activities
+  name: pipeline-use-activities
 ---
-apiVersion: v1
-data:
-  dummy: FILLED_IN_BY_CI
-  images:
-    remoter-server: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6874985af84a2d94316dd30cee19b6847a449992-remoter-server
-kind: ConfigMap
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
 metadata:
+  annotations:
+    filter.fluxcd.io/qc-runner: glob:refs-pull-28-merge-*-qc-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: demo
-  name: image-urls
-  namespace: pipeline-demo
+    sandboxId: use-activities
+  name: pipeline
+  namespace: pipeline-use-activities
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: refs/pull/28/merge
+  releaseName: pipeline
+  values:
+    qc-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-28-merge-1b5795fdbade37d5d1f49656c95a1c2d87b058a3-qc-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

@@ -22,10 +22,7 @@ Resources:
       KeySchema:
         - AttributeName: "experimentId"
           KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      BillingMode: "PROVISIONED"
+      BillingMode: "PAY_PER_REQUEST"
   PlotsTablesTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -40,10 +37,7 @@ Resources:
           KeyType: "HASH"
         - AttributeName: "experimentId"
           KeyType: "RANGE"
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      BillingMode: "PROVISIONED"
+      BillingMode: "PAY_PER_REQUEST"
   SamplesTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -54,7 +48,4 @@ Resources:
       KeySchema:
         - AttributeName: "experimentId"
           KeyType: "HASH"
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      BillingMode: "PROVISIONED"
+      BillingMode: "PAY_PER_REQUEST"

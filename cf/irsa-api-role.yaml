@@ -126,6 +126,15 @@ Resources:
                   - "states:GetExecutionHistory"
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*:*"
+        - PolicyName: !Sub "can-create-activity-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "states:CreateActivity"
+                Resource:
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
         - PolicyName: !Sub "can-pass-state-machine-executionrole-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
