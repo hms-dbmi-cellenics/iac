@@ -222,7 +222,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
       "Next": "ClassifierFilterMap",
       "ResultPath": null,
       "Type": "Task",
-      "Comment": "Attempts to create a Kubernetes Job+Service for the pipeline server. Will swallow a 409 (already exists) error.",
+      "Comment": "Attempts to create a Kubernetes Job+Service for the pipeline runner. Will swallow a 409 (already exists) error.",
       "Resource": "arn:aws:states:::eks:call",
       "Parameters": {
         "ClusterName": "mock-cluster-name",
@@ -234,7 +234,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
           "apiVersion": "helm.fluxcd.io/v1",
           "kind": "HelmRelease",
           "metadata": {
-            "name": "remoter-server-mock-experiment-id",
+            "name": "pipeline-mock-experiment-id",
             "namespace": "pipeline-test-namespace",
             "annotations": {
               "fluxcd.io/automated": "true"
@@ -244,14 +244,13 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
             }
           },
           "spec": {
-            "releaseName": "remoter-server-mock-experiment-id",
+            "releaseName": "pipeline-mock-experiment-id",
             "chart": {
               "git": "git@github.com:biomage-ltd/pipeline",
-              "path": "remoter-server/chart"
+              "path": "qc-runner/chart"
             },
             "values": {
               "experimentId": "mock-experiment-id",
-              "image": "mock-remoter-server-image",
               "namespace": "pipeline-test-namespace",
               "awsAccountId": "mock-account-id",
               "clusterEnv": "test",

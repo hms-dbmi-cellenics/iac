@@ -221,7 +221,7 @@ Array [
               "ResultPath": "$.error-info",
             },
           ],
-          "Comment": "Attempts to create a Kubernetes Job+Service for the pipeline server. Will swallow a 409 (already exists) error.",
+          "Comment": "Attempts to create a Kubernetes Job+Service for the pipeline runner. Will swallow a 409 (already exists) error.",
           "Next": "ClassifierFilterMap",
           "Parameters": Object {
             "CertificateAuthority": "AAAAAAAAAAA",
@@ -239,21 +239,23 @@ Array [
                 "labels": Object {
                   "type": "pipeline",
                 },
-                "name": "remoter-server-testExperimentId",
+                "name": "pipeline-testExperimentId",
                 "namespace": "pipeline-test-namespace",
               },
               "spec": Object {
                 "chart": Object {
                   "git": "git@github.com:biomage-ltd/pipeline",
-                  "path": "remoter-server/chart",
+                  "path": "qc-runner/chart",
                   "ref": "MOCK_REF_PATH",
                 },
-                "releaseName": "remoter-server-testExperimentId",
+                "releaseName": "pipeline-testExperimentId",
                 "values": Object {
+                  "activityArn": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
                   "awsAccountId": "test-account-id",
                   "awsRegion": "eu-west-1",
                   "clusterEnv": "test",
                   "experimentId": "testExperimentId",
+                  "image": "MOCK_IMAGE_PATH",
                   "namespace": "pipeline-test-namespace",
                 },
               },
