@@ -29,6 +29,14 @@ spec:
       path: "/v1/health"
     livenessProbe:
       path: "/v1/health"
+    resources:
+      requests:
+        cpu: "100m"
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 80
     kubernetes:
       env: staging
     biomageCi:
@@ -37,7 +45,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-83-merge-ed3342f065884ea3b2380eaa59db62c0ac81568b
+      tag: refs-pull-83-merge-0812e6c618c6bcfff1484a7ea78ac170c0fd13f9
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
