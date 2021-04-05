@@ -165,6 +165,11 @@ jobs:
           ELB_URL=$(kubectl get services --namespace ingress-nginx ingress-nginx-controller --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           echo "ELB deployed under $ELB_URL"
           echo "::set-output name=elb-url::$ELB_URL"
+        
+      - id: deploy-metrics-server
+        name: Deploy k8s metrics server
+        run: |-
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
       - id: deploy-route53
         name: Deploy Route 53 DNS records to ELB
