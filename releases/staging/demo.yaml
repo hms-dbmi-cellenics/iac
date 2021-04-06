@@ -102,7 +102,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-c824847f93e132f3d65d37d9b0aa0da0fe080c85-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b96af0cc869382e6863edc8c15ac7700f57e979d-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-c824847f93e132f3d65d37d9b0aa0da0fe080c85-r
     sandboxId: demo
