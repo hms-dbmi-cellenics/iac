@@ -55,7 +55,7 @@ Array [
   Object {
     "type": "return",
     "value": Object {
-      "input": "{\\"samples\\":[{\\"sampleUuid\\":\\"sample-KO\\",\\"index\\":0}]}",
+      "input": "{\\"samples\\":[{\\"sampleUuid\\":\\"oneSample\\",\\"index\\":0},{\\"sampleUuid\\":\\"otherSample\\",\\"index\\":1}]}",
       "stateMachineArn": "test-machine",
       "traceHeader": undefined,
     },
@@ -87,7 +87,7 @@ Array [
                 },
                 "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
                 "ResultPath": null,
-                "TimeoutSeconds": 300,
+                "TimeoutSeconds": 600,
                 "Type": "Task",
               },
             },
@@ -112,7 +112,7 @@ Array [
                 },
                 "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
                 "ResultPath": null,
-                "TimeoutSeconds": 300,
+                "TimeoutSeconds": 600,
                 "Type": "Task",
               },
             },
@@ -132,7 +132,7 @@ Array [
           },
           "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
           "ResultPath": null,
-          "TimeoutSeconds": 300,
+          "TimeoutSeconds": 600,
           "Type": "Task",
         },
         "DataIntegration": Object {
@@ -146,7 +146,7 @@ Array [
           },
           "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
           "ResultPath": null,
-          "TimeoutSeconds": 300,
+          "TimeoutSeconds": 600,
           "Type": "Task",
         },
         "DeleteCompletedPipelineWorker": Object {
@@ -177,15 +177,14 @@ Array [
                 "End": true,
                 "Parameters": Object {
                   "config": Object {
-                    "filterSettings": Object {
-                      "oneSetting": 1,
-                    },
                     "oneSample": Object {
+                      "enabled": true,
                       "filterSettings": Object {
                         "oneSetting": 7,
                       },
                     },
                     "otherSample": Object {
+                      "enabled": true,
                       "filterSettings": Object {
                         "oneSetting": 15,
                       },
@@ -198,7 +197,7 @@ Array [
                 },
                 "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
                 "ResultPath": null,
-                "TimeoutSeconds": 300,
+                "TimeoutSeconds": 600,
                 "Type": "Task",
               },
             },
@@ -291,7 +290,7 @@ Array [
                 },
                 "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
                 "ResultPath": null,
-                "TimeoutSeconds": 300,
+                "TimeoutSeconds": 600,
                 "Type": "Task",
               },
             },
@@ -316,7 +315,7 @@ Array [
                 },
                 "Resource": "arn:aws:states:eu-west-1:test-account-id:activity:biomage-qc-test-testExperimentId",
                 "ResultPath": null,
-                "TimeoutSeconds": 300,
+                "TimeoutSeconds": 600,
                 "Type": "Task",
               },
             },
@@ -398,7 +397,7 @@ Array [
   Object {
     "type": "return",
     "value": Object {
-      "input": "{\\"samples\\":[{\\"sampleUuid\\":\\"sample-KO\\",\\"index\\":0}]}",
+      "input": "{\\"samples\\":[{\\"sampleUuid\\":\\"oneSample\\",\\"index\\":0},{\\"sampleUuid\\":\\"otherSample\\",\\"index\\":1}]}",
       "stateMachineArn": "arn:aws:states:eu-west-1:test-account-id:stateMachine:biomage-pipeline-test-af3b5c3acaa6348165d8e5e73c70d93b732bf6db",
       "traceHeader": undefined,
     },
