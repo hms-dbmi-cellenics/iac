@@ -91,3 +91,58 @@ Resources:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
         "authenticated": !GetAtt UIRole.Arn
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      UserPoolName: !Sub "biomage-user-pool-${Environment}"
+      AccountRecoverySetting: 
+        RecoveryMechanisms: 
+          - Name: verified_email
+            Priority: 1
+          - Name: verified_phone_number
+            Priority: 2
+          - Name: admin_only
+            Priority: 3
+      AdminCreateUserConfig: 
+        AllowAdminCreateUserOnly: false
+        InviteMessageTemplate: 
+          EmailSubject: 'Your temporary password for Cellscope'
+          EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
+          SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
+        UnusedAccountValidityDays: 7
+      AutoVerifiedAttributes:
+        - email
+        - phone_number
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: true
+        DeviceOnlyRememberedOnUserPrompt: true
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+        From: noreply@biomage.net
+        ReplyToEmailAddress: hello@biomage.net
+      # EmailVerificationSubject: 'Your Cellscope verification code'
+      # EmailVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+      EnabledMfas:
+        - SMS_MFA
+        - SOFTWARE_TOKEN_MFA
+      MfaConfiguration: OPTIONAL
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: institution
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+      SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
+      SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: true
