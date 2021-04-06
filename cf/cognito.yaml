@@ -17,6 +17,9 @@ Resources:
     Properties:
       IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}"
       AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        ClientId: !Ref UserPoolClient
+        ProviderName: !GetAtt UserPool.ProviderURL
 
   UIRole:
     Type: "AWS::IAM::Role"
@@ -145,3 +148,27 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "biomage-cellscope-web-${Environment}"
+      UserPoolId: !Ref UserPool
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 30
+      ExplicitAuthFlows: 
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ReadAttributes:
+        - name
+        - email
+        - institution
+      SupportedIdentityProviders:
+        - COGNITO
+      WriteAttributes:
+        - name
+        - email
+        - institution
