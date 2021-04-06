@@ -26,6 +26,6 @@ spec:
     ref: 402670ed258a1f36d0b7ac583878f18ccd6802ca
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-c31d0ad9bc4a3272141a95b60a9309a4a933d5dc-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-cde45d0550cd61c24888c593d70cb22e9e726018-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-production
