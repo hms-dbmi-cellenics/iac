@@ -17,31 +17,33 @@ Resources:
     Properties:
       IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}"
       AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderURL
 
   UIRole:
     Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Sub "ui-auth-user-role-${Environment}"
-      AssumeRolePolicyDocument:
-        Fn::Sub: |-
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "",
-                "Effect": "Allow",
-                "Principal": {
-                  "Federated": "cognito-identity.amazonaws.com"
-                },
-                "Action": "sts:AssumeRoleWithWebIdentity",
-                "Condition": {
-                  "ForAnyValue:StringLike": {
-                    "cognito-identity.amazonaws.com:amr": "authenticated"
-                  }
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": "authenticated"
                 }
               }
-            ]
-          }
+            }
+          ]
+        }
       Path: /
       Policies:
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
@@ -91,3 +93,82 @@ Resources:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
         "authenticated": !GetAtt UIRole.Arn
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      UserPoolName: !Sub "biomage-user-pool-${Environment}"
+      AccountRecoverySetting: 
+        RecoveryMechanisms: 
+          - Name: verified_email
+            Priority: 1
+          - Name: verified_phone_number
+            Priority: 2
+          - Name: admin_only
+            Priority: 3
+      AdminCreateUserConfig: 
+        AllowAdminCreateUserOnly: false
+        InviteMessageTemplate: 
+          EmailSubject: 'Your temporary password for Cellscope'
+          EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
+          SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
+        UnusedAccountValidityDays: 7
+      AutoVerifiedAttributes:
+        - email
+        - phone_number
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: true
+        DeviceOnlyRememberedOnUserPrompt: true
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+        From: noreply@biomage.net
+        ReplyToEmailAddress: hello@biomage.net
+      # EmailVerificationSubject: 'Your Cellscope verification code'
+      # EmailVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+      EnabledMfas:
+        - SMS_MFA
+        - SOFTWARE_TOKEN_MFA
+      MfaConfiguration: OPTIONAL
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: institution
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+      SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
+      SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "biomage-cellscope-web-${Environment}"
+      UserPoolId: !Ref UserPool
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 30
+      ExplicitAuthFlows: 
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ReadAttributes:
+        - name
+        - email
+        - institution
+      SupportedIdentityProviders:
+        - COGNITO
+      WriteAttributes:
+        - name
+        - email
+        - institution
