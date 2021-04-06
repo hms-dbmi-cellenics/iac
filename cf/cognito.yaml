@@ -139,7 +139,7 @@ Resources:
         - Name: institution
           AttributeDataType: String
           Mutable: true
-          Required: true
+          Required: false
       SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
       SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
       UsernameAttributes:
