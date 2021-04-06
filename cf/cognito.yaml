@@ -113,7 +113,6 @@ Resources:
         UnusedAccountValidityDays: 7
       AutoVerifiedAttributes:
         - email
-        - phone_number
       DeviceConfiguration:
         ChallengeRequiredOnNewDevice: true
         DeviceOnlyRememberedOnUserPrompt: true
