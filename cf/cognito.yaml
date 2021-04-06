@@ -18,8 +18,8 @@ Resources:
       IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}"
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
-        ClientId: !Ref UserPoolClient
-        ProviderName: !GetAtt UserPool.ProviderURL
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderURL
 
   UIRole:
     Type: "AWS::IAM::Role"
