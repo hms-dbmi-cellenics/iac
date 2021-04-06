@@ -85,6 +85,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"

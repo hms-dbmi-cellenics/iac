@@ -37,6 +37,16 @@ Resources:
             Status: "Enabled"
             ExpirationInDays: 3
 
+  PipelineResultBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "processed-matrix-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
   # The bucket that contains the count matrix files (in .rds format) used for the experiments.
   SourceBucket:
     Type: AWS::S3::Bucket
