@@ -125,7 +125,7 @@ Resources:
       EnabledMfas:
         - SMS_MFA
         - SOFTWARE_TOKEN_MFA
-      MfaConfiguration: OPTIONAL
+      MfaConfiguration: OFF
       Schema:
         - Name: name
           AttributeDataType: String
