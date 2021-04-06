@@ -104,8 +104,6 @@ Resources:
             Priority: 1
           - Name: verified_phone_number
             Priority: 2
-          - Name: admin_only
-            Priority: 3
       AdminCreateUserConfig: 
         AllowAdminCreateUserOnly: false
         InviteMessageTemplate: 
