@@ -22,26 +22,25 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Sub "ui-auth-user-role-${Environment}"
-      AssumeRolePolicyDocument:
-        Fn::Sub: |-
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "",
-                "Effect": "Allow",
-                "Principal": {
-                  "Federated": "cognito-identity.amazonaws.com"
-                },
-                "Action": "sts:AssumeRoleWithWebIdentity",
-                "Condition": {
-                  "ForAnyValue:StringLike": {
-                    "cognito-identity.amazonaws.com:amr": "authenticated"
-                  }
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": "authenticated"
                 }
               }
-            ]
-          }
+            }
+          ]
+        }
       Path: /
       Policies:
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
