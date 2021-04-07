@@ -23,7 +23,7 @@ const createNewStep = (context, step, args) => {
     Type: 'Task',
     Resource: activityArn,
     ResultPath: null,
-    TimeoutSeconds: 1500,
+    TimeoutSeconds: 3600,
     Parameters: {
       ...task,
       ...perSample ? { 'sampleUuid.$': '$.sampleUuid' } : { sampleUuid: '' },
