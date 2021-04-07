@@ -121,7 +121,6 @@ Resources:
         # From: noreply@biomage.net
         ReplyToEmailAddress: hello@biomage.net
       EnabledMfas:
-        - SMS_MFA
         - SOFTWARE_TOKEN_MFA
       MfaConfiguration: "OFF"
       Schema:
