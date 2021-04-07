@@ -120,12 +120,10 @@ Resources:
         EmailSendingAccount: COGNITO_DEFAULT
         From: noreply@biomage.net
         ReplyToEmailAddress: hello@biomage.net
-      # EmailVerificationSubject: 'Your Cellscope verification code'
-      # EmailVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
       EnabledMfas:
         - SMS_MFA
         - SOFTWARE_TOKEN_MFA
-      MfaConfiguration: OFF
+      MfaConfiguration: "OFF"
       Schema:
         - Name: name
           AttributeDataType: String
