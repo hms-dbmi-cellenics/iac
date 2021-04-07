@@ -32,11 +32,12 @@ spec:
     resources:
       requests:
         cpu: "100m"
-    hpa:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 80
+    # hpa:
+    #   enabled: true
+    #   minReplicas: 1
+    #   maxReplicas: 10
+    #   targetCPUUtilizationPercentage: 80
+
     kubernetes:
       env: production
     biomageCi:
@@ -45,7 +46,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-be951acba11343c51d74a0719c51bb9c8240860b
+      tag: refs-heads-master-d01b09daa029d27d5b0b7649c062cd2b3a953212
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-production
 
