@@ -160,7 +160,7 @@ Resources:
         - SOFTWARE_TOKEN_MFA
       SmsConfiguration:
         ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
-        SnsCallerArn: !Ref SMSRole
+        SnsCallerArn: !GetAtt SMSRole.Arn
       MfaConfiguration: "OPTIONAL"
       Schema:
         - Name: name
