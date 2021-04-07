@@ -19,7 +19,7 @@ Resources:
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
         - ClientId: !Ref UserPoolClient
-          ProviderName: !GetAtt UserPool.ProviderURL
+          ProviderName: !GetAtt UserPool.ProviderName
 
   UIRole:
     Type: "AWS::IAM::Role"
