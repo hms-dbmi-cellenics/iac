@@ -118,7 +118,7 @@ Resources:
         DeviceOnlyRememberedOnUserPrompt: true
       EmailConfiguration:
         EmailSendingAccount: COGNITO_DEFAULT
-        From: noreply@biomage.net
+        # From: noreply@biomage.net
         ReplyToEmailAddress: hello@biomage.net
       EnabledMfas:
         - SMS_MFA
