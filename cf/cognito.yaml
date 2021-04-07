@@ -198,10 +198,10 @@ Resources:
       ReadAttributes:
         - name
         - email
-        - institution
+        - custom:institution
       SupportedIdentityProviders:
         - COGNITO
       WriteAttributes:
         - name
         - email
-        - institution
+        - custom:institution
