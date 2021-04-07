@@ -52,7 +52,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}"
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
