@@ -94,6 +94,41 @@ Resources:
       Roles:
         "authenticated": !GetAtt UIRole.Arn
 
+  SMSRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "biomage-cognito-sms-role-${Environment}"
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cognito-idp.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "92bd350f-b2ad-455a-b614-a24e63555edb"
+                }
+              }
+            }
+          ]
+        }
+      Path: /
+      Policies:
+        - PolicyName: "can-send-sms"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sns:publish"
+                Resource:
+                  - '*'
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
@@ -118,10 +153,14 @@ Resources:
         DeviceOnlyRememberedOnUserPrompt: true
       EmailConfiguration:
         EmailSendingAccount: COGNITO_DEFAULT
-        # From: noreply@biomage.net
+        #From: noreply@biomage.net
         ReplyToEmailAddress: hello@biomage.net
       EnabledMfas:
+        - SMS_MFA
         - SOFTWARE_TOKEN_MFA
+      SmsConfiguration:
+        ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
+        SnsCallerArn: !Ref SMSRole
       MfaConfiguration: "OPTIONAL"
       Schema:
         - Name: name
