@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up role for server-side rendered UI [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+
+  OIDCProvider:
+    Type: String
+    Description: The OIDC provider
+
+Resources:
+  APIRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "ui-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Fn::Sub: |-
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
+                },
+                "Action": "sts:AssumeRoleWithWebIdentity",
+                "Condition": {
+                  "StringLike": {
+                    "${OIDCProvider}:sub": "system:serviceaccount:ui-*:deployment-runner"
+                  }
+                }
+              }
+            ]
+          }
+      Path: /
+      Policies:
+        - PolicyName: "can-read-cognito"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cognito-identity:ListIdentityPools"
+                  - "cognito-idp:ListUserPools"
+                Resource: '*'
