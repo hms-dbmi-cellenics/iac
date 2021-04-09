@@ -139,6 +139,6 @@ spec:
   releaseName: pipeline
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-35-merge-a9d78f35ecf28b10e2c0f2ae1e98d59705cf78fd-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-35-merge-d0dfa5b9c5625b70119c2394cc4943289ed1c237-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
