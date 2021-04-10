@@ -16,7 +16,8 @@ Resources:
     Properties: 
       IpAddressType: dualstack
       LoadBalancerAttributes: 
-        - LoadBalancerAttribute
+        - Key: routing.http2.enabled
+          Value: "true"
       Name: !Sub "k8s-${Environment}"
       Scheme: internet-facing
       Subnets: 
