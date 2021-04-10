@@ -24,6 +24,7 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
 {{- end }}
     kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: {{ .Values.kubernetes.env }}
 spec:
   rules:
   - host: {{ template "hostname" . }}
