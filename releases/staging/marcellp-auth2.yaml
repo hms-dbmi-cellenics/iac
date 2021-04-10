@@ -1,44 +1,45 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: seb-pipeline25
-  name: ui-seb-pipeline25
+    sandboxId: marcellp-auth2
+  name: ui-marcellp-auth2
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-200-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: seb-pipeline25
+    sandboxId: marcellp-auth2
   name: ui
-  namespace: ui-seb-pipeline25
+  namespace: ui-marcellp-auth2
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: ad0b18f84a49d363133c5b243da40bdc392235c1
+    ref: master
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: seb-pipeline25
+      sandboxId: marcellp-auth2
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-a1a1bc9f1ac7ed59d36a4a849f9462b729317140
+      tag: refs-pull-200-merge-2e3380bcf6fa2dfcac6a64a0d52681c574df1c1a
     kubernetes:
       env: staging
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: seb-pipeline25
-  name: api-seb-pipeline25
+    sandboxId: marcellp-auth2
+  name: api-marcellp-auth2
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -47,29 +48,32 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: seb-pipeline25
+    sandboxId: marcellp-auth2
   name: api
-  namespace: api-seb-pipeline25
+  namespace: api-marcellp-auth2
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: ad0b18f84a49d363133c5b243da40bdc392235c1
+    ref: b880f61634bed559c906827c455eeb4e64de97ff
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: seb-pipeline25
+      sandboxId: marcellp-auth2
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-95be8889b2f5fe6cfba59e36876c6c06e13c9a70
+      tag: refs-heads-master-f87450f58e7e81b494c85c5f1458af81d76f2530
     kubernetes:
       env: staging
     livenessProbe:
       path: /v1/health
     readinessProbe:
       path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
     service:
       externalPort: 3000
       internalPort: 3000
@@ -80,8 +84,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: seb-pipeline25
-  name: worker-seb-pipeline25
+    sandboxId: marcellp-auth2
+  name: worker-marcellp-auth2
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -91,21 +95,21 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: seb-pipeline25
+    sandboxId: marcellp-auth2
   name: worker
-  namespace: worker-seb-pipeline25
+  namespace: worker-marcellp-auth2
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: df5b798f1d116f410ac0509516563ccf08c48066
+    ref: f5c153e804c017f67499c988e7f07ca76d255b33
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-df5b798f1d116f410ac0509516563ccf08c48066-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f5c153e804c017f67499c988e7f07ca76d255b33-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-df5b798f1d116f410ac0509516563ccf08c48066-r
-    sandboxId: seb-pipeline25
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-f5c153e804c017f67499c988e7f07ca76d255b33-r
+    sandboxId: marcellp-auth2
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -113,30 +117,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: seb-pipeline25
-  name: pipeline-seb-pipeline25
+    sandboxId: marcellp-auth2
+  name: pipeline-marcellp-auth2
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/remoter-client: glob:refs-pull-25-merge-*-remoter-client
-    filter.fluxcd.io/remoter-server: glob:refs-pull-25-merge-*-remoter-server
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/qc-runner: glob:refs-heads-master-*-qc-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: seb-pipeline25
+    sandboxId: marcellp-auth2
   name: pipeline
-  namespace: pipeline-seb-pipeline25
+  namespace: pipeline-marcellp-auth2
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: master
+    ref: 631ba6547562acf4699880ff8e6e9e4f7beb39e0
   releaseName: pipeline
   values:
-    remoter-client:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-25-merge-4e9fa47a7abce0300f30d0c6bb7e4d4d1d1480b9-remoter-client
-    remoter-server:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-25-merge-901d30dae621758484a032e80d0d718b61504ca1-remoter-server
+    qc-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-631ba6547562acf4699880ff8e6e9e4f7beb39e0-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
