@@ -35,7 +35,7 @@ Resources:
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
       - Name: !Join ['.', [!If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
-        Type: CNAME
+        Type: A
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
