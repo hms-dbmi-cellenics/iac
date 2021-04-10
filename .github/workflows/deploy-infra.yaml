@@ -186,6 +186,8 @@ jobs:
           kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
           helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
             --namespace kube-system \
+            --set serviceAccount.create=false \
+            --set serviceAccount.name=aws-load-balancer-controller \
             --set clusterName=biomage-$CLUSTER_ENV \
             --install --wait
       
