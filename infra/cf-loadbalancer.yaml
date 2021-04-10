@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up Application Load Balancer for a given environment.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - production
+    Description: The environment for which the SNS topic needs to be created.
+
+Resources: 
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      IpAddressType: dualstack
+      LoadBalancerAttributes: 
+        - LoadBalancerAttribute
+      Name: !Sub "k8s-${Environment}"
+      Scheme: internet-facing
+      Subnets: 
+        Fn::Split:
+          - ','
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPublic"
+      Tags: 
+        - Key: ingress.k8s.aws/resource
+          Value: LoadBalancer
+        - Key: ingress.k8s.aws/stack
+          Value: !Ref Environment
+        - Key: elbv2.k8s.aws/cluster
+          Value: !Sub "biomage-${Environment}"
+      Type: application
+
+Outputs:
+  CanonicalHostedZoneID:
+    Description: The ID of the Amazon Route 53 hosted zone associated with the load balancer.
+    Value: !GetAtt LoadBalancer.CanonicalHostedZoneID
+    Export:
+      Name: !Sub 'k8s-${Environment}::CanonicalHostedZoneID'
+  DNSName:
+    Description: The DNS name for the load balancer. 
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub 'k8s-${Environment}::DNSName'
+  LoadBalancerFullName:
+    Description: The full name of the load balancer.
+    Value: !GetAtt LoadBalancer.LoadBalancerFullName
+    Export:
+      Name: !Sub 'k8s-${Environment}::LoadBalancerFullName'

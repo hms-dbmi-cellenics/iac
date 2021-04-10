@@ -197,7 +197,7 @@ jobs:
           sudo snap install helm --classic
 
       - id: install-lbc
-        name: Deploy AWS LoadBalancer Controller
+        name: Deploy AWS Load Balancer Controller
         run: |-
           helm repo add eks https://aws.github.io/eks-charts
           kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
@@ -206,6 +206,15 @@ jobs:
             --set clusterName=biomage-$CLUSTER_ENV \
             --install --wait
       
+      - id: deploy-env-loadbalancer
+        name: Deploy AWS Application Load Balancer for environment
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: "biomage-k8s-alb-${{ matrix.environment }}"
+          template: 'infra/cf-loadbalancer.yaml'
+          no-fail-on-empty-changeset: "1"
+
       - id: install-flux
         name: Deploy flux
         run: |-
