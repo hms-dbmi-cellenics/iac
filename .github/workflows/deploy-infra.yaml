@@ -157,28 +157,11 @@ jobs:
         name: Add k8s config file for existing cluster.
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
-      
-      - id: deploy-nginx-ingress
-        name: Deploy NGINX Ingress Controller
-        run: |-
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.35.0/deploy/static/provider/aws/deploy.yaml
-          ELB_URL=$(kubectl get services --namespace ingress-nginx ingress-nginx-controller --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "ELB deployed under $ELB_URL"
-          echo "::set-output name=elb-url::$ELB_URL"
-        
+              
       - id: deploy-metrics-server
         name: Deploy k8s metrics server
         run: |-
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }},LoadBalancerUrl=${{ steps.deploy-nginx-ingress.outputs.elb-url }}"
-          name: "biomage-k8s-route53-${{ matrix.environment }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
 
       - id: create-flux-namespace
         name: Attempt to create flux namespace
@@ -213,6 +196,15 @@ jobs:
           parameter-overrides: "Environment=${{ matrix.environment }}"
           name: "biomage-k8s-alb-${{ matrix.environment }}"
           template: 'infra/cf-loadbalancer.yaml'
+          no-fail-on-empty-changeset: "1"
+
+      - id: deploy-route53
+        name: Deploy Route 53 DNS records to ELB
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }},LoadBalancerUrl=${{ steps.deploy-env-loadbalancer.outputs.DNSName }}"
+          name: "biomage-k8s-route53-${{ matrix.environment }}"
+          template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
 
       - id: install-flux
@@ -285,35 +277,6 @@ jobs:
             cat /tmp/create_key_result
             false
           fi
-
-      - id: create-cert-manager-namespace
-        name: Attempt to create cert-manager namespace
-        continue-on-error: true
-        run: |-
-          kubectl create namespace cert-manager
-
-      - id: install-cert-manager-chart
-        name: Install cert-manager chart
-        run: |-
-          helm repo add jetstack https://charts.jetstack.io
-          helm repo update
-
-          helm upgrade \
-            cert-manager jetstack/cert-manager \
-            --namespace cert-manager \
-            --version v1.0.1 \
-            --set installCRDs=true \
-            --install --wait
-
-      # see this article for more details
-      # https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes
-      - id: deploy-le-issuers
-        name: Deploy Let's Encrypt issuers
-        run: |-
-          helm upgrade "cert-manager-issuers" infra/k8s-cert-manager-issuers \
-            --create-namespace \
-            --install --wait \
-            --namespace=cert-manager
 
       - id: deploy-xray-daemon
         name: Deploy AWS X-Ray daemon
