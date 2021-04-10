@@ -195,7 +195,17 @@ jobs:
         name: Install Helm
         run: |-
           sudo snap install helm --classic
-      
+
+      - id: install-lbc
+        name: Deploy AWS LoadBalancer Controller
+        run: |-
+          helm repo add eks https://aws.github.io/eks-charts
+          kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+          helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+            --namespace kube-system \
+            --set clusterName=$CLUSTER_ENV \
+            --install --wait
+
       - id: install-flux
         name: Deploy flux
         run: |-
