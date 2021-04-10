@@ -14,7 +14,7 @@ Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
-      IpAddressType: dualstack
+      IpAddressType: ipv4
       LoadBalancerAttributes: 
         - Key: routing.http2.enabled
           Value: "true"
