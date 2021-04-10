@@ -34,6 +34,7 @@ spec:
       env: staging
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+      
 ---
 apiVersion: v1
 kind: Namespace
