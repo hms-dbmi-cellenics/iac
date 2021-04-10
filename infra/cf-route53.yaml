@@ -36,13 +36,11 @@ Resources:
       RecordSets:
       - Name: !Join ['.', [!If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
         Type: CNAME
-        TTL: '900'
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
       - Name: !Join ['.', ['*', !If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
         Type: A
-        TTL: '900'
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
