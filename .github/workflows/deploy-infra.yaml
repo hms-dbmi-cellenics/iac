@@ -203,7 +203,7 @@ jobs:
           kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
           helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
             --namespace kube-system \
-            --set clusterName=$CLUSTER_ENV \
+            --set clusterName=biomage-$CLUSTER_ENV \
             --install --wait
       
       - id: install-flux
@@ -366,7 +366,7 @@ jobs:
             --policy-document file://iam-policy.json || true
           
           eksctl create iamserviceaccount \
-            --cluster=$CLUSTER_ENV \
+            --cluster=biomage-$CLUSTER_ENV \
             --namespace=kube-system \
             --name=aws-load-balancer-controller \
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
