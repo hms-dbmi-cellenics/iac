@@ -205,6 +205,19 @@ jobs:
             --namespace kube-system \
             --set clusterName=$CLUSTER_ENV \
             --install --wait
+          
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.1.2/docs/install/iam_policy.json
+          aws iam create-policy \
+            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --policy-document file://iam-policy.json
+
+          eksctl create iamserviceaccount \
+            --cluster=$CLUSTER_ENV \
+            --namespace=kube-system \
+            --name=aws-load-balancer-controller \
+            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --override-existing-serviceaccounts \
+            --approve
 
       - id: install-flux
         name: Deploy flux
