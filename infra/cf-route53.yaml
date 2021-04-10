@@ -10,14 +10,19 @@ Parameters:
       - production
     Description: The environment for which the SNS topic needs to be created.
 
-  LoadBalancerUrl:
+  DNSName:
     Type: String
     Description: The URL of the load balancer to deploy.
 
   DomainName:
     Type: String
     Default: biomage.net.
-    Description: The URL of the load balancer to deploy.
+    Description: The URL of the domain to apply the change to.
+
+  HostedZoneId:
+    Type: String
+    Description: The ID of the hosted zone
+
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -32,10 +37,12 @@ Resources:
       - Name: !Join ['.', [!If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
         Type: CNAME
         TTL: '900'
-        ResourceRecords:
-        - !Ref LoadBalancerUrl
+        AliasTarget:
+          DNSName: !Ref DNSName
+          HostedZoneId: !Ref HostedZoneId
       - Name: !Join ['.', ['*', !If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
-        Type: CNAME
+        Type: A
         TTL: '900'
-        ResourceRecords:
-        - !Ref LoadBalancerUrl
+        AliasTarget:
+          DNSName: !Ref DNSName
+          HostedZoneId: !Ref HostedZoneId
