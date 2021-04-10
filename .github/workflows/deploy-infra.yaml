@@ -203,7 +203,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }}"
-          name: "biomage-k8s-route53-${{ matrix.environment }}"
+          name: "biomage-alb-route53-${{ matrix.environment }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
 
