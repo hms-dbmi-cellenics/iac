@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -34,5 +33,5 @@ spec:
       tag: refs-heads-master-509d6f97bfba1c88c273d2d551935390dded8a45
     service:
       additionalHosts:
-      - scp.biomage.net
+        - scp.biomage.net
   # filled in by CI. do not modify.
