@@ -105,9 +105,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-cb9ad89e45c37ba11d039706f423df239d0d9ccf-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-868656f5e105b824e41e77700fd51c62e4ab73de-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-cb9ad89e45c37ba11d039706f423df239d0d9ccf-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-868656f5e105b824e41e77700fd51c62e4ab73de-r
     sandboxId: marcellp-w102
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
