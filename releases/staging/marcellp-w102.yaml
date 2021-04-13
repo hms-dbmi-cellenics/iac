@@ -105,7 +105,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-0e3efb71f2fac18e9a3cc1ed6c7e68046a795f68-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-1efd84b4061a3a9474cfc8ef0126ccf7abb9a7d5-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-102-merge-0e3efb71f2fac18e9a3cc1ed6c7e68046a795f68-r
     sandboxId: marcellp-w102
