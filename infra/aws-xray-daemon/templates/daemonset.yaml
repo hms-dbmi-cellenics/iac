@@ -22,7 +22,7 @@ spec:
       containers:
         - name: xray-daemon
           image: amazon/aws-xray-daemon
-          command: ["/usr/bin/xray", "-c", "/aws/xray/config.yaml"]
+          command: ["/xray", "-c", "/aws/xray/config.yaml"]
           resources:
             requests:
               cpu: 256m
