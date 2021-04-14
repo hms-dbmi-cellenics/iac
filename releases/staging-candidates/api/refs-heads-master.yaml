@@ -32,12 +32,14 @@ spec:
     resources:
       requests:
         cpu: "100m"
-    # hpa:
-    #   enabled: true
-    #   minReplicas: 1
-    #   maxReplicas: 10
-    #   targetCPUUtilizationPercentage: 80
-
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 80
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
     kubernetes:
       env: staging
     biomageCi:
@@ -46,7 +48,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-f87450f58e7e81b494c85c5f1458af81d76f2530
+      tag: refs-heads-master-689dd8f4d40e4a61383315d1d9f868dda499ba0e
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 

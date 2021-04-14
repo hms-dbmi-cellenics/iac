@@ -14,7 +14,7 @@ metadata:
     sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-pull-198-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-205-merge-*
 spec:
   releaseName: ui
   chart:
@@ -30,5 +30,5 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-198-merge-4790d15574f07f5561aca1ee03796fcb0dd3395a
+      tag: refs-pull-205-merge-d5bcbc484f303cef39fe4d18b2d7160e4f25c64e
   # filled in by CI. do not modify.
