@@ -10,7 +10,6 @@ const validateRequest = require('../../utils/schema-validator');
 const handleWorkRequest = async (workRequest, socket) => {
   const { uuid, pagination } = workRequest;
 
-
   try {
     logger.log(`Trying to fetch response to request ${uuid} from cache...`);
     const cachedResponse = await cacheGetRequest(workRequest);
