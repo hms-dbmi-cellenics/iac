@@ -37,5 +37,9 @@ spec:
       minReplicas: 1
       maxReplicas: 10
       targetCPUUtilizationPercentage: 80
+    
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
 
     # filled in by CI. do not modify.
