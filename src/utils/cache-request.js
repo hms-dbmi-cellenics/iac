@@ -16,6 +16,7 @@ const cacheGetRequest = async (
     experimentId: data.experimentId,
     body: data.body,
     sandboxId,
+    PipelineRunETag: data.PipelineRunETag,
   });
 
   logger.log(`Looking up data in cache under key ${key}`);
