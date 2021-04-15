@@ -131,7 +131,7 @@ describe('handleWorkRequest', () => {
 
   it('Triggers pagination when pagination is specified and result is cached already.', async () => {
     CacheSingleton.createMock({
-      '71d05443e350f1a9633f8c1cc5282b56': { // pragma: allowlist secret
+      '4029461266b19b22d8753895e51c1a8a': { // pragma: allowlist secret
         results: [
           {
             body: JSON.stringify({

@@ -2,7 +2,7 @@ const config = require('../../../../config');
 
 const constructDeleteCompletedJobs = (context, step) => {
   const {
-    accountId,
+    accountId, experimentId,
   } = context;
 
   if (config.clusterEnv === 'development') {
@@ -31,6 +31,8 @@ const constructDeleteCompletedJobs = (context, step) => {
       QueryParameters: {
         labelSelector: [
           'type=pipeline',
+          `sandboxId=${config.sandboxId}`,
+          `experimentId=${experimentId}`,
         ],
       },
     },

@@ -165,6 +165,8 @@ Array [
             "QueryParameters": Object {
               "labelSelector": Array [
                 "type=pipeline",
+                "sandboxId=undefined",
+                "experimentId=testExperimentId",
               ],
             },
           },
@@ -241,6 +243,7 @@ Array [
                   "fluxcd.io/automated": "true",
                 },
                 "labels": Object {
+                  "experimentId": "testExperimentId",
                   "type": "pipeline",
                 },
                 "name": "pipeline-testExperimentId",
