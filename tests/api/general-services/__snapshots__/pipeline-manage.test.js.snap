@@ -164,9 +164,7 @@ Array [
             "Path": "/apis/helm.fluxcd.io/v1/namespaces/pipeline-test-namespace/helmreleases",
             "QueryParameters": Object {
               "labelSelector": Array [
-                "type=pipeline",
-                "sandboxId=undefined",
-                "experimentId=testExperimentId",
+                "type=pipeline,sandboxId=undefined,experimentId=testExperimentId",
               ],
             },
           },

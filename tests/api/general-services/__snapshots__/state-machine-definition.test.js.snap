@@ -220,9 +220,7 @@ exports[`non-tests to document the State Machines -cloud 1`] = `
         "Path": "/apis/helm.fluxcd.io/v1/namespaces/pipeline-test-namespace/helmreleases",
         "QueryParameters": {
           "labelSelector": [
-            "type=pipeline",
-            "sandboxId=undefined",
-            "experimentId=mock-experiment-id"
+            "type=pipeline,sandboxId=undefined,experimentId=mock-experiment-id"
           ]
         }
       }
