@@ -30,9 +30,7 @@ const constructDeleteCompletedJobs = (context, step) => {
       Path: `/apis/helm.fluxcd.io/v1/namespaces/${config.pipelineNamespace}/helmreleases`,
       QueryParameters: {
         labelSelector: [
-          'type=pipeline',
-          `sandboxId=${config.sandboxId}`,
-          `experimentId=${experimentId}`,
+          `type=pipeline,sandboxId=${config.sandboxId},experimentId=${experimentId}`,
         ],
       },
     },
