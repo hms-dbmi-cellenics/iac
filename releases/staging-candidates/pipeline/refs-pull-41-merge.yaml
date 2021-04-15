@@ -25,6 +25,6 @@ spec:
     ref: STAGING_CHART_REF
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-41-merge-6056e58dff2adcce739f14dc5159dd47c75df313-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-41-merge-34c9930817c0dbf859c325179503866f9e3add3b-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
