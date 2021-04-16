@@ -76,7 +76,7 @@ Resources:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}"
-        - PolicyName: !Sub "can-download-objects-from-result-buckets-${Environment}"
+        - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -85,7 +85,16 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
+        - PolicyName: !Sub "can-upload-cell-sets-in-s3-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:PutObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
