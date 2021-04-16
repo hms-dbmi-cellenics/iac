@@ -56,6 +56,15 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::*-${Environment}/*"
 
+        - PolicyName: !Sub "can-list-${Environment}-s3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 's3:ListBucket'
+                Resource:
+                  - !Sub "arn:aws:s3:::*-${Environment}"
+
         - PolicyName: !Sub "can-manage-${Environment}-sns"
           PolicyDocument:
             Version: "2012-10-17"
