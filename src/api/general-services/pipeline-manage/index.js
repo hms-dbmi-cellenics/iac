@@ -103,7 +103,7 @@ const createNewStateMachine = async (context, stateMachine) => {
      * previous state machine `definition` [...].
      *
      */
-    await asyncTimer(1500);
+    await asyncTimer(3500);
   }
 
   return stateMachineArn;
