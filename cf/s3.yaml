@@ -21,6 +21,16 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+  
+  CellSetsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "cell-sets-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
 
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
