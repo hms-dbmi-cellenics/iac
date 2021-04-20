@@ -192,6 +192,9 @@ Resources:
     Properties:
       ClientName: !Sub "biomage-cellscope-cluster-${Environment}"
       UserPoolId: !Ref UserPool
+      CallbackURLs:
+        - !If [isProd, "https://scp.biomage.net/data-management",
+          !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
       AllowedOAuthFlows:
         - 'code'
       AllowedOAuthScopes:
@@ -220,6 +223,8 @@ Resources:
         - 'openid'
         - 'aws.cognito.signin.user.admin'
         - 'profile'
+      CallbackURLs:
+        - "http://localhost:5000/data-management"
       DefaultRedirectURI: "http://localhost:5000/data-management"
       LogoutURLs:
         - "http://localhost:5000/data-management"
