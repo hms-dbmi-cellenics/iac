@@ -11,6 +11,9 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
 Resources:
   FileUploadIdentityPool:
     Type: AWS::Cognito::IdentityPool
@@ -182,26 +185,39 @@ Resources:
       UsernameConfiguration:
         CaseSensitive: true
 
-  UserPoolClient:
+  UserPoolClientCluster:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: !Sub "biomage-cellscope-web-${Environment}"
+      ClientName: !Sub "biomage-cellscope-cluster-${Environment}"
       UserPoolId: !Ref UserPool
-      AccessTokenValidity: 1
-      IdTokenValidity: 1
-      RefreshTokenValidity: 30
-      ExplicitAuthFlows: 
-        - ALLOW_USER_SRP_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-      GenerateSecret: false
-      PreventUserExistenceErrors: ENABLED
-      ReadAttributes:
-        - name
-        - email
-        - custom:institution
-      SupportedIdentityProviders:
-        - COGNITO
-      WriteAttributes:
-        - name
-        - email
-        - custom:institution
+      AllowedOAuthFlows:
+        - 'code'
+      AllowedOAuthScopes:
+        - 'phone'
+        - 'email'
+        - 'openid'
+        - 'aws.cognito.signin.user.admin'
+        - 'profile'
+      DefaultRedirectURI: !If [isProd, "https://scp.biomage.net/data-management",
+        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]]
+      LogoutURLs:
+        - !If [isProd, "https://scp.biomage.net/data-management",
+        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]]
+
+
+  UserPoolClientLocal:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "biomage-cellscope-local-${Environment}"
+      UserPoolId: !Ref UserPool
+      AllowedOAuthFlows:
+        - 'code'
+      AllowedOAuthScopes:
+        - 'phone'
+        - 'email'
+        - 'openid'
+        - 'aws.cognito.signin.user.admin'
+        - 'profile'
+      DefaultRedirectURI: "http://localhost:5000/data-management"
+      LogoutURLs:
+        - "http://localhost:5000/data-management"
