@@ -191,6 +191,7 @@ Resources:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       ClientName: !Sub "biomage-cellscope-cluster-${Environment}"
+      AllowedOAuthFlowsUserPoolClient: true
       UserPoolId: !Ref UserPool
       CallbackURLs:
         - !If [isProd, "https://scp.biomage.net/data-management",
@@ -208,13 +209,21 @@ Resources:
       LogoutURLs:
         - !If [isProd, "https://scp.biomage.net/data-management",
         !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
+      SupportedIdentityProviders:
+        - COGNITO
 
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+      UserPoolId: !Ref UserPool 
+      Domain: !Sub "biomage-${Environment}"
 
   UserPoolClientLocal:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       ClientName: !Sub "biomage-cellscope-local-${Environment}"
       UserPoolId: !Ref UserPool
+      AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
         - 'code'
       AllowedOAuthScopes:
@@ -228,3 +237,5 @@ Resources:
       DefaultRedirectURI: "http://localhost:5000/data-management"
       LogoutURLs:
         - "http://localhost:5000/data-management"
+      SupportedIdentityProviders:
+        - COGNITO
