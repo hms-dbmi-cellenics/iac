@@ -199,10 +199,10 @@ Resources:
         - 'aws.cognito.signin.user.admin'
         - 'profile'
       DefaultRedirectURI: !If [isProd, "https://scp.biomage.net/data-management",
-        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]]
+        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
       LogoutURLs:
         - !If [isProd, "https://scp.biomage.net/data-management",
-        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]]
+        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
 
 
   UserPoolClientLocal:
