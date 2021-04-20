@@ -21,7 +21,9 @@ Resources:
       IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}"
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
-        - ClientId: !Ref UserPoolClient
+        - ClientId: !Ref UserPoolClientLocal
+          ProviderName: !GetAtt UserPool.ProviderName
+        - ClientId: !Ref UserPoolClientCluster
           ProviderName: !GetAtt UserPool.ProviderName
 
   UIRole:
