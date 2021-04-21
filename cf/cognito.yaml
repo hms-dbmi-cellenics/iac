@@ -195,7 +195,7 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
       UserPoolId: !Ref UserPool 
-      Domain: !Sub "biomage-${Environment}"
+      Domain: !If [isProd, "biomage", !Sub "biomage-${Environment}"]
 
   UserPoolClientLocal:
     Type: AWS::Cognito::UserPoolClient
