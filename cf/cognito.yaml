@@ -24,6 +24,11 @@ Outputs:
     Value: !GetAtt UserPool.ProviderName
     Export:
       Name: !Sub 'cognito-${Environment}::UserPoolProviderName'
+  UIRoleArn:
+    Description: Address to use to connect to Primary Cluster endpoint
+    Value: !GetAtt UIRole.Arn
+    Export:
+      Name: !Sub 'cognito-${Environment}::UIRoleArn'
 
 
 Resources:  
