@@ -16,20 +16,17 @@ Conditions:
 
 Outputs:
   UserPoolId:
-    Description: Address to use to connect to Primary Cluster endpoint
     Value: !Ref UserPool
     Export:
       Name: !Sub 'cognito-${Environment}::UserPoolId'
+  UserPoolProviderName:
+    Description: Address to use to connect to Primary Cluster endpoint
+    Value: !GetAtt UserPool.ProviderName
+    Export:
+      Name: !Sub 'cognito-${Environment}::UserPoolProviderName'
 
-Resources:
-  FileUploadIdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties:
-      IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}"
-      AllowUnauthenticatedIdentities: false
-      CognitoIdentityProviders:
-        - ProviderName: !GetAtt UserPool.ProviderName
 
+Resources:  
   UIRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -88,20 +85,6 @@ Resources:
                   - "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}"
-
-  # TODO: this will have to be refactored once authentication is done.
-  # this will have to work with attribute-based access control or role-based
-  # access control so we can limit the user to only upload to certain folders
-  # on S3 depending on their instutiton/name/etc.
-  #
-  # see https://docs.aws.amazon.com/cognito/latest/developerguide/attributes-for-access-control.html
-  # and https://docs.aws.amazon.com/cognito/latest/developerguide/role-based-access-control.html
-  FileUploadIdentityPoolRoleAttachment:
-    Type: AWS::Cognito::IdentityPoolRoleAttachment
-    Properties:
-      IdentityPoolId: !Ref FileUploadIdentityPool
-      Roles:
-        "authenticated": !GetAtt UIRole.Arn
 
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -195,7 +178,7 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
       UserPoolId: !Ref UserPool 
-      Domain: !If [isProd, "biomage", !Sub "biomage-${Environment}"]
+      Domain: !If [isProd, "biomage",!Sub "biomage-${Environment}"]
 
   UserPoolClientLocal:
     Type: AWS::Cognito::UserPoolClient
