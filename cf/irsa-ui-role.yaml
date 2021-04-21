@@ -53,3 +53,4 @@ Resources:
                   - "cognito-idp:DescribeUserPool"
                   - "cognito-idp:DescribeUserPoolClient"
                 Resource: '*'
+
