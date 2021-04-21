@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up SNS topics for Biomage SCP [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - staging
+      - production
+    Description: The environment for which the SNS topic needs to be created.
+  SandboxID:
+    Type: String
+    Default: develop
+    Description: The sandbox ID of the environment that this topic is created for.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
+Resources:
+  UserPoolClientCluster:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "biomage-cellscope-cluster-${SandboxID}"
+      AllowedOAuthFlowsUserPoolClient: true
+      UserPoolId:
+        Fn::ImportValue: !Sub "cognito-${Environment}::UserPoolId"
+      CallbackURLs:
+        - !If [isProd, "https://scp.biomage.net/data-management",
+          !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
+      AllowedOAuthFlows:
+        - 'code'
+      AllowedOAuthScopes:
+        - 'phone'
+        - 'email'
+        - 'openid'
+        - 'aws.cognito.signin.user.admin'
+        - 'profile'
+      DefaultRedirectURI: !If [isProd, "https://scp.biomage.net/data-management",
+        !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
+      LogoutURLs:
+        - !If [isProd, "https://scp.biomage.net/data-management",
+        !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
+      SupportedIdentityProviders:
+        - COGNITO
+
+  FileUploadIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}-${SandboxID}"
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:          
+        - ClientId: !Ref UserPoolClientCluster
+          ProviderName:
+            Fn::ImportValue: !Sub "cognito-${Environment}::UserPoolProviderName"
+
+  # TODO: this will have to be refactored once authentication is done.
+  # this will have to work with attribute-based access control or role-based
+  # access control so we can limit the user to only upload to certain folders
+  # on S3 depending on their instutiton/name/etc.
+  #
+  # see https://docs.aws.amazon.com/cognito/latest/developerguide/attributes-for-access-control.html
+  # and https://docs.aws.amazon.com/cognito/latest/developerguide/role-based-access-control.html
+  FileUploadIdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref FileUploadIdentityPool
+      Roles:
+        "authenticated": !GetAtt UIRole.Arn
