@@ -49,4 +49,7 @@ Resources:
                 Action:
                   - "cognito-identity:ListIdentityPools"
                   - "cognito-idp:ListUserPools"
+                  - "cognito-idp:ListUserPoolClients"
+                  - "cognito-idp:DescribeUserPool"
+                  - "cognito-idp:DescribeUserPoolClient"
                 Resource: '*'
