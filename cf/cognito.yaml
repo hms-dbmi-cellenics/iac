@@ -14,6 +14,13 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
+Outputs:
+  UserPoolId:
+    Description: Address to use to connect to Primary Cluster endpoint
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub 'cognito-${Environment}::UserPoolId'
+
 Resources:
   FileUploadIdentityPool:
     Type: AWS::Cognito::IdentityPool
@@ -21,10 +28,7 @@ Resources:
       IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}"
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
-        - ClientId: !Ref UserPoolClientLocal
-          ProviderName: !GetAtt UserPool.ProviderName
-        - ClientId: !Ref UserPoolClientCluster
-          ProviderName: !GetAtt UserPool.ProviderName
+        - ProviderName: !GetAtt UserPool.ProviderName
 
   UIRole:
     Type: "AWS::IAM::Role"
@@ -186,31 +190,6 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: true
-
-  UserPoolClientCluster:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: !Sub "biomage-cellscope-cluster-${Environment}"
-      AllowedOAuthFlowsUserPoolClient: true
-      UserPoolId: !Ref UserPool
-      CallbackURLs:
-        - !If [isProd, "https://scp.biomage.net/data-management",
-          !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
-      AllowedOAuthFlows:
-        - 'code'
-      AllowedOAuthScopes:
-        - 'phone'
-        - 'email'
-        - 'openid'
-        - 'aws.cognito.signin.user.admin'
-        - 'profile'
-      DefaultRedirectURI: !If [isProd, "https://scp.biomage.net/data-management",
-        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
-      LogoutURLs:
-        - !If [isProd, "https://scp.biomage.net/data-management",
-        !Sub "https://ui-marcellp-ui200.scp-${Environment}.biomage.net/data-management"]
-      SupportedIdentityProviders:
-        - COGNITO
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
