@@ -8,6 +8,7 @@ Parameters:
     AllowedValues:
       - staging
       - production
+      - development
     Description: The environment for which the SNS topic needs to be created.
   SandboxID:
     Type: String
@@ -66,4 +67,5 @@ Resources:
     Properties:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
-        "authenticated": !GetAtt UIRole.Arn
+        "authenticated":
+          Fn::ImportValue: !Sub "cognito-${Environment}::UIRoleArn"
