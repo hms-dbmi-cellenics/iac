@@ -14,7 +14,7 @@ metadata:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/qc-runner: glob:refs-pull-39-merge-*-qc-runner
+    filter.fluxcd.io/qc-runner: glob:refs-pull-43-merge-*-qc-runner
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -25,6 +25,6 @@ spec:
     ref: STAGING_CHART_REF
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-39-merge-171e9f69a1619100fee9b5c65ea85c2542d4e689-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-43-merge-4f25d1cbd39a12f0ebfc0158f4ad97e9c260c848-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
