@@ -83,18 +83,32 @@ jobs:
         name: Set name of the CloudFormation stack for SNS topic
         run: |-
           BASE_NAME=biomage-sns-staging-$SANDBOX_ID
-          echo "::set-output name=stack-name::$BASE_NAME"
+          echo "::set-output name=sns-name::$BASE_NAME"
+
+          BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
+          echo "::set-output name=cognito-name::$BASE_NAME"
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
       
-      - id: deploy-template
+      - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.stack-name }}
+          name: ${{ steps.set-name.outputs.sns-name }}
           template: cf/sns.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: deploy-template-cognito
+        name: Deploy CloudFormation stack for Cognito pool clients
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.cognito-name }}
+          template: cf/userpoolclient.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
