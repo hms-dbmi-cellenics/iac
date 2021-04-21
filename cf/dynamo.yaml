@@ -34,9 +34,9 @@ Resources:
           AttributeType: "S"
       KeySchema:
         - AttributeName: "plotUuid"
-          KeyType: "HASH"
-        - AttributeName: "experimentId"
           KeyType: "RANGE"
+        - AttributeName: "experimentId"
+          KeyType: "HASH"
       BillingMode: "PAY_PER_REQUEST"
   SamplesTable:
     Type: AWS::DynamoDB::Table
