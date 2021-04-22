@@ -112,3 +112,12 @@ Resources:
                   - "states:DescribeExecution"
                   - "states:GetExecutionHistory"
                 Resource: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*"
+
+        - PolicyName: !Sub "can-create-${Environment}-cognito-environments"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:PassRole"
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
