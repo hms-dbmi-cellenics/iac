@@ -101,28 +101,6 @@ jobs:
       #    no-fail-on-empty-changeset: "1"
       #    capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      - id: wait-for-api
-        name: Wait for the API to be responsive
-        run: |-
-          URL=https://api-${SANDBOX_ID}.scp-staging.biomage.net/v1/health
-          until curl --fail --silent ${URL}; do
-            printf '.'
-            sleep 5
-          done
-        env:
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-      
-      - id: deploy-template-sns
-        name: Deploy CloudFormation stack for SNS topic
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
-        with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.sns-name }}
-          template: cf/sns.yaml
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
@@ -149,3 +127,26 @@ jobs:
           repo: iac
           enforce_admins: true
           retries: 8
+
+      - id: wait-for-api
+        name: Wait for the API to be responsive
+        run: |-
+          URL=https://api-${SANDBOX_ID}.scp-staging.biomage.net/v1/health
+          until curl --fail --silent ${URL}; do
+            printf '.'
+            sleep 5
+          done
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+      
+      - id: deploy-template-sns
+        name: Deploy CloudFormation stack for SNS topic
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.sns-name }}
+          template: cf/sns.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
