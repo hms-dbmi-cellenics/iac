@@ -19,9 +19,12 @@ spec:
         - name: config-volume
           configMap:
             name: "xray-config"
+      securityContext:
+        fsGroup: 2000
+        runAsUser: 2000
       containers:
         - name: xray-daemon
-          image: amazon/aws-xray-daemon
+          image: amazon/aws-xray-daemon:3.3.1
           command: ["/xray", "-c", "/aws/xray/config.yaml"]
           resources:
             requests:
