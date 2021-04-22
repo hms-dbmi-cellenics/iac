@@ -179,6 +179,29 @@ jobs:
         run: |-
           sudo snap install helm --classic
 
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+
+      - id: deploy-load-balancer-role
+        name: Deploy permissions for AWS load balancer controller
+        run: |-
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.1.2/docs/install/iam_policy.json
+
+          aws iam create-policy \
+            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --policy-document file://iam-policy.json || true
+          
+          eksctl create iamserviceaccount \
+            --cluster=biomage-$CLUSTER_ENV \
+            --namespace=kube-system \
+            --name=aws-load-balancer-controller \
+            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --override-existing-serviceaccounts \
+            --approve
+
       - id: install-lbc
         name: Deploy AWS Load Balancer Controller
         run: |-
@@ -323,29 +346,6 @@ jobs:
         run: |-
           helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
             --install --wait
-
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-
-      - id: deploy-load-balancer-role
-        name: Deploy permissions for AWS load balancer controller
-        run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.1.2/docs/install/iam_policy.json
-
-          aws iam create-policy \
-            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --policy-document file://iam-policy.json || true
-          
-          eksctl create iamserviceaccount \
-            --cluster=biomage-$CLUSTER_ENV \
-            --namespace=kube-system \
-            --name=aws-load-balancer-controller \
-            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --override-existing-serviceaccounts \
-            --approve
 
       - id: deploy-state-machine-role
         name: Deploy AWS Step Function (state machine) roles
