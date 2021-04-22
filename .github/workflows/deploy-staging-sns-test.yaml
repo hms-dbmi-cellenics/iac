@@ -90,16 +90,16 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
       
-      #- id: deploy-template-cognito
-      #  name: Deploy CloudFormation stack for Cognito pool clients
-      #  uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #  if: ${{ github.ref == 'refs/heads/master' }}
-      #  with:
-      #    parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-      #    name: ${{ steps.set-name.outputs.cognito-name }}
-      #    template: cf/userpoolclient.yaml
-      #    no-fail-on-empty-changeset: "1"
-      #    capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+      - id: deploy-template-cognito
+        name: Deploy CloudFormation stack for Cognito pool clients
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.cognito-name }}
+          template: cf/userpoolclient.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
@@ -149,4 +149,3 @@ jobs:
           template: cf/sns.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
