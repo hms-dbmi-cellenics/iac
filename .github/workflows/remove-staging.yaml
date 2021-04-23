@@ -118,7 +118,7 @@ jobs:
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+          commit_message: Remove staging environment ${{ github.event.inputs.sandbox-id }}
       
       - id: on-failure-retry
         if: failure()
