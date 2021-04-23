@@ -34,15 +34,14 @@ Resources:
                 !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/workResults"]]
       Protocol: "https"
       DeliveryPolicy:
-        http:
-          healthyRetryPolicy:
-            minDelayTarget: 10
-            maxDelayTarget: 30
-            numRetries: 56
-            numNoDelayRetries: 0
-            numMinDelayRetries: 2
-            numMaxDelayRetries: 16
-            backoffFunction: exponential
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 30
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
       FilterPolicy:
         type:
           - WorkResponse
@@ -55,15 +54,14 @@ Resources:
                 !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/pipelineResults"]]
       Protocol: "https"
       DeliveryPolicy:
-        http:
-          healthyRetryPolicy:
-            minDelayTarget: 10
-            maxDelayTarget: 30
-            numRetries: 56
-            numNoDelayRetries: 0
-            numMinDelayRetries: 2
-            numMaxDelayRetries: 16
-            backoffFunction: exponential
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 30
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
       FilterPolicy:
         type:
           - PipelineResponse
