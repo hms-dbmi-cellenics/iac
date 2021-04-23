@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-worker110
-  name: ui-agi-worker110
+    sandboxId: testing-worker-110
+  name: ui-testing-worker-110
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -12,32 +12,34 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-worker110
+    sandboxId: testing-worker-110
   name: ui
-  namespace: ui-agi-worker110
+  namespace: ui-testing-worker-110
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 9c5668f1ee8ccf2c0ce375975ef40d178e5f2ac5
+    ref: 7d4d1129fdc6a485950d233a702720e99783fcde
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: agi-worker110
+      sandboxId: testing-worker-110
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-5cbaba643d89c218eda2e5a2735ab94230010aea
+      tag: refs-heads-master-9ee371e53cbe6c2877a2569ee3b6530ca6c81084
     kubernetes:
       env: staging
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-worker110
-  name: api-agi-worker110
+    sandboxId: testing-worker-110
+  name: api-testing-worker-110
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -46,19 +48,19 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-worker110
+    sandboxId: testing-worker-110
   name: api
-  namespace: api-agi-worker110
+  namespace: api-testing-worker-110
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 9c5668f1ee8ccf2c0ce375975ef40d178e5f2ac5
+    ref: 7d4d1129fdc6a485950d233a702720e99783fcde
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: agi-worker110
+      sandboxId: testing-worker-110
     hpa:
       enabled: true
       maxReplicas: 10
@@ -90,8 +92,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-worker110
-  name: worker-agi-worker110
+    sandboxId: testing-worker-110
+  name: worker-testing-worker-110
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -101,9 +103,9 @@ metadata:
     filter.fluxcd.io/r: glob:refs-pull-110-merge-*-r
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: agi-worker110
+    sandboxId: testing-worker-110
   name: worker
-  namespace: worker-agi-worker110
+  namespace: worker-testing-worker-110
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
@@ -115,7 +117,7 @@ spec:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-110-merge-2304808cef8604968ac62d4bd546c61734967dd9-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-110-merge-2304808cef8604968ac62d4bd546c61734967dd9-r
-    sandboxId: agi-worker110
+    sandboxId: testing-worker-110
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -123,8 +125,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-worker110
-  name: pipeline-agi-worker110
+    sandboxId: testing-worker-110
+  name: pipeline-testing-worker-110
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -135,9 +137,9 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-worker110
+    sandboxId: testing-worker-110
   name: pipeline
-  namespace: pipeline-agi-worker110
+  namespace: pipeline-testing-worker-110
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
