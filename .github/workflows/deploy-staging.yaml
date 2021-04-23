@@ -122,16 +122,15 @@ jobs:
           enforce_admins: false
           retries: 8
 
-      # - id: pull
-      #   name: Pull and allow unrelated histories.
-      #   run: |-
-      #     git pull --allow-unrelated-histories
+      - id: pull
+        name: Pull and allow unrelated histories.
+        run: |-
+          git pull --allow-unrelated-histories
 
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
-          push_options: --force
       
       - id: on-failure-retry
         if: failure()

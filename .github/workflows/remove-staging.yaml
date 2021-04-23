@@ -110,10 +110,27 @@ jobs:
           enforce_admins: false
           retries: 8
 
+      - id: pull
+        name: Pull and allow unrelated histories.
+        run: |-
+          git pull --allow-unrelated-histories
+
       - id: push-deployment
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Remove staging environment ${{ github.event.inputs.sandbox-id }}
+          commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+      
+      - id: on-failure-retry
+        if: failure()
+        name: Retry in case push failed.
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 30
+          max_attempts: 5
+          retry_on: error
+          command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
+          # Add jitter to break up correlated events.
+          on_retry_command: sleep $[($RANDOM % 10) + 5]s
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
