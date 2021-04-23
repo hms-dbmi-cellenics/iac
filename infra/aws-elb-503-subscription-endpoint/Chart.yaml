@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Return a 503 error message for pending SNS subscription endpoints.
+name: aws-elb-503-subscription-endpoint
+version: 1.0.0

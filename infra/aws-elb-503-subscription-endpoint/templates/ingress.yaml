@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: default
+  name: 503-for-pending-subscriptions
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: >-
+      arn:aws:acm:eu-west-1:242905224710:certificate/de2efba9-8964-49d2-8525-242e7e43ca4c
+    alb.ingress.kubernetes.io/group.name: "{{ .Values.clusterEnv }}"
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.order: '1000'
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/actions.response-503: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"503","messageBody":"The subscription endpoint is not available yet."}}
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /v1/workResults
+            backend:
+              serviceName: response-503
+              servicePort: use-annotation
+          - path: /v1/pipelineResults
+            backend:
+              serviceName: response-503
+              servicePort: use-annotation

@@ -1,4 +1,0 @@
-apiVersion: v1
-description: Biomage cert-manager Let's Encrypt staging and production certificate issuer
-name: biomage-cert-issuers
-version: 1.0.0

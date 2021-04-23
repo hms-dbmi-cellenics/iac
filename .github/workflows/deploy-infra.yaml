@@ -207,13 +207,19 @@ jobs:
         run: |-
           helm repo add eks https://aws.github.io/eks-charts
           kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+
           helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
             --namespace kube-system \
             --set serviceAccount.create=false \
             --set serviceAccount.name=aws-load-balancer-controller \
             --set clusterName=biomage-$CLUSTER_ENV \
             --install --wait
-      
+
+          helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+            --namespace default \
+            --set clusterEnv=$CLUSTER_ENV \
+            --install --wait
+
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
