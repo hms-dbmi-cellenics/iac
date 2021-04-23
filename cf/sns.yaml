@@ -36,11 +36,11 @@ Resources:
       DeliveryPolicy:
         healthyRetryPolicy:
           minDelayTarget: 10
-          maxDelayTarget: 30
-          numRetries: 50
+          maxDelayTarget: 60
+          numRetries: 56
           numNoDelayRetries: 0
           numMinDelayRetries: 2
-          numMaxDelayRetries: 10
+          numMaxDelayRetries: 16
           backoffFunction: exponential
       FilterPolicy:
         type:
@@ -56,11 +56,11 @@ Resources:
       DeliveryPolicy:
         healthyRetryPolicy:
           minDelayTarget: 10
-          maxDelayTarget: 30
-          numRetries: 50
+          maxDelayTarget: 60
+          numRetries: 56
           numNoDelayRetries: 0
           numMinDelayRetries: 2
-          numMaxDelayRetries: 10
+          numMaxDelayRetries: 16
           backoffFunction: exponential
       FilterPolicy:
         type:
