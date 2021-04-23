@@ -63,6 +63,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
