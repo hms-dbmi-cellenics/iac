@@ -141,7 +141,7 @@ jobs:
           timeout_seconds: 30
           max_attempts: 5
           retry_on: error
-          command: git pull -c user.name="GitHub Actions" --allow-unrelated-histories --no-edit && git commit  -c user.name="GitHub Actions" --amend -m "Deploy staging environment ${{ github.event.inputs.sandbox-id }}" && git push origin master
+          command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
           # Add jitter to break up correlated events.
           on_retry_command: sleep $[($RANDOM % 10) + 5]s
 
