@@ -115,9 +115,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-f4dcb7e03df6b15f0c0e5f9bde58a6344a30efa0-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-399eb59110f0e7c248b7a198dcaae0dfd60323e7-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-f4dcb7e03df6b15f0c0e5f9bde58a6344a30efa0-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-399eb59110f0e7c248b7a198dcaae0dfd60323e7-r
     sandboxId: martinfosco-api95-111
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
