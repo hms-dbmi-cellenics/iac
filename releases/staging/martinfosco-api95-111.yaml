@@ -115,7 +115,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-399eb59110f0e7c248b7a198dcaae0dfd60323e7-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-9c7dc4a5228d6e2006832a1f3df6bf5b65160d18-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-111-merge-399eb59110f0e7c248b7a198dcaae0dfd60323e7-r
     sandboxId: martinfosco-api95-111
