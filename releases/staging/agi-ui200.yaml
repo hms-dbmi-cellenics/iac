@@ -10,7 +10,7 @@ kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/chart-image: glob:refs-pull-200-merge-*
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
     sandboxId: agi-ui200
   name: ui
@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: fef791e549f6c8c2d2055b35966d4dba9c2ded32
+    ref: master
   releaseName: ui
   values:
     biomageCi:
