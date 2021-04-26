@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 879b7bfa0b8cc5e1ca412231328ea0f0d03d4e0b
+    ref: 0135e0b392a7f6e58c8b9fdaaa2a816095cd73a9
   releaseName: ui
   values:
     biomageCi:
@@ -28,7 +28,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-9ee371e53cbe6c2877a2569ee3b6530ca6c81084
+      tag: refs-heads-master-57d9e8df13e877690e49f9ac06b4598651efb1aa
     kubernetes:
       env: staging
     serviceAccount:
@@ -55,7 +55,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 879b7bfa0b8cc5e1ca412231328ea0f0d03d4e0b
+    ref: 0135e0b392a7f6e58c8b9fdaaa2a816095cd73a9
   releaseName: api
   values:
     biomageCi:
@@ -110,13 +110,13 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 01de7e798387dba4ef49a01f7a4515dce9f3df0a
+    ref: 13dc0b33c9a8c5593a765b2a15afe371ecee857c
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-01de7e798387dba4ef49a01f7a4515dce9f3df0a-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-d3457581ea9d22e4f0db9559bc7b33e447cb2cb9-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-01de7e798387dba4ef49a01f7a4515dce9f3df0a-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-d3457581ea9d22e4f0db9559bc7b33e447cb2cb9-r
     sandboxId: oliver-pipeline43
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
