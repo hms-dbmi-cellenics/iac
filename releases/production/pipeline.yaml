@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -23,9 +22,9 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 4e8b601becd674f30aef6ffd91f2b543d6d2969d
+    ref: f16af3c3104d10c0d199e65482cca1c69daed3a0
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-03a9eb29d47ce6bbbc93c1960944f71c9714cb43-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-f16af3c3104d10c0d199e65482cca1c69daed3a0-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-production
