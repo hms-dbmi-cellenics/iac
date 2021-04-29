@@ -25,12 +25,12 @@ iam:
       - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
 nodeGroups:
-  - name: prod-ready-nodegroup-1
+  - name: prod-ready-nodegroup-2
     instanceType: r5.4xlarge
     desiredCapacity: 1
     minSize: 1
     maxSize: 4
-    volumeSize: 40
+    volumeSize: 80
     iam:
       withAddonPolicies:
         ebs: true
