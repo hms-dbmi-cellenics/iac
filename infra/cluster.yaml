@@ -30,7 +30,7 @@ nodeGroups:
     desiredCapacity: 1
     minSize: 1
     maxSize: 4
-    volumeSize: 40
+    volumeSize: 80
     iam:
       withAddonPolicies:
         ebs: true
