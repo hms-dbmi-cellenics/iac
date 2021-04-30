@@ -12,7 +12,7 @@ Parameters:
     Description: The environment for which the SNS topic needs to be created.
   SandboxID:
     Type: String
-    Default: develop
+    Default: default
     Description: The sandbox ID of the environment that this topic is created for.
 
 Conditions:
