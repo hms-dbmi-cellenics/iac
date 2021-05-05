@@ -1,0 +1,183 @@
+name: Create a new release for biomage
+on: 
+  workflow_dispatch:
+    inputs:
+      ui_release:
+        description: 'Release type for UI (default auto will create minor release if there are changes)'
+        required: true
+      secrets:
+        description: 'Encrypted secrets to use for this task'
+        required: true
+      # ui_release:
+      #   description: 'Release type for UI (default auto will create minor release if there are changes)'
+      #   required: false
+      #   default: auto
+      #   allow_values:
+      #   - major
+      #   - minor
+      #   - patch
+      #   - auto
+
+jobs:
+  deploy-staging:
+    name: Deploy staging environment
+    runs-on: ubuntu-latest
+    steps:
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      
+      - id: install-aws-cli
+        name: Install AWS CLI
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 2
+      
+      - id: decrypt-secrets
+        name: Decrypt credentials from user.
+        run: |-
+            SECRETS="$(aws kms decrypt \
+              --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-secret-key \
+              --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
+              --output text --query Plaintext)"
+            
+            DEPLOYMENT_AWS_ACCESS_KEY_ID="$(echo $SECRETS | base64 --decode | jq -r '.access_key')"
+            DEPLOYMENT_AWS_SECRET_ACCESS_KEY="$(echo $SECRETS | base64 --decode | jq -r '.secret_key')"
+            DEPLOYMENT_GITHUB_API_TOKEN="$(echo $SECRETS | base64 --decode | jq -r '.github_api_token')"
+
+            echo "::add-mask::$SECRETS"
+            
+            echo "::add-mask::$DEPLOYMENT_AWS_ACCESS_KEY_ID"
+            echo "::add-mask::$DEPLOYMENT_AWS_SECRET_ACCESS_KEY"
+            echo "::add-mask::$DEPLOYMENT_GITHUB_API_TOKEN"
+
+            echo "::set-output name=aws-access-key::$DEPLOYMENT_AWS_ACCESS_KEY_ID"
+            echo "::set-output name=aws-secret-access-key::$DEPLOYMENT_AWS_SECRET_ACCESS_KEY"
+            echo "::set-output name=github-api-token::$DEPLOYMENT_GITHUB_API_TOKEN"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CIPHERTEXT: ${{ github.event.inputs.secrets }}
+
+      - id: setup-aws-submitted
+        name: Configure AWS credentials with submitted details
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ steps.decrypt-secrets.outputs.aws-access-key }}
+          aws-secret-access-key: ${{ steps.decrypt-secrets.outputs.aws-secret-access-key }}
+          aws-region: eu-west-1
+
+      - id: checkout-ui
+        name: Checkout UI repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          repository: biomage-ltd/ui
+          ref: develop
+          path: ui
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+
+      # - id: checkout-api
+      #   name: Checkout API repo
+      #   uses: actions/checkout@v2
+      #   with:
+      #     fetch-depth: 0
+      #     repository: biomage-ltd/api
+      #     ref: develop
+      #     path: api
+      #     token: ${{ secrets.API_TOKEN_GITHUB }}
+
+
+      - id: disable-admin-enforcement
+        name: Temporarily disable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: false
+          retries: 8
+
+      - id: create-release
+        name: Create the new release.
+        strategy:
+          matrix:
+            repo: ["ui"]
+        run: |-
+            cd ${REPO}
+            # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
+            if [ "$(git diff ${RELEASE_BRANCH}..develop)" = "" ]; then
+              echo " [ERROR] * No changes detected between ${RELEASE_BRANCH} and develop, aborting release."
+              exit 1
+            else
+              echo " * Found changes between ${RELEASE_BRANCH} and develop. Commits found: "
+              echo "$(git log --pretty=format:%s ${RELEASE_BRANCH}..develop | xargs -I % sh -c 'echo "\t- %";' )"
+              echo ""
+            fi
+
+            echo "==> Creating release ${RELASE} from $(git branch --show-current) branch"
+            git config --local "gitflow.branch.release/${RELEASE}.base" develop
+            git checkout -b "release/${RELEASE}" develop
+            # equivalent in git flow: git flow release start ${RELEASE} --showcommands
+            # not used because it requires manual tweaking for release finish
+            echo ""
+
+            echo "==> Adding changes and committing"
+            git add chart/Chart.yaml chart/values.yaml
+            git commit -m "Updated chart to version ${RELEASE}."
+
+            git checkout ${RELEASE_BRANCH}
+            git merge --no-edit --no-ff "release/${RELEASE}"
+            git checkout ${RELEASE_BRANCH}
+            git tag -a "${RELEASE}" -m ''
+
+            git checkout develop
+            git merge --no-edit --no-ff "${RELEASE}"
+
+            # git flow release finish ${RELEASE} --showcommands # do not autopush for now -p
+            # not used because it requires manual tweaking for release finish
+
+            # git push origin ${RELEASE_BRANCH} develop --tags
+            git push origin develop --tags
+
+            echo "==> Release notes: " # in the future paste this notes into the github tag/release.
+            git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
+            echo "[✓]"
+
+        env:
+          RELEASE: ${{ ui_release }}
+          RELEASE_BRANCH: "master-test"
+          REPO: ${{ matrix.repo }}
+
+
+      # - id: push-deployment
+      #   uses: stefanzweifel/git-auto-commit-action@v4
+      #   with:
+      #     commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+      
+      # - id: on-failure-retry
+      #   if: failure()
+      #   name: Retry in case push failed.
+      #   uses: nick-invision/retry@v2
+      #   with:
+      #     timeout_seconds: 30
+      #     max_attempts: 5
+      #     retry_on: error
+      #     command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
+      #     # Add jitter to break up correlated events.
+      #     on_retry_command: sleep $[($RANDOM % 10) + 5]s
+
+      - id: enable-admin-enforcement
+        name: Re-enable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: iac
+          enforce_admins: true
+          retries: 8
