@@ -16,17 +16,51 @@ jobs:
   create-release:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        repo: ["ui"]
     steps:
-      - id: checkout-${{ repo }}
-        name: Checkout ${{ repo }} repo
+      - id: checkout-ui
+        name: Checkout ui repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: biomage-ltd/${{ repo }}
+          repository: biomage-ltd/ui
           ref: develop
-          path: 
+          path: ui
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          repo: ${{ github.events.inputs.repo }}
+
+      - id: checkout-api
+        name: Checkout API repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          repository: biomage-ltd/api
+          ref: develop
+          path: api
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+
+
+      - id: checkout-pipeline
+        name: Checkout pipeline repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          repository: biomage-ltd/pipeline
+          ref: develop
+          path: pipeline
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+
+        - id: checkout-worker
+        name: Checkout worker repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          repository: biomage-ltd/worker
+          ref: develop
+          path: worker
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
@@ -74,7 +108,7 @@ jobs:
         env:
           RELEASE: ${{github.events.inputs.release}}
           RELEASE_BRANCH: "master-test"
-          REPO: ${{ github.events.inputs.repo }}
+          REPO: ${{ matrix.repo }}
       
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
