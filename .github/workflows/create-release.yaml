@@ -122,6 +122,9 @@ jobs:
               echo ""
             fi
 
+            git config --global user.email "ci@biomage.net"
+            git config --global user.name "IAC github actions"
+
             echo "==> Creating release ${RELASE} from $(git branch --show-current) branch"
             git config --local "gitflow.branch.release/${RELEASE}.base" develop
             git checkout -b "release/${RELEASE}" develop
@@ -160,7 +163,7 @@ jobs:
           branch: develop
           commit_message: Release ${{ github.event.inputs.ui_release }}
 
-      - id: push-master-test
+      - id: push-develop
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           repository: ui
