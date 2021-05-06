@@ -10,7 +10,7 @@ on:
 jobs:
   check-secrets:
     name: Check if secrets are defined
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -46,7 +46,7 @@ jobs:
 
   create-eks-cluster:
     name: Create EKS cluster
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: check-secrets
     strategy:
       matrix:
@@ -132,7 +132,7 @@ jobs:
 
   configure-cluster:
     name: Configure Kubernetes resources (nginx ingress, flux, Helm) on the EKS cluster
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: create-eks-cluster
     strategy:
       matrix:

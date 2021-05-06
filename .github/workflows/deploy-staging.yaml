@@ -15,7 +15,7 @@ on:
 jobs:
   deploy-staging:
     name: Deploy staging environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - id: setup-aws
         name: Configure AWS credentials
