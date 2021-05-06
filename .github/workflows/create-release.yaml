@@ -72,6 +72,7 @@ jobs:
         name: Create the new release.
         run: |-
             cd ${REPO}
+
             git checkout ${RELEASE_BRANCH}
             git checkout develop 
 
@@ -102,9 +103,9 @@ jobs:
             # push release commits & tags
             git push origin ${RELEASE_BRANCH} develop --tags
         env:
-          RELEASE: ${{ github.events.inputs.release }}
+          RELEASE: ${{ github.event.inputs.release }}
           RELEASE_BRANCH: "master-test"
-          REPO: ${{ github.events.inputs.repo }}
+          REPO: ${{ github.event.inputs.repo }}
       
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
