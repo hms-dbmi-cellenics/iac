@@ -19,9 +19,12 @@ on:
       #   - auto
 
 jobs:
-  deploy-staging:
+  create-release:
     name: Deploy staging environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        repo: ["ui"]
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -149,7 +152,7 @@ jobs:
             echo "[✓]"
 
         env:
-          RELEASE: ${{ ui_release }}
+          RELEASE: ${{ github.event.inputs.ui_release }}
           RELEASE_BRANCH: "master-test"
           REPO: ${{ matrix.repo }}
 
