@@ -1,4 +1,4 @@
-name: Create a new release for biomage
+name: Create a newgithub.events.inputs.releasefor biomage
 on: 
   workflow_dispatch:
     inputs:
@@ -17,14 +17,14 @@ jobs:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
     steps:
-      - id: checkout-${{ repo }}
-        name: Checkout ${{ repo }} repo
+      - id: checkout - ${{ github.events.inputs.repo }}
+        name: Checkout ${{ github.events.inputs.repo }} repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: biomage-ltd/${{ repo }}
+          repository: biomage-ltd/${{ github.events.inputs.repo }}
           ref: develop
-          path: ${{ repo }}
+          path: ${{ github.events.inputs.repo }}
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
       - id: disable-admin-enforcement
@@ -56,7 +56,7 @@ jobs:
 
             git config user.name "Github Actions"
 
-            echo "==> Creating release ${RELASE} from $(git branch --show-current) branch"
+            echo "==> Creatinggithub.events.inputs.release${RELASE} from $(git branch --show-current) branch"
             git config --local "gitflow.branch.release/${RELEASE}.base" develop
             git checkout -b "release/${RELEASE}" develop
 
@@ -68,12 +68,12 @@ jobs:
             git checkout develop
             git merge --no-edit --no-ff "${RELEASE}"
 
-            # push release commits & tags
+            # pushgithub.events.inputs.releasecommits & tags
             git push origin ${RELEASE_BRANCH} develop --tags
         env:
-          RELEASE: ${{ release }}
+          RELEASE: ${{github.events.inputs.release}}
           RELEASE_BRANCH: "master-test"
-          REPO: ${{ repo }}
+          REPO: ${{ github.events.inputs.repo }}
       
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
