@@ -17,15 +17,17 @@ jobs:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
     steps:
-      - id: checkout - ${{ github.events.inputs.repo }}
-        name: Checkout ${{ github.events.inputs.repo }} repo
+      - id: checkout-${{ repo }}
+        name: Checkout ${{ repo }} repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: biomage-ltd/${{ github.events.inputs.repo }}
+          repository: biomage-ltd/${{ repo }}
           ref: develop
-          path: ${{ github.events.inputs.repo }}
+          path: 
           token: ${{ secrets.API_TOKEN_GITHUB }}
+        env:
+          repo: ${{ github.events.inputs.repo }}
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
