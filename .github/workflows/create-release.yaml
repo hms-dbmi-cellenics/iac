@@ -102,9 +102,9 @@ jobs:
             # push release commits & tags
             git push origin ${RELEASE_BRANCH} develop --tags
         env:
-          RELEASE: ${{github.events.inputs.release}}
+          RELEASE: ${{ github.events.inputs.release }}
           RELEASE_BRANCH: "master-test"
-          REPO: ${{ matrix.repo }}
+          REPO: ${{ github.events.inputs.repo }}
       
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
