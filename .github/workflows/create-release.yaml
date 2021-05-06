@@ -129,10 +129,6 @@ jobs:
             # not used because it requires manual tweaking for release finish
             echo ""
 
-            echo "==> Adding changes and committing"
-            git add chart/Chart.yaml chart/values.yaml
-            git commit -m "Updated chart to version ${RELEASE}."
-
             git checkout ${RELEASE_BRANCH}
             git merge --no-edit --no-ff "release/${RELEASE}"
             git checkout ${RELEASE_BRANCH}
