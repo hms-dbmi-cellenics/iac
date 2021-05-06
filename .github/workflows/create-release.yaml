@@ -17,14 +17,14 @@ jobs:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
     steps:
-      - id: checkout-${{ github.event.inputs.repo }}
-        name: Checkout ${{ github.event.inputs.repo }} repo
+      - id: checkout-${{ repo }}
+        name: Checkout ${{ repo }} repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: biomage-ltd/${{ github.event.inputs.repo }}
+          repository: biomage-ltd/${{ repo }}
           ref: develop
-          path: ${{ github.event.inputs.repo }}
+          path: ${{ repo }}
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
       - id: disable-admin-enforcement
@@ -71,9 +71,9 @@ jobs:
             # push release commits & tags
             git push origin ${RELEASE_BRANCH} develop --tags
         env:
-          RELEASE: ${{ github.event.inputs.release }}
+          RELEASE: ${{ release }}
           RELEASE_BRANCH: "master-test"
-          REPO: ${{ github.event.inputs.repo }}
+          REPO: ${{ repo }}
       
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
