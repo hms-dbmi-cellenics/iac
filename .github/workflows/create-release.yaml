@@ -1,4 +1,4 @@
-name: Create a newgithub.events.inputs.releasefor biomage
+name: Create a new release biomage
 on: 
   workflow_dispatch:
     inputs:
@@ -68,7 +68,7 @@ jobs:
             git checkout develop
             git merge --no-edit --no-ff "${RELEASE}"
 
-            # pushgithub.events.inputs.releasecommits & tags
+            # push release commits & tags
             git push origin ${RELEASE_BRANCH} develop --tags
         env:
           RELEASE: ${{github.events.inputs.release}}
