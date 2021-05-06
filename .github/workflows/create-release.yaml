@@ -109,6 +109,9 @@ jobs:
         name: Create the new release.
         run: |-
             cd ${REPO}
+            git checkout ${RELEASE_BRANCH}
+            git checkout develop 
+
             # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff ${RELEASE_BRANCH}..develop)" = "" ]; then
               echo " [ERROR] * No changes detected between ${RELEASE_BRANCH} and develop, aborting release."
