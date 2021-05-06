@@ -19,9 +19,12 @@ on:
       #   - auto
 
 jobs:
-  deploy-staging:
+  create-release:
     name: Deploy staging environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        repo: ["ui"]
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -104,11 +107,11 @@ jobs:
 
       - id: create-release
         name: Create the new release.
-        strategy:
-          matrix:
-            repo: ["ui"]
         run: |-
             cd ${REPO}
+            git checkout ${RELEASE_BRANCH}
+            git checkout develop 
+
             # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff ${RELEASE_BRANCH}..develop)" = "" ]; then
               echo " [ERROR] * No changes detected between ${RELEASE_BRANCH} and develop, aborting release."
@@ -125,10 +128,6 @@ jobs:
             # equivalent in git flow: git flow release start ${RELEASE} --showcommands
             # not used because it requires manual tweaking for release finish
             echo ""
-
-            echo "==> Adding changes and committing"
-            git add chart/Chart.yaml chart/values.yaml
-            git commit -m "Updated chart to version ${RELEASE}."
 
             git checkout ${RELEASE_BRANCH}
             git merge --no-edit --no-ff "release/${RELEASE}"
@@ -149,7 +148,7 @@ jobs:
             echo "[✓]"
 
         env:
-          RELEASE: ${{ ui_release }}
+          RELEASE: ${{ github.event.inputs.ui_release }}
           RELEASE_BRANCH: "master-test"
           REPO: ${{ matrix.repo }}
 
