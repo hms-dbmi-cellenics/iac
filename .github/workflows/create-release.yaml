@@ -146,9 +146,9 @@ jobs:
             git push origin ${RELEASE_BRANCH} develop --tags
             git push origin develop --tags
 
-            echo "==> Release notes: " # in the future paste this notes into the github tag/release.
-            git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
-            echo "[✓]"
+            # echo "==> Release notes: " # in the future paste this notes into the github tag/release.
+            # git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
+            # echo "[✓]"
 
         env:
           RELEASE: ${{ github.event.inputs.ui_release }}
