@@ -2,6 +2,9 @@ name: Create a new release
 on: 
   workflow_dispatch:
     inputs:
+      repo:
+        description: 'Repo name to be released'
+        required: true
       release:
         description: 'Release version'
         required: true
@@ -13,9 +16,6 @@ jobs:
   create-release:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        repo: ["ui"]
     steps:
       - id: checkout-ui
         name: Checkout ui repo
