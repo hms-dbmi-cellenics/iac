@@ -26,7 +26,6 @@ jobs:
           ref: develop
           path: 
           token: ${{ secrets.API_TOKEN_GITHUB }}
-        env:
           repo: ${{ github.events.inputs.repo }}
 
       - id: disable-admin-enforcement
