@@ -19,9 +19,12 @@ on:
       #   - auto
 
 jobs:
-  deploy-staging:
+  create-release:
     name: Deploy staging environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        repo: ["ui"]
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -71,14 +74,14 @@ jobs:
           aws-secret-access-key: ${{ steps.decrypt-secrets.outputs.aws-secret-access-key }}
           aws-region: eu-west-1
 
-      - id: checkout-ui
-        name: Checkout UI repo
+      - id: checkout-${{ matrix.repo }}
+        name: Checkout ${{ matrix.repo }} repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: biomage-ltd/ui
+          repository: biomage-ltd/${{ matrix.repo }}
           ref: develop
-          path: ui
+          path: ${{ matrix.repo }}
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
       # - id: checkout-api
@@ -87,6 +90,27 @@ jobs:
       #   with:
       #     fetch-depth: 0
       #     repository: biomage-ltd/api
+      #     ref: develop
+      #     path: api
+      #     token: ${{ secrets.API_TOKEN_GITHUB }}
+
+
+      # - id: checkout-pipeline
+      #   name: Checkout pipeline repo
+      #   uses: actions/checkout@v2
+      #   with:
+      #     fetch-depth: 0
+      #     repository: biomage-ltd/pipeline
+      #     ref: develop
+      #     path: pipeline
+      #     token: ${{ secrets.API_TOKEN_GITHUB }}
+
+      #   - id: checkout-worker
+      #   name: Checkout worker repo
+      #   uses: actions/checkout@v2
+      #   with:
+      #     fetch-depth: 0
+      #     repository: biomage-ltd/worker
       #     ref: develop
       #     path: api
       #     token: ${{ secrets.API_TOKEN_GITHUB }}
@@ -104,20 +128,23 @@ jobs:
 
       - id: create-release
         name: Create the new release.
-        strategy:
-          matrix:
-            repo: ["ui"]
         run: |-
             cd ${REPO}
+            git checkout ${RELEASE_BRANCH}
+            git checkout develop 
+
             # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff ${RELEASE_BRANCH}..develop)" = "" ]; then
-              echo " [ERROR] * No changes detected between ${RELEASE_BRANCH} and develop, aborting release."
-              exit 1
+              echo " * No changes detected between ${RELEASE_BRANCH} and develop, skipping ${REPO} release."
+              exit 0
             else
               echo " * Found changes between ${RELEASE_BRANCH} and develop. Commits found: "
               echo "$(git log --pretty=format:%s ${RELEASE_BRANCH}..develop | xargs -I % sh -c 'echo "\t- %";' )"
               echo ""
             fi
+
+            git config --global user.email "ci@biomage.net"
+            git config --global user.name "IAC github actions"
 
             echo "==> Creating release ${RELASE} from $(git branch --show-current) branch"
             git config --local "gitflow.branch.release/${RELEASE}.base" develop
@@ -125,10 +152,6 @@ jobs:
             # equivalent in git flow: git flow release start ${RELEASE} --showcommands
             # not used because it requires manual tweaking for release finish
             echo ""
-
-            echo "==> Adding changes and committing"
-            git add chart/Chart.yaml chart/values.yaml
-            git commit -m "Updated chart to version ${RELEASE}."
 
             git checkout ${RELEASE_BRANCH}
             git merge --no-edit --no-ff "release/${RELEASE}"
@@ -141,23 +164,17 @@ jobs:
             # git flow release finish ${RELEASE} --showcommands # do not autopush for now -p
             # not used because it requires manual tweaking for release finish
 
-            # git push origin ${RELEASE_BRANCH} develop --tags
+            git push origin ${RELEASE_BRANCH} develop --tags
             git push origin develop --tags
 
-            echo "==> Release notes: " # in the future paste this notes into the github tag/release.
-            git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
-            echo "[✓]"
+            # echo "==> Release notes: " # in the future paste this notes into the github tag/release.
+            # git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
+            # echo "[✓]"
 
         env:
-          RELEASE: ${{ ui_release }}
+          RELEASE: ${{ github.event.inputs.ui_release }}
           RELEASE_BRANCH: "master-test"
           REPO: ${{ matrix.repo }}
-
-
-      # - id: push-deployment
-      #   uses: stefanzweifel/git-auto-commit-action@v4
-      #   with:
-      #     commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
       
       # - id: on-failure-retry
       #   if: failure()
