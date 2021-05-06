@@ -143,32 +143,17 @@ jobs:
             # git flow release finish ${RELEASE} --showcommands # do not autopush for now -p
             # not used because it requires manual tweaking for release finish
 
-            # git push origin ${RELEASE_BRANCH} develop --tags
-            # git push origin develop --tags
+            git push origin ${RELEASE_BRANCH} develop --tags
+            git push origin develop --tags
 
-            # echo "==> Release notes: " # in the future paste this notes into the github tag/release.
-            # git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
-            # echo "[✓]"
+            echo "==> Release notes: " # in the future paste this notes into the github tag/release.
+            git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
+            echo "[✓]"
 
         env:
           RELEASE: ${{ github.event.inputs.ui_release }}
           RELEASE_BRANCH: "master-test"
           REPO: ${{ matrix.repo }}
-
-
-      - id: push-develop
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          repository: ui
-          branch: develop
-          commit_message: Release ${{ github.event.inputs.ui_release }}
-
-      - id: push-master-test
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          repository: ui
-          branch: master-test
-          commit_message: Release ${{ github.event.inputs.ui_release }}
       
       # - id: on-failure-retry
       #   if: failure()
