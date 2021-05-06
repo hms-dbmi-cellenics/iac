@@ -160,7 +160,7 @@ jobs:
           branch: develop
           commit_message: Release ${{ github.event.inputs.ui_release }}
 
-      - id: push-develop
+      - id: push-master-test
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           repository: ui
