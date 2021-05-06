@@ -107,9 +107,6 @@ jobs:
 
       - id: create-release
         name: Create the new release.
-        strategy:
-          matrix:
-            repo: ["ui"]
         run: |-
             cd ${REPO}
             # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
