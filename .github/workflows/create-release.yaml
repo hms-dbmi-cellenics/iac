@@ -104,7 +104,7 @@ jobs:
         env:
           RELEASE: ${{github.events.inputs.release}}
           RELEASE_BRANCH: "master-test"
-          REPO: ${{ github.events.inputs.repo }}
+          REPO: ${{ matrix.repo }}
       
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
