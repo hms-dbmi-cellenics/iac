@@ -19,9 +19,12 @@ on:
       #   - auto
 
 jobs:
-  deploy-staging:
+  create-release:
     name: Deploy staging environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        repo: ["ui"]
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -104,11 +107,11 @@ jobs:
 
       - id: create-release
         name: Create the new release.
-        strategy:
-          matrix:
-            repo: ["ui"]
         run: |-
             cd ${REPO}
+            git checkout ${RELEASE_BRANCH}
+            git checkout develop 
+
             # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff ${RELEASE_BRANCH}..develop)" = "" ]; then
               echo " [ERROR] * No changes detected between ${RELEASE_BRANCH} and develop, aborting release."
@@ -126,10 +129,6 @@ jobs:
             # not used because it requires manual tweaking for release finish
             echo ""
 
-            echo "==> Adding changes and committing"
-            git add chart/Chart.yaml chart/values.yaml
-            git commit -m "Updated chart to version ${RELEASE}."
-
             git checkout ${RELEASE_BRANCH}
             git merge --no-edit --no-ff "release/${RELEASE}"
             git checkout ${RELEASE_BRANCH}
@@ -142,22 +141,31 @@ jobs:
             # not used because it requires manual tweaking for release finish
 
             # git push origin ${RELEASE_BRANCH} develop --tags
-            git push origin develop --tags
+            # git push origin develop --tags
 
-            echo "==> Release notes: " # in the future paste this notes into the github tag/release.
-            git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
-            echo "[✓]"
+            # echo "==> Release notes: " # in the future paste this notes into the github tag/release.
+            # git log "${LAST_RELEASE}"..HEAD --pretty=format:"%s" | egrep -v "Merge branch|Merge tag" | xargs -I % sh -c 'echo "* %";' | tail -r
+            # echo "[✓]"
 
         env:
-          RELEASE: ${{ ui_release }}
+          RELEASE: ${{ github.event.inputs.ui_release }}
           RELEASE_BRANCH: "master-test"
           REPO: ${{ matrix.repo }}
 
 
-      # - id: push-deployment
-      #   uses: stefanzweifel/git-auto-commit-action@v4
-      #   with:
-      #     commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
+      - id: push-develop
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          repository: ui
+          branch: develop
+          commit_message: Release ${{ github.event.inputs.ui_release }}
+
+      - id: push-develop
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          repository: ui
+          branch: master-test
+          commit_message: Release ${{ github.event.inputs.ui_release }}
       
       # - id: on-failure-retry
       #   if: failure()
