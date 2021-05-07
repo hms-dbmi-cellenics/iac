@@ -72,6 +72,7 @@ jobs:
         name: Push new release into master
         uses: ad-m/github-push-action@master
         with:
+          repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: master
           tags: true
@@ -81,6 +82,7 @@ jobs:
         name: Push new release into develop
         uses: ad-m/github-push-action@master
         with:
+          repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: develop
           tags: true
