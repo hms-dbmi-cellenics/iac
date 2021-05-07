@@ -10,7 +10,7 @@ on:
         required: true
 jobs:
   create-release:
-    name: Deploy staging environment
+    name: ${{ format('Create release {0}-{1}', github.event.inputs.repo, github.event.inputs.release) }}
     runs-on: ubuntu-20.04
     steps:
       - id: checkout-repo
