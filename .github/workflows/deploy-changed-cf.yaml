@@ -16,7 +16,7 @@ on:
 jobs:
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       files: ${{ steps.check-number-of-cf-files.outputs.files }}
       num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
@@ -46,7 +46,7 @@ jobs:
 
   deploy-templates:
     name: Deploy changed CloudFormation template
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
