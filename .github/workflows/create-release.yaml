@@ -90,7 +90,7 @@ jobs:
             echo "==> Creating ${RELASE} from $(git branch --show-current) branch"
             git config --local "gitflow.branch.release/${RELEASE}.base" develop
             git checkout -b "release/${RELEASE}" develop
-
+ 
             git checkout ${RELEASE_BRANCH}
             git merge --no-edit --no-ff "release/${RELEASE}"
             git checkout ${RELEASE_BRANCH}
@@ -103,7 +103,7 @@ jobs:
             git push origin ${RELEASE_BRANCH} develop --tags
         env:
           RELEASE: ${{ github.event.inputs.release }}
-          RELEASE_BRANCH: "master-test"
+          RELEASE_BRANCH: "master"
           REPO: ${{ github.event.inputs.repo }}
       
       - id: enable-admin-enforcement
