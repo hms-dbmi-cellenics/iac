@@ -21,7 +21,7 @@ jobs:
           repository: biomage-ltd/ui
           ref: develop
           path: ui
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.API_TOKEN_GITHUB }}
 
       - id: checkout-api
         name: Checkout API repo
@@ -31,7 +31,7 @@ jobs:
           repository: biomage-ltd/api
           ref: develop
           path: api
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.API_TOKEN_GITHUB }}
 
       - id: checkout-pipeline
         name: Checkout pipeline repo
@@ -41,7 +41,7 @@ jobs:
           repository: biomage-ltd/pipeline
           ref: develop
           path: pipeline
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.API_TOKEN_GITHUB }}
 
       - id: checkout-worker
         name: Checkout worker repo
@@ -51,14 +51,14 @@ jobs:
           repository: biomage-ltd/worker
           ref: develop
           path: worker
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.API_TOKEN_GITHUB }}
 
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
         with:
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
           owner: biomage-ltd
           repo: iac
           enforce_admins: false
@@ -109,7 +109,7 @@ jobs:
         uses: benjefferies/branch-protection-bot@master
         if: always()
         with:
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
           owner: biomage-ltd
           repo: iac
           enforce_admins: true
