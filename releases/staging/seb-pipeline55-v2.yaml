@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 5d33e0c4c64d521befe1dc79adb99b0403b635e9
+    ref: e9a1237c723dbfd9c06068b3cbddc9ab8f85c97b
   releaseName: ui
   values:
     biomageCi:
@@ -55,7 +55,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 5d33e0c4c64d521befe1dc79adb99b0403b635e9
+    ref: e9a1237c723dbfd9c06068b3cbddc9ab8f85c97b
   releaseName: api
   values:
     biomageCi:
