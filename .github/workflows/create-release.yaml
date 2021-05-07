@@ -74,7 +74,6 @@ jobs:
         with:
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: master
-          directory: ${{ github.event.inputs.repo }}
           tags: true
           force: true
 
@@ -84,7 +83,6 @@ jobs:
         with:
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: develop
-          directory: ${{ github.event.inputs.repo }}
           tags: true
           force: true
 
