@@ -99,8 +99,10 @@ jobs:
             git checkout develop
             git merge --no-edit --no-ff "${RELEASE}"
 
-            # push release commits & tags
-            git push origin ${RELEASE_BRANCH} develop --tags
+            # push release commits
+            git push origin ${RELEASE_BRANCH} develop
+            # push force tag to allow re-releasing 
+            git push origin refs/tags/${RELEASE} --force
         env:
           RELEASE: ${{ github.event.inputs.release }}
           RELEASE_BRANCH: "master"
