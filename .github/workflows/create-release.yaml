@@ -95,15 +95,31 @@ jobs:
             git checkout develop
             git merge --no-edit --no-ff "${RELEASE}"
 
-            # push release commits
-            git push origin ${RELEASE_BRANCH} develop
-            # push force tag to allow re-releasing 
-            git push origin refs/tags/${RELEASE} -f
         env:
           RELEASE: ${{ github.event.inputs.release }}
-          RELEASE_BRANCH: "master"
+          RELEASE_BRANCH: master
           REPO: ${{ github.event.inputs.repo }}
       
+      - id: push-to-mster
+        name: Push new release into master
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.API_TOKEN_GITHUB }}
+          branch: master
+          directory: ${{ github.event.inputs.repo }}
+          tags: true
+          force: true
+
+      - id: push-to-develop
+        name: Push new release into develop
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.API_TOKEN_GITHUB }}
+          branch: develop
+          directory: ${{ github.event.inputs.repo }}
+          tags: true
+          force: true
+
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
         uses: benjefferies/branch-protection-bot@master
