@@ -23,7 +23,7 @@ jobs:
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
 
-      - id: disable-admin-enforcement
+      - id: disable-admin-enforcement-master
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
         with:
@@ -31,6 +31,18 @@ jobs:
           owner: biomage-ltd
           repo: ${{ github.event.inputs.repo }}
           enforce_admins: false
+          branch: master
+          retries: 8
+
+      - id: disable-admin-enforcement-develop
+        name: Temporarily disable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: ${{ github.event.inputs.repo }}
+          enforce_admins: false
+          branch: develop
           retries: 8
 
       - id: create-release
@@ -88,7 +100,7 @@ jobs:
           tags: true
           force: true
 
-      - id: enable-admin-enforcement
+      - id: enable-admin-enforcement-develop
         name: Re-enable admin enforcement
         uses: benjefferies/branch-protection-bot@master
         if: always()
@@ -98,3 +110,16 @@ jobs:
           repo: ${{ github.event.inputs.repo }}
           enforce_admins: true
           retries: 8
+          branch: develop
+
+      - id: enable-admin-enforcement-master
+        name: Re-enable admin enforcement
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: biomage-ltd
+          repo: ${{ github.event.inputs.repo }}
+          enforce_admins: true
+          retries: 8
+          branch: master
