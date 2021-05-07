@@ -94,7 +94,7 @@ jobs:
             git checkout ${RELEASE_BRANCH}
             git merge --no-edit --no-ff "release/${RELEASE}"
             git checkout ${RELEASE_BRANCH}
-            git tag -a "${RELEASE}" -m ''
+            git tag -a "${RELEASE}" -m '' -f
 
             git checkout develop
             git merge --no-edit --no-ff "${RELEASE}"
@@ -102,7 +102,7 @@ jobs:
             # push release commits
             git push origin ${RELEASE_BRANCH} develop
             # push force tag to allow re-releasing 
-            git push origin refs/tags/${RELEASE} --force
+            git push origin refs/tags/${RELEASE} -f
         env:
           RELEASE: ${{ github.event.inputs.release }}
           RELEASE_BRANCH: "master"
