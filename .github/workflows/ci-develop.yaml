@@ -1,8 +1,11 @@
-name: Build and Deploy the API
+name: Build and deploy the API to develop
 on:
   push:
     branches:
-      - master
+      - develop
+  pull_request:
+    branches:
+      - develop
 jobs:
   test:
     name: Run tests
@@ -22,7 +25,6 @@ jobs:
       name: Install dependencies
       run: |-
         npm ci
-
     - id: test
       name: Run unit tests
       run: |-
@@ -45,18 +47,15 @@ jobs:
           # This will take a ref like `refs/heads/master`
           # and turn it into `refs-heads-master`
           REF_ID=$(echo $GITHUB_REF | sed 's/\//-/g')
-
           # the final tag is something like:
           # refs-heads-master-a4f8bc313dae
           # this is what we push to ECR
           echo "::set-output name=tag::$REF_ID-$GITHUB_SHA"
-
           # This will take a GitHub repo name like `biomage-ltd/iac`
           # and turns it into `iac`. This will be the name of the
           # ECR repository.
           IMAGE_REPO_NAME=$(echo $GITHUB_REPOSITORY | awk -F '/' '{print $2}')
           echo "::set-output name=repo-name::$IMAGE_REPO_NAME"
-
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -105,7 +104,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        environment: ['production', 'staging']
+        environment: ['develop', 'staging']
     steps:
       - id: checkout
         name: Check out source code
@@ -132,18 +131,18 @@ jobs:
         name: Fill out a new HelmRelease resource
         run: |-
           REF_DASHED=$(echo $GITHUB_REF | sed 's/\//-/g')
-          DEPLOYMENT_NAME=$(echo $GITHUB_REPOSITORY | awk -F '/' '{print $2}')
-          echo "::set-output name=deployment-name::$DEPLOYMENT_NAME"
           echo "::set-output name=ref-dashed::$REF_DASHED"
-
-          if [ "${{ matrix.environment }}" = "production" ]; then
+          if [ "${{ matrix.environment }}" = "develop" ]; then
             SANDBOX_ID="default"
             CHART_REF="master"
+            DEPLOYMENT_NAME=$(echo $GITHUB_REPOSITORY | awk -F '/' '{print $2}')
+            echo "::set-output name=deployment-name::$DEPLOYMENT_NAME"
           fi
-
           if [ "${{ matrix.environment }}" = "staging" ]; then
             SANDBOX_ID="STAGING_SANDBOX_ID"
             CHART_REF="STAGING_CHART_REF"
+            DEPLOYMENT_NAME=$(echo $GITHUB_REPOSITORY | awk -F '/' '{print $2}')
+            echo "::set-output name=deployment-name::$DEPLOYMENT_NAME"
           fi
           
           yq w -d1 .flux.yaml metadata.name "$DEPLOYMENT_NAME" \
@@ -154,15 +153,14 @@ jobs:
           | yq w -d1 - "metadata.annotations[filter.fluxcd.io/chart-image]" "glob:$REF_DASHED-*" \
           | yq w -d1 - spec.releaseName "$DEPLOYMENT_NAME" \
           | yq w -d1 - spec.chart.ref "$CHART_REF" \
-          | yq w -d1 - spec.values.kubernetes.env "${{ matrix.environment }}" \
+          | yq w -d1 - spec.values.kubernetes.env "staging" \
           | yq w -d1 - spec.values.biomageCi.repo "$GITHUB_REPOSITORY" \
           | yq w -d1 - spec.values.biomageCi.sandboxId "$SANDBOX_ID" \
           | yq w -d1 - spec.values.image.registry "${{ steps.login-ecr.outputs.registry }}" \
           | yq w -d1 - spec.values.image.repository "$DEPLOYMENT_NAME" \
           | yq w -d1 - spec.values.image.tag "$REF_DASHED-$GITHUB_SHA" \
-          | yq w -d1 - spec.values.serviceAccount.iamRole "arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/api-role-${{ matrix.environment }}" \
+          | yq w -d1 - spec.values.serviceAccount.iamRole "arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/api-role-staging" \
           > $DEPLOYMENT_NAME.yaml
-
           cat $DEPLOYMENT_NAME.yaml
         env:
           IMAGE_NAME: ${{ format('{0}/{1}:{2}', steps.login-ecr.outputs.registry, needs.build-docker.outputs.repo-name, needs.build-docker.outputs.tag) }}
@@ -178,16 +176,16 @@ jobs:
           enforce_admins: false
           retries: 8
 
-      - name: Push production deployment to iac for deployment
+      - name: Push develop deployment to iac
         if:
-          github.ref == 'refs/heads/master' && github.event_name == 'push' && matrix.environment == 'production'
+          github.ref == 'refs/heads/develop' && github.event_name == 'push' && matrix.environment == 'develop'
         uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
           source_file: '${{ steps.fill-metadata.outputs.deployment-name }}.yaml'
           destination_repo: '${{ github.repository_owner }}/iac'
-          destination_folder: 'releases/${{ matrix.environment }}'
+          destination_folder: 'releases/staging'
           user_email: 'ci@biomage.net'
           user_name: 'Biomage CI/CD'
 
@@ -199,7 +197,6 @@ jobs:
           REF_DASHED: ${{ steps.fill-metadata.outputs.ref-dashed }}
         run: |-
           mv $DEPLOYMENT_NAME.yaml $REF_DASHED.yaml
-
       - name: Push staging deployment template to iac
         if:
           matrix.environment == 'staging'
