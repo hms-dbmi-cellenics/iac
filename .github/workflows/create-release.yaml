@@ -13,44 +13,13 @@ jobs:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
     steps:
-      - id: checkout-ui
-        name: Checkout ui repo
+      - id: checkout-repo
+        name: ${{ format('Checking out {0} repo', github.event.inputs.repo) }}
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          repository: biomage-ltd/ui
+          repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
           ref: develop
-          path: ui
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-
-      - id: checkout-api
-        name: Checkout API repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          repository: biomage-ltd/api
-          ref: develop
-          path: api
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-
-      - id: checkout-pipeline
-        name: Checkout pipeline repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          repository: biomage-ltd/pipeline
-          ref: develop
-          path: pipeline
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-
-      - id: checkout-worker
-        name: Checkout worker repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          repository: biomage-ltd/worker
-          ref: develop
-          path: worker
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
 
@@ -60,14 +29,13 @@ jobs:
         with:
           access-token: ${{ secrets.API_TOKEN_GITHUB }}
           owner: biomage-ltd
-          repo: iac
+          repo: ${{ github.event.inputs.repo }}
           enforce_admins: false
           retries: 8
 
       - id: create-release
         name: Create the new release.
         run: |-
-            cd ${REPO}
 
             git checkout ${RELEASE_BRANCH}
             git checkout develop 
@@ -127,6 +95,6 @@ jobs:
         with:
           access-token: ${{ secrets.API_TOKEN_GITHUB }}
           owner: biomage-ltd
-          repo: iac
+          repo: ${{ github.event.inputs.repo }}
           enforce_admins: true
           retries: 8
