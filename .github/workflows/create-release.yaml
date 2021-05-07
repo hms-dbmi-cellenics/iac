@@ -8,10 +8,6 @@ on:
       release:
         description: 'Release version'
         required: true
-      secrets:
-        description: 'Encrypted secrets to use for this task'
-        required: true
-
 jobs:
   create-release:
     name: Deploy staging environment
@@ -25,7 +21,7 @@ jobs:
           repository: biomage-ltd/ui
           ref: develop
           path: ui
-          token: ${{ secrets.API_TOKEN_GITHUB }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: checkout-api
         name: Checkout API repo
@@ -35,7 +31,7 @@ jobs:
           repository: biomage-ltd/api
           ref: develop
           path: api
-          token: ${{ secrets.API_TOKEN_GITHUB }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: checkout-pipeline
         name: Checkout pipeline repo
@@ -45,7 +41,7 @@ jobs:
           repository: biomage-ltd/pipeline
           ref: develop
           path: pipeline
-          token: ${{ secrets.API_TOKEN_GITHUB }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: checkout-worker
         name: Checkout worker repo
@@ -55,14 +51,14 @@ jobs:
           repository: biomage-ltd/worker
           ref: develop
           path: worker
-          token: ${{ secrets.API_TOKEN_GITHUB }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
         with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
           owner: biomage-ltd
           repo: iac
           enforce_admins: false
@@ -113,7 +109,7 @@ jobs:
         uses: benjefferies/branch-protection-bot@master
         if: always()
         with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
           owner: biomage-ltd
           repo: iac
           enforce_admins: true
