@@ -45,7 +45,31 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "experimentId"
           AttributeType: "S"
+        - AttributeName: "projectUuid"
+          AttributeType: "S"
       KeySchema:
         - AttributeName: "experimentId"
+          KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: gsiExperimentid
+          KeySchema: 
+            - AttributeName: "projectUuid"
+              KeyType: "HASH"
+            - AttributeName: "experimentId"
+              KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - samples
+            ProjectionType: INCLUDE
+      BillingMode: "PAY_PER_REQUEST"
+  ProjectsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "projects-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: "projectUuid"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "projectUuid"
           KeyType: "HASH"
       BillingMode: "PAY_PER_REQUEST"
