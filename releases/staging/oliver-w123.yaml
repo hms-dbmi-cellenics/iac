@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -114,7 +115,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-123-merge-df99a5f718c8be478145f7678017e4c92d1f8d9a-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-123-merge-befe600760c154afca0c4c3377311903b361639c-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-123-merge-df99a5f718c8be478145f7678017e4c92d1f8d9a-r
     sandboxId: oliver-w123
