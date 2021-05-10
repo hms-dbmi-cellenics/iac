@@ -49,38 +49,29 @@ jobs:
         name: Create the new release.
         run: |-
 
-            git checkout ${RELEASE_BRANCH}
-            git checkout develop 
-
             # We check for differences because ${RELEASE_BRANCH} and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff ${RELEASE_BRANCH}..develop)" = "" ]; then
               echo " * No changes detected between ${RELEASE_BRANCH} and develop."
             else
               echo " * Found changes between ${RELEASE_BRANCH} and develop. Commits found: "
               echo "$(git log --pretty=format:%s ${RELEASE_BRANCH}..develop | xargs -I % sh -c 'echo "\t- %";' )"
-              echo ""
             fi
 
+            # changelog to be added to the tag
+            changes=$(git log --pretty=format:%s ${RELEASE_BRANCH}..develop | xargs -I % sh -c 'echo "\t- %";' )
             git config user.name "Github Actions"
 
-            echo "==> Creating ${RELASE} from $(git branch --show-current) branch"
-            git config --local "gitflow.branch.release/${RELEASE}.base" develop
-            git checkout -b "release/${RELEASE}" develop
- 
+            # create new tag in the current develop branch
+            git tag -a "${RELEASE}" -m '${changes}' -f
+            # merge develop tag into release_branch
             git checkout ${RELEASE_BRANCH}
-            git merge --no-edit --no-ff "release/${RELEASE}"
-            git checkout ${RELEASE_BRANCH}
-            git tag -a "${RELEASE}" -m '' -f
-
-            git checkout develop
-            git merge --no-edit --no-ff "${RELEASE}"
-
+            git merge --ff-only
         env:
           RELEASE: ${{ github.event.inputs.release }}
           RELEASE_BRANCH: master
           REPO: ${{ github.event.inputs.repo }}
       
-      - id: push-to-mster
+      - id: push-to-master
         name: Push new release into master
         uses: ad-m/github-push-action@master
         with:
