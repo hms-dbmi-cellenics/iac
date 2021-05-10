@@ -51,7 +51,7 @@ jobs:
 
             # checkout master to make it present in the current working tree
             git checkout master
-            git checkou develop
+            git checkout develop
 
             # We check for differences because master and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff master..develop)" = "" ]; then
