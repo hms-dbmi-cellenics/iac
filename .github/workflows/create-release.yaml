@@ -5,12 +5,10 @@ on:
       repo:
         description: 'Repo name to be released'
         required: true
-      release:
-        description: 'Release version'
-        required: true
+
 jobs:
   create-release:
-    name: ${{ format('Create release {0}-{1}', github.event.inputs.repo, github.event.inputs.release) }}
+    name: ${{ format('Create release {0}', github.event.inputs.repo) }}
     runs-on: ubuntu-20.04
     steps:
       - id: checkout-repo
@@ -34,17 +32,6 @@ jobs:
           branch: master
           retries: 8
 
-      - id: disable-admin-enforcement-develop
-        name: Temporarily disable admin enforcement
-        uses: benjefferies/branch-protection-bot@master
-        with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: biomage-ltd
-          repo: ${{ github.event.inputs.repo }}
-          enforce_admins: false
-          branch: develop
-          retries: 8
-
       - id: create-release
         name: Create the new release.
         run: |-
@@ -66,37 +53,16 @@ jobs:
             # updated master branch to point to latest develop 
             git merge --ff-only
         env:
-          RELEASE: ${{ github.event.inputs.release }}
           RELEASE_BRANCH: master
           REPO: ${{ github.event.inputs.repo }}
       
       - id: push-to-master
-        name: Push new release into master
+        name: Push new changes into master
         uses: ad-m/github-push-action@master
         with:
           repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: master
-
-      - id: push-to-develop
-        name: Push new release into develop
-        uses: ad-m/github-push-action@master
-        with:
-          repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
-          github_token: ${{ secrets.API_TOKEN_GITHUB }}
-          branch: develop
-
-      - id: enable-admin-enforcement-develop
-        name: Re-enable admin enforcement
-        uses: benjefferies/branch-protection-bot@master
-        if: always()
-        with:
-          access-token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: biomage-ltd
-          repo: ${{ github.event.inputs.repo }}
-          enforce_admins: true
-          retries: 8
-          branch: develop
 
       - id: enable-admin-enforcement-master
         name: Re-enable admin enforcement
