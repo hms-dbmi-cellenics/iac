@@ -83,6 +83,7 @@ jobs:
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: master
           tags: true
+          force: true
 
       - id: push-to-develop
         name: Push new release into develop
@@ -92,6 +93,7 @@ jobs:
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: develop
           tags: true
+          force: true
 
       - id: enable-admin-enforcement-develop
         name: Re-enable admin enforcement
