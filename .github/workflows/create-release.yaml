@@ -20,7 +20,6 @@ jobs:
           ref: develop
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
-
       - id: disable-admin-enforcement-master
         name: Temporarily disable admin enforcement
         uses: benjefferies/branch-protection-bot@master
@@ -51,7 +50,7 @@ jobs:
             git config user.name "Github Actions"
 
             # updated master branch to point to latest develop 
-            git merge --ff-only
+            git merge develop --ff-only
         env:
           RELEASE_BRANCH: master
           REPO: ${{ github.event.inputs.repo }}
