@@ -51,8 +51,7 @@ jobs:
 
             # checkout master to make it present in the current working tree
             git checkout master
-            git checkout develop
-
+            
             # We check for differences because master and develop are in different commits (due to merge) so git log is never empty.
             if [ "$(git diff master..develop)" = "" ]; then
               echo " * No changes detected between master and develop."
@@ -62,13 +61,9 @@ jobs:
             fi
 
             # changelog to be added to the tag
-            changes=$(git log --pretty=format:%s master..develop | xargs -I % sh -c 'echo "\t- %";' )
             git config user.name "Github Actions"
 
-            # create new tag in the current develop branch
-            git tag -a "${RELEASE}" -m '${changes}' -f
-            # merge develop tag into release_branch
-            git checkout master
+            # updated master branch to point to latest develop 
             git merge --ff-only
         env:
           RELEASE: ${{ github.event.inputs.release }}
@@ -82,8 +77,6 @@ jobs:
           repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: master
-          tags: true
-          force: true
 
       - id: push-to-develop
         name: Push new release into develop
@@ -92,8 +85,6 @@ jobs:
           repository: ${{ format('biomage-ltd/{0}', github.event.inputs.repo ) }}
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: develop
-          tags: true
-          force: true
 
       - id: enable-admin-enforcement-develop
         name: Re-enable admin enforcement
