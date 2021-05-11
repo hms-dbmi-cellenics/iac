@@ -22,9 +22,9 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 3ca95f6d94d3a3b3210695d943948e041f174576
+    ref: 90dfd9f098a49f725d70de8a131e4fe5e3028328
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-3ca95f6d94d3a3b3210695d943948e041f174576-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-90dfd9f098a49f725d70de8a131e4fe5e3028328-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
