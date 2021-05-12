@@ -117,7 +117,7 @@ spec:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-124-merge-bb19bf8756720cf1b5ae4820b546563ad0dbb9cc-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-124-merge-bb19bf8756720cf1b5ae4820b546563ad0dbb9cc-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-124-merge-e6e84a68224d70e8f00f2dd4748697c2d5f07db4-r
     sandboxId: juanlu-ui246-api107-worker
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
