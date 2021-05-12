@@ -51,7 +51,7 @@ Resources:
         - AttributeName: "experimentId"
           KeyType: "HASH"
       GlobalSecondaryIndexes:
-        - IndexName: gsiExperimentid
+        - IndexName: gsiByProjectAndExperimentID
           KeySchema: 
             - AttributeName: "projectUuid"
               KeyType: "HASH"
