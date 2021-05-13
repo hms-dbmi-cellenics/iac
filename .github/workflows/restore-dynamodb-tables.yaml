@@ -1,0 +1,42 @@
+name: Restore to latest backup for all dynamodb tables
+on: 
+  workflow_dispatch:
+    inputs:
+      tables:
+        description: 'Space separated ids of tables to restore backup for, all if not specified'
+        required: false
+        default: 'all'
+
+jobs:
+  restore-tables-backups: 
+    name: Restore to latest backup for all dynamodb tables
+    runs-on: ubuntu-20.04
+    env:
+      TABLES: ${{ github.event.inputs.tables }}
+    steps:
+      - id: restore-tables-backups
+        name: Restore to latest backup for all dynamodb tables
+        run: |-
+          if [[ "$TABLES" == "all" ]]; then
+            tables_to_restore=($(aws dynamodb list-tables | jq -r '.TableNames | .[]' | tr '\r\n' ' '))
+          else
+            tables_to_restore=(`echo ${TABLES}`)
+          fi
+
+          echo "Running restore over $tables_to_restore"
+          
+          for table in $tables_to_restore
+            do
+              backups=($(aws dynamodb list-backups --table-name $table | jq -r '.BackupSummaries | .[] | "\(.BackupCreationDateTime)::\(.BackupArn)" '))
+
+              younger_backup_time=0
+              younger_backup_arn=""
+              for backup_properties in ${backups[@]}; do
+                backup_time=${backup_properties%%::*}
+                backup_arn=${backup_properties#*::}
+
+                (( backup_time > younger_backup_time )) && younger_backup_time=$backup_time && younger_backup_arn=$backup_arn
+              done
+
+            restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
+          done

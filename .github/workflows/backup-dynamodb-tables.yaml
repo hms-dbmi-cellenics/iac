@@ -1,0 +1,31 @@
+name: Create backup of all dynamodb tables
+on: 
+  workflow_dispatch:
+    inputs:
+      tables:
+        description: 'Space separated ids of tables to backup, all if not specified'
+        required: false
+        default: 'all'
+
+jobs:
+  backup-tables: 
+    name: Create backup of current dynamodb tables
+    runs-on: ubuntu-20.04
+    env:
+      TABLES: ${{ github.event.inputs.tables }}
+    steps:
+      - id: backup-tables
+        name: Create backup of current dynamodb tables
+        run: |-
+          if [[ "$TABLES" == "all" ]]; then
+            tables_to_backup=($(aws dynamodb list-tables | jq -r '.TableNames | .[]' | tr '\r\n' ' '))
+          else
+            tables_to_backup=(`echo ${TABLES}`)
+          fi
+
+          current_date=$(date '+%Y-%m-%d.%H-%M-%S')
+          for table in $tables_to_backup; do
+            backup_name="${table}-backup-${current_date}"
+            echo "Creating backup with name $backup_name for table $table"
+            aws dynamodb create-backup --table-name $table --backup-name "${table}-backup-${current_date}"
+          done
