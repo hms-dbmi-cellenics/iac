@@ -14,8 +14,6 @@ Parameters:
 Resources:
   ExperimentTable:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "experiments-${Environment}"
       AttributeDefinitions:
@@ -27,8 +25,6 @@ Resources:
       BillingMode: "PAY_PER_REQUEST"
   PlotsTablesTable:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "plots-tables-${Environment}"
       AttributeDefinitions:
@@ -44,8 +40,6 @@ Resources:
       BillingMode: "PAY_PER_REQUEST"
   SamplesTable:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub "samples-${Environment}"
       AttributeDefinitions:
