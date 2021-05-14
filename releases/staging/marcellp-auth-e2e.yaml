@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: ui-marcellp-auth-e2e
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-250-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: ui
+  namespace: ui-marcellp-auth-e2e
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: marcellp-auth-e2e
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-250-merge-d8120e2e6495a0e86fdf380ffcfbc22147fc432e
+    kubernetes:
+      env: staging
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: api-marcellp-auth-e2e
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-110-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: api
+  namespace: api-marcellp-auth-e2e
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: marcellp-auth-e2e
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-110-merge-67dcf1760b36c54fc11b8f4017fc523f639e7987
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: worker-marcellp-auth-e2e
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-develop-*-python
+    filter.fluxcd.io/r: glob:refs-heads-develop-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: worker
+  namespace: worker-marcellp-auth-e2e
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 406349507609c54b4cff5e2d8a7b5e4abf12b74f
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-406349507609c54b4cff5e2d8a7b5e4abf12b74f-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-406349507609c54b4cff5e2d8a7b5e4abf12b74f-r
+    sandboxId: marcellp-auth-e2e
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: pipeline-marcellp-auth-e2e
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/qc-runner: glob:refs-heads-develop-*-qc-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-auth-e2e
+  name: pipeline
+  namespace: pipeline-marcellp-auth-e2e
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: 87f89daf1e083d8ebaeea00d444b457e92aa1c3c
+  releaseName: pipeline
+  values:
+    qc-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-87f89daf1e083d8ebaeea00d444b457e92aa1c3c-qc-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
