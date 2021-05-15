@@ -1,35 +1,34 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-pipeline47
-  name: ui-juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
+  name: ui-ivababukova-fgdoiqwtnpx74r
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
   name: ui
-  namespace: ui-juanlu-pipeline47
+  namespace: ui-ivababukova-fgdoiqwtnpx74r
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: ef335f13595f3252a50a6d447ac1ff73926c1e00
+    ref: 3fe7c2a72f61b3c913980fd4a4b0bcb55584ddf8
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: juanlu-pipeline47
+      sandboxId: ivababukova-fgdoiqwtnpx74r
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-57d9e8df13e877690e49f9ac06b4598651efb1aa
+      tag: refs-heads-develop-0eb7921f78d46725341c7ae4230ebf40fc7af391
     kubernetes:
       env: staging
     serviceAccount:
@@ -39,29 +38,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-pipeline47
-  name: api-juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
+  name: api-ivababukova-fgdoiqwtnpx74r
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
   name: api
-  namespace: api-juanlu-pipeline47
+  namespace: api-ivababukova-fgdoiqwtnpx74r
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: ef335f13595f3252a50a6d447ac1ff73926c1e00
+    ref: 3fe7c2a72f61b3c913980fd4a4b0bcb55584ddf8
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: juanlu-pipeline47
+      sandboxId: ivababukova-fgdoiqwtnpx74r
     hpa:
       enabled: true
       maxReplicas: 10
@@ -70,7 +69,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-d81c3b8db5622d7da8aee542af542149b8e92d9e
+      tag: refs-heads-develop-9f8a89701164969f7abb7e52a23298ea74d27039
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -93,32 +92,32 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-pipeline47
-  name: worker-juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
+  name: worker-ivababukova-fgdoiqwtnpx74r
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-heads-master-*-python
-    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    filter.fluxcd.io/python: glob:refs-heads-develop-*-python
+    filter.fluxcd.io/r: glob:refs-heads-develop-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
   name: worker
-  namespace: worker-juanlu-pipeline47
+  namespace: worker-ivababukova-fgdoiqwtnpx74r
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 80b31b41cc8fe82682190eaa3a28927e3c8c0762
+    ref: 9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-80b31b41cc8fe82682190eaa3a28927e3c8c0762-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-b5f0027c9ab442916125d02744efb2cf405cf978-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-80b31b41cc8fe82682190eaa3a28927e3c8c0762-r
-    sandboxId: juanlu-pipeline47
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-b5f0027c9ab442916125d02744efb2cf405cf978-r
+    sandboxId: ivababukova-fgdoiqwtnpx74r
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -126,29 +125,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: juanlu-pipeline47
-  name: pipeline-juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
+  name: pipeline-ivababukova-fgdoiqwtnpx74r
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/qc-runner: glob:refs-pull-47-merge-*-qc-runner
+    filter.fluxcd.io/qc-runner: glob:refs-heads-develop-*-qc-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: juanlu-pipeline47
+    sandboxId: ivababukova-fgdoiqwtnpx74r
   name: pipeline
-  namespace: pipeline-juanlu-pipeline47
+  namespace: pipeline-ivababukova-fgdoiqwtnpx74r
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: master
+    ref: 825dd4fb59da53ef782a93b0881af4cca90e0c17
   releaseName: pipeline
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-47-merge-9bf4fe89b872e50bd4b2f7e9ddefc2ccd2b90ec6-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-90dfd9f098a49f725d70de8a131e4fe5e3028328-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

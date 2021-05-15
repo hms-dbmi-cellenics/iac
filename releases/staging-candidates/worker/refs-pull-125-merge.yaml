@@ -12,8 +12,8 @@ metadata:
   namespace: worker-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/r: glob:refs-heads-develop-*-r
-    filter.fluxcd.io/python: glob:refs-heads-develop-*-python
+    filter.fluxcd.io/r: glob:refs-pull-125-merge-*-r
+    filter.fluxcd.io/python: glob:refs-pull-125-merge-*-python
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -21,12 +21,12 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 406349507609c54b4cff5e2d8a7b5e4abf12b74f
+    ref: STAGING_CHART_REF
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-406349507609c54b4cff5e2d8a7b5e4abf12b74f-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-125-merge-f52d2989a1f7d77af3bc99d647b6ff99b335a41f-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-406349507609c54b4cff5e2d8a7b5e4abf12b74f-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-125-merge-f52d2989a1f7d77af3bc99d647b6ff99b335a41f-python

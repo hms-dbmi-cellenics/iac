@@ -14,7 +14,7 @@ metadata:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/qc-runner: glob:refs-heads-develop-*-qc-runner
+    filter.fluxcd.io/qc-runner: glob:refs-pull-60-merge-*-qc-runner
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -22,9 +22,9 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 87f89daf1e083d8ebaeea00d444b457e92aa1c3c
+    ref: STAGING_CHART_REF
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-87f89daf1e083d8ebaeea00d444b457e92aa1c3c-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-60-merge-b36eb38390b901b15a20949f751838092347ba65-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

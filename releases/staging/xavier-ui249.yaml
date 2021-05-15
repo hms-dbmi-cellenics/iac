@@ -2,33 +2,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
-  name: ui-martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
+  name: ui-xavier-ui249
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-249-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
   name: ui
-  namespace: ui-martinfosco-8a1r6xf3oab6ao
+  namespace: ui-xavier-ui249
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: c6861308b5d7e29e247a91bb7e9958c8805a25f7
+    ref: master
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: martinfosco-8a1r6xf3oab6ao
+      sandboxId: xavier-ui249
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-57d9e8df13e877690e49f9ac06b4598651efb1aa
+      tag: refs-pull-249-merge-9d6e194496b969ad19175b9f95f27c5b8b255800
     kubernetes:
       env: staging
     serviceAccount:
@@ -38,8 +38,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
-  name: api-martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
+  name: api-xavier-ui249
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -48,19 +48,19 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
   name: api
-  namespace: api-martinfosco-8a1r6xf3oab6ao
+  namespace: api-xavier-ui249
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: c6861308b5d7e29e247a91bb7e9958c8805a25f7
+    ref: b1128af50b1706fd460c8bc9619acb3c3a331475
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: martinfosco-8a1r6xf3oab6ao
+      sandboxId: xavier-ui249
     hpa:
       enabled: true
       maxReplicas: 10
@@ -69,7 +69,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-d81c3b8db5622d7da8aee542af542149b8e92d9e
+      tag: refs-heads-master-f943c0175658f2977affbec3317390e6078b57b0
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -92,8 +92,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
-  name: worker-martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
+  name: worker-xavier-ui249
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -103,21 +103,21 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
   name: worker
-  namespace: worker-martinfosco-8a1r6xf3oab6ao
+  namespace: worker-xavier-ui249
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: af0b23516e29645a1d340ecdeb9b8822fc1a5abd
+    ref: 9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af0b23516e29645a1d340ecdeb9b8822fc1a5abd-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af0b23516e29645a1d340ecdeb9b8822fc1a5abd-r
-    sandboxId: martinfosco-8a1r6xf3oab6ao
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe-r
+    sandboxId: xavier-ui249
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -125,8 +125,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
-  name: pipeline-martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
+  name: pipeline-xavier-ui249
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -137,17 +137,17 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: martinfosco-8a1r6xf3oab6ao
+    sandboxId: xavier-ui249
   name: pipeline
-  namespace: pipeline-martinfosco-8a1r6xf3oab6ao
+  namespace: pipeline-xavier-ui249
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 4b5b361ffe955e4f8e777b91825db802e7b366c2
+    ref: 825dd4fb59da53ef782a93b0881af4cca90e0c17
   releaseName: pipeline
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-4b5b361ffe955e4f8e777b91825db802e7b366c2-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-825dd4fb59da53ef782a93b0881af4cca90e0c17-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

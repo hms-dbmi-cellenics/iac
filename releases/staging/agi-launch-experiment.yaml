@@ -1,35 +1,34 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: oliver-w123
-  name: ui-oliver-w123
+    sandboxId: agi-launch-experiment
+  name: ui-agi-launch-experiment
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-254-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: oliver-w123
+    sandboxId: agi-launch-experiment
   name: ui
-  namespace: ui-oliver-w123
+  namespace: ui-agi-launch-experiment
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 8ea5d896d5af0cee093570144b360fd0cb53644e
+    ref: master
   releaseName: ui
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: oliver-w123
+      sandboxId: agi-launch-experiment
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-aea7f97cee06d40d516591e8803ddaee60c7bbb2
+      tag: refs-pull-254-merge-ccc1633e8d97abcdac00ce050770d0d3ddbf9e28
     kubernetes:
       env: staging
     serviceAccount:
@@ -39,29 +38,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: oliver-w123
-  name: api-oliver-w123
+    sandboxId: agi-launch-experiment
+  name: api-agi-launch-experiment
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-113-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: oliver-w123
+    sandboxId: agi-launch-experiment
   name: api
-  namespace: api-oliver-w123
+  namespace: api-agi-launch-experiment
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 8ea5d896d5af0cee093570144b360fd0cb53644e
+    ref: master
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: oliver-w123
+      sandboxId: agi-launch-experiment
     hpa:
       enabled: true
       maxReplicas: 10
@@ -70,7 +69,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-1b1cc68e84edfae6a493eb88b24708980c1c2351
+      tag: refs-pull-113-merge-8c656a7020d3aed8ca2abe50b5ecab507adb9e1c
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -93,32 +92,32 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: oliver-w123
-  name: worker-oliver-w123
+    sandboxId: agi-launch-experiment
+  name: worker-agi-launch-experiment
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-pull-123-merge-*-python
-    filter.fluxcd.io/r: glob:refs-pull-123-merge-*-r
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: oliver-w123
+    sandboxId: agi-launch-experiment
   name: worker
-  namespace: worker-oliver-w123
+  namespace: worker-agi-launch-experiment
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: master
+    ref: 9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-123-merge-befe600760c154afca0c4c3377311903b361639c-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-123-merge-df99a5f718c8be478145f7678017e4c92d1f8d9a-r
-    sandboxId: oliver-w123
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9a88ded79259fb2ea3bbae14a68e8ea95d7e39fe-r
+    sandboxId: agi-launch-experiment
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -126,8 +125,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: oliver-w123
-  name: pipeline-oliver-w123
+    sandboxId: agi-launch-experiment
+  name: pipeline-agi-launch-experiment
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -138,9 +137,9 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: oliver-w123
+    sandboxId: agi-launch-experiment
   name: pipeline
-  namespace: pipeline-oliver-w123
+  namespace: pipeline-agi-launch-experiment
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline

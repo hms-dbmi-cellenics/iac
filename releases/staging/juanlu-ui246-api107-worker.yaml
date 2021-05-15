@@ -3,19 +3,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-ui222
-  name: ui-xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
+  name: ui-juanlu-ui246-api107-worker
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-222-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-246-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
   name: ui
-  namespace: ui-xavier-ui222
+  namespace: ui-juanlu-ui246-api107-worker
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -25,11 +25,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: xavier-ui222
+      sandboxId: juanlu-ui246-api107-worker
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-222-merge-4dc158e7ce7eea7eb7bf41068acf9a5cad60fd9e
+      tag: refs-pull-246-merge-48d33c6902b851b869c9d2b26b4061630aadbac7
     kubernetes:
       env: staging
     serviceAccount:
@@ -39,29 +39,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-ui222
-  name: api-xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
+  name: api-juanlu-ui246-api107-worker
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-107-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
   name: api
-  namespace: api-xavier-ui222
+  namespace: api-juanlu-ui246-api107-worker
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: d2f549d7fbb3f16ab7fc1fcfaa4f3a55bd3c888e
+    ref: master
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: xavier-ui222
+      sandboxId: juanlu-ui246-api107-worker
     hpa:
       enabled: true
       maxReplicas: 10
@@ -70,7 +70,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-d81c3b8db5622d7da8aee542af542149b8e92d9e
+      tag: refs-pull-107-merge-deb708ff4e0446a94ca30e7d9f50309367288b8c
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -93,32 +93,32 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-ui222
-  name: worker-xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
+  name: worker-juanlu-ui246-api107-worker
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-heads-master-*-python
-    filter.fluxcd.io/r: glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/python: glob:refs-pull-124-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-124-merge-*-r
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
   name: worker
-  namespace: worker-xavier-ui222
+  namespace: worker-juanlu-ui246-api107-worker
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: af0b23516e29645a1d340ecdeb9b8822fc1a5abd
+    ref: master
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af0b23516e29645a1d340ecdeb9b8822fc1a5abd-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-124-merge-35e6f6c5edf258cef3f9e589f84bc37a7406fbc5-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-af0b23516e29645a1d340ecdeb9b8822fc1a5abd-r
-    sandboxId: xavier-ui222
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-124-merge-35e6f6c5edf258cef3f9e589f84bc37a7406fbc5-r
+    sandboxId: juanlu-ui246-api107-worker
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -126,29 +126,29 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: xavier-ui222
-  name: pipeline-xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
+  name: pipeline-juanlu-ui246-api107-worker
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/qc-runner: glob:refs-heads-master-*-qc-runner
+    filter.fluxcd.io/qc-runner: glob:refs-pull-60-merge-*-qc-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: xavier-ui222
+    sandboxId: juanlu-ui246-api107-worker
   name: pipeline
-  namespace: pipeline-xavier-ui222
+  namespace: pipeline-juanlu-ui246-api107-worker
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 4e8b601becd674f30aef6ffd91f2b543d6d2969d
+    ref: master
   releaseName: pipeline
   values:
     qc-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-4e8b601becd674f30aef6ffd91f2b543d6d2969d-qc-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-60-merge-b36eb38390b901b15a20949f751838092347ba65-qc-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
