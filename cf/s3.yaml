@@ -106,8 +106,10 @@ Resources:
               - "x-amz-request-id"
               - "x-amz-id-2"
             AllowedMethods:
+              - GET
               - PUT
               - POST
+              - DELETE
             AllowedOrigins:
               - '*'
             Id: uiHeadersRule
