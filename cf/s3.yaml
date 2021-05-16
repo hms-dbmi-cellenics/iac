@@ -102,6 +102,9 @@ Resources:
               - '*'
             ExposedHeaders:
               - Etag
+              - "x-amz-server-side-encryption"
+              - "x-amz-request-id"
+              - "x-amz-id-2"
             AllowedMethods:
               - PUT
               - POST

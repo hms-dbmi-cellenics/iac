@@ -68,7 +68,7 @@ Resources:
                   - "s3:AbortMultipartUpload"
                   - "s3:ListBucketMultipartUploads"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
 
         - PolicyName: !Sub "can-get-object-information-in-bucket-${Environment}"
           PolicyDocument:
@@ -79,7 +79,7 @@ Resources:
                   - "s3:GetObject"
                   - "s3:GetObjectTagging"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
 
         - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
           PolicyDocument:
@@ -89,7 +89,7 @@ Resources:
                 Action:
                   - "s3:ListBucket"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
 
   SMSRole:
     Type: "AWS::IAM::Role"
