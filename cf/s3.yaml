@@ -99,9 +99,7 @@ Resources:
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
-              - 'amz-sdk-request' 
-              - 'amz-sdk-invocation-id'
-              - 'x-amz-meta-cellranger_version'
+              - '*'
             ExposedHeaders:
               - Etag
             AllowedMethods:
