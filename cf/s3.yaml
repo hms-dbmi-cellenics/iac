@@ -96,3 +96,17 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 5
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - 'amz-sdk-request' 
+              - 'amz-sdk-invocation-id'
+              - 'x-amz-meta-cellranger_version'
+            ExposedHeaders:
+              - Etag
+            AllowedMethods:
+              - PUT
+              - POST
+            AllowedOrigins:
+              - '*'
+            Id: uiHeadersRule
