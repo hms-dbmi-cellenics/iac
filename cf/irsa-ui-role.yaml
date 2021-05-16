@@ -53,12 +53,4 @@ Resources:
                   - "cognito-idp:DescribeUserPool"
                   - "cognito-idp:DescribeUserPoolClient"
                 Resource: '*'
-        - PolicyName: !Sub "can-upload-object-to-originals-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: "s3:PutObject"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
 
