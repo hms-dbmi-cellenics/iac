@@ -73,3 +73,14 @@ Resources:
         - AttributeName: "projectUuid"
           KeyType: "HASH"
       BillingMode: "PAY_PER_REQUEST"
+  TestBackupAndRestoreTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "test-backup-restore"
+      AttributeDefinitions:
+        - AttributeName: "experimentId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "experimentId"
+          KeyType: "HASH"
+      BillingMode: "PAY_PER_REQUEST"
