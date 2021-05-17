@@ -1,4 +1,4 @@
-name: Restore to latest backup for all dynamodb tables
+name: Restore to latest backup for dynamodb tables
 on: 
   workflow_dispatch:
     inputs:
@@ -9,13 +9,13 @@ on:
 
 jobs:
   restore-tables-backups: 
-    name: Restore to latest backup for all dynamodb tables
+    name: Restore to latest backup for dynamodb tables
     runs-on: ubuntu-20.04
     env:
       TABLES: ${{ github.event.inputs.tables }}
     steps:
       - id: restore-tables-backups
-        name: Restore to latest backup for all dynamodb tables
+        name: Restore to latest backup for dynamodb tables
         run: |-
           if [[ "$TABLES" == "all" ]]; then
             tables_to_restore=($(aws dynamodb list-tables | jq -r '.TableNames | .[]' | tr '\r\n' ' '))
@@ -38,5 +38,5 @@ jobs:
                 (( backup_time > younger_backup_time )) && younger_backup_time=$backup_time && younger_backup_arn=$backup_arn
               done
 
-            restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
+            aws dynamodb restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
           done
