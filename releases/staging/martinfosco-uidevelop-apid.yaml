@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: ui-martinfosco-uidevelop-apid
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: ui
+  namespace: ui-martinfosco-uidevelop-apid
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 696f3c26dafcdd38754ff435938c0fa3bea19a10
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: martinfosco-uidevelop-apid
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-develop-e85897ff0a76fef0c7e292f01488bc117d60bc10
+    kubernetes:
+      env: staging
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: api-martinfosco-uidevelop-apid
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: api
+  namespace: api-martinfosco-uidevelop-apid
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 696f3c26dafcdd38754ff435938c0fa3bea19a10
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: martinfosco-uidevelop-apid
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-develop-3c78514c9e4895e916ec30e0ea1bb9a70c9d68de
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: worker-martinfosco-uidevelop-apid
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-develop-*-python
+    filter.fluxcd.io/r: glob:refs-heads-develop-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: worker
+  namespace: worker-martinfosco-uidevelop-apid
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 406349507609c54b4cff5e2d8a7b5e4abf12b74f
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-406349507609c54b4cff5e2d8a7b5e4abf12b74f-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-406349507609c54b4cff5e2d8a7b5e4abf12b74f-r
+    sandboxId: martinfosco-uidevelop-apid
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: pipeline-martinfosco-uidevelop-apid
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/qc-runner: glob:refs-heads-develop-*-qc-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-uidevelop-apid
+  name: pipeline
+  namespace: pipeline-martinfosco-uidevelop-apid
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: 87f89daf1e083d8ebaeea00d444b457e92aa1c3c
+  releaseName: pipeline
+  values:
+    qc-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-87f89daf1e083d8ebaeea00d444b457e92aa1c3c-qc-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
