@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: refs/pull/258/head
+    ref: master
   releaseName: ui
   values:
     biomageCi:
