@@ -73,11 +73,11 @@ Resources:
                   - "dynamodb:PutItem"
 
                 Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}"
-        - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
+        - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}*"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
