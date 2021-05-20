@@ -28,6 +28,7 @@ jobs:
           for table in $tables_to_restore
             do
               backups=($(aws dynamodb list-backups --table-name $table | jq -r '.BackupSummaries | .[] | "\(.BackupCreationDateTime)::\(.BackupArn)" '))
+              echo "Found backups are: $backups"
 
               younger_backup_time=0
               younger_backup_arn=""
@@ -37,6 +38,8 @@ jobs:
 
                 (( backup_time > younger_backup_time )) && younger_backup_time=$backup_time && younger_backup_arn=$backup_arn
               done
+              
+              echo "Restoring from backup $younger_backup_arn"
 
               if [[ $younger_backup_arn ]]; then
                 echo "Deleting $table"
