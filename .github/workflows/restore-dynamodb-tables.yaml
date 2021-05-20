@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       tables:
-        description: 'Space separated ids of tables to restore backup for, all if not specified'
+        description: 'Space separated ids of tables to restore backup for, just write all to back up all tables'
         required: false
-        default: 'all'
+        default: ''
 
 jobs:
   restore-tables-backups: 
@@ -38,5 +38,10 @@ jobs:
                 (( backup_time > younger_backup_time )) && younger_backup_time=$backup_time && younger_backup_arn=$backup_arn
               done
 
-            aws dynamodb restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
+            if [[ $younger_backup_arn ]]; then
+              aws dynamodb delete-table --table-name $table
+              aws dynamodb restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
+            else
+              echo "No backup found"
+            fi 
           done
