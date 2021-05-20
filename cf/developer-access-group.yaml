@@ -111,7 +111,10 @@ Resources:
                   - "states:DescribeStateMachine"
                   - "states:DescribeExecution"
                   - "states:GetExecutionHistory"
-                Resource: !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*"
+                Resource:
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*" #   this should be deprecated once production env. uses new qc & gem2s state machines
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-qc-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-gem2s-${Environment}-*"
 
         - PolicyName: !Sub "can-create-${Environment}-cognito-environments"
           PolicyDocument:

@@ -93,3 +93,4 @@ Resources:
                   - "states:SendTaskHeartbeat"
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
