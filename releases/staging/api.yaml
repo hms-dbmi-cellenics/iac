@@ -48,7 +48,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-develop-d3875c386d9932dd7eaef7b817a0632304f2c582
+      tag: refs-heads-develop-3d63e6381cfb6e7d74a273b2544482597d1985fa
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
