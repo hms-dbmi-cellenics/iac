@@ -49,7 +49,7 @@ jobs:
               
               echo "Restoring from backup $younger_backup_arn"
 
-              if [[ $younger_backup_arn ]]; then
+              if [ $younger_backup_arn ]; then
                 echo "Deleting $table"
                 aws dynamodb delete-table --table-name $table
                 echo "Restoring from $younger_backup_arn"
