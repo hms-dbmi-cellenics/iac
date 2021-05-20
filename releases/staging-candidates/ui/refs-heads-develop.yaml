@@ -22,6 +22,10 @@ spec:
     path: charts/nodejs
     ref: STAGING_CHART_REF
   values:
+    readinessProbe:
+      path: "/data-management"
+    livenessProbe:
+      path: "/data-management"
     kubernetes:
       env: staging
     biomageCi:
@@ -30,7 +34,8 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-develop-502370c141f21ac60c00266055e82cdfc10c2f85
+      tag: refs-heads-develop-e547a24bbbdd551fe08c3f9b1114eb35d301c784
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
-  # filled in by CI. do not modify.
+
+# filled in by CI. do not modify.
