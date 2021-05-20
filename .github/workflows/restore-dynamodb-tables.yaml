@@ -38,10 +38,10 @@ jobs:
                 (( backup_time > younger_backup_time )) && younger_backup_time=$backup_time && younger_backup_arn=$backup_arn
               done
 
-            if [[ $younger_backup_arn ]]; then
-              aws dynamodb delete-table --table-name $table
-              aws dynamodb restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
-            else
-              echo "No backup found for table $table"
-            fi 
+              if [[ $younger_backup_arn ]]; then
+                aws dynamodb delete-table --table-name $table
+                aws dynamodb restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
+              else
+                echo "No backup found for table $table"
+              fi 
           done
