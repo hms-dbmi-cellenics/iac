@@ -112,7 +112,7 @@ Resources:
                 Action: "eks:DescribeCluster"
                 Resource:
                   - !Sub "arn:aws:eks:${AWS::Region}:${AWS::AccountId}:cluster/biomage-${Environment}"
-        - PolicyName: !Sub "can-manage-state-machine-${Environment}"
+        - PolicyName: !Sub "can-manage-state-machine-${Environment}" #  this should be deprecated once production env. uses new qc & gem2s state machines
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -124,7 +124,9 @@ Resources:
                   - "states:StartExecution"
                   - "states:TagResource"
                 Resource:
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-pipeline-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-pipeline-${Environment}-*"  #  this should be deprecated once production env. uses new qc & gem2s state machines
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-qc-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-gem2s-${Environment}-*"
         - PolicyName: !Sub "can-stop-execution-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -135,7 +137,9 @@ Resources:
                   - "states:StopExecution"
                   - "states:GetExecutionHistory"
                 Resource:
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*:*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*:*" #  this should be deprecated once production env. uses new qc & gem2s state machines
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-qc-${Environment}-*:*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-gem2s-${Environment}-*:*"
         - PolicyName: !Sub "can-create-activity-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -145,6 +149,7 @@ Resources:
                   - "states:CreateActivity"
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
         - PolicyName: !Sub "can-pass-state-machine-executionrole-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
