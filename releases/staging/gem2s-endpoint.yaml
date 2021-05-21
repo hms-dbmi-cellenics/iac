@@ -153,6 +153,6 @@ spec:
   releaseName: pipeline
   values:
     pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-56-merge-add74c28a8da8e736f00c30d48439b928b62e010-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-56-merge-6fac8349708de2c0cf3742055a61675a55b7d701-pipeline-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
