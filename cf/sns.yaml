@@ -65,3 +65,23 @@ Resources:
       FilterPolicy:
         type:
           - PipelineResponse
+  Gem2sResultsSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopic
+      Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/gem2sResults",
+                !If [isDev, "http://host.docker.internal:3000/v1/gem2sResults",
+                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/gem2sResults"]]
+      Protocol: "https"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
+      FilterPolicy:
+        type:
+          - GEM2SResponse
