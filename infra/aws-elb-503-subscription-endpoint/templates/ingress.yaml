@@ -26,3 +26,7 @@ spec:
             backend:
               serviceName: response-503
               servicePort: use-annotation
+          - path: /v1/gem2sResults
+            backend:
+              serviceName: response-503
+              servicePort: use-annotation
