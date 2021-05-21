@@ -51,7 +51,6 @@ jobs:
 
               if test -z "$younger_backup_arn"; then
                 echo "Deleting $table"
-                aws dynamodb delete-table --table-name $table
                 
                 aws dynamodb wait table-not-exists --table-name $table
                 echo "Restoring from $younger_backup_arn"
