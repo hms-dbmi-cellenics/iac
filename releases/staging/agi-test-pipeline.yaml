@@ -10,7 +10,7 @@ kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
     sandboxId: agi-test-pipeline
   name: ui
@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: 14704bb4028f949070a6d28342b406feb0d84ff0
   releaseName: ui
   values:
     biomageCi:
