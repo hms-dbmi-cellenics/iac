@@ -72,6 +72,8 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
