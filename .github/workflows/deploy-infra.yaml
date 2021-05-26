@@ -188,7 +188,7 @@ jobs:
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
         run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.1.2/docs/install/iam_policy.json
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
@@ -207,6 +207,9 @@ jobs:
         run: |-
           helm repo add eks https://aws.github.io/eks-charts
           kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+
+          helm repo update
+
 
           helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
             --namespace kube-system \
