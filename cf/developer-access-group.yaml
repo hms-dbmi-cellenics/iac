@@ -124,3 +124,12 @@ Resources:
                 Action:
                   - "iam:PassRole"
                 Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
+
+        - PolicyName: !Sub "can-view-${Environment}-load-balancers"
+          PolicyDocument:
+            Version: "2015-12-01"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "elasticloadbalancing:Describe*"
+
