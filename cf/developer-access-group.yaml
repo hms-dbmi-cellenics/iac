@@ -125,7 +125,7 @@ Resources:
                   - "iam:PassRole"
                 Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
 
-        - PolicyName: !Sub "can-view-${Environment}-load-balancers"
+        - PolicyName: !Sub "can-view-access-load-balancers"
           PolicyDocument:
             Version: "2015-12-01"
             Statement:
