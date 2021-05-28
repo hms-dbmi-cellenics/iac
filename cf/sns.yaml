@@ -18,7 +18,6 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
-  isStagingDefault: !And [!Equals [!Ref Environment, "staging"], !Equals [!Ref SandboxID, ""]]
 
 Resources: 
   SNSTopic: 
@@ -31,9 +30,8 @@ Resources:
     Properties:
       TopicArn: !Ref SNSTopic
       Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/workResults",
-                !If [isStagingDefault, "https://api-default.scp-staging.biomage.net/v1/workResults",
                 !If [isDev, "http://host.docker.internal:3000/v1/workResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/workResults"]]]
+                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/workResults"]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
@@ -52,9 +50,8 @@ Resources:
     Properties:
       TopicArn: !Ref SNSTopic
       Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/pipelineResults",
-                !If [isStagingDefault, "https://api-default.scp-staging.biomage.net/v1/pipelineResults",
                 !If [isDev, "http://host.docker.internal:3000/v1/pipelineResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/pipelineResults"]]]
+                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/pipelineResults"]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
@@ -73,9 +70,8 @@ Resources:
     Properties:
       TopicArn: !Ref SNSTopic
       Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/gem2sResults",
-                !If [isStagingDefault, "https://api-default.scp-staging.biomage.net/v1/gem2sResults",
                 !If [isDev, "http://host.docker.internal:3000/v1/gem2sResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/gem2sResults"]]]
+                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/gem2sResults"]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
