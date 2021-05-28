@@ -18,7 +18,7 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
-  isStagingDefault: !And [[{!Ref Environment, "staging"]}, {!Equals [!Ref SandboxID, ""]}]
+  isStagingDefault: !And [{!Equals [!Ref Environment, "staging"]}, {!Equals [!Ref SandboxID, ""]}]
 
 Resources: 
   SNSTopic: 
