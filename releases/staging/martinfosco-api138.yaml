@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -20,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 5854c0c17b90514f63cde183991f3dec1baa44f2
+    ref: a1f5ff1cde78ece8aa10303bd4fc4ce14db4dcec
   releaseName: ui
   values:
     biomageCi:
@@ -29,7 +28,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-develop-e5a5704c17fee9a75b72e1163589b2d5d10d76fb
+      tag: refs-heads-develop-4b0cb45e21a5c08b21754085e82e7ce7522a9051
     kubernetes:
       env: staging
     livenessProbe:
@@ -149,10 +148,10 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 503938d3dcc445725a9610a0ac633ffc8687c075
+    ref: afbfac7079590d87ce8dedc95739a6bf5a298d6f
   releaseName: pipeline
   values:
     pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-503938d3dcc445725a9610a0ac633ffc8687c075-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-afbfac7079590d87ce8dedc95739a6bf5a298d6f-pipeline-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
