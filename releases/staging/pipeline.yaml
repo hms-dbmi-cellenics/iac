@@ -26,6 +26,6 @@ spec:
     ref: e72298023fdbc077d03181b8a68c6a7f89985efc
   values:
     pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-9af52b111ce1589994bf4c0b1d0304c94f6b66f5-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-05b22daf15d1ca49ba7258d19272f7c28b39fe73-pipeline-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
