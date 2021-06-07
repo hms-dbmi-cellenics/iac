@@ -96,6 +96,14 @@ Resources:
                 Action: "s3:PutObject"
                 Resource:
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
+        - PolicyName: !Sub "can-delete-original-files-s3-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:DeleteObjects"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
