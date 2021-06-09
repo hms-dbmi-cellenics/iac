@@ -77,7 +77,6 @@ Resources:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/stefanTable-${Environment}*"
 
         - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
           PolicyDocument:
