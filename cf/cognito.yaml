@@ -1,208 +1,208 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up Cognito resources for Biomage SCP [managed by github.com/biomage-ltd/iac]
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: Set up Cognito resources for Biomage SCP [managed by github.com/biomage-ltd/iac]
 
-Parameters:
-  Environment:
-    Type: String
-    Default: development
-    AllowedValues:
-      - development
-      - staging
-      - production
-    Description: The environment for which the buckets need to be created.
+# Parameters:
+#   Environment:
+#     Type: String
+#     Default: development
+#     AllowedValues:
+#       - development
+#       - staging
+#       - production
+#     Description: The environment for which the buckets need to be created.
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
+# Conditions:
+#   isProd: !Equals [!Ref Environment, "production"]
 
-Outputs:
-  UserPoolId:
-    Value: !Ref UserPool
-    Export:
-      Name: !Sub 'cognito-${Environment}::UserPoolId'
-  UserPoolProviderName:
-    Description: Address to use to connect to Primary Cluster endpoint
-    Value: !GetAtt UserPool.ProviderName
-    Export:
-      Name: !Sub 'cognito-${Environment}::UserPoolProviderName'
-  UIRoleArn:
-    Description: Address to use to connect to Primary Cluster endpoint
-    Value: !GetAtt UIRole.Arn
-    Export:
-      Name: !Sub 'cognito-${Environment}::UIRoleArn'
+# Outputs:
+#   UserPoolId:
+#     Value: !Ref UserPool
+#     Export:
+#       Name: !Sub 'cognito-${Environment}::UserPoolId'
+#   UserPoolProviderName:
+#     Description: Address to use to connect to Primary Cluster endpoint
+#     Value: !GetAtt UserPool.ProviderName
+#     Export:
+#       Name: !Sub 'cognito-${Environment}::UserPoolProviderName'
+#   UIRoleArn:
+#     Description: Address to use to connect to Primary Cluster endpoint
+#     Value: !GetAtt UIRole.Arn
+#     Export:
+#       Name: !Sub 'cognito-${Environment}::UIRoleArn'
 
 
-Resources:  
-  UIRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      RoleName: !Sub "ui-auth-user-role-${Environment}"
-      AssumeRolePolicyDocument: |-
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Federated": "cognito-identity.amazonaws.com"
-              },
-              "Action": "sts:AssumeRoleWithWebIdentity",
-              "Condition": {
-                "ForAnyValue:StringLike": {
-                  "cognito-identity.amazonaws.com:amr": "authenticated"
-                }
-              }
-            }
-          ]
-        }
-      Path: /
-      Policies:
-        - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:PutObject"
-                  - "s3:ListMultipartUploadParts"
-                  - "s3:AbortMultipartUpload"
-                  - "s3:ListBucketMultipartUploads"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+# Resources:  
+#   UIRole:
+#     Type: "AWS::IAM::Role"
+#     Properties:
+#       RoleName: !Sub "ui-auth-user-role-${Environment}"
+#       AssumeRolePolicyDocument: |-
+#         {
+#           "Version": "2012-10-17",
+#           "Statement": [
+#             {
+#               "Sid": "",
+#               "Effect": "Allow",
+#               "Principal": {
+#                 "Federated": "cognito-identity.amazonaws.com"
+#               },
+#               "Action": "sts:AssumeRoleWithWebIdentity",
+#               "Condition": {
+#                 "ForAnyValue:StringLike": {
+#                   "cognito-identity.amazonaws.com:amr": "authenticated"
+#                 }
+#               }
+#             }
+#           ]
+#         }
+#       Path: /
+#       Policies:
+#         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
+#           PolicyDocument:
+#             Version: "2012-10-17"
+#             Statement:
+#               - Effect: Allow
+#                 Action:
+#                   - "s3:PutObject"
+#                   - "s3:ListMultipartUploadParts"
+#                   - "s3:AbortMultipartUpload"
+#                   - "s3:ListBucketMultipartUploads"
+#                 Resource:
+#                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
 
-        - PolicyName: !Sub "can-get-object-information-in-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:GetObjectTagging"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+#         - PolicyName: !Sub "can-get-object-information-in-bucket-${Environment}"
+#           PolicyDocument:
+#             Version: "2012-10-17"
+#             Statement:
+#               - Effect: Allow
+#                 Action:
+#                   - "s3:GetObject"
+#                   - "s3:GetObjectTagging"
+#                 Resource:
+#                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
 
-        - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:ListBucket"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
+#         - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
+#           PolicyDocument:
+#             Version: "2012-10-17"
+#             Statement:
+#               - Effect: Allow
+#                 Action:
+#                   - "s3:ListBucket"
+#                 Resource:
+#                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
 
-  SMSRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      RoleName: !Sub "biomage-cognito-sms-role-${Environment}"
-      AssumeRolePolicyDocument: |-
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "cognito-idp.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole",
-              "Condition": {
-                "StringEquals": {
-                  "sts:ExternalId": "92bd350f-b2ad-455a-b614-a24e63555edb"
-                }
-              }
-            }
-          ]
-        }
-      Path: /
-      Policies:
-        - PolicyName: "can-send-sms"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sns:publish"
-                Resource:
-                  - '*'
+#   SMSRole:
+#     Type: "AWS::IAM::Role"
+#     Properties:
+#       RoleName: !Sub "biomage-cognito-sms-role-${Environment}"
+#       AssumeRolePolicyDocument: |-
+#         {
+#           "Version": "2012-10-17",
+#           "Statement": [
+#             {
+#               "Sid": "",
+#               "Effect": "Allow",
+#               "Principal": {
+#                 "Service": "cognito-idp.amazonaws.com"
+#               },
+#               "Action": "sts:AssumeRole",
+#               "Condition": {
+#                 "StringEquals": {
+#                   "sts:ExternalId": "92bd350f-b2ad-455a-b614-a24e63555edb"
+#                 }
+#               }
+#             }
+#           ]
+#         }
+#       Path: /
+#       Policies:
+#         - PolicyName: "can-send-sms"
+#           PolicyDocument:
+#             Version: "2012-10-17"
+#             Statement:
+#               - Effect: Allow
+#                 Action:
+#                   - "sns:publish"
+#                 Resource:
+#                   - '*'
 
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    Properties: 
-      UserPoolName: !Sub "biomage-user-pool-${Environment}"
-      AccountRecoverySetting: 
-        RecoveryMechanisms: 
-          - Name: verified_email
-            Priority: 1
-          - Name: verified_phone_number
-            Priority: 2
-      AdminCreateUserConfig: 
-        AllowAdminCreateUserOnly: false
-        InviteMessageTemplate: 
-          EmailSubject: 'Your temporary password for Cellscope'
-          EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
-          SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
-        UnusedAccountValidityDays: 7
-      AutoVerifiedAttributes:
-        - email
-      DeviceConfiguration:
-        ChallengeRequiredOnNewDevice: true
-        DeviceOnlyRememberedOnUserPrompt: true
-      EmailConfiguration:
-        EmailSendingAccount: COGNITO_DEFAULT
-        #From: noreply@biomage.net
-        ReplyToEmailAddress: hello@biomage.net
-      EnabledMfas:
-        - SMS_MFA
-        - SOFTWARE_TOKEN_MFA
-      SmsConfiguration:
-        ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
-        SnsCallerArn: !GetAtt SMSRole.Arn
-      MfaConfiguration: "OPTIONAL"
-      Schema:
-        - Name: full-name
-          AttributeDataType: String
-          Mutable: true
-          Required: true
-        - Name: email
-          AttributeDataType: String
-          Mutable: true
-          Required: true
-        - Name: institution
-          AttributeDataType: String
-          Mutable: true
-          Required: true
-      SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
-      SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
-      UsernameAttributes:
-        - email
-      UsernameConfiguration:
-        CaseSensitive: true
+#   UserPool:
+#     Type: AWS::Cognito::UserPool
+#     Properties: 
+#       UserPoolName: !Sub "biomage-user-pool-${Environment}"
+#       AccountRecoverySetting: 
+#         RecoveryMechanisms: 
+#           - Name: verified_email
+#             Priority: 1
+#           - Name: verified_phone_number
+#             Priority: 2
+#       AdminCreateUserConfig: 
+#         AllowAdminCreateUserOnly: false
+#         InviteMessageTemplate: 
+#           EmailSubject: 'Your temporary password for Cellscope'
+#           EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
+#           SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
+#         UnusedAccountValidityDays: 7
+#       AutoVerifiedAttributes:
+#         - email
+#       DeviceConfiguration:
+#         ChallengeRequiredOnNewDevice: true
+#         DeviceOnlyRememberedOnUserPrompt: true
+#       EmailConfiguration:
+#         EmailSendingAccount: COGNITO_DEFAULT
+#         #From: noreply@biomage.net
+#         ReplyToEmailAddress: hello@biomage.net
+#       EnabledMfas:
+#         - SMS_MFA
+#         - SOFTWARE_TOKEN_MFA
+#       SmsConfiguration:
+#         ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
+#         SnsCallerArn: !GetAtt SMSRole.Arn
+#       MfaConfiguration: "OPTIONAL"
+#       Schema:
+#         - Name: full-name
+#           AttributeDataType: String
+#           Mutable: true
+#           Required: true
+#         - Name: email
+#           AttributeDataType: String
+#           Mutable: true
+#           Required: true
+#         - Name: institution
+#           AttributeDataType: String
+#           Mutable: true
+#           Required: true
+#       SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
+#       SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+#       UsernameAttributes:
+#         - email
+#       UsernameConfiguration:
+#         CaseSensitive: true
 
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain 
-    Properties:
-      UserPoolId: !Ref UserPool 
-      Domain: !If [isProd, "biomage",!Sub "biomage-${Environment}"]
+#   UserPoolDomain:
+#     Type: AWS::Cognito::UserPoolDomain 
+#     Properties:
+#       UserPoolId: !Ref UserPool 
+#       Domain: !If [isProd, "biomage",!Sub "biomage-${Environment}"]
 
-  UserPoolClientLocal:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: !Sub "biomage-cellscope-local-${Environment}"
-      UserPoolId: !Ref UserPool
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthFlows:
-        - 'code'
-      AllowedOAuthScopes:
-        - 'phone'
-        - 'email'
-        - 'openid'
-        - 'aws.cognito.signin.user.admin'
-        - 'profile'
-      CallbackURLs:
-        - "http://localhost:5000/data-management"
-      DefaultRedirectURI: "http://localhost:5000/data-management"
-      LogoutURLs:
-        - "http://localhost:5000/data-management"
-      SupportedIdentityProviders:
-        - COGNITO
+#   UserPoolClientLocal:
+#     Type: AWS::Cognito::UserPoolClient
+#     Properties:
+#       ClientName: !Sub "biomage-cellscope-local-${Environment}"
+#       UserPoolId: !Ref UserPool
+#       AllowedOAuthFlowsUserPoolClient: true
+#       AllowedOAuthFlows:
+#         - 'code'
+#       AllowedOAuthScopes:
+#         - 'phone'
+#         - 'email'
+#         - 'openid'
+#         - 'aws.cognito.signin.user.admin'
+#         - 'profile'
+#       CallbackURLs:
+#         - "http://localhost:5000/data-management"
+#       DefaultRedirectURI: "http://localhost:5000/data-management"
+#       LogoutURLs:
+#         - "http://localhost:5000/data-management"
+#       SupportedIdentityProviders:
+#         - COGNITO
