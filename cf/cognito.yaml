@@ -160,7 +160,7 @@ Resources:
         SnsCallerArn: !GetAtt SMSRole.Arn
       MfaConfiguration: "OPTIONAL"
       Schema:
-        - Name: name
+        - Name: full-name
           AttributeDataType: String
           Mutable: true
           Required: true
@@ -171,7 +171,7 @@ Resources:
         - Name: institution
           AttributeDataType: String
           Mutable: true
-          Required: false
+          Required: true
       SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
       SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
       UsernameAttributes:
