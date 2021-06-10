@@ -160,7 +160,7 @@ Resources:
         SnsCallerArn: !GetAtt SMSRole.Arn
       MfaConfiguration: "OPTIONAL"
       Schema:
-        - Name: full-name
+        - Name: Full name
           AttributeDataType: String
           Mutable: true
           Required: true
