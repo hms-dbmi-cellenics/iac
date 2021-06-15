@@ -119,9 +119,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-132-merge-4aac6caf4a3d8c9fe8666b25e6b467edd84881f8-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-132-merge-b26f45aefd9b675639bce8af59ff543d3a6740b9-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-132-merge-4aac6caf4a3d8c9fe8666b25e6b467edd84881f8-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-132-merge-b26f45aefd9b675639bce8af59ff543d3a6740b9-r
     sandboxId: v001
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
