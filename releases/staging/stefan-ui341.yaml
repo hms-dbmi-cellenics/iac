@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui341
+  name: ui-stefan-ui341
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-341-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: stefan-ui341
+  name: ui
+  namespace: ui-stefan-ui341
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: stefan-ui341
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-341-merge-7533304ee6a3946326f4090adf39ae6135c77e1d
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui341
+  name: api-stefan-ui341
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: stefan-ui341
+  name: api
+  namespace: api-stefan-ui341
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 896194dfd14580b343c9ff771bf7d0a11cbc0331
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: stefan-ui341
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-develop-d61238e1faa9c1f8d6d6c9e893fe8c52afbc4c53
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui341
+  name: worker-stefan-ui341
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-develop-*-python
+    filter.fluxcd.io/r: glob:refs-heads-develop-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: stefan-ui341
+  name: worker
+  namespace: worker-stefan-ui341
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 4724c1ca213bb2781473e718cc0ae73c314e8308
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-4724c1ca213bb2781473e718cc0ae73c314e8308-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-4724c1ca213bb2781473e718cc0ae73c314e8308-r
+    sandboxId: stefan-ui341
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui341
+  name: pipeline-stefan-ui341
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:refs-heads-develop-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: stefan-ui341
+  name: pipeline
+  namespace: pipeline-stefan-ui341
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: 49297890a973cfa284adb707b18dae4d3296c20d
+  releaseName: pipeline
+  values:
+    pipeline-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-49297890a973cfa284adb707b18dae4d3296c20d-pipeline-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
