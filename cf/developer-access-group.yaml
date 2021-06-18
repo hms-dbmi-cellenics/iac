@@ -16,6 +16,18 @@ Resources:
     Type: AWS::IAM::Group
     Properties: 
       GroupName: !Sub "engineer-${Environment}-access"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        - arn:aws:iam::aws:policy/AWSStepFunctionsConsoleFullAccess
+        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+        - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
+        - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonRoute53DomainsReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser 
       Policies: 
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
@@ -112,7 +124,6 @@ Resources:
                   - "states:DescribeExecution"
                   - "states:GetExecutionHistory"
                 Resource:
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-pipeline-${Environment}-*" #   this should be deprecated once production env. uses new qc & gem2s state machines
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-gem2s-${Environment}-*"
 
@@ -125,12 +136,54 @@ Resources:
                   - "iam:PassRole"
                 Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
 
-        - PolicyName: "can-view-access-load-balancers"
+        - PolicyName: "can-manage-own-password-and-mfa"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "elasticloadbalancing:Describe*"
+                  - "iam:GetAccountPasswordPolicy"
+                  - "iam:ListVirtualMFADevices"
                 Resource: "*"
-
+              - Effect: Allow
+                Action:
+                  - "iam:ChangePassword"
+                  - "iam:GetUser"
+                  - "iam:CreateAccessKey"
+                  - "iam:DeleteAccessKey"
+                  - "iam:ListAccessKeys"
+                  - "iam:UpdateAccessKey"
+                  - "iam:DeleteSigningCertificate"
+                  - "iam:ListSigningCertificates"
+                  - "iam:UpdateSigningCertificate"
+                  - "iam:UploadSigningCertificate"
+                  - "iam:DeleteSSHPublicKey"
+                  - "iam:GetSSHPublicKey"
+                  - "iam:ListSSHPublicKeys"
+                  - "iam:UpdateSSHPublicKey"
+                  - "iam:UploadSSHPublicKey"
+                  - "iam:CreateServiceSpecificCredential"
+                  - "iam:DeleteServiceSpecificCredential"
+                  - "iam:ListServiceSpecificCredentials"
+                  - "iam:ResetServiceSpecificCredential"
+                  - "iam:UpdateServiceSpecificCredential"
+                  - "iam:CreateVirtualMFADevice"
+                  - "iam:DeleteVirtualMFADevice"
+                  - "iam:DeactivateMFADevice"
+                  - "iam:EnableMFADevice"
+                  - "iam:ListMFADevices"
+                  - "iam:ResyncMFADevice"
+                Resource: "arn:aws:iam::*:user/${aws:username}"
+              - Effect: Deny
+                NotAction:
+                  - "iam:CreateVirtualMFADevice"
+                  - "iam:GetUser"
+                  - "iam:EnableMFADevice"
+                  - "iam:ListMFADevices"
+                  - "iam:ListVirtualMFADevices"
+                  - "iam:ResyncMFADevice"
+                  - "sts:GetSessionToken"
+                Resource: "*"
+                Condition:
+                  BoolIfExists:
+                    aws:MultiFactorAuthPresent: "false"
