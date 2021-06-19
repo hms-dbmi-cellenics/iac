@@ -18,7 +18,7 @@ Resources:
       GroupName: !Sub "engineer-${Environment}-access"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess
-        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
         - arn:aws:iam::aws:policy/AWSStepFunctionsConsoleFullAccess
         - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
         - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
