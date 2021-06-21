@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -28,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-346-merge-a089b4f8ad758524fcc1de3d4dd8c22cc4a2bad4
+      tag: refs-pull-346-merge-892a5e7ae0ccd8d0c0666cdc6cb55db9b6103ae2
     kubernetes:
       env: staging
     livenessProbe:
