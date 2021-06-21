@@ -172,16 +172,3 @@ Resources:
                   - "iam:ListMFADevices"
                   - "iam:ResyncMFADevice"
                 Resource: "arn:aws:iam::*:user/${aws:username}"
-              - Effect: Deny
-                NotAction:
-                  - "iam:CreateVirtualMFADevice"
-                  - "iam:GetUser"
-                  - "iam:EnableMFADevice"
-                  - "iam:ListMFADevices"
-                  - "iam:ListVirtualMFADevices"
-                  - "iam:ResyncMFADevice"
-                  - "sts:GetSessionToken"
-                Resource: "*"
-                Condition:
-                  BoolIfExists:
-                    aws:MultiFactorAuthPresent: "false"
