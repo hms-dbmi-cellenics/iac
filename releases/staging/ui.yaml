@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -34,7 +35,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-develop-e628bc2e54c6c1f853edea8694e6f43906c50809
+      tag: refs-heads-develop-01019f329b99dc61bf14a8d630744afe8260b88a
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
 
