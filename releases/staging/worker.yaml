@@ -28,6 +28,6 @@ spec:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: default
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-c685e2ac2cec89a665663028eff548ee7bdec21a-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-53be25e92c7cabcfa98f4492839d53b8a9424ea7-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-013ab70173130972ecf5620ecadfeef708a22372-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-53be25e92c7cabcfa98f4492839d53b8a9424ea7-python
