@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -25,6 +26,6 @@ spec:
     ref: 6877bb37f72e84ae878a4e2bfd4feebbcd3ac808
   values:
     pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-6877bb37f72e84ae878a4e2bfd4feebbcd3ac808-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-6cc1209fa73d7c1324138d9093827c11c9da6e4e-pipeline-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
