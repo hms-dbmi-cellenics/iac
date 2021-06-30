@@ -132,6 +132,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
+                  - "iam:PutRolePolicy"
                 Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
 
         - PolicyName: "can-manage-own-password-and-mfa"
