@@ -119,7 +119,7 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-144-merge-aeb37779c79a830a10f942a60cdaae495b988b05-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-144-merge-a3996fd7c186dec78809295f9e83ff9826f34601-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-144-merge-8753909432a70181456658356def636c2f5d24ec-r
     sandboxId: james-ui357-worker144
