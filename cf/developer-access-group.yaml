@@ -26,7 +26,7 @@ Resources:
         - arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
-        - arn:aws:iam::aws:policy/PinpointRole
+        - arn:aws:iam::aws:policy/AdministratorAccess-Amplify
       Policies: 
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
