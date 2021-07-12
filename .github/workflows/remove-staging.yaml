@@ -148,6 +148,7 @@ jobs:
 
       - id: remove-fargate-profile
         name: Remove Fargate profile for the workers
+        continue-on-error: true
         run: |-
           eksctl delete fargateprofile --cluster biomage-staging --name worker-$SANDBOX_ID --namespace worker-$SANDBOX_ID
         env:

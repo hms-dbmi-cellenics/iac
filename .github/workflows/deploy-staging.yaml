@@ -158,12 +158,17 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: add-fargate-profile
-        name: Add Fargate profile for the workers
-        run: |-
-          eksctl create fargateprofile --cluster biomage-staging --name worker-$SANDBOX_ID --namespace worker-$SANDBOX_ID
-        env:
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+      - id: on-failure-retry
+        if: failure()
+        name: Retry in case push failed.
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 30
+          max_attempts: 5
+          retry_on: error
+          command: eksctl create fargateprofile --cluster biomage-staging --name worker-${{ github.event.inputs.sandbox-id }} --namespace worker-${{ github.event.inputs.sandbox-id }} | grep created
+          # Add jitter to break up correlated events.
+          on_retry_command: sleep $[($RANDOM % 10) + 5]s
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
