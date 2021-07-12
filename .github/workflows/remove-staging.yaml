@@ -132,6 +132,27 @@ jobs:
           # Add jitter to break up correlated events.
           on_retry_command: sleep $[($RANDOM % 10) + 5]s
 
+      - id: setup-aws-privileged
+        name: Configure AWS privileged credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+
+      - id: remove-fargate-profile
+        name: Remove Fargate profile for the workers
+        run: |-
+          eksctl delete fargateprofile --cluster biomage-staging --name worker-$SANDBOX_ID --namespace worker-$SANDBOX_ID
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
         uses: benjefferies/branch-protection-bot@master
