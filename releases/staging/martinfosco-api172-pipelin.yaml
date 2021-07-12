@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: ui-martinfosco-api172-pipelin
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: ui
+  namespace: ui-martinfosco-api172-pipelin
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 5d7751ffb330c5ff4ee88ec080c76c2926141c04
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: martinfosco-api172-pipelin
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-develop-5712a04ff450521ca5a6469d539de52a3df54de0
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: api-martinfosco-api172-pipelin
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-172-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: api
+  namespace: api-martinfosco-api172-pipelin
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: martinfosco-api172-pipelin
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-172-merge-52d8cdc084f87d697693b2038df2cc54beff9171
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: worker-martinfosco-api172-pipelin
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-develop-*-python
+    filter.fluxcd.io/r: glob:refs-heads-develop-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: worker
+  namespace: worker-martinfosco-api172-pipelin
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 5025c4b61c605aa72abb252163cab4472b82f850
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-5025c4b61c605aa72abb252163cab4472b82f850-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-develop-5025c4b61c605aa72abb252163cab4472b82f850-r
+    sandboxId: martinfosco-api172-pipelin
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: pipeline-martinfosco-api172-pipelin
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:refs-pull-119-merge-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: martinfosco-api172-pipelin
+  name: pipeline
+  namespace: pipeline-martinfosco-api172-pipelin
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: refs/pull/119/head
+  releaseName: pipeline
+  values:
+    pipeline-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-119-merge-d058dde6aec8873e37896e7bbbf45b087915b9da-pipeline-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
