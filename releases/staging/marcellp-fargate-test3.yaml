@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -19,7 +20,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 1e071b77e7965a9d48886c8f487bb20e9c779945
+    ref: 6a0cc59e805ee0b4999baae30b9d444fef58524c
   releaseName: ui
   values:
     biomageCi:
@@ -59,7 +60,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 1e071b77e7965a9d48886c8f487bb20e9c779945
+    ref: 6a0cc59e805ee0b4999baae30b9d444fef58524c
   releaseName: api
   values:
     biomageCi:
@@ -120,7 +121,7 @@ spec:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-591caa496e87c75a3113b5fb3024daacae698302-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-591caa496e87c75a3113b5fb3024daacae698302-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-04b0e5a4c56dc40a166382cdce103a44900637d7-r
     sandboxId: marcellp-fargate-test3
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
