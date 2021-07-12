@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: ui-marcellp-fargate-test3
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: ui
+  namespace: ui-marcellp-fargate-test3
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 1e071b77e7965a9d48886c8f487bb20e9c779945
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: marcellp-fargate-test3
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-develop-2893852326e6bef37198e5cca267d992df5f3ee3
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: api-marcellp-fargate-test3
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: api
+  namespace: api-marcellp-fargate-test3
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 1e071b77e7965a9d48886c8f487bb20e9c779945
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: marcellp-fargate-test3
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-develop-69c2d2af0f8339aeca7eed41f8a55212f08c5f9a
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: worker-marcellp-fargate-test3
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-pull-150-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-150-merge-*-r
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: worker
+  namespace: worker-marcellp-fargate-test3
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: refs/pull/150/head
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-591caa496e87c75a3113b5fb3024daacae698302-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-591caa496e87c75a3113b5fb3024daacae698302-r
+    sandboxId: marcellp-fargate-test3
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: pipeline-marcellp-fargate-test3
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:refs-heads-develop-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: marcellp-fargate-test3
+  name: pipeline
+  namespace: pipeline-marcellp-fargate-test3
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: 7dbf18e24ecf1078cd836f33b5a6a0a05b2ca8dd
+  releaseName: pipeline
+  values:
+    pipeline-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-develop-7dbf18e24ecf1078cd836f33b5a6a0a05b2ca8dd-pipeline-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
