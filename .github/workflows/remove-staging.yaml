@@ -150,7 +150,7 @@ jobs:
         name: Remove Fargate profile for the workers
         continue-on-error: true
         run: |-
-          eksctl delete fargateprofile --cluster biomage-staging --name worker-$SANDBOX_ID --namespace worker-$SANDBOX_ID
+          eksctl delete fargateprofile --cluster biomage-staging --name worker-$SANDBOX_ID
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
