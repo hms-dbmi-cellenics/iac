@@ -159,7 +159,6 @@ jobs:
           sudo mv /tmp/eksctl /usr/local/bin
 
       - id: create-fargate-profile
-        if: failure()
         name: Attempt to create Fargate profile
         uses: nick-invision/retry@v2
         with:
