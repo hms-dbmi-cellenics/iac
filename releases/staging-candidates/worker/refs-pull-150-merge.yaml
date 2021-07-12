@@ -27,6 +27,6 @@ spec:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-4c6f76a3a32f82cd2514a18a910886a779df4b6f-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-591caa496e87c75a3113b5fb3024daacae698302-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-4c6f76a3a32f82cd2514a18a910886a779df4b6f-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-150-merge-591caa496e87c75a3113b5fb3024daacae698302-python
