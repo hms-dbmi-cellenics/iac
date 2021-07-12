@@ -165,7 +165,7 @@ jobs:
           timeout_seconds: 300
           max_attempts: 5
           retry_on: error
-          command: eksctl create fargateprofile --cluster biomage-staging --name worker-${{ github.event.inputs.sandbox-id }} --namespace worker-${{ github.event.inputs.sandbox-id }} | grep created
+          command: eksctl create fargateprofile --cluster biomage-staging --name worker-${{ github.event.inputs.sandbox-id }} --namespace worker-${{ github.event.inputs.sandbox-id }} | grep "created Fargate profile"
           # Add jitter to break up correlated events.
           on_retry_command: sleep $[($RANDOM % 10) + 20]s
 
