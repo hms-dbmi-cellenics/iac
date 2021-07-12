@@ -162,7 +162,7 @@ jobs:
         name: Attempt to create Fargate profile
         uses: nick-invision/retry@v2
         with:
-          timeout_seconds: 30
+          timeout_seconds: 300
           max_attempts: 5
           retry_on: error
           command: eksctl create fargateprofile --cluster biomage-staging --name worker-${{ github.event.inputs.sandbox-id }} --namespace worker-${{ github.event.inputs.sandbox-id }} | grep created
