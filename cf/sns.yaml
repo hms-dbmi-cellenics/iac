@@ -24,7 +24,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties: 
       ContentBasedDeduplication: true
-      DeduplicationScope: "perMessageGroupId"
+      DeduplicationScope: "messageGroup"
       FifoQueue: true
       QueueName: !If [isDev, "development-queue.fifo", !Sub "queue-job-${SandboxID}-${Environment}.fifo"]
       FifoThroughputLimit: "perMessageGroupId"
