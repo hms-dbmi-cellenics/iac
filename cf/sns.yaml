@@ -19,7 +19,15 @@ Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
 
-Resources: 
+Resources:
+  SQSQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      ContentBasedDeduplication: true
+      DeduplicationScope: "perMessageGroupId"
+      FifoQueue: true
+      QueueName: !If [isDev, "development-queue.fifo", !Sub "queue-job-${SandboxID}-${Environment}.fifo"]
+      FifoThroughputLimit: "perMessageGroupId"
   SNSTopic: 
     Type: AWS::SNS::Topic
     Properties: 
