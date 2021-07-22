@@ -49,7 +49,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-711fb45d3a99fd4e979a8b682607bf91d6c03adf
+      tag: refs-heads-master-7d0c4186374f31da8fa7f3e1a29f4c97ed810284
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-production
 
