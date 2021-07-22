@@ -14,7 +14,7 @@ metadata:
     sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: semver:>=0.0.0
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
 spec:
   releaseName: api
   chart:
@@ -48,7 +48,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-49a243a40396f9288a0eec401a18330bf2a12091
+      tag: refs-heads-master-e5861fa9648ece3b2d7669d7de8f77049e9dc80e
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
