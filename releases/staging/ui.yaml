@@ -14,7 +14,7 @@ metadata:
     sandboxId: default
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-heads-develop-*
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
 spec:
   releaseName: ui
   chart:
@@ -34,8 +34,8 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-develop-49b8a05e21e484e892dc74a29da2d925c5efb24d
+      tag: refs-heads-master-5621ed8bc2ff959352ea8a37b7115b6b146ee7ee
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
 # filled in by CI. do not modify.
