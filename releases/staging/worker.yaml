@@ -12,8 +12,8 @@ metadata:
   namespace: worker-default
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/r: glob:glob:refs-tags-*-r
-    filter.fluxcd.io/python: glob:glob:refs-tags-*-python
+    filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
+    filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
   labels:
     sandboxId: default
 spec:
@@ -21,12 +21,12 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 405cc18e1f6fd471be7336e7636c7aecdbe4129d
+    ref: 6c2d073fc433415dbced304ab2d6412052404509
   values:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: default
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-tags-0.0.3-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-6c2d073fc433415dbced304ab2d6412052404509-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-tags-0.0.3-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-6c2d073fc433415dbced304ab2d6412052404509-python
