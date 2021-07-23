@@ -12,8 +12,8 @@ metadata:
   namespace: worker-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/r: glob:refs-pull-156-merge-*-r
-    filter.fluxcd.io/python: glob:refs-pull-156-merge-*-python
+    filter.fluxcd.io/r: glob:glob:refs-pull-156-merge-*-r
+    filter.fluxcd.io/python: glob:glob:refs-pull-156-merge-*-python
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -27,6 +27,6 @@ spec:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-156-merge-5c1b4901bdd40955937188e831f2ee16742133b2-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-156-merge-72680b5f7cf98a931007983308e8772200171c20-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-156-merge-5c1b4901bdd40955937188e831f2ee16742133b2-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-156-merge-72680b5f7cf98a931007983308e8772200171c20-python
