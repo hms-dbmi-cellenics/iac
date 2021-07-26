@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: ui-gimpy-white-dragonfly
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: ui
+  namespace: ui-gimpy-white-dragonfly
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: d4d6dc25f2574f8dbd236e5ab510676f8695eb88
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: gimpy-white-dragonfly
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-45b92649b233eb377dc7382cf5d94caaec59838a
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: api-gimpy-white-dragonfly
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: api
+  namespace: api-gimpy-white-dragonfly
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: d4d6dc25f2574f8dbd236e5ab510676f8695eb88
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: gimpy-white-dragonfly
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-b0ef261c128f4814976d07b0674032eb105bc2f5
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: worker-gimpy-white-dragonfly
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: worker
+  namespace: worker-gimpy-white-dragonfly
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 15d37d9a765c662ee8152600ee7a4e2858f79cdd
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-15d37d9a765c662ee8152600ee7a4e2858f79cdd-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-15d37d9a765c662ee8152600ee7a4e2858f79cdd-r
+    sandboxId: gimpy-white-dragonfly
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: pipeline-gimpy-white-dragonfly
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: gimpy-white-dragonfly
+  name: pipeline
+  namespace: pipeline-gimpy-white-dragonfly
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: e82a49d688822561aca927f396133a709ad97b40
+  releaseName: pipeline
+  values:
+    pipeline-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-bbc8e8b505afe260d9461b3aeba81795ffd7ae87-pipeline-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
