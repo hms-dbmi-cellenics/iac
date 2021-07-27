@@ -1,0 +1,41 @@
+name: Delete old staging step functions
+
+on:
+  schedule:
+    - cron:  '20 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-e2e:
+    name: Delete old staging step functions
+    runs-on: ubuntu-20.04
+    steps:
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      # This will take everything OLDER THAN the last 500 step functions
+      # marked as staging and remove them.
+      - id: remove-old-envs
+        name: Remove old step functions from staging
+        run: |-
+          aws stepfunctions list-state-machines \
+            | grep staging \
+            | sort -k2 \
+            | head -n -500 \
+            | awk '{print $4}' \
+            | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+      - id: send-to-slack
+        name: Send failure notification to Slack
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pipelines
+          status: FAILED
+          color: danger
