@@ -23,9 +23,7 @@ jobs:
       - id: remove-old-envs
         name: Remove old step functions from staging
         run: |-
-          aws stepfunctions list-state-machines | grep staging | sort -k2
-          
-          aws stepfunctions list-state-machines \
+          aws stepfunctions list-state-machines --output text \
             | grep staging \
             | sort -k2 \
             | head -n -500 \
