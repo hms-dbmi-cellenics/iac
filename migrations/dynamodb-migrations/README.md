@@ -28,12 +28,15 @@ Name all your migration scripts starting with the ISO date string for the time
 the script was created in UTC. This is so the files is ordered correctly under an
 alphabetical ordering.
 
+
+### Dynamodb migrations: ###
+
 You will need to install the tool [dynamodb-migrations](https://www.npmjs.com/package/dynamodb-migrations).
 This is a global tool that exposes the `dynamodb-migrate` command.
 
 You will need to link the package `dyno` into the `dynamodb-migrations` folder:
 
-    cd dynamodb_migrations/
+    cd migrations/dynamodb_migrations/
     npm link dyno
 
 Then, run the following to test the script in dry run (no `--live` flag supplied means a dry run is being performed):
@@ -46,3 +49,6 @@ If it works, you can deploy it by appending the `--live` flag:
     K8S_ENV=staging dynamodb-migrate scan eu-west-1/TABLE_NAME ./dynamodb-migrations/SCRIPT_NAME.js --dyno --live
     K8S_ENV=production dynamodb-migrate scan eu-west-1/TABLE_NAME ./dynamodb-migrations/SCRIPT_NAME.js --dyno --live
 
+### S3 migrations: ###
+
+You will need to install the packages `aws-sdk` and `lodash`.
