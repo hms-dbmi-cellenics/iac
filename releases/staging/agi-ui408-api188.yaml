@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui408-api188
+  name: ui-agi-ui408-api188
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-408-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-ui408-api188
+  name: ui
+  namespace: ui-agi-ui408-api188
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: agi-ui408-api188
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-408-merge-e9225c668260cbe354a593ad9ed61afae8ed9d1c
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui408-api188
+  name: api-agi-ui408-api188
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-188-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-ui408-api188
+  name: api
+  namespace: api-agi-ui408-api188
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: agi-ui408-api188
+    hpa:
+      enabled: true
+      maxReplicas: 10
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-188-merge-7729c9d59958a6e4482c982c433aa31e0ab80114
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui408-api188
+  name: worker-agi-ui408-api188
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-ui408-api188
+  name: worker
+  namespace: worker-agi-ui408-api188
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: affe7174f2e2bd0276124530af8c1d78de3591e7
+  releaseName: worker
+  values:
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-affe7174f2e2bd0276124530af8c1d78de3591e7-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-affe7174f2e2bd0276124530af8c1d78de3591e7-r
+    sandboxId: agi-ui408-api188
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui408-api188
+  name: pipeline-agi-ui408-api188
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-ui408-api188
+  name: pipeline
+  namespace: pipeline-agi-ui408-api188
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: f395752cfe90faf5b3a29d7a7055115efc14dced
+  releaseName: pipeline
+  values:
+    pipeline-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-f395752cfe90faf5b3a29d7a7055115efc14dced-pipeline-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
