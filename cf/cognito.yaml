@@ -80,6 +80,7 @@ Resources:
                   - "s3:GetObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
 
         - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
           PolicyDocument:
