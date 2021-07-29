@@ -70,17 +70,18 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
 
-        - PolicyName: !Sub "can-get-object-information-in-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:GetObjectTagging"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
+        #  Disable until S3 access control is implemented
+        # - PolicyName: !Sub "can-get-object-information-in-bucket-${Environment}"
+        #   PolicyDocument:
+        #     Version: "2012-10-17"
+        #     Statement:
+        #       - Effect: Allow
+        #         Action:
+        #           - "s3:GetObject"
+        #           - "s3:GetObjectTagging"
+        #         Resource:
+        #           - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+        #           - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
 
         - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
           PolicyDocument:
