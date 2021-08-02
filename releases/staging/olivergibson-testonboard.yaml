@@ -114,7 +114,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 283ed4649f18b3b088701ec1f89769ec534e1510
+    ref: 373bf2ab973662459c261adfbf890bd14bbad84a
   releaseName: worker
   values:
     python:
