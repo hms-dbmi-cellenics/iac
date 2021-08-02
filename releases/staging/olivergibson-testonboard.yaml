@@ -105,7 +105,7 @@ metadata:
   annotations:
     filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
     filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
     sandboxId: olivergibson-testonboard
   name: worker
@@ -118,9 +118,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-283ed4649f18b3b088701ec1f89769ec534e1510-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-1dc3aa3888d516fec73023e055f885f78e090e48-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-283ed4649f18b3b088701ec1f89769ec534e1510-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-1dc3aa3888d516fec73023e055f885f78e090e48-r
     sandboxId: olivergibson-testonboard
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
