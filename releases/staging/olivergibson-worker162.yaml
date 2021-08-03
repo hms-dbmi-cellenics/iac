@@ -118,9 +118,9 @@ spec:
   releaseName: worker
   values:
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-162-merge-84908600a63e7082d803e024fc760e6a11c8836e-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-162-merge-af9bba63d812a01a099cf02b1ba244f77932d0b2-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-162-merge-84908600a63e7082d803e024fc760e6a11c8836e-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-162-merge-af9bba63d812a01a099cf02b1ba244f77932d0b2-r
     sandboxId: olivergibson-worker162
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
