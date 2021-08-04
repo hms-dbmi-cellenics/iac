@@ -112,7 +112,7 @@ for experiment in experiments:
             ProjectionExpression="projects"
         )
 
-        if not project.get('Item') : raise Exception('Old samples does not have project')
+        if not project.get('Item') : raise Exception('Project does not exist')
         samples = project['Item']['projects']['M']['samples']
         
         if not samples.get('L') : raise Exception('Project does not contain samples')
