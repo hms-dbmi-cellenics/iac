@@ -21,7 +21,7 @@ experiments = client.scan(
 )['Items']
 
 ## >> Uncomment lines below to test with a single experiment
-# test_experiment_id = "b947598cc38860660a82ffd508e2b068"
+# test_experiment_id = "cb78445e36db4fb1f5bc0bc5fee95b97"
 
 # experiments = client.get_item(
 #     TableName=experiments_table,
@@ -43,18 +43,18 @@ def create_gem2s_hash(experiment, project, samples):
     # Filter 'ids' key which is present in older samples object
     sample_ids = [sample_id for sample_id in samples['M'] if sample_id != 'ids']
 
-    sample_names = []
+    # Sample IDS is first sorted so that hash does not depend on order of samples
+    sample_ids.sort()
 
-    # Sample names
+    sample_names = []
+    # Sample names are created according to order of sampleIds
     for sample_id in sample_ids:
         sample_names.append(samples['M'][sample_id]['M']['name']['S'])
 
-    # Sample IDS and names are sorted to be invariant
-    sample_ids.sort()
-    sample_names.sort()
-
     input_type = experiment["meta"]['M']["type"].get('S', '10x')
 
+    hash_params = OrderedDict()
+    
     hash_params = {
         "organism": organism,
         "input": {"type" : input_type},
@@ -64,9 +64,9 @@ def create_gem2s_hash(experiment, project, samples):
 
     metadata_values = OrderedDict()
 
-    if len(project['M']['metadataKeys']['L']) > 0:
+    metadata_keys = [metadata['S'] for metadata in project['M']['metadataKeys']['L']]
 
-        metadata_keys = [metadata['S'] for metadata in project['M']['metadataKeys']['L']]
+    if len(project['M']['metadataKeys']['L']) > 0:
 
         for key in metadata_keys:
             # Replace '-' in key to '_'if
@@ -118,17 +118,13 @@ for experiment in experiments:
         if not samples.get('L') : raise Exception('Project does not contain samples')
 
         # Get variables
-
         print("calculating new GEM2S hash...")
         experiment_record = client.get_item(
             TableName=experiments_table,
             Key={"experimentId": experiment_id }
         )['Item']
 
-        project_record = client.get_item(
-            TableName=projects_table,
-            Key={"projectUuid": project_id }
-        )['Item']['projects']
+        project_record = project['Item']['projects']
 
         samples_record = client.get_item(
             TableName=samples_table,
