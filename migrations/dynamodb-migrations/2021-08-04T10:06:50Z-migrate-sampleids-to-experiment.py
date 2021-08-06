@@ -7,6 +7,7 @@ from collections import OrderedDict
 ### Background
 # This is a migration for PR 408 - Fix sample order moves storage of samples from projects to experiments.
 
+# Insert endpoint_url='http://localhost:4566' as the 2nd param to test with localstack
 client = boto3.client('dynamodb')
 
 environment = 'production'
@@ -21,7 +22,7 @@ experiments = client.scan(
 )['Items']
 
 ## >> Uncomment lines below to test with a single experiment
-# test_experiment_id = "cb78445e36db4fb1f5bc0bc5fee95b97"
+# test_experiment_id = "e958cce5442c27fc325a9e8fd092d3cc"
 
 # experiments = client.get_item(
 #     TableName=experiments_table,
@@ -41,14 +42,15 @@ def create_gem2s_hash(experiment, project, samples):
         organism = experiment['meta']['M']['organism']['S']
 
     # Filter 'ids' key which is present in older samples object
-    sample_ids = [sample_id for sample_id in samples['M'] if sample_id != 'ids']
+    unsorted_sample_ids = [sample_id for sample_id in samples['M'] if sample_id != 'ids']
 
     # Sample IDS is first sorted so that hash does not depend on order of samples
-    sample_ids.sort()
+    sorted_sample_ids = unsorted_sample_ids.copy()
+    sorted_sample_ids.sort()
 
     sample_names = []
-    # Sample names are created according to order of sampleIds
-    for sample_id in sample_ids:
+    # Sample names are created according to the sorted sampleIds so sample order doesn't matter
+    for sample_id in sorted_sample_ids:
         sample_names.append(samples['M'][sample_id]['M']['name']['S'])
 
     input_type = experiment["meta"]['M']["type"].get('S', '10x')
@@ -58,7 +60,7 @@ def create_gem2s_hash(experiment, project, samples):
     hash_params = {
         "organism": organism,
         "input": {"type" : input_type},
-        "sampleIds": sample_ids,
+        "sampleIds": sorted_sample_ids,
         "sampleNames": sample_names,
     }
 
@@ -72,7 +74,7 @@ def create_gem2s_hash(experiment, project, samples):
             # Replace '-' in key to '_'if
             sanitizedKey = key.replace('-', '_')
 
-            for sample_id in sample_ids:
+            for sample_id in unsorted_sample_ids:
 
                 metadata_value = "N.A." # default metadata value
 
