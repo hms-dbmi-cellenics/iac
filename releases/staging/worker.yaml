@@ -12,8 +12,8 @@ metadata:
   namespace: worker-default
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
-    filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:glob:refs-tags-*-r
+    filter.fluxcd.io/python: glob:glob:refs-tags-*-python
   labels:
     sandboxId: default
 spec:
@@ -27,6 +27,6 @@ spec:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: default
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-3120aa3f70d271fa3e0f7c7a0ea22c68adbfd1cd-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-tags-0.1.0-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-3120aa3f70d271fa3e0f7c7a0ea22c68adbfd1cd-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-tags-0.1.0-python
