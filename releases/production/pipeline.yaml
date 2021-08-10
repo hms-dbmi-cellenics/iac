@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -15,7 +14,7 @@ metadata:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/pipeline-runner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/pipeline-runner: glob:glob:*-pipeline-runner
   labels:
     sandboxId: default
 spec:
@@ -23,9 +22,9 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 57392e80a416ca3a0ab6a7477b66e8cefb046a5e
+    ref: c2a96e24f4fdc295a16dfe4846eb65bb980e71ef
   values:
     pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-c517d0b3a48bf33c91608848a73b3fd6eed7dd72-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:0.1.0-pipeline-runner
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-production
