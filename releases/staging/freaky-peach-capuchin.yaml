@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -73,7 +74,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-200-merge-de26ed87fe0171aea4d95e5ff70f7992898d0819
+      tag: refs-pull-200-merge-a54e4146d7c27993612a356b3a7f53f0698a8ac2
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
