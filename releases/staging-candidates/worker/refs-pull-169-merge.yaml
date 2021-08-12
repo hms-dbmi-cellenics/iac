@@ -28,7 +28,8 @@ spec:
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
+    replicaCount: 2
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-169-merge-f5cc8d28a93959eddfe13f73f2bc3f14e04c85c6-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-169-merge-5a3df35d0ccf9f7209b797a6cde7376c441b2422-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-169-merge-f5cc8d28a93959eddfe13f73f2bc3f14e04c85c6-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-169-merge-5a3df35d0ccf9f7209b797a6cde7376c441b2422-python
