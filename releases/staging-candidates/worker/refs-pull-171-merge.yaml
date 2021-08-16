@@ -23,10 +23,13 @@ spec:
     path: chart-infra/
     ref: STAGING_CHART_REF
   values:
+    kubernetes:
+      env: staging
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
+    replicaCount: 2
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-171-merge-751b67b5690941159202829005be4d326adfeae7-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-171-merge-b089f15da87cfbc0ffd63c1fda50b0be9cba3abd-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-171-merge-751b67b5690941159202829005be4d326adfeae7-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-171-merge-b089f15da87cfbc0ffd63c1fda50b0be9cba3abd-python
