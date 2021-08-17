@@ -1,0 +1,160 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: ui-oliver-ui442-w179
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-442-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: ui
+  namespace: ui-oliver-ui442-w179
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: oliver-ui442-w179
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-442-merge-4df2593fcef3d259ae6fb35fa116cab2284eb84b
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: api-oliver-ui442-w179
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: api
+  namespace: api-oliver-ui442-w179
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 6e6ea0f9206ba3d69bdd50474ca624447db062a1
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: oliver-ui442-w179
+    hpa:
+      enabled: true
+      maxReplicas: 1
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-5dcc6b2d5290a1a9486df9568a5abf727b2612dd
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: worker-oliver-ui442-w179
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:glob:refs-pull-179-merge-*-python
+    filter.fluxcd.io/r: glob:glob:refs-pull-179-merge-*-r
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: worker
+  namespace: worker-oliver-ui442-w179
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: refs/pull/179/head
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-179-merge-01a546c3fe5018c5627082432a002f9bf1c1e47f-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-179-merge-01a546c3fe5018c5627082432a002f9bf1c1e47f-r
+    replicaCount: 2
+    sandboxId: oliver-ui442-w179
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: pipeline-oliver-ui442-w179
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: oliver-ui442-w179
+  name: pipeline
+  namespace: pipeline-oliver-ui442-w179
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: a651dacb857e76ab5a77c1e3cf9dbf9d46e4b221
+  releaseName: pipeline
+  values:
+    pipeline-runner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-a651dacb857e76ab5a77c1e3cf9dbf9d46e4b221-pipeline-runner
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
