@@ -21,7 +21,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: a255a525fb939636e95cc495632a7ab43631e573
+    ref: a41e4907f736a96a2d0ad9ef7113d466a3c3fd55
   values:
     kubernetes:
       env: staging
@@ -30,6 +30,6 @@ spec:
     sandboxId: default
     replicaCount: 4
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a255a525fb939636e95cc495632a7ab43631e573-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a41e4907f736a96a2d0ad9ef7113d466a3c3fd55-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a255a525fb939636e95cc495632a7ab43631e573-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a41e4907f736a96a2d0ad9ef7113d466a3c3fd55-python
