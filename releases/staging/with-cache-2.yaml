@@ -115,7 +115,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 891e5a9a2d04cbf0f4e06ac029a913bb9535e7f5
+    ref: 6ccd2a4e41e4096c03ca0291e8455b43d61a29c8
   releaseName: worker
   values:
     kubernetes:
