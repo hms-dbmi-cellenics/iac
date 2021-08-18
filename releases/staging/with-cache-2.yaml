@@ -10,7 +10,7 @@ kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
     sandboxId: with-cache-2
   name: ui
@@ -105,7 +105,7 @@ metadata:
   annotations:
     filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
     filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
     sandboxId: with-cache-2
   name: worker
@@ -142,7 +142,7 @@ metadata:
     filter.fluxcd.io/pipeline-runner: glob:glob:refs-heads-master-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
     sandboxId: with-cache-2
   name: pipeline
