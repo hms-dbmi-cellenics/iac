@@ -35,7 +35,7 @@ spec:
     hpa:
       enabled: true
       minReplicas: 1
-      maxReplicas: 10
+      maxReplicas: 1
       targetCPUUtilizationPercentage: 80
     ingress:
       annotations:
@@ -48,7 +48,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-198-merge-b08714b4f058c36444d37ddcdceba926f7a6fd58
+      tag: refs-pull-198-merge-df85c16c6ce1cf1b009fd361ad49fa91f942bcd7
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
