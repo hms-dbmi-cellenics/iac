@@ -104,8 +104,8 @@ apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:glob:refs-heads-master-*-python
-    filter.fluxcd.io/r: glob:glob:refs-heads-master-*-r
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'true'
   labels:
     sandboxId: with-cache-unpinned
