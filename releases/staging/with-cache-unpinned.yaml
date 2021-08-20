@@ -121,7 +121,7 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-073728082caf68beda0844faea5c5963a1c2431f-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-dca35667c49653917db1d545a13cca075489dcdc-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-073728082caf68beda0844faea5c5963a1c2431f-r
     replicaCount: 2
