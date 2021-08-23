@@ -30,6 +30,6 @@ spec:
     sandboxId: STAGING_SANDBOX_ID
     replicaCount: 2
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-184-merge-eb5126175d2a02f80f39b980b5095cfba8b360e8-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-184-merge-d586b5f57cbdd0c9bd9021a2df0ca9873f320b8d-r
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-184-merge-eb5126175d2a02f80f39b980b5095cfba8b360e8-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-184-merge-d586b5f57cbdd0c9bd9021a2df0ca9873f320b8d-python
