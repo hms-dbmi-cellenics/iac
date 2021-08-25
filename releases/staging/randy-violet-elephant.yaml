@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: randy-violet-elephant
+  name: ui-randy-violet-elephant
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: randy-violet-elephant
+  name: ui
+  namespace: ui-randy-violet-elephant
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 4e4b07661999ffc43fa90251c999330f1d3e5f2b
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: randy-violet-elephant
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-3789e03c3eace1d8f194a38e447bd2746b8a47af
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: randy-violet-elephant
+  name: api-randy-violet-elephant
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-212-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: randy-violet-elephant
+  name: api
+  namespace: api-randy-violet-elephant
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: randy-violet-elephant
+    hpa:
+      enabled: true
+      maxReplicas: 1
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-212-merge-c27c93575d6c88b217f1b4cf06d01731bac4868a
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: randy-violet-elephant
+  name: worker-randy-violet-elephant
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: randy-violet-elephant
+  name: worker
+  namespace: worker-randy-violet-elephant
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: edf4ae6568e6dff7610272d5e9530a8bbbd12b79
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-edf4ae6568e6dff7610272d5e9530a8bbbd12b79-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-edf4ae6568e6dff7610272d5e9530a8bbbd12b79-r
+    replicaCount: 2
+    sandboxId: randy-violet-elephant
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: randy-violet-elephant
+  name: pipeline-randy-violet-elephant
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-pull-145-merge-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: randy-violet-elephant
+  name: pipeline
+  namespace: pipeline-randy-violet-elephant
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: refs/pull/145/head
+  releaseName: pipeline
+  values:
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-3515149db957a78fec4d91e0e1ec0d7b91d3e706-pipeline-runner
+    replicaCount: 1
+    sandboxId: randy-violet-elephant
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
