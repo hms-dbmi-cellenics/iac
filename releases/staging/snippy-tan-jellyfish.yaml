@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: ui-snippy-tan-jellyfish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: ui
+  namespace: ui-snippy-tan-jellyfish
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: 2b7411dceed6f5736d6ab433399f18bd8ae7d707
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: snippy-tan-jellyfish
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-6fa797574d818a2c3847f08e81c387848a4f2ac8
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: api-snippy-tan-jellyfish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-212-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: api
+  namespace: api-snippy-tan-jellyfish
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: snippy-tan-jellyfish
+    hpa:
+      enabled: true
+      maxReplicas: 1
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-212-merge-c27c93575d6c88b217f1b4cf06d01731bac4868a
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: worker-snippy-tan-jellyfish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: worker
+  namespace: worker-snippy-tan-jellyfish
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 941439e1b32be338458f5bad77b6e5e89de99ed7
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-941439e1b32be338458f5bad77b6e5e89de99ed7-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-941439e1b32be338458f5bad77b6e5e89de99ed7-r
+    replicaCount: 2
+    sandboxId: snippy-tan-jellyfish
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: pipeline-snippy-tan-jellyfish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-pull-145-merge-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: snippy-tan-jellyfish
+  name: pipeline
+  namespace: pipeline-snippy-tan-jellyfish
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: refs/pull/145/head
+  releaseName: pipeline
+  values:
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-3515149db957a78fec4d91e0e1ec0d7b91d3e706-pipeline-runner
+    replicaCount: 1
+    sandboxId: snippy-tan-jellyfish
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
