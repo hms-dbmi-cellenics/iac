@@ -88,7 +88,6 @@ Resources:
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-production/pbmc_10k_v3/*"
         - PolicyName: !Sub "can-upload-cell-sets-in-s3-${Environment}"
           PolicyDocument:
