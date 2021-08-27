@@ -28,7 +28,7 @@ alphabetical ordering.
   object, which you can use to perform some tests.
 
 
-You will need to install the tool [dynamodb-migrations](https://www.npmjs.com/package/dynamodb-migrations).
+You will need to install the tool [dynamodb-migrator](https://github.com/mapbox/dynamodb-migrator).
 This is a global tool that exposes the `dynamodb-migrate` command.
 
 You will need to link the package `dyno` into the `dynamodb-migrations` folder:
