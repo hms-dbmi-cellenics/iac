@@ -25,7 +25,7 @@ spec:
     ref: STAGING_CHART_REF
   values:
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-e658b094fa1f1c9f97358211bcc040545a52ab8a-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-3ff9a4bde5397cb8bd418daff0fe65e46f01d270-pipeline-runner
     sandboxId: STAGING_SANDBOX_ID
     replicaCount: 1
     serviceAccount:
