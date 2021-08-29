@@ -156,7 +156,7 @@ spec:
   releaseName: pipeline
   values:
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-6dc086a9c8378328ffa5700dbc1bed42afd4e066-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-ef112dab40423407e0dd355cebe0446e15256649-pipeline-runner
     replicaCount: 1
     sandboxId: snippy-tan-jellyfish
     serviceAccount:
