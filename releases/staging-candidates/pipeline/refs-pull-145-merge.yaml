@@ -24,7 +24,7 @@ spec:
     path: chart-infra/
     ref: STAGING_CHART_REF
   values:
-    clusterEnv:
+    clusterEnv: staging
     awsAccountId: 242905224710
     awsRegion: eu-west-1
     pipelineRunner:
