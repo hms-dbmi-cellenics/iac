@@ -155,9 +155,8 @@ spec:
     ref: refs/pull/145/head
   releaseName: pipeline
   values:
-    awsAccountId: 242905224710
     awsRegion: eu-west-1
-    clusterEnv:
+    clusterEnv: 'staging'
     pipelineRunner:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-67ab298e19980eeed9cc057656361d6a3f28da92-pipeline-runner
     replicaCount: 1
