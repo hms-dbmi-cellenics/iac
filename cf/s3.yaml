@@ -116,7 +116,7 @@ Resources:
   PublicDatasetsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: "public-datasets"
+        BucketName: !Sub "biomage-public-datasets-${Environment}"
         PublicAccessBlockConfiguration:
           BlockPublicAcls: True
           BlockPublicPolicy: True
