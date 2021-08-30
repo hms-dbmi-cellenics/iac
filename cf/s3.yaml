@@ -113,3 +113,21 @@ Resources:
             AllowedOrigins:
               - '*'
             Id: uiHeadersRule
+  PublicDatasetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "biomage-public-datasets-${Environment}"
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: True
+          BlockPublicPolicy: True
+          IgnorePublicAcls: True
+          RestrictPublicBuckets: True
+        VersioningConfiguration:
+          Status: "Enabled"
+        LifecycleConfiguration:
+          Rules:
+            # Non-current versions of source files are stored in normal S3 for
+            # 5 days and are then deleted.
+            - Id: PreserveThenDeleteNonCurrentVersion
+              Status: "Enabled"
+              NoncurrentVersionExpirationInDays: 5
