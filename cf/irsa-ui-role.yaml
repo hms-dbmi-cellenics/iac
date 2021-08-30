@@ -53,7 +53,7 @@ Resources:
                   - "cognito-idp:DescribeUserPool"
                   - "cognito-idp:DescribeUserPoolClient"
                 Resource: '*'
-        - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
+        - PolicyName: !Sub "can-download-objects-from-s3-bucket"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
