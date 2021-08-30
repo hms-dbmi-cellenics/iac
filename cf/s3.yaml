@@ -43,9 +43,15 @@ Resources:
         RestrictPublicBuckets: True
       LifecycleConfiguration:
         Rules:
-          - Id: DeleteUnusedContent
+          - Id: DeleteDifferentialExpressionResults
             Status: "Enabled"
-            ExpirationInDays: 3
+            TagFilters:
+              - Key: requestType
+                Value: DifferentialExpression
+            ExpirationInDays: 2
+          - Id: DeleteOldWorkResults
+            Status: "Enabled"
+            ExpirationInDays: 14
 
   PipelineResultBucket:
     Type: AWS::S3::Bucket
