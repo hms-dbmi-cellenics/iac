@@ -25,10 +25,10 @@ spec:
     ref: STAGING_CHART_REF
   values:
     clusterEnv: staging
-    awsAccountId: '"242905224710"'
+    awsAccountId: 242905224710
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-5dec81c2548d96b3aa62fd100dfcd153187db013-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-29c44b5dd3fdf8168d80bac43c88628167230af0-pipeline-runner
     sandboxId: STAGING_SANDBOX_ID
     replicaCount: 1
     serviceAccount:
