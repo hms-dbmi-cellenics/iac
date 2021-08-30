@@ -158,7 +158,7 @@ spec:
     awsRegion: eu-west-1
     clusterEnv: 'staging'
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-dc640640323031d385324f44cd6a68cc8851be57-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-8c1d5ecc0b2f3cf6b5b893fe89862893cb304c16-pipeline-runner
     replicaCount: 1
     sandboxId: grumpy-ochre-seahorse
     serviceAccount:
