@@ -1,5 +1,5 @@
 name: Remove a staging environment
-on: 
+on:
   workflow_dispatch:
     inputs:
       sandbox-id:
@@ -21,7 +21,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-      
+
       - id: install-aws-cli
         name: Install AWS CLI
         uses: unfor19/install-aws-cli-action@v1
@@ -35,13 +35,13 @@ jobs:
               --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
               --output text --query Plaintext)"
-            
+
             DEPLOYMENT_AWS_ACCESS_KEY_ID="$(echo $SECRETS | base64 --decode | jq -r '.access_key')"
             DEPLOYMENT_AWS_SECRET_ACCESS_KEY="$(echo $SECRETS | base64 --decode | jq -r '.secret_key')"
             DEPLOYMENT_GITHUB_API_TOKEN="$(echo $SECRETS | base64 --decode | jq -r '.github_api_token')"
 
             echo "::add-mask::$SECRETS"
-            
+
             echo "::add-mask::$DEPLOYMENT_AWS_ACCESS_KEY_ID"
             echo "::add-mask::$DEPLOYMENT_AWS_SECRET_ACCESS_KEY"
             echo "::add-mask::$DEPLOYMENT_GITHUB_API_TOKEN"
@@ -85,7 +85,7 @@ jobs:
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-      
+
       - id: remove-template-sns
         name: Remove CloudFormation stack for SNS topic
         run: |-
@@ -119,7 +119,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Remove staging environment ${{ github.event.inputs.sandbox-id }}
-      
+
       - id: on-failure-retry
         if: failure()
         name: Retry in case push failed.
@@ -146,11 +146,19 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: remove-fargate-profile
+      - id: remove-worker-fargate-profile
         name: Remove Fargate profile for the workers
         continue-on-error: true
         run: |-
           eksctl delete fargateprofile --cluster biomage-staging --name worker-$SANDBOX_ID
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
+      - id: remove-pipeline-fargate-profile
+        name: Remove Fargate profile for the pipelines
+        continue-on-error: true
+        run: |-
+          eksctl delete fargateprofile --cluster biomage-staging --name pipeline-$SANDBOX_ID
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
