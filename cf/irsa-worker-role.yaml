@@ -85,13 +85,6 @@ Resources:
                   - "sqs:DeleteMessage"
                   - "sqs:GetQueueUrl"
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
-        - PolicyName: !Sub "can-push-to-sns-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: "sns:Publish"
-                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
         - PolicyName: !Sub "can-manage-tables-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
