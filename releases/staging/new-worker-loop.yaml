@@ -121,9 +121,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-185-merge-2c3833fa767ab5fe3060713ff985f96c320c5504-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-185-merge-3a04964a53efa603e99d6925b3e80a75b74afb3d-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-185-merge-2c3833fa767ab5fe3060713ff985f96c320c5504-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-185-merge-3a04964a53efa603e99d6925b3e80a75b74afb3d-r
     replicaCount: 2
     sandboxId: new-worker-loop
     serviceAccount:
