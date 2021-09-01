@@ -1,5 +1,5 @@
 name: Deploy a staging environment
-on: 
+on:
   workflow_dispatch:
     inputs:
       manifest:
@@ -24,13 +24,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-      
+
       - id: install-aws-cli
         name: Install AWS CLI
         uses: unfor19/install-aws-cli-action@v1
         with:
           version: 2
-      
+
       - id: decrypt-secrets
         name: Decrypt credentials from user.
         run: |-
@@ -38,13 +38,13 @@ jobs:
               --key-id arn:aws:kms:eu-west-1:242905224710:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
               --output text --query Plaintext)"
-            
+
             DEPLOYMENT_AWS_ACCESS_KEY_ID="$(echo $SECRETS | base64 --decode | jq -r '.access_key')"
             DEPLOYMENT_AWS_SECRET_ACCESS_KEY="$(echo $SECRETS | base64 --decode | jq -r '.secret_key')"
             DEPLOYMENT_GITHUB_API_TOKEN="$(echo $SECRETS | base64 --decode | jq -r '.github_api_token')"
 
             echo "::add-mask::$SECRETS"
-            
+
             echo "::add-mask::$DEPLOYMENT_AWS_ACCESS_KEY_ID"
             echo "::add-mask::$DEPLOYMENT_AWS_SECRET_ACCESS_KEY"
             echo "::add-mask::$DEPLOYMENT_GITHUB_API_TOKEN"
@@ -89,7 +89,7 @@ jobs:
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-      
+
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -131,7 +131,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
-      
+
       - id: on-failure-retry
         if: failure()
         name: Retry in case push failed.
@@ -158,16 +158,27 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: create-fargate-profile
-        name: Attempt to create Fargate profile
+      - id: create-worker-fargate-profile
+        name: Attempt to create worker Fargate profile
         uses: nick-invision/retry@v2
         with:
           timeout_seconds: 300
           max_attempts: 5
           retry_on: error
-          command: eksctl create fargateprofile --cluster biomage-staging --name worker-${{ github.event.inputs.sandbox-id }} --namespace worker-${{ github.event.inputs.sandbox-id }} | grep "created Fargate profile"
+          command: eksctl create fargateprofile --cluster biomage-staging --name worker-${{ github.event.inputs.sandbox-id }} --namespace worker-${{ github.event.inputs.sandbox-id }} | grep "created worker Fargate profile"
           # Add jitter to break up correlated events.
-          on_retry_command: sleep $[($RANDOM % 10) + 20]s
+          on_retry_command: sleep $((20 + RANDOM % 10));
+
+      - id: create-pipeline-fargate-profile
+        name: Attempt to create pipeline Fargate profile
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 300
+          max_attempts: 5
+          retry_on: error
+          command: eksctl create fargateprofile --cluster biomage-staging --name pipeline-${{ github.event.inputs.sandbox-id }} --namespace pipeline-${{ github.event.inputs.sandbox-id }} | grep "created pipeline Fargate profile"
+          # Add jitter to break up correlated events.
+          on_retry_command: sleep $((20 + RANDOM % 10))
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
