@@ -159,7 +159,7 @@ spec:
     awsRegion: eu-west-1
     clusterEnv: staging
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-a00f75417d3e9172e7fac7bf33afbd250a07af5e-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-145-merge-6bb16b5754aac1e2a8ec5367303116bf2560403e-pipeline-runner
     replicaCount: 2
     sandboxId: martinfosco-api212-pipelin
     serviceAccount:
