@@ -1,0 +1,165 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui491
+  name: ui-agi-ui491
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-491-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-ui491
+  name: ui
+  namespace: ui-agi-ui491
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: agi-ui491
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-491-merge-4e8c77c8bb8358dd4d37683b75373ed7f0717c8b
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui491
+  name: api-agi-ui491
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-ui491
+  name: api
+  namespace: api-agi-ui491
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: ed9d711959cfcfd76e6f0f87def2217fd6063537
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: agi-ui491
+    hpa:
+      enabled: true
+      maxReplicas: 1
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-fa3c99c6c92b840b75bdaef97373229e6cc3d09d
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui491
+  name: worker-agi-ui491
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-ui491
+  name: worker
+  namespace: worker-agi-ui491
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: 8bc5138244027262d5e7b506a233526a06ee56ba
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-8bc5138244027262d5e7b506a233526a06ee56ba-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-8bc5138244027262d5e7b506a233526a06ee56ba-r
+    replicaCount: 2
+    sandboxId: agi-ui491
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-ui491
+  name: pipeline-agi-ui491
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-ui491
+  name: pipeline
+  namespace: pipeline-agi-ui491
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: 5caf26de7f1d20ed02d0b3f0183f7ea589fd78c4
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-5caf26de7f1d20ed02d0b3f0183f7ea589fd78c4-pipeline-runner
+    replicaCount: 2
+    sandboxId: agi-ui491
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
