@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -28,7 +29,7 @@ spec:
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-5caf26de7f1d20ed02d0b3f0183f7ea589fd78c4-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-146-merge-3cec396fd581b6de5ee443029e8422f82ac60010-pipeline-runner
     sandboxId: default
     replicaCount: 4
     serviceAccount:
