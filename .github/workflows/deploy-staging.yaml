@@ -71,6 +71,14 @@ jobs:
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
+      - id: setup-aws-privileged
+        name: Configure AWS privileged credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
       - id: install-eksctl
         name: Install eksctl
         run: |-
@@ -175,14 +183,6 @@ jobs:
           command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
           # Add jitter to break up correlated events.
           on_retry_command: sleep $[($RANDOM % 10) + 5]s
-
-      - id: setup-aws-privileged
-        name: Configure AWS privileged credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
