@@ -195,9 +195,9 @@ jobs:
           enforce_admins: true
           retries: 8
 
-     - id: cleanup-fargate-if-failure
-       name: Remove fargate profiles if the staging failed
-       if: ${{ failure() }}
+      - id: cleanup-fargate-if-failure
+        name: Remove fargate profiles if the staging failed
+        if: ${{ failure() }}
         run: |-
           eksctl delete fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} || echo "unsuccessful delete"
           eksctl delete fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} || echo "unsuccessful delete"
