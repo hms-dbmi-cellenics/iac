@@ -108,7 +108,7 @@ Resources:
         Status: "Enabled"
       LifecycleConfiguration:
         Rules:
-          # Non-current versions are stored in normal S3 for
+          # Non-current versions of source files are stored in normal S3 for
           # 5 days and are then deleted.
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
