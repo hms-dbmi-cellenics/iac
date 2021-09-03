@@ -83,6 +83,18 @@ Resources:
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 5
 
+  # Stores, for each experiment, the cellIds that were preserved after each filter step of the latest qc run
+  # Indexed by experimentId
+  FilteredCellsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-filtered-cells-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
   # The bucket that contains the unfiltered versions of the count matrix files as uploaded by the user.
   OriginalFilesBucket:
     Type: AWS::S3::Bucket
@@ -119,6 +131,7 @@ Resources:
             AllowedOrigins:
               - '*'
             Id: uiHeadersRule
+
   PublicDatasetsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -153,4 +166,4 @@ Resources:
                 - DELETE
               AllowedOrigins:
                 - '*'
-              Id: uiHeadersRule    
+              Id: uiHeadersRule

@@ -106,6 +106,7 @@ Resources:
                 Action: "s3:DeleteObject"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
