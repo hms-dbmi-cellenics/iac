@@ -84,6 +84,7 @@ Resources:
             NoncurrentVersionExpirationInDays: 5
 
   # Stores, for each experiment, the cellIds that were preserved after each filter step of the latest qc run
+  # Indexed by experimentId
   FilteredCellsBucket:
     Type: AWS::S3::Bucket
     Properties:
