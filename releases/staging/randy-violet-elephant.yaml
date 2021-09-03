@@ -156,7 +156,7 @@ spec:
   releaseName: pipeline
   values:
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-148-merge-ef036b84949c594a5fc7eef1a0bd7ae022b5edc3-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-146-merge-9d41a2f5b5faa12caea68c7999a10f703a55b538-pipeline-runner
     replicaCount: 1
     sandboxId: randy-violet-elephant
     serviceAccount:
