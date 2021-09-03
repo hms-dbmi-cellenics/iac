@@ -83,6 +83,26 @@ Resources:
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 5
 
+  # Stores, for each experiment, the cellIds that were preserved after each filter step of the latest qc run
+  FilteredCellsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-filtered-cells-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: "Enabled"
+      LifecycleConfiguration:
+        Rules:
+          # Non-current versions of count matrices are stored in normal S3 for
+          # 5 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 5
+
   # The bucket that contains the unfiltered versions of the count matrix files as uploaded by the user.
   OriginalFilesBucket:
     Type: AWS::S3::Bucket
@@ -119,6 +139,7 @@ Resources:
             AllowedOrigins:
               - '*'
             Id: uiHeadersRule
+
   PublicDatasetsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -153,4 +174,4 @@ Resources:
                 - DELETE
               AllowedOrigins:
                 - '*'
-              Id: uiHeadersRule    
+              Id: uiHeadersRule
