@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -22,7 +21,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: ea60e57c77844f9f9bddd5c13f55dea7647d660d
+    ref: c753cf53d132e90d372f28e9522f0ff6cd5cfa04
   values:
     kubernetes:
       env: staging
@@ -31,7 +30,7 @@ spec:
     sandboxId: default
     replicaCount: 1
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-8bc5138244027262d5e7b506a233526a06ee56ba-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-c753cf53d132e90d372f28e9522f0ff6cd5cfa04-r
       memoryRequest: 28Gi
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ea60e57c77844f9f9bddd5c13f55dea7647d660d-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-c753cf53d132e90d372f28e9522f0ff6cd5cfa04-python
