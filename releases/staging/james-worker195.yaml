@@ -1,0 +1,166 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: james-worker195
+  name: ui-james-worker195
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: james-worker195
+  name: ui
+  namespace: ui-james-worker195
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: c0d17907b617a2b1ffe803cca67c9d214e45d91d
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-ltd/ui
+      sandboxId: james-worker195
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-7fb13170cd099ef727ab72520d1feaf5cba6f3d5
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /data-management
+    readinessProbe:
+      path: /data-management
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: james-worker195
+  name: api-james-worker195
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: james-worker195
+  name: api
+  namespace: api-james-worker195
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/iac
+    path: charts/nodejs
+    ref: c0d17907b617a2b1ffe803cca67c9d214e45d91d
+  releaseName: api
+  values:
+    biomageCi:
+      repo: biomage-ltd/api
+      sandboxId: james-worker195
+    hpa:
+      enabled: true
+      maxReplicas: 1
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-a651219f4a336848f14437c2c0b0ce3f5db74196
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      path: /v1/health
+    readinessProbe:
+      path: /v1/health
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: james-worker195
+  name: worker-james-worker195
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-pull-195-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-195-merge-*-r
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: james-worker195
+  name: worker
+  namespace: worker-james-worker195
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/worker
+    path: chart-infra/
+    ref: refs/pull/195/head
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-195-merge-2aaa0a906502ba74af553909cbdcd4b7c0e64cd9-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-195-merge-2aaa0a906502ba74af553909cbdcd4b7c0e64cd9-r
+      memoryRequest: 4Gi
+    replicaCount: 1
+    sandboxId: james-worker195
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: james-worker195
+  name: pipeline-james-worker195
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipeline-runner: glob:glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: james-worker195
+  name: pipeline
+  namespace: pipeline-james-worker195
+spec:
+  chart:
+    git: git@github.com:biomage-ltd/pipeline
+    path: chart-infra/
+    ref: 3dc0c2aa5fcce8e9c99d09fb20fbaaf95f4b6742
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-3dc0c2aa5fcce8e9c99d09fb20fbaaf95f4b6742-pipeline-runner
+    replicaCount: 2
+    sandboxId: james-worker195
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
