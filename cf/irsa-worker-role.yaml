@@ -108,7 +108,14 @@ Resources:
                   - "dynamodb:DeleteItem"
                   - "dynamodb:Update*"
                   - "dynamodb:PutItem"
-
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}"
+        - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "elasticache:DescribeReplicationGroups"
+                Resource:
+                  - !Sub "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:biomage-redis-${Environment}"
