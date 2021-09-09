@@ -191,6 +191,8 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: true
+      AccessTokenValidity: 3
+      IdTokenValidity: 3
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
@@ -219,3 +221,5 @@ Resources:
         - "http://localhost:5000/data-management"
       SupportedIdentityProviders:
         - COGNITO
+      AccessTokenValidity: 3
+      IdTokenValidity: 3
