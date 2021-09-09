@@ -24,7 +24,12 @@ spec:
     path: chart-infra/
     ref: STAGING_CHART_REF
   values:
-    pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-a435f4a12eb456ac90e7826f2fa02d9eb0b9b224-pipeline-runner
+    clusterEnv: staging
+    awsAccountId: "242905224710"
+    awsRegion: eu-west-1
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-64c352b965237960b5ddd7e750da02c60cf526b2-pipeline-runner
+    sandboxId: STAGING_SANDBOX_ID
+    replicaCount: 2
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
