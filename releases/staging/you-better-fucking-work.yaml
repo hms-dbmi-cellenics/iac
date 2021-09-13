@@ -140,7 +140,7 @@ apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/pipeline-runner: glob:glob:refs-pull-151-merge-*-pipeline-runner
+    filter.fluxcd.io/pipeline-runner: glob:refs-pull-151-merge-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'true'
