@@ -25,10 +25,10 @@ iam:
       - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
 nodeGroups:
-  - name: prod-ready-nodegroup-2
-    instanceType: r5.4xlarge
-    desiredCapacity: 1
-    minSize: 1
+  - name: nodegroup-post-scaling
+    instanceType: r6g.large
+    desiredCapacity: 2
+    minSize: 2
     maxSize: 4
     volumeSize: 80
     iam:
