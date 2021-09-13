@@ -26,7 +26,7 @@ iam:
 
 nodeGroups:
   - name: nodegroup-post-scaling
-    instanceType: r6g.large
+    instanceType: r5.large
     desiredCapacity: 2
     minSize: 2
     maxSize: 4
