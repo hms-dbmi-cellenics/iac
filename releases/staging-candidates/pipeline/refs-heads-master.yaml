@@ -14,7 +14,7 @@ metadata:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/pipeline-runner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
@@ -28,7 +28,7 @@ spec:
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-c5559e88ce842ac17a28b9461d593fd93343cbbd-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-7c39fc2284347f9c267b562bfd1418d3dcf23037-pipeline-runner
     sandboxId: STAGING_SANDBOX_ID
     memoryRequest: 4Gi
     replicaCount: 2
