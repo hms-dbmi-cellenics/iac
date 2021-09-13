@@ -14,7 +14,7 @@ metadata:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/pipeline-runner: glob:glob:refs-pull-151-merge-*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:refs-pull-151-merge-*-pipeline-runner
   labels:
     sandboxId: STAGING_SANDBOX_ID
 spec:
