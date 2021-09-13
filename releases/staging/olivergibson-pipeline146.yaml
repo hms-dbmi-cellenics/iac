@@ -160,7 +160,7 @@ spec:
     awsRegion: eu-west-1
     clusterEnv: staging
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-151-merge-db3676a6c8e5396e9840b32ce18ff086a992df2a-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-151-merge-38cabeec2bd7fe5e7f750a0eecbdd61c9b272cb9-pipeline-runner
     replicaCount: 2
     sandboxId: olivergibson-pipeline146
     serviceAccount:
