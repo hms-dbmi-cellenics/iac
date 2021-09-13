@@ -141,7 +141,7 @@ apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/pipeline-runner: glob:refs-pull-151-merge-*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:refs-pull-151-merge-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'true'
@@ -161,7 +161,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-152-merge-d5f0814c2ba9df6d1c709f91fc414354d69ce8f9-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-151-merge-ba501beaf9964422c3eaaa29a2364b9d74a03967-pipeline-runner
     replicaCount: 2
     sandboxId: you-better-fucking-work
     serviceAccount:
