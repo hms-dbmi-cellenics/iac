@@ -25,7 +25,7 @@ iam:
       - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
 nodeGroups:
-  - name: nodegroup-post-scaling
+  - name: nodegroup-post-scaling-x86
     instanceType: r5.large
     desiredCapacity: 2
     minSize: 2
