@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -20,7 +19,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 438f8898bee839f5bedc5ed1349201738c87a092
+    ref: 6e075bf541518e1bc96765e8fe91144630dfa969
   releaseName: ui
   values:
     biomageCi:
@@ -29,7 +28,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-5d666770d6d5ba35dc481171429c35c3b678b8cf
+      tag: refs-heads-master-cf37304204292c56491478a9269ecc82e631003c
     kubernetes:
       env: staging
     livenessProbe:
@@ -115,15 +114,15 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 6e0ae6267f0074cd00c19d19b562e3a6a33f5cd0
+    ref: b0ae65023f47d6c97821443a780d74c00ce76f2d
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-6e0ae6267f0074cd00c19d19b562e3a6a33f5cd0-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b0ae65023f47d6c97821443a780d74c00ce76f2d-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-6e0ae6267f0074cd00c19d19b562e3a6a33f5cd0-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b0ae65023f47d6c97821443a780d74c00ce76f2d-r
       memoryRequest: 4Gi
     replicaCount: 1
     sandboxId: martinfosco-api223-pipelin
@@ -159,8 +158,9 @@ spec:
     awsAccountId: '242905224710'
     awsRegion: eu-west-1
     clusterEnv: staging
+    memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-152-merge-9772ac2da9d049671cc762ff62920421e7e0d4bb-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-151-merge-ba501beaf9964422c3eaaa29a2364b9d74a03967-pipeline-runner
     replicaCount: 2
     sandboxId: martinfosco-api223-pipelin
     serviceAccount:
