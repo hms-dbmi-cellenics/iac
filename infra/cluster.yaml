@@ -35,3 +35,11 @@ nodeGroups:
       withAddonPolicies:
         ebs: true
         autoScaler: true
+
+fargateProfiles:
+  - name: worker-default
+    selectors:
+      - namespace: worker-default
+  - name: pipeline-default
+    selectors:
+      - namespace: pipeline-default
