@@ -92,7 +92,10 @@ jobs:
           timeout_seconds: 300
           max_attempts: 5
           retry_on: error
-          command: eksctl create fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} --namespace worker-${SANDBOX_ID}
+          command: |
+            output=$(eksctl create fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} --namespace worker-${SANDBOX_ID})
+            echo $output
+            echo $output | grep "created Fargate profile"
           # Add jitter to break up correlated events.
           on_retry_command: sleep $((20 + RANDOM % 10));
         env:
@@ -105,7 +108,10 @@ jobs:
           timeout_seconds: 300
           max_attempts: 5
           retry_on: error
-          command: eksctl create fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} --namespace pipeline-${SANDBOX_ID}
+          command: |
+            output=$(eksctl create fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} --namespace pipeline-${SANDBOX_ID})
+            echo $output
+            echo $output | grep "created Fargate profile"
           # Add jitter to break up correlated events.
           on_retry_command: sleep $((20 + RANDOM % 10))
         env:
