@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -23,13 +22,13 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 1ba690e0a580bcc3f0c26e86cc8aced92aca2bd0
+    ref: fa88199fb6492afe0b4ae2b474e521c31f82157c
   values:
     clusterEnv: production
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-fa88199fb6492afe0b4ae2b474e521c31f82157c-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:0.3.1-pipeline-runner
     sandboxId: default
     memoryRequest: 29Gi
     replicaCount: 4
