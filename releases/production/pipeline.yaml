@@ -14,7 +14,7 @@ metadata:
     fluxcd.io/automated: "true"
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/pipeline-runner: glob:glob:*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:*-pipeline-runner
   labels:
     sandboxId: default
 spec:
@@ -22,9 +22,15 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: a435f4a12eb456ac90e7826f2fa02d9eb0b9b224
+    ref: 1ba690e0a580bcc3f0c26e86cc8aced92aca2bd0
   values:
-    pipeline-runner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:0.2.1-pipeline-runner
+    clusterEnv: production
+    awsAccountId: "242905224710"
+    awsRegion: eu-west-1
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:0.3.0-pipeline-runner
+    sandboxId: default
+    memoryRequest: 29Gi
+    replicaCount: 4
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-production
