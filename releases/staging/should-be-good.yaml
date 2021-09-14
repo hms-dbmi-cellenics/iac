@@ -9,8 +9,8 @@ apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-507-merge-*
+    fluxcd.io/automated: 'true'
   labels:
     sandboxId: should-be-good
   name: ui
@@ -28,7 +28,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-cf37304204292c56491478a9269ecc82e631003c
+      tag: refs-pull-507-merge-ae8970da9a2b292127c0f3c035ae5b02ffdfabf9
     kubernetes:
       env: staging
     livenessProbe:
