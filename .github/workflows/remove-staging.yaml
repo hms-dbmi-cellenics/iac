@@ -86,8 +86,8 @@ jobs:
         name: Remove Fargate profile for the pipelines
         uses: nick-invision/retry@v2
         with:
-          timeout_seconds: 300
-          max_attempts: 5
+          timeout_seconds: 900
+          max_attempts: 30
           retry_on: error
           command: |
             output=$(eksctl delete fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} 2>&1)
@@ -102,8 +102,8 @@ jobs:
         name: Remove Fargate profile for the workers
         uses: nick-invision/retry@v2
         with:
-          timeout_seconds: 300
-          max_attempts: 5
+          timeout_seconds: 900
+          max_attempts: 30
           retry_on: error
           command: |
             output=$(eksctl delete fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} 2>&1)
