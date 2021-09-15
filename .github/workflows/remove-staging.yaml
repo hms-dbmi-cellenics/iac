@@ -82,6 +82,13 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
+
+      - id: wait-pending-removals
+        name: Wait for previous removal jobs before proceeding
+        uses: softprops/turnstyle@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - id: remove-pipeline-fargate-profile
         name: Remove Fargate profile for the pipelines
         uses: nick-invision/retry@v2
