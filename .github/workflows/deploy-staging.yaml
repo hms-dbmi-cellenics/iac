@@ -89,8 +89,8 @@ jobs:
         name: Attempt to create worker Fargate profile
         uses: nick-invision/retry@v2
         with:
-          timeout_seconds: 300
-          max_attempts: 5
+          timeout_seconds: 900
+          max_attempts: 30
           retry_on: error
           command: |
             output=$(eksctl create fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} --namespace worker-${SANDBOX_ID} 2>&1)
@@ -105,8 +105,8 @@ jobs:
         name: Attempt to create pipeline Fargate profile
         uses: nick-invision/retry@v2
         with:
-          timeout_seconds: 300
-          max_attempts: 5
+          timeout_seconds: 900
+          max_attempts: 30
           retry_on: error
           command: |
             output=$(eksctl create fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} --namespace pipeline-${SANDBOX_ID} 2>&1)
