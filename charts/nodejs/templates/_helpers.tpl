@@ -7,11 +7,7 @@ Expand the name of the chart.
 {{- end -}}
 
 {{- define "appname" -}}
-{{- if (eq .Values.kubernetes.env "production") -}}
-{{- printf "%s" .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
 {{- printf "%s-%s" .Release.Name .Values.biomageCi.sandboxId | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
 {{- end -}}
 
 {{- define "hostname" -}}
