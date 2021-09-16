@@ -43,7 +43,7 @@ Resources:
                   - "dynamodb:PutItem"
                 Resource:
                   - '*'
-        - PolicyName: !Sub "can-push-to-sns-${Environment}"
+        - PolicyName: !Sub "can-push-work-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
