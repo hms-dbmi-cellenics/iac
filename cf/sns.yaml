@@ -33,26 +33,6 @@ Resources:
     Properties: 
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "work-results-${Environment}-${SandboxID}"
-  WorkResultsSubscription:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref SNSTopic
-      Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/workResults",
-                !If [isDev, "http://host.docker.internal:3000/v1/workResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/workResults"]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - WorkResponse
   PipelineResultsSubscription:
     Type: 'AWS::SNS::Subscription'
     Properties:
