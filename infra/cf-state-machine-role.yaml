@@ -10,7 +10,6 @@ Parameters:
       - staging
       - production
     Description: The environment for which the role needs to be created.
-  
 Resources:
   StateMachineRole:
     Type: "AWS::IAM::Role"
@@ -44,6 +43,13 @@ Resources:
                   - "dynamodb:PutItem"
                 Resource:
                   - '*'
+        - PolicyName: !Sub "can-push-to-sns-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "sns:Publish"
+                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
 
 Outputs:
   Arn:
