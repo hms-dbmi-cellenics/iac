@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-489-merge-797af18cc7a260b5991d10c93989aad3e5cadbd7
+      tag: refs-pull-489-merge-c79df72e940b6b28873c9ac89b5f92fdeb6123c0
     kubernetes:
       env: staging
     livenessProbe:
@@ -74,7 +74,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-222-merge-16d6d0f52a79b29b5a1f85ec45260e6fa4d97fe2
+      tag: refs-pull-222-merge-6ed24e7ff817befda79a80c2b09d94746ada4d55
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
