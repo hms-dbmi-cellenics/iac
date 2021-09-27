@@ -29,7 +29,7 @@ spec:
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-171-merge-70fdbfacb38fed523af096afa5971b0e4dda61e3-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-171-merge-24bfaa6720d2bcc24fc310d168ad21e9598822f0-pipeline-runner
     sandboxId: default
     memoryRequest: 29Gi
     replicaCount: 4
