@@ -40,8 +40,11 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: ["ses:Get", "ses:List", "ses:SendEmail"]
-                Resource: "*"
+                Action: 
+                  - "ses:Get"
+                  - "ses:List"
+                  - "ses:SendEmail"
+                Resource: "arn:aws:ses:${AWS::Region}*"
 
         - PolicyName: !Sub "can-manage-${Environment}-dynamo"
           PolicyDocument:
