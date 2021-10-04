@@ -40,10 +40,9 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: ['ses:Get*', 'ses:List*', 'ses:SendEmail*']
-                Resource: 
-                  - '*'
-                  
+                Action: ["ses:Get*", "ses:List*", "ses:SendEmail*"]
+                Resource: "*"
+
         - PolicyName: !Sub "can-manage-${Environment}-dynamo"
           PolicyDocument:
             Version: "2012-10-17"
