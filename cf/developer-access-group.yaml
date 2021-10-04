@@ -44,7 +44,7 @@ Resources:
                   - "ses:Get"
                   - "ses:List"
                   - "ses:SendEmail"
-                Resource: "arn:aws:ses:${AWS::Region}*"
+                Resource: "*"
 
         - PolicyName: !Sub "can-manage-${Environment}-dynamo"
           PolicyDocument:
