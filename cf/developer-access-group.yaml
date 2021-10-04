@@ -35,7 +35,16 @@ Resources:
               - Effect: Allow
                 Action: 'sqs:*'
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
-        
+        - PolicyName: "Access to SES"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'ses:*'
+                Resource: 
+                  - ses:Get*
+                  - ses:List*
+                  - ses:SendEmail
         - PolicyName: !Sub "can-manage-${Environment}-dynamo"
           PolicyDocument:
             Version: "2012-10-17"
