@@ -77,6 +77,16 @@ Resources:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
+        - PolicyName: "Access to SES"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "ses:Get"
+                  - "ses:List"
+                  - "ses:SendEmail"
+                Resource: "*"
         - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
