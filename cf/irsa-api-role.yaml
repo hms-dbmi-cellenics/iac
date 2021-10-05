@@ -83,8 +83,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 
-                  - "ses:Get"
-                  - "ses:List"
                   - "ses:SendEmail"
                 Resource: "*"
         - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
