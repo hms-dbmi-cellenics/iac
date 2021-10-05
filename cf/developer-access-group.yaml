@@ -35,7 +35,7 @@ Resources:
               - Effect: Allow
                 Action: 'sqs:*'
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
-        - PolicyName: "Access to SES"
+        - PolicyName: "access-to-ses"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
