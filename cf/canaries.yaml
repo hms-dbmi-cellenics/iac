@@ -64,7 +64,7 @@ Resources:
           from aws_synthetics.common import synthetics_logger as logger
 
           def main():
-              url = "scp.biomage.net"
+              url = "https://scp.biomage.net"
 
               # Set screenshot option
               takeScreenshot = True
