@@ -41,7 +41,7 @@ Resources:
                 Action:
                   - "s3:PutObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-canaries-${Environment}/*"
               - Effect: Allow
                 Action:
                   - "s3:GetBucketLocation"
