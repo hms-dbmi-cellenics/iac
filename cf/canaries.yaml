@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up canaries to check for heartbeat of services [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the tables need to be created.
+
+Resources:
+  CanariesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-canaries-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+  CanaryExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-execute-canary-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:PutObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-canaries-${Environment}/*"
+              - Effect: Allow
+                Action:
+                  - "s3:GetBucketLocation"
+                  - "s3:ListAllMyBuckets"
+                  - "cloudwatch:PutMetricData"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: '*'
+  UICanary:
+    Type: AWS::Synthetics::Canary
+    Properties:
+      Name: !Sub "is-ui-up-${Environment}"
+      ArtifactS3Location:
+        !Join [ "/", ['s3:/', !Ref CanariesBucket, !Sub "is-ui-up-${Environment}"]]
+      Code: 
+        Handler: handler
+        Script: |
+          from aws_synthetics.selenium import synthetics_webdriver as syn_webdriver
+          from aws_synthetics.common import synthetics_logger as logger
+
+          def main():
+              url = "scp.biomage.net"
+
+              # Set screenshot option
+              takeScreenshot = True
+              browser = syn_webdriver.Chrome()
+              browser.get(url)
+
+              if takeScreenshot:
+                  browser.save_screenshot("loaded.png")
+
+              response_code = syn_webdriver.get_http_response(url)
+              if not response_code or response_code < 200 or response_code > 299:
+                  raise Exception("Failed to load page!")
+              logger.info("Canary successfully executed")
+
+          def handler(event, context):
+              # user defined log statements using synthetics_logger
+              logger.info("Selenium Python heartbeat canary")
+              return main()
+      ExecutionRoleArn: !GetAtt CanaryExecutionRole.Arn
+      SuccessRetentionPeriod: 2
+      RuntimeVersion: syn-python-selenium-1.0
+      Schedule: 
+        Expression: rate(5 minutes)
+      StartCanaryAfterCreation: True
