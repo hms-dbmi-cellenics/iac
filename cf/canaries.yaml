@@ -11,6 +11,9 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
 Resources:
   CanariesBucket:
     Type: AWS::S3::Bucket
@@ -60,11 +63,12 @@ Resources:
       Code: 
         Handler: lambda_function.handler
         Script: |
+          import os
           from aws_synthetics.selenium import synthetics_webdriver as syn_webdriver
           from aws_synthetics.common import synthetics_logger as logger
 
           def main():
-              url = "https://scp.biomage.net"
+              url = os.environ.get(TEST_URL)
 
               # Set screenshot option
               takeScreenshot = True
@@ -84,6 +88,10 @@ Resources:
               logger.info("Selenium Python heartbeat canary")
               return main()
       ExecutionRoleArn: !GetAtt CanaryExecutionRole.Arn
+      RunConfig:
+        EnvironmentVariables:
+          TEST_URL: !If [ isProd, "https://scp.biomage.net/",
+                         !Sub "https://ui-default.scp-${Environment}.biomage.net/"]
       SuccessRetentionPeriod: 2
       RuntimeVersion: syn-python-selenium-1.0
       Schedule: 
