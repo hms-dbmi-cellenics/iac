@@ -58,7 +58,7 @@ Resources:
       ArtifactS3Location:
         !Join [ "/", ['s3:/', !Ref CanariesBucket, !Sub "is-ui-up-${Environment}"]]
       Code: 
-        Handler: handler
+        Handler: lambda_function.handler
         Script: |
           from aws_synthetics.selenium import synthetics_webdriver as syn_webdriver
           from aws_synthetics.common import synthetics_logger as logger
