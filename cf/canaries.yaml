@@ -21,6 +21,36 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+  CanaryExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-execute-canary-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:PutObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+              - Effect: Allow
+                Action:
+                  - "s3:GetBucketLocation"
+                  - "s3:ListAllMyBuckets"
+                  - "cloudwatch:PutMetricData"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: '*'
   UICanary:
     Type: AWS::Synthetics::Canary
     Properties:
@@ -53,7 +83,7 @@ Resources:
               # user defined log statements using synthetics_logger
               logger.info("Selenium Python heartbeat canary")
               return main()
-      ExecutionRoleArn: String
+      ExecutionRoleArn: !GetAtt CanaryExecutionRole.Arn
       SuccessRetentionPeriod: 2
       RuntimeVersion: syn-python-selenium-1.0
       Schedule: 
