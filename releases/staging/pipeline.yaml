@@ -22,13 +22,13 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: 1c02f3c04e15a13a0a9a960314198b643a79b584
+    ref: fc9c0794aaa0d9391983a4834bd4d8b61733cd97
   values:
     clusterEnv: staging
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-1c02f3c04e15a13a0a9a960314198b643a79b584-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-fc9c0794aaa0d9391983a4834bd4d8b61733cd97-pipeline-runner
     sandboxId: default
     memoryRequest: 29Gi
     replicaCount: 2
