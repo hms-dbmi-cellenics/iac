@@ -68,7 +68,7 @@ Resources:
           from aws_synthetics.common import synthetics_logger as logger
 
           def main():
-              url = os.environ.get(TEST_URL)
+              url = os.environ.get("TEST_URL")
 
               # Set screenshot option
               takeScreenshot = True
