@@ -18,10 +18,6 @@ spec:
   rules:
     - http:
         paths:
-          - path: /v1/workResults
-            backend:
-              serviceName: response-503
-              servicePort: use-annotation
           - path: /v1/pipelineResults
             backend:
               serviceName: response-503
