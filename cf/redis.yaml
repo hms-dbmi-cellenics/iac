@@ -14,9 +14,6 @@ Parameters:
     Default: '6379'
     Type: String
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-
 Outputs:
   ElastiCachePrimaryEndpointAddress:
     Description: Address to use to connect to Primary Cluster endpoint
@@ -42,7 +39,7 @@ Resources:
     Properties:
       ReplicationGroupId: !Sub "biomage-redis-${Environment}"
       ReplicationGroupDescription: !Sub "Biomage ElastiCache cluster for environment ${Environment}"
-      CacheNodeType: !If [isProd, "cache.m4.xlarge", "cache.m4.xlarge"]
+      CacheNodeType: "cache.t3.medium"
       CacheSubnetGroupName: !Ref CacheSubnetGroup
       Engine: redis
       NumCacheClusters: 2
