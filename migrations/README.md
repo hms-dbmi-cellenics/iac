@@ -1,8 +1,8 @@
 Migration scripts
 =================
 
-This directory contains scripts designed to mass-edit experiments, projects, plots,
-and other resources found in DynamoDB and S3 to ensure consistent and safe deployments.
+This directory contains records of scripts designed to mass-edit experiments, projects, plots,
+and other resources found in DynamoDB and S3 to ensure consistent and safe deployments. They are not meant to be re-run.
 
 How to use
 ----------
@@ -26,7 +26,6 @@ alphabetical ordering.
 * The dry-run functionality is quite limited. It does not allow you to perform any AWS queries, as the DynamoDB connection
   (named `dyno`) is not passed in for dry runs. You are, however, given each record that will be modified as a JavaScript
   object, which you can use to perform some tests.
-
 
 You will need to install the tool [dynamodb-migrator](https://github.com/mapbox/dynamodb-migrator).
 This is a global tool that exposes the `dynamodb-migrate` command.

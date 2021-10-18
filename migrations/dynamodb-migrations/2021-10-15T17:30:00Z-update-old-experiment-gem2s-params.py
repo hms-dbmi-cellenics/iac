@@ -6,7 +6,7 @@ import json
 from collections import OrderedDict
 
 ### Background
-# This is a migration for PR 408 - Fix sample order moves storage of samples from projects to experiments.
+# This is a new script to ammmend script `2021-08-04T10:06:50Z-migrate-sampleids-to-experiment.py`
 
 # Insert endpoint_url='http://localhost:4566' as the 2nd param to test with localstack
 client = boto3.client('dynamodb')
