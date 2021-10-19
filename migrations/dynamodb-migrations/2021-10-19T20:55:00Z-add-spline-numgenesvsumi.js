@@ -15,6 +15,13 @@ module.exports = (record, dyno, callback) => {
     throw new Error('Environment (staging/production) must be specified.');
   }
 
+  if (!record.processingConfig || !record.processingConfig.numGenesVsNumUmis) {
+    console.log(`Skipping ${record.experimentId}, it is VERY MALFORMED`);
+    return callback();
+  }
+
+  console.log(`Migrating experiment ${record.experimentId}`);
+
   const { 
     api_url: garbageapi_url = null, 
     auth_JWT: garbageAuthJWT = null,  
@@ -24,20 +31,26 @@ module.exports = (record, dyno, callback) => {
     ...samplesFilterSettings 
   } = record.processingConfig.numGenesVsNumUmis;
 
-  
   Object.keys(samplesFilterSettings).forEach((sampleId) => {
-    const { filterSettings, defaultFilterSettings } = samplesFilterSettings[sampleId];
-    
-    // Don't run over experiments that already migrated
-    if (filterSettings.regressionType !== 'linear') {
+    const { filterSettings = null, defaultFilterSettings = null } = samplesFilterSettings[sampleId];
+
+    if (!filterSettings || !defaultFilterSettings) {
+      console.log(`Skipping ${record.experimentId} sample called ${sampleId}, it is MALFORMED`);
+    } else {
+      // Don't run over experiments that already migrated
+      if (filterSettings.regressionTypeSettings.linear) {
+        console.log(`Skipping ${record.experimentId} sample called ${sampleId}, seems ALREADY MIGRATED`);
+        return callback();
+      }
+        
       renameGamToLinear(filterSettings);
       renameGamToLinear(defaultFilterSettings);
+      
+      const calculatedPLevel = defaultFilterSettings.regressionTypeSettings.linear['p.level'];
+  
+      filterSettings.regressionTypeSettings.spline = { 'p.level': calculatedPLevel };
+      defaultFilterSettings.regressionTypeSettings.spline = { 'p.level': calculatedPLevel };
     }
-    
-    const calculatedPLevel = defaultFilterSettings.regressionTypeSettings.linear['p.level'];
-
-    filterSettings.regressionTypeSettings.spline = { 'p.level': calculatedPLevel };
-    defaultFilterSettings.regressionTypeSettings.spline = { 'p.level': calculatedPLevel };
   });
 
   const processingConfigToSet = _.cloneDeep(record.processingConfig);
@@ -73,6 +86,7 @@ module.exports = (record, dyno, callback) => {
   });
 
   updated++;
+
   callback();
 }
 
