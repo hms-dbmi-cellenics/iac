@@ -27,7 +27,6 @@ alphabetical ordering.
   (named `dyno`) is not passed in for dry runs. You are, however, given each record that will be modified as a JavaScript
   object, which you can use to perform some tests.
 
-
 You will need to install the tool [dynamodb-migrator](https://github.com/mapbox/dynamodb-migrator).
 This is a global tool that exposes the `dynamodb-migrate` command.
 

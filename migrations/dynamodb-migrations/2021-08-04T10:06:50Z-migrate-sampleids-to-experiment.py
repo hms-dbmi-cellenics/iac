@@ -1,3 +1,4 @@
+import sys
 import boto3
 from datetime import datetime
 import hashlib
@@ -6,6 +7,13 @@ from collections import OrderedDict
 
 ### Background
 # This is a migration for PR 408 - Fix sample order moves storage of samples from projects to experiments.
+
+print("""
+    This script contains bugs with causes old data to not be migrated. This script is 
+    amended with the new script`2021-10-15T17:30:00Z-update-old-experiment-gem2s-params.py` 
+    in the migrations folder
+    """)
+sys.exit()
 
 # Insert endpoint_url='http://localhost:4566' as the 2nd param to test with localstack
 client = boto3.client('dynamodb')
