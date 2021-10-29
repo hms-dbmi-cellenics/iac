@@ -1,8 +1,8 @@
 Migration scripts
 =================
 
-This directory contains records of scripts designed to mass-edit experiments, projects, plots,
-and other resources found in DynamoDB and S3 to ensure consistent and safe deployments. They are not meant to be re-run.
+This directory contains scripts designed to mass-edit experiments, projects, plots,
+and other resources found in DynamoDB and S3 to ensure consistent and safe deployments.
 
 How to use
 ----------
