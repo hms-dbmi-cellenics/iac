@@ -61,7 +61,7 @@ spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: cluster-ee
   releaseName: api
   values:
     biomageCi:
