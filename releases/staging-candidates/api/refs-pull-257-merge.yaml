@@ -18,9 +18,9 @@ metadata:
 spec:
   releaseName: api
   chart:
-    git: git@github.com:kafkasl/iac
+    git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: STAGING_CHART_REF
+    ref: STAGING_CHART_REF # TODO change before merging
   values:
     service:
       externalPort: 3000
@@ -48,7 +48,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-257-merge-a04daa539f735ff11576c47926a1ea5017eb20fe
+      tag: refs-pull-257-merge-df5e632feddf281d0379cc075271d7c22653cc30
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
