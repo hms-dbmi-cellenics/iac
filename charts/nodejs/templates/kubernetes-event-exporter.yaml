@@ -9,12 +9,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: monitoring
-  name: event-exporter-trial
+  name: event-exporter
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: event-exporter-trial
+  name: event-exporter
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -22,7 +22,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     namespace: monitoring
-    name: event-exporter-trial
+    name: event-exporter
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -48,19 +48,19 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: event-exporter-trial
+  name: event-exporter
   namespace: monitoring
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: event-exporter-trial
+        app: event-exporter
         version: v1
     spec:
-      serviceAccountName: event-exporter-trial
+      serviceAccountName: event-exporter
       containers:
-        - name: event-exporter-trial
+        - name: event-exporter
           image: ghcr.io/opsgenie/kubernetes-event-exporter:v0.10
           imagePullPolicy: IfNotPresent
           args:
@@ -74,6 +74,6 @@ spec:
             name: event-exporter-cfg
   selector:
     matchLabels:
-      app: event-exporter-trial
+      app: event-exporter
       version: v1
 {{ end }}
