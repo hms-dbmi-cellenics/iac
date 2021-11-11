@@ -75,7 +75,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-241-merge-3b4be2202579ac1361b02a5d778e5e4890f4da28
+      tag: refs-pull-241-merge-242f7f88da8434c412a27f079b96f570710a55b8
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -163,7 +163,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-180-merge-cbec3ae2e049c4b49a26c1fc87bd66c20713c106-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-180-merge-e318d32efe5384d37589871ef9dd36a828f12986-pipeline-runner
     replicaCount: 2
     sandboxId: latest-notifications
     serviceAccount:
