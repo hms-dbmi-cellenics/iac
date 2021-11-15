@@ -92,7 +92,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'sns:*'
-                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
+                Resource: 
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms"
 
         - PolicyName: "can-create-staging-stacks"
           PolicyDocument:
