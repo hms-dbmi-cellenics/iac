@@ -86,7 +86,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::*-${Environment}"
 
-        - PolicyName: !Sub "can-create-xray-groups"
+        - PolicyName: "can-create-xray-groups"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
