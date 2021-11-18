@@ -124,7 +124,7 @@ spec:
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-213-merge-42dc8b03afaf7799334e84f3f7bcee8d5e8652be-r
       memoryRequest: 4Gi
-    replicaCount: 1
+    replicaCount: 0
     sandboxId: marcellp-worker213
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
