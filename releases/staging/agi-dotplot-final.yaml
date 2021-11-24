@@ -120,9 +120,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-209-merge-ff088567cb05b3c965f9cce8f1fd199181989816-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-209-merge-35da6f032f291d8ec281ad13358a24b946220f49-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-209-merge-ff088567cb05b3c965f9cce8f1fd199181989816-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-209-merge-35da6f032f291d8ec281ad13358a24b946220f49-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: agi-dotplot-final
