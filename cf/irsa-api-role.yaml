@@ -122,7 +122,7 @@ Resources:
               - Effect: Allow
                 Action: "s3:ListBucket"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
