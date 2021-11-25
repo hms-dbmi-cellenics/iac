@@ -77,6 +77,14 @@ Resources:
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+        - PolicyName: !Sub "can-delete-cell-ids-s3-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:DeleteObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
