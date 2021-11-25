@@ -82,7 +82,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "ses:SendEmail"
                 Resource: "*"
         - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
@@ -114,6 +114,14 @@ Resources:
                 Action: "s3:DeleteObject"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+        - PolicyName: !Sub "can-list-s3-cell-ids-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:ListBucket"
+                Resource:
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
