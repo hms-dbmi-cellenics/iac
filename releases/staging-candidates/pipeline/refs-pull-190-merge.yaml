@@ -28,9 +28,9 @@ spec:
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-190-merge-1a4e5b56f2f28e2dcd499d019501187aed100ebc-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-190-merge-6a30608b1cbf74d45d881ba1c5934425309144cb-pipeline-runner
     sandboxId: STAGING_SANDBOX_ID
-    memoryRequest: 4Gi
+    memoryRequest: 16Gi
     replicaCount: 0
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
