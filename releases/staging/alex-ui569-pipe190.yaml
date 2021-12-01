@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -159,7 +160,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 16Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-190-merge-6a30608b1cbf74d45d881ba1c5934425309144cb-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-190-merge-bfd2cfe426b335e47a42d9416e328a59d779b070-pipeline-runner
     replicaCount: 0
     sandboxId: alex-ui569-pipe190
     serviceAccount:
