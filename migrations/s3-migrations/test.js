@@ -3,6 +3,9 @@ const _ = require('lodash');
 
 const bucketName = 'cell-sets-staging';
 
+const projectsTableName = 'projects-staging'
+const experimentsTableName = 'experiments-staging'
+
 const createDynamoDbInstance = () => new AWS.DynamoDB({ region: 'eu-west-1' });
 const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(data, { convertEmptyValues: false });
 const convertToJsObject = (data) => AWS.DynamoDB.Converter.unmarshall(data);
@@ -22,12 +25,12 @@ const getCellSets = async (experimentId) => {
     return data;
 }
 
-const getExperimentAttributes = async (experimentId, attributes) => {
+const getExperimentAttributes = async (keyObject, attributes, TableName) => {
   const dynamodb = createDynamoDbInstance();
-  const key = convertToDynamoDbRecord({ experimentId });
+  const key = convertToDynamoDbRecord(keyObject);
 
   const params = {
-    TableName: 'experiments-staging',
+    TableName,
     Key: key,
   };
 
@@ -47,10 +50,24 @@ const getExperimentAttributes = async (experimentId, attributes) => {
 const migrateCellSets = async (experimentId) => {
   console.log(`Migrating experiment: ${experimentId}`);
   try {
-      const sampleIds = await getExperimentAttributes(experimentId, ['sampleIds']);
+      const {sampleIds, projectId: projectUuid} = await getExperimentAttributes(
+        { experimentId }, 
+        ['sampleIds', 'projectId'],
+        experimentsTableName);
 
-      console.log('sampleIdsDebug');
-      console.log(sampleIds);
+      
+      const project = await getExperimentAttributes({projectUuid},
+        ['metadataKeys'],
+        projectsTableName)
+
+        if (Object.keys(project).length) {
+        
+              console.log('sampleIdsDebug');
+              console.log(sampleIds);
+              console.log('projectDebug');
+              console.log(project);
+
+      }
 
 
       // const cellSetsObject = await getCellSets(experimentId);
