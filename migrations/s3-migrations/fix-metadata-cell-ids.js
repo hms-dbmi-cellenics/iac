@@ -9,9 +9,14 @@ const samplesTableName = `samples-${environment}`
 
 let config;
 if (environment == 'development') {
-  config = { region: 'eu-west-1', endpoint: 'http://localhost:4566', forcePathStyle: true };
+  AWS.config.update({
+    endpoint: 'http://localhost:4566',
+    region: 'eu-west-1',
+    sslEnabled: false,
+    s3ForcePathStyle: true,
+  });
 } else {
-  config = { region: 'eu-west-1' }
+  AWS.config.update({ region: 'eu-west-1' });
 }
 
 const createDynamoDbInstance = () => new AWS.DynamoDB(config);
@@ -63,7 +68,7 @@ const migrateCellSets = async (experimentId) => {
       ['sampleIds', 'projectId'],
       experimentsTableName);
 
-    const { projects: { metadataKeys } } = await getExperimentAttributes(
+    const { projects: { metadataKeys: metadataTracks } } = await getExperimentAttributes(
       { projectUuid },
       ['projects'],
       projectsTableName);
@@ -76,7 +81,7 @@ const migrateCellSets = async (experimentId) => {
 
 
     // short circuit if no metadata
-    if (!metadataKeys.length) {
+    if (!metadataTracks.length) {
       console.log(`Experiment ${experimentId} has no metadata - skipping.`);
       return;
     }
@@ -84,7 +89,7 @@ const migrateCellSets = async (experimentId) => {
     // original metadata (possibly incorrect order of column values)
     const samplesEntries = Object.entries(samples);
 
-    const metadataOriginal = metadataKeys.reduce((acc, key) => {
+    const metadataOriginal = metadataTracks.reduce((acc, key) => {
       // Make sure the key does not contain '-' as it will cause failure in GEM2S
       const sanitizedKey = key.replace(/-+/g, '_');
 
@@ -94,9 +99,8 @@ const migrateCellSets = async (experimentId) => {
       return acc;
     }, {});
 
-
     // get metadata in same order as sampleIds (correct order)
-    const metadata = metadataKeys.reduce((acc, key) => {
+    const metadataCorrectOrder = metadataTracks.reduce((acc, key) => {
       // Make sure the key does not contain '-' as it will cause failure in GEM2S
       const sanitizedKey = key.replace(/-+/g, '_');
 
@@ -111,14 +115,14 @@ const migrateCellSets = async (experimentId) => {
     // check if they differ
     // NOTE: may not identity ALL incorrect experiments (maybe fine if re-order after GEM2S?)
     // All get updated, incorrect order or not so doesn't really matter
-    metadataKeys.forEach(metadataKey => {
+    metadataTracks.forEach(metadataKey => {
       const origOrder = metadataOriginal[metadataKey];
-      const correctOrder = metadata[metadataKey];
+      const correctOrder = metadataCorrectOrder[metadataKey];
       if (!_.isEqual(origOrder, correctOrder)) {
         console.log(
           `\n----`,
           `\n🚨 Experiment: ${experimentId}`,
-          `\n🚨 --> ${metadataKey} metadata is wrong (unless you ran this already)!`,
+          `\n🚨 --> ${metadataKey} metadata was reordered, so setting the tracks again just in case!`,
           '\ncorrect: ', correctOrder,
           '\noriginal:', origOrder,
         )
@@ -132,17 +136,27 @@ const migrateCellSets = async (experimentId) => {
     const samplesSet = cellSets.filter(cellSet => cellSet.key === 'sample')[0];
 
     // iterate through each metadata column
-    metadataKeys.forEach(metadataKey => {
+    metadataTracks.forEach(metadataKey => {
+
+      
 
       // metadata column values in order corresponding to sampleIds
-      metadataValuesOrdered = metadata[metadataKey];
+      metadataValuesOrdered = metadataCorrectOrder[metadataKey];
 
       // unique metadata column values
-      const uniqueMetadataValues = metadataValuesOrdered.filter((v, i, a) => a.indexOf(v) === i);
+      const uniqueMetadataValues = _.uniq(metadataValuesOrdered);
+
+      console.log('metadataValuesOrderedDebug');
+      console.log(metadataValuesOrdered);
+
+      console.log('uniqueMetadataValuesDebug');
+      console.log(uniqueMetadataValues);
 
       // get position of metadata column cell set
       const cellSetKeys = cellSets.map(cellSet => cellSet.key);
       const metadataSetIndex = cellSetKeys.indexOf(metadataKey);
+
+
 
       // iterate through each unique value
       uniqueMetadataValues.forEach(uniqueMetadataValue => {
@@ -163,10 +177,15 @@ const migrateCellSets = async (experimentId) => {
           }
         });
 
-
         // get position of metadata column value child
         const metadataSetChildNames = cellSets[metadataSetIndex].children.map(child => child.name);
         const metadataNameIndex = metadataSetChildNames.indexOf(uniqueMetadataValue);
+
+        console.log('uniqueMetadataValueDebug');
+        console.log(uniqueMetadataValue);
+
+        console.log('newCellIdsDebug');
+        console.log(newCellIds);
 
         // overwrite cellIds with new cellIds
         cellSets[metadataSetIndex].children[metadataNameIndex].cellIds = newCellIds;
@@ -174,7 +193,7 @@ const migrateCellSets = async (experimentId) => {
       });
     })
 
-    await updateCellSets(experimentId, cellSets);
+    // await updateCellSets(experimentId, cellSets);
     console.log(`Migration for experiment ${experimentId} finished, everything is ok, relax`);
   } catch (e) {
     console.error(`Error migrating experiment: ${experimentId}, ${e.message}`);
