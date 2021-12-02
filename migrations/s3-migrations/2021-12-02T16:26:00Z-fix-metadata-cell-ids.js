@@ -1,6 +1,6 @@
 // HOW TO RUN:
 // - npm link aws-sdk lodash
-// - node --stack-size=16000 fix-metadata-cell-ids.js
+// - node --stack-size=16000 2021-12-02T16:26:00Z-fix-metadata-cell-ids.js
 
 const AWS = require('aws-sdk');
 const _ = require('lodash');
