@@ -19,18 +19,18 @@ const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(data, 
 const convertToJsObject = (data) => AWS.DynamoDB.Converter.unmarshall(data);
 
 const getCellSets = async (experimentId) => {
-    const s3 = new AWS.S3(config);
+  const s3 = new AWS.S3(config);
 
-    const outputObject = await s3.getObject(
+  const outputObject = await s3.getObject(
     {
-        Bucket: bucketName,
-        Key: experimentId,
+      Bucket: bucketName,
+      Key: experimentId,
     },
-    ).promise();
+  ).promise();
 
-    const data = JSON.parse(outputObject.Body.toString());
+  const data = JSON.parse(outputObject.Body.toString());
 
-    return data;
+  return data;
 }
 
 const getExperimentAttributes = async (keyObject, attributes, tableName) => {
@@ -58,127 +58,127 @@ const getExperimentAttributes = async (keyObject, attributes, tableName) => {
 const migrateCellSets = async (experimentId) => {
   console.log(`Migrating experiment: ${experimentId}`);
   try {
-      const {sampleIds, projectId: projectUuid} = await getExperimentAttributes(
-        { experimentId }, 
-        ['sampleIds', 'projectId'],
-        experimentsTableName);
+    const { sampleIds, projectId: projectUuid } = await getExperimentAttributes(
+      { experimentId },
+      ['sampleIds', 'projectId'],
+      experimentsTableName);
 
-      const { projects: { metadataKeys } } = await getExperimentAttributes(
-        { projectUuid },
-        ['projects'],
-        projectsTableName)
-        
-        
-      const { samples } = await getExperimentAttributes(
-        { experimentId },
-        ['samples'],
-        samplesTableName)
+    const { projects: { metadataKeys } } = await getExperimentAttributes(
+      { projectUuid },
+      ['projects'],
+      projectsTableName);
 
-      
-        // short circuit if no metadata
-        if(!metadataKeys.length) {
-          console.log(`Experiment ${experimentId} has no metadata - skipping.`);
-          return;
-        } 
-        
-        // original metadata (possibly incorrect order of column values)
-        const samplesEntries = Object.entries(samples);
 
-        const metadataOriginal = metadataKeys.reduce((acc, key) => {
-          // Make sure the key does not contain '-' as it will cause failure in GEM2S
-          const sanitizedKey = key.replace(/-+/g, '_');
-  
-          acc[sanitizedKey] = samplesEntries.map(
-            ([, sample]) => sample.metadata[key] || defaultMetadataValue,
-          );
-          return acc;
-        }, {});
+    const { samples } = await getExperimentAttributes(
+      { experimentId },
+      ['samples'],
+      samplesTableName);
 
-  
-        // get metadata in same order as sampleIds (correct order)
-        const metadata = metadataKeys.reduce((acc, key) => {
-          // Make sure the key does not contain '-' as it will cause failure in GEM2S
-          const sanitizedKey = key.replace(/-+/g, '_');
-  
-          acc[sanitizedKey] = sampleIds.map((sampleId) => {
-            const sample = samples[sampleId];
-            return sample.metadata[key] || defaultMetadataValue;
-          });
-  
-          return acc;
-        }, {});
 
-        // check if they differ
-        // NOTE: may not identity ALL incorrect experiments (maybe fine if re-order after GEM2S?)
-        // All get updated, incorrect order or not so doesn't really matter
-        metadataKeys.forEach(metadataKey => {
-          const origOrder = metadataOriginal[metadataKey];
-          const correctOrder = metadata[metadataKey];
-          if (!_.isEqual(origOrder, correctOrder)) {
-            console.log(
-              `\n----`,
-              `\n🚨 Experiment: ${experimentId}`,
-              `\n🚨 --> ${metadataKey} metadata is wrong (unless you ran this already)!`,
-              '\ncorrect: ', correctOrder,
-              '\noriginal:', origOrder,
-              )
+    // short circuit if no metadata
+    if (!metadataKeys.length) {
+      console.log(`Experiment ${experimentId} has no metadata - skipping.`);
+      return;
+    }
+
+    // original metadata (possibly incorrect order of column values)
+    const samplesEntries = Object.entries(samples);
+
+    const metadataOriginal = metadataKeys.reduce((acc, key) => {
+      // Make sure the key does not contain '-' as it will cause failure in GEM2S
+      const sanitizedKey = key.replace(/-+/g, '_');
+
+      acc[sanitizedKey] = samplesEntries.map(
+        ([, sample]) => sample.metadata[key] || defaultMetadataValue,
+      );
+      return acc;
+    }, {});
+
+
+    // get metadata in same order as sampleIds (correct order)
+    const metadata = metadataKeys.reduce((acc, key) => {
+      // Make sure the key does not contain '-' as it will cause failure in GEM2S
+      const sanitizedKey = key.replace(/-+/g, '_');
+
+      acc[sanitizedKey] = sampleIds.map((sampleId) => {
+        const sample = samples[sampleId];
+        return sample.metadata[key] || defaultMetadataValue;
+      });
+
+      return acc;
+    }, {});
+
+    // check if they differ
+    // NOTE: may not identity ALL incorrect experiments (maybe fine if re-order after GEM2S?)
+    // All get updated, incorrect order or not so doesn't really matter
+    metadataKeys.forEach(metadataKey => {
+      const origOrder = metadataOriginal[metadataKey];
+      const correctOrder = metadata[metadataKey];
+      if (!_.isEqual(origOrder, correctOrder)) {
+        console.log(
+          `\n----`,
+          `\n🚨 Experiment: ${experimentId}`,
+          `\n🚨 --> ${metadataKey} metadata is wrong (unless you ran this already)!`,
+          '\ncorrect: ', correctOrder,
+          '\noriginal:', origOrder,
+        )
+      }
+    });
+
+    // get cellSets (will update metadata column cellIds)
+    const { cellSets } = await getCellSets(experimentId);
+
+    // get samples cell set in order to extract cellIds for each sample
+    const samplesSet = cellSets.filter(cellSet => cellSet.key === 'sample')[0];
+
+    // iterate through each metadata column
+    metadataKeys.forEach(metadataKey => {
+
+      // metadata column values in order corresponding to sampleIds
+      metadataValuesOrdered = metadata[metadataKey];
+
+      // unique metadata column values
+      const uniqueMetadataValues = metadataValuesOrdered.filter((v, i, a) => a.indexOf(v) === i);
+
+      // get position of metadata column cell set
+      const cellSetKeys = cellSets.map(cellSet => cellSet.key);
+      const metadataSetIndex = cellSetKeys.indexOf(metadataKey);
+
+      // iterate through each unique value
+      uniqueMetadataValues.forEach(uniqueMetadataValue => {
+
+        // create new cell ids
+        const newCellIds = [];
+
+        // add sample cell ids to new cell ids if the sample has current metadata column value
+        sampleIds.forEach((sampleId, index) => {
+          if (metadataValuesOrdered[index] === uniqueMetadataValue) {
+
+            const sampleCellIds = samplesSet
+              .children
+              .filter(child => child.key === sampleId)[0]
+              .cellIds;
+
+            newCellIds.push(...sampleCellIds)
           }
         });
 
-        // get cellSets (will update metadata column cellIds)
-        const { cellSets } = await getCellSets(experimentId);
 
-        // get samples cell set in order to extract cellIds for each sample
-        const samplesSet = cellSets.filter(cellSet => cellSet.key === 'sample')[0];
+        // get position of metadata column value child
+        const metadataSetChildNames = cellSets[metadataSetIndex].children.map(child => child.name);
+        const metadataNameIndex = metadataSetChildNames.indexOf(uniqueMetadataValue);
 
-        // iterate through each metadata column
-        metadataKeys.forEach(metadataKey => {
+        // overwrite cellIds with new cellIds
+        cellSets[metadataSetIndex].children[metadataNameIndex].cellIds = newCellIds;
 
-          // metadata column values in order corresponding to sampleIds
-          metadataValuesOrdered = metadata[metadataKey];
+      });
+    })
 
-          // unique metadata column values
-          const uniqueMetadataValues = metadataValuesOrdered.filter((v, i, a) => a.indexOf(v) === i);
-
-          // get position of metadata column cell set
-          const cellSetKeys = cellSets.map(cellSet => cellSet.key);
-          const metadataSetIndex = cellSetKeys.indexOf(metadataKey);
-
-          // iterate through each unique value
-          uniqueMetadataValues.forEach(uniqueMetadataValue => {
-
-            // create new cell ids
-            const newCellIds = [];
-
-            // add sample cell ids to new cell ids if the sample has current metadata column value
-            sampleIds.forEach((sampleId, index) => {
-              if (metadataValuesOrdered[index] === uniqueMetadataValue) {
-
-                const sampleCellIds = samplesSet
-                  .children
-                  .filter(child => child.key === sampleId)[0]
-                  .cellIds;
-
-                newCellIds.push(...sampleCellIds)
-              }
-            });
-
-  
-            // get position of metadata column value child
-          const metadataSetChildNames = cellSets[metadataSetIndex].children.map(child => child.name);
-          const metadataNameIndex = metadataSetChildNames.indexOf(uniqueMetadataValue);
-
-          // overwrite cellIds with new cellIds
-          cellSets[metadataSetIndex].children[metadataNameIndex].cellIds = newCellIds;
-
-          });
-        })
-
-      await updateCellSets(experimentId, cellSets);
-      console.log(`Migration for experiment ${experimentId} finished, everything is ok, relax`);
-    } catch (e) {
-      console.error(`Error migrating experiment: ${experimentId}, ${e.message}`);
-    }
+    await updateCellSets(experimentId, cellSets);
+    console.log(`Migration for experiment ${experimentId} finished, everything is ok, relax`);
+  } catch (e) {
+    console.error(`Error migrating experiment: ${experimentId}, ${e.message}`);
+  }
 }
 
 const updateCellSets = async (experimentId, cellSetList) => {
@@ -199,8 +199,8 @@ const updateCellSets = async (experimentId, cellSetList) => {
 
 const getAllKeys = async () => {
   const s3 = new AWS.S3(config);
-  
-  var params = { Bucket: bucketName };  
+
+  var params = { Bucket: bucketName };
 
   const result = await s3.listObjectsV2(params).promise();
 
