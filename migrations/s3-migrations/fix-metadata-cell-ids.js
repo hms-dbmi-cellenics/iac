@@ -112,23 +112,6 @@ const migrateCellSets = async (experimentId) => {
       return acc;
     }, {});
 
-    // check if they differ
-    // NOTE: may not identity ALL incorrect experiments (maybe fine if re-order after GEM2S?)
-    // All get updated, incorrect order or not so doesn't really matter
-    metadataTracks.forEach(metadataKey => {
-      const origOrder = metadataOriginal[metadataKey];
-      const correctOrder = metadataCorrectOrder[metadataKey];
-      if (!_.isEqual(origOrder, correctOrder)) {
-        console.log(
-          `\n----`,
-          `\n🚨 Experiment: ${experimentId}`,
-          `\n🚨 --> ${metadataKey} metadata was reordered, so setting the tracks again just in case!`,
-          '\ncorrect: ', correctOrder,
-          '\noriginal:', origOrder,
-        )
-      }
-    });
-
     // get cellSets (will update metadata column cellIds)
     const { cellSets } = await getCellSets(experimentId);
 
@@ -147,8 +130,6 @@ const migrateCellSets = async (experimentId) => {
       // get position of metadata column cell set
       const cellSetKeys = cellSets.map(cellSet => cellSet.key);
       const metadataSetIndex = cellSetKeys.indexOf(metadataKey);
-
-
 
       // iterate through each unique value
       uniqueMetadataValues.forEach(uniqueMetadataValue => {
