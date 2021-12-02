@@ -1,3 +1,7 @@
+// HOW TO RUN:
+// - npm link aws-sdk lodash
+// - node --stack-size=16000 fix-metadata-cell-ids.js
+
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 
@@ -131,6 +135,8 @@ const migrateCellSets = async (experimentId) => {
       const cellSetKeys = cellSets.map(cellSet => cellSet.key);
       const metadataSetIndex = cellSetKeys.indexOf(metadataKey);
 
+
+
       // iterate through each unique value
       uniqueMetadataValues.forEach(uniqueMetadataValue => {
 
@@ -160,7 +166,7 @@ const migrateCellSets = async (experimentId) => {
       });
     })
 
-    // await updateCellSets(experimentId, cellSets);
+    await updateCellSets(experimentId, cellSets);
     console.log(`Migration for experiment ${experimentId} finished, everything is ok, relax`);
   } catch (e) {
     console.error(`Error migrating experiment: ${experimentId}, ${e.message}`);
@@ -195,10 +201,6 @@ const getAllKeys = async () => {
   return keys;
 }
 
-// check single experimentId
-// const experimentId = 'mytestId';
-// migrateCellSets(experimentId);
-
 getAllKeys().then((allKeys) => {
-  allKeys.forEach(migrateCellSets);
+  allKeys.forEach((key) => migrateCellSets(key));
 });
