@@ -209,6 +209,10 @@ const getAllKeys = async () => {
   return keys;
 }
 
+// check single experimentId
+// const experimentId = 'mytestId';
+// migrateCellSets(experimentId);
+
 getAllKeys().then((allKeys) => {
   allKeys.forEach(migrateCellSets);
 });
