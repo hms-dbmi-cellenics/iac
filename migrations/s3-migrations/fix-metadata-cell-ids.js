@@ -138,19 +138,11 @@ const migrateCellSets = async (experimentId) => {
     // iterate through each metadata column
     metadataTracks.forEach(metadataKey => {
 
-      
-
       // metadata column values in order corresponding to sampleIds
       metadataValuesOrdered = metadataCorrectOrder[metadataKey];
 
       // unique metadata column values
       const uniqueMetadataValues = _.uniq(metadataValuesOrdered);
-
-      console.log('metadataValuesOrderedDebug');
-      console.log(metadataValuesOrdered);
-
-      console.log('uniqueMetadataValuesDebug');
-      console.log(uniqueMetadataValues);
 
       // get position of metadata column cell set
       const cellSetKeys = cellSets.map(cellSet => cellSet.key);
@@ -180,12 +172,6 @@ const migrateCellSets = async (experimentId) => {
         // get position of metadata column value child
         const metadataSetChildNames = cellSets[metadataSetIndex].children.map(child => child.name);
         const metadataNameIndex = metadataSetChildNames.indexOf(uniqueMetadataValue);
-
-        console.log('uniqueMetadataValueDebug');
-        console.log(uniqueMetadataValue);
-
-        console.log('newCellIdsDebug');
-        console.log(newCellIds);
 
         // overwrite cellIds with new cellIds
         cellSets[metadataSetIndex].children[metadataNameIndex].cellIds = newCellIds;
