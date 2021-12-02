@@ -76,7 +76,10 @@ const migrateCellSets = async (experimentId) => {
 
       
         // short circuit if no metadata
-        if(!metadataKeys.length) return;
+        if(!metadataKeys.length) {
+          console.log(`Experiment ${experimentId} has no metadata - skipping.`);
+          return;
+        } 
         
         // original metadata (possibly incorrect order of column values)
         const samplesEntries = Object.entries(samples);
@@ -115,7 +118,7 @@ const migrateCellSets = async (experimentId) => {
             console.log(
               `\n----`,
               `\n🚨 Experiment: ${experimentId}`,
-              `\n🚨 --> ${metadataKey} metadata column is wrong!!!`,
+              `\n🚨 --> ${metadataKey} metadata is wrong (unless you ran this already)!`,
               '\ncorrect: ', correctOrder,
               '\noriginal:', origOrder,
               )
