@@ -33,10 +33,7 @@ spec:
       requests:
         cpu: "100m"
     hpa:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 1
-      targetCPUUtilizationPercentage: 80
+      enabled: false
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -48,7 +45,8 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-243-merge-099d9357fcab3cd243f58a7f005e30222c5fc423
+      tag: refs-pull-243-merge-8fecbc5e82d8e5f37afb4f55fe9b930fc35f0039
+    replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
 
