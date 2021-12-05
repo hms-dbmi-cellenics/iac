@@ -28,7 +28,7 @@ spec:
     readinessProbe:
       path: "/v1/health"
     livenessProbe:
-      path: "/v1/health"
+      probeType: tcpSocket
     resources:
       requests:
         cpu: "100m"
@@ -45,7 +45,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-44fd05f6f806d54d3ab0eecf2a40553e005f3981
+      tag: refs-heads-master-34af93e370d020135674341194c9deda8fb8be31
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
