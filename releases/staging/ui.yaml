@@ -25,7 +25,11 @@ spec:
     readinessProbe:
       path: "/data-management"
     livenessProbe:
-      path: "/data-management"
+      probeType: 'exec'
+      command:
+        - sh
+        - -c
+        - netstat -tulpn | grep LISTEN | grep 5000
     kubernetes:
       env: staging
     biomageCi:
@@ -34,7 +38,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-40e2dec9cf2d895446c12166a715694374d6425b
+      tag: refs-heads-master-1ecf63ad38dc2098cf59ef6ab0ef62f3696f5750
     replicaCount: 4
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
