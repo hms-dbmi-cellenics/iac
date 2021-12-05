@@ -44,15 +44,21 @@ prometheus:
 
 livenessProbe:
   path: "/"
-  initialDelaySeconds: 15
-  timeoutSeconds: 15
+  initialDelaySeconds: 30
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
   scheme: "HTTP"
-  probeType: "httpGet"
+  probeType: "tcpSocket"
 
 readinessProbe:
   path: "/"
-  initialDelaySeconds: 15
+  initialDelaySeconds: 30
   timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
   scheme: "HTTP"
   probeType: "httpGet"
 
