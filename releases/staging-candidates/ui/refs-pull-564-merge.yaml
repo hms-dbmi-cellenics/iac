@@ -14,7 +14,7 @@ metadata:
     sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-564-merge-*
 spec:
   releaseName: ui
   chart:
@@ -25,7 +25,7 @@ spec:
     readinessProbe:
       path: "/data-management"
     livenessProbe:
-      probeType: tcpSocket
+      path: "/data-management"
     kubernetes:
       env: staging
     biomageCi:
@@ -34,7 +34,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-abc2287a6f09849f2419c9001ed5a0f9ccb2ba17
+      tag: refs-pull-564-merge-639a864e99e66816b0c5e3831c7f50dda8fa9558
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
