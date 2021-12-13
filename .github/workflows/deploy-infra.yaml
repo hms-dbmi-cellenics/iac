@@ -65,7 +65,8 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        # environment: ['production', 'staging']
+        environment: ['staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       AWS_REGION: ${{ github.event.inputs.region }}
@@ -152,7 +153,8 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        # environment: ['production', 'staging']
+        environment: ['staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
