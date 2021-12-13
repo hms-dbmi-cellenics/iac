@@ -97,25 +97,6 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: create-botube-namespace
-        name: Attempt to create botkube namespace
-        continue-on-error: true
-        run: |-
-          kubectl create namespace botkube
-
-      - id: deploy-botkube
-        name: Deploy botkube
-        run: |-
-          helm repo add infracloudio https://infracloudio.github.io/charts
-          helm repo update
-
-          helm upgrade --version v0.11.0 botkube --namespace botkube \
-            -f infra/botkube-configmap.yaml \
-            --set communications.slack.token=${{ secrets.BOTKUBE_ACCESS_TOKEN }} \
-            --set config.settings.clustername=$CLUSTER_ENV \
-            infracloudio/botkube \
-            --install --wait
-
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
         run: |-
