@@ -228,7 +228,6 @@ jobs:
 
           helm repo update
 
-
           helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
             --namespace kube-system \
             --set serviceAccount.create=false \
@@ -236,11 +235,18 @@ jobs:
             --set clusterName=biomage-$CLUSTER_ENV \
             --install --wait
 
+      # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+      # API staging environments because their endpoints are not yet available.
+      - id: deploy-503-default-route
+        name: Deploy 503 default route for subscription confirmation endpoints
+        run: |-
+          sleep 10
+
           helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
             --namespace default \
             --set clusterEnv=$CLUSTER_ENV \
             --install --wait
-
+      
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
