@@ -1,0 +1,186 @@
+name: Update infrastructure users on AWS
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'infra/cluster_admins_*'
+      - 'infra/cluster_users'
+      - 'infra/biomage-read-only-group/**'
+      - 'infra/botkube-configmap.yaml'
+      - 'infra/cf-state-machine-role.yaml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'infra/cluster_admins_*'
+      - 'infra/cluster_users'
+      - 'infra/biomage-read-only-group/**'
+      - 'infra/botkube-configmap.yaml'
+      - 'infra/cf-state-machine-role.yaml'
+env:
+  region: 'eu-west-1'
+
+
+jobs:
+  check-secrets:
+    name: Check if secrets are defined
+    runs-on: ubuntu-20.04
+    steps:
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
+          then
+            echo GitHub deploy key access token not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo Make sure you launch this job using the biomage devops tools, and not from GitHub.
+            echo Launching from GitHub directly is not supported to ensure cluster credentials are not
+            echo kept in the repository.
+            false
+          fi
+
+  update-users:
+    name: Updates Kubernetes user-related resources on the EKS cluster
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment: ['production', 'staging']
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+
+      - id: install-helm
+        name: Install Helm
+        run: |-
+          sudo snap install helm --classic
+
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+
+      - id: create-botube-namespace
+        name: Attempt to create botkube namespace
+        continue-on-error: true
+        run: |-
+          kubectl create namespace botkube
+
+      - id: deploy-botkube
+        name: Deploy botkube
+        run: |-
+          helm repo add infracloudio https://infracloudio.github.io/charts
+          helm repo update
+
+          helm upgrade --version v0.11.0 botkube --namespace botkube \
+            -f infra/botkube-configmap.yaml \
+            --set communications.slack.token=${{ secrets.BOTKUBE_ACCESS_TOKEN }} \
+            --set config.settings.clustername=$CLUSTER_ENV \
+            infracloudio/botkube \
+            --install --wait
+
+      - id: deploy-read-only-group
+        name: Deploy read-only permission definition for cluster
+        run: |-
+          helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
+            --install --wait
+
+      - id: deploy-state-machine-role
+        name: Deploy AWS Step Function (state machine) roles
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: "biomage-state-machine-role-${{ matrix.environment }}"
+          template: 'infra/cf-state-machine-role.yaml'
+          capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
+          no-fail-on-empty-changeset: "1"
+
+      - id: remove-identitymappings
+        name: Remove all previous identity mappings for IAM users
+        run: |-
+          eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
+          jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
+
+          while IFS= read -r user
+          do
+            echo "Remove rights of $user"
+            eksctl delete iamidentitymapping \
+              --cluster=biomage-$CLUSTER_ENV \
+              --arn $user \
+              --all
+          done < "/tmp/users_to_remove"
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: add-state-machine-role
+        name: Grant rights to the state machine IAM role.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
+            --group state-machine-runner-group \
+            --username state-machine-runner
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: update-identitymapping-admin
+        name: Add cluster admin rights to everyone on the admin list.
+        run: |-
+          while IFS= read -r user
+          do
+            echo "Adding cluster admin rights to $user"
+            eksctl create iamidentitymapping \
+              --cluster=biomage-$CLUSTER_ENV \
+              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+              --group system:masters \
+              --username $user
+          done < "infra/cluster_admins_$CLUSTER_ENV"
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: update-identitymapping
+        name: Add cluster read-only rights to everyone on the user list.
+        run: |-
+          while IFS= read -r user
+          do
+            echo "Adding cluster read-only rights to $user"
+            eksctl create iamidentitymapping \
+              --cluster=biomage-$CLUSTER_ENV \
+              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+              --group read-only \
+              --username $user
+          done < "infra/cluster_users"
