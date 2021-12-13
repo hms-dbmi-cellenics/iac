@@ -240,7 +240,7 @@ jobs:
       - id: deploy-503-default-route
         name: Deploy 503 default route for subscription confirmation endpoints
         run: |-
-          sleep 10
+          sleep 20
 
           helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
             --namespace default \
