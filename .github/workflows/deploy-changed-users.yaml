@@ -1,4 +1,4 @@
-name: Deploy Biomage infrastructure on AWS
+name: Update Biomage infrastructure users on AWS
 on:
   push:
     branches:
