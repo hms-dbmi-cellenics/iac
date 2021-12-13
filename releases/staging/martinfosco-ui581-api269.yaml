@@ -3,19 +3,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: alex-ui569-pipe190
-  name: ui-alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
+  name: ui-martinfosco-ui581-api269
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-569-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-581-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
   name: ui
-  namespace: ui-alex-ui569-pipe190
+  namespace: ui-martinfosco-ui581-api269
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -25,15 +25,15 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: alex-ui569-pipe190
+      sandboxId: martinfosco-ui581-api269
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-569-merge-ca64433bbe99e73fdfd2cd7aeb2be1bed24c14e0
+      tag: refs-pull-581-merge-dcf79063ecc0521d2d08e99babfbaac88c28e0d8
     kubernetes:
       env: staging
     livenessProbe:
-      path: /data-management
+      probeType: tcpSocket
     readinessProbe:
       path: /data-management
     replicaCount: 1
@@ -44,42 +44,42 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: alex-ui569-pipe190
-  name: api-alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
+  name: api-martinfosco-ui581-api269
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-269-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
   name: api
-  namespace: api-alex-ui569-pipe190
+  namespace: api-martinfosco-ui581-api269
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: 38907f97786528c40c246212d60003d46444e3c1
+    ref: refs/heads/master
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: alex-ui569-pipe190
+      sandboxId: martinfosco-ui581-api269
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-dfcde0f0321425f8dd2014b12a5333f4ae2e5c90
+      tag: refs-pull-269-merge-10bd4ef98e35450d7b2bc051bb3f68f9834c2f05
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
     kubernetes:
       env: staging
     livenessProbe:
-      path: /v1/health
+      probeType: tcpSocket
     readinessProbe:
       path: /v1/health
     replicaCount: 1
@@ -96,8 +96,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: alex-ui569-pipe190
-  name: worker-alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
+  name: worker-martinfosco-ui581-api269
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -107,25 +107,25 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
   name: worker
-  namespace: worker-alex-ui569-pipe190
+  namespace: worker-martinfosco-ui581-api269
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 21b63978178df6640eb7a09fa89a31086a2e7a7d
+    ref: 9de66dcb660e7c10e2ee104077920b59d44c00b8
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-21b63978178df6640eb7a09fa89a31086a2e7a7d-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9de66dcb660e7c10e2ee104077920b59d44c00b8-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-21b63978178df6640eb7a09fa89a31086a2e7a7d-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9de66dcb660e7c10e2ee104077920b59d44c00b8-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -133,35 +133,35 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: alex-ui569-pipe190
-  name: pipeline-alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
+  name: pipeline-martinfosco-ui581-api269
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/pipelineRunner: glob:refs-pull-190-merge-*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
   name: pipeline
-  namespace: pipeline-alex-ui569-pipe190
+  namespace: pipeline-martinfosco-ui581-api269
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: refs/pull/190/head
+    ref: 90483ff86ab3c3191111d0b93795e3b22681665b
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
     awsRegion: eu-west-1
     clusterEnv: staging
-    memoryRequest: 16Gi
+    memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-190-merge-0671a4d8e5e2c8cf2191dbcf5e1e6a91a2783ab8-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-90483ff86ab3c3191111d0b93795e3b22681665b-pipeline-runner
     replicaCount: 0
-    sandboxId: alex-ui569-pipe190
+    sandboxId: martinfosco-ui581-api269
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
