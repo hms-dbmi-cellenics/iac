@@ -110,14 +110,14 @@ jobs:
           eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
           jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
 
-          while IFS= read -r user
+          for user in $(cat "/tmp/users_to_remove")
           do
             echo "Remove rights of $user"
             eksctl delete iamidentitymapping \
               --cluster=biomage-$CLUSTER_ENV \
               --arn $user \
               --all
-          done < "/tmp/users_to_remove"
+          done
 
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: add-state-machine-role
@@ -133,7 +133,7 @@ jobs:
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          while IFS= read -r user
+          for user in $(cat "infra/cluster_admins_$CLUSTER_ENV")
           do
             echo "Adding cluster admin rights to $user"
             eksctl create iamidentitymapping \
@@ -141,13 +141,13 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/cluster_admins_$CLUSTER_ENV"
+          done
 
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping
         name: Add cluster read-only rights to everyone on the user list.
         run: |-
-          while IFS= read -r user
+          for user in $(cat "infra/cluster_users")
           do
             echo "Adding cluster read-only rights to $user"
             eksctl create iamidentitymapping \
@@ -155,4 +155,4 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group read-only \
               --username $user
-          done < "infra/cluster_users"
+          done
