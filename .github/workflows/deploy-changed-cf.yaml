@@ -12,6 +12,8 @@ on:
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
+env:
+  region: 'eu-west-1'
 
 jobs:
   get-modified-templates:
@@ -26,7 +28,7 @@ jobs:
         uses: lots0logs/gh-action-get-changed-files@2.1.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
         run: |-
@@ -72,7 +74,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+          aws-region: ${{ env.region }}
 
       # This is only necessary for IAM Service Account roles.
       - id: get-oidc
@@ -90,7 +92,7 @@ jobs:
           echo "::set-output name=stack-name::$BASE_NAME"
         env:
           FILE_NAME: ${{ matrix.template }}
-      
+
       - id: deploy-template
         name: Deploy CloudFormation template
         if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}

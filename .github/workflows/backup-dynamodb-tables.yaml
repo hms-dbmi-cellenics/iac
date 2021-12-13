@@ -1,14 +1,16 @@
 name: Create backup of dynamodb tables
-on: 
+on:
   workflow_dispatch:
     inputs:
       tables:
         description: 'Space separated ids of tables to backup, all if not specified'
         required: false
         default: 'all'
+env:
+  region: 'eu-west-1'
 
 jobs:
-  backup-tables: 
+  backup-tables:
     name: Create backup of dynamodb tables
     runs-on: ubuntu-20.04
     env:
@@ -20,8 +22,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-          
+          aws-region: ${{ env.region }}
+
       - id: backup-tables
         name: Create backup of dynamodb tables
         run: |-
