@@ -65,7 +65,6 @@ jobs:
   update-users:
     name: Updates Kubernetes user-related resources on the EKS cluster
     runs-on: ubuntu-20.04
-    needs: create-eks-cluster
     strategy:
       matrix:
         environment: ['staging']
