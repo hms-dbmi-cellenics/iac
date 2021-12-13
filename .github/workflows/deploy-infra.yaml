@@ -28,7 +28,7 @@ jobs:
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
-          if: github.event.inputs.workflow_actions == 'deploy and configure'
+        if: github.event.inputs.workflow_actions == 'deploy and configure'
         run: |-
           echo Checking if secrets are defined in the repository.
 
