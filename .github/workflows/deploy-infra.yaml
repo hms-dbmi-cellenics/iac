@@ -25,10 +25,10 @@ jobs:
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-20.04
+    if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
-        if: github.event.inputs.workflow_actions == 'deploy and configure'
         run: |-
           echo Checking if secrets are defined in the repository.
 
