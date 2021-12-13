@@ -59,6 +59,43 @@ jobs:
             false
           fi
 
+  test-check-of-secrets:
+    name: A step that is just for testing
+    needs: check-secrets
+    runs-on: ubuntu-20.04
+    steps:
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
+          then
+            echo GitHub deploy key access token not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo Make sure you launch this job using the biomage devops tools, and not from GitHub.
+            echo Launching from GitHub directly is not supported to ensure cluster credentials are not
+            echo kept in the repository.
+            false
+          fi
+
   # create-eks-cluster:
   #   name: Create EKS cluster
   #   runs-on: ubuntu-20.04
