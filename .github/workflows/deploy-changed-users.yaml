@@ -18,11 +18,8 @@ on:
       - 'infra/biomage-read-only-group/**'
       - 'infra/botkube-configmap.yaml'
       - 'infra/cf-state-machine-role.yaml'
-    inputs:
-      region:
-        description: 'AWS Region to deploy to'
-        required: true
-        default: eu-west-1
+env:
+  region: 'eu-west-1'
 
 
 jobs:
@@ -83,7 +80,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ github.event.inputs.region }}
+          aws-region: ${ region }
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
