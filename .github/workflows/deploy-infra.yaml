@@ -63,6 +63,7 @@ jobs:
     name: A step that is just for testing
     needs: check-secrets
     runs-on: ubuntu-20.04
+    if: needs.check-secrets.result == 'success' || needs.check-secrets.result == 'skipped'
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
