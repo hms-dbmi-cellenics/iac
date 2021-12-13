@@ -1,14 +1,16 @@
 name: Restore to latest backup for dynamodb tables
-on: 
+on:
   workflow_dispatch:
     inputs:
       tables:
         description: 'Space separated ids of tables to restore backup for, just write all to back up all tables'
         required: false
         default: ''
+env:
+  region: 'eu-west-1'
 
 jobs:
-  restore-tables-backups: 
+  restore-tables-backups:
     name: Restore to latest backup for dynamodb tables
     runs-on: ubuntu-20.04
     env:
@@ -20,8 +22,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-          
+          aws-region: ${{ env.region }}
+
       - id: restore-tables-backups
         name: Restore to latest backup for dynamodb tables
         run: |-
@@ -32,7 +34,7 @@ jobs:
           fi
 
           echo "Running restore over $tables_to_restore"
-          
+
           for table in $tables_to_restore
             do
               backups=($(aws dynamodb list-backups --table-name $table | jq -r '.BackupSummaries | .[] | "\(.BackupCreationDateTime)::\(.BackupArn)" '))
@@ -46,16 +48,16 @@ jobs:
 
                 (( backup_time > younger_backup_time )) && younger_backup_time=$backup_time && younger_backup_arn=$backup_arn
               done
-              
+
               echo "Restoring from backup $younger_backup_arn"
 
               if test -z "$younger_backup_arn"; then
                 echo "Deleting $table"
-                
+
                 aws dynamodb wait table-not-exists --table-name $table
                 echo "Restoring from $younger_backup_arn"
                 aws dynamodb restore-table-from-backup --target-table-name $table --backup-arn $younger_backup_arn
               else
                 echo "No backup found for table $table"
-              fi 
+              fi
           done
