@@ -30,6 +30,7 @@ jobs:
       - id: check-secrets
         name: Check if necessary secrets are installed.
         run: |-
+          exit 1
           echo Checking if secrets are defined in the repository.
 
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
