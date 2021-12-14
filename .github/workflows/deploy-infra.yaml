@@ -241,6 +241,11 @@ jobs:
       - id: deploy-503-default-route
         name: Deploy 503 default route for subscription confirmation endpoints
         run: |-
+          apt update
+          apt install curl
+
+          curl --version
+
           URL=$(kubectl get ingress -o=jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
 
           curl --connect-timeout 5 \
