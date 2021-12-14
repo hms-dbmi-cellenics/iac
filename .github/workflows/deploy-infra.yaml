@@ -11,6 +11,7 @@ on:
         options:
         - deploy and configure
         - configure
+        default: configure
 
 # // Want to redeploy the cluster -- then we need all 3 steps
 # // Want to change cluster config -- we need 1st and 3rd step
