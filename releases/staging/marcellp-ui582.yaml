@@ -3,8 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: marcellp-ui-nextjs-server
-  name: ui-marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
+  name: ui-marcellp-ui582
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -13,9 +13,9 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-pull-582-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
   name: ui
-  namespace: ui-marcellp-ui-nextjs-server
+  namespace: ui-marcellp-ui582
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -25,11 +25,11 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: marcellp-ui-nextjs-server
+      sandboxId: marcellp-ui582
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-582-merge-9d4000495ca63bf300aa49c7d2a101c35ca24f99
+      tag: refs-pull-582-merge-dcf510949fa1623bad33109e66bbbd3aa4406d57
     kubernetes:
       env: staging
     livenessProbe:
@@ -44,8 +44,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: marcellp-ui-nextjs-server
-  name: api-marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
+  name: api-marcellp-ui582
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -54,25 +54,25 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
   name: api
-  namespace: api-marcellp-ui-nextjs-server
+  namespace: api-marcellp-ui582
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
-    ref: dde0ea1a393627b982d13539fa26d575171d997e
+    ref: 3ce40be1967cdca0a049c4abbf04397fe889f908
   releaseName: api
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: marcellp-ui-nextjs-server
+      sandboxId: marcellp-ui582
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-9caf3d3da183c91da36c4242246c67eeb17a3ea0
+      tag: refs-heads-master-49777a7e582636c68d775b2c39220c6e439d7edb
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -96,8 +96,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: marcellp-ui-nextjs-server
-  name: worker-marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
+  name: worker-marcellp-ui582
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -107,25 +107,25 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
   name: worker
-  namespace: worker-marcellp-ui-nextjs-server
+  namespace: worker-marcellp-ui582
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: 9de66dcb660e7c10e2ee104077920b59d44c00b8
+    ref: 866f2825b8794792eb24b754931f6553a9cc3193
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9de66dcb660e7c10e2ee104077920b59d44c00b8-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-866f2825b8794792eb24b754931f6553a9cc3193-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9de66dcb660e7c10e2ee104077920b59d44c00b8-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-866f2825b8794792eb24b754931f6553a9cc3193-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -133,8 +133,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: marcellp-ui-nextjs-server
-  name: pipeline-marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
+  name: pipeline-marcellp-ui582
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -145,9 +145,9 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
   name: pipeline
-  namespace: pipeline-marcellp-ui-nextjs-server
+  namespace: pipeline-marcellp-ui582
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
@@ -162,6 +162,6 @@ spec:
     pipelineRunner:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-90483ff86ab3c3191111d0b93795e3b22681665b-pipeline-runner
     replicaCount: 0
-    sandboxId: marcellp-ui-nextjs-server
+    sandboxId: marcellp-ui582
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

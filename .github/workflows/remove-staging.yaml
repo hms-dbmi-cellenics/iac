@@ -9,6 +9,9 @@ on:
         description: 'Encrypted secrets to use for this task'
         required: true
 
+env:
+  region: 'eu-west-1'
+
 jobs:
   remove-staging:
     name: Remove staging environment
