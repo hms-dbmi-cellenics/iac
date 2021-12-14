@@ -7,7 +7,6 @@ on:
       - 'infra/cluster_admins_*'
       - 'infra/cluster_users'
       - 'infra/biomage-read-only-group/**'
-      - 'infra/botkube-configmap.yaml'
       - 'infra/cf-state-machine-role.yaml'
 env:
   region: 'eu-west-1'
