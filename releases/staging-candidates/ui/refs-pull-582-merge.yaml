@@ -23,7 +23,7 @@ spec:
     ref: STAGING_CHART_REF
   values:
     readinessProbe:
-      path: "/data-management"
+      path: "/robots.txt"
       periodSeconds: 30
       failureThreshold: 2
     livenessProbe:
@@ -36,7 +36,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-582-merge-42c7a28ebce25965c487aed9e0956c04c9feade9
+      tag: refs-pull-582-merge-7282d30057b2c70136b027ea0b83fe9aeff642d5
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
