@@ -241,8 +241,8 @@ jobs:
       - id: deploy-503-default-route
         name: Deploy 503 default route for subscription confirmation endpoints
         run: |-
-          apt update
-          apt install curl
+          sudo apt update
+          sudo apt install curl
 
           curl --version
 
