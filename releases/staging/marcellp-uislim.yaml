@@ -35,7 +35,7 @@ spec:
       probeType: tcpSocket
     readinessProbe:
       failureThreshold: 2
-      path: /data-management
+      path: /robots.txt
       periodSeconds: 30
     replicaCount: 1
     serviceAccount:
