@@ -24,6 +24,8 @@ spec:
   values:
     readinessProbe:
       path: "/data-management"
+      periodSeconds: 30
+      failureThreshold: 2
     livenessProbe:
       probeType: tcpSocket
     kubernetes:
@@ -34,7 +36,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-582-merge-a91451a7299332aad97e06195f5cb341eee325a2
+      tag: refs-pull-582-merge-dcf510949fa1623bad33109e66bbbd3aa4406d57
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
