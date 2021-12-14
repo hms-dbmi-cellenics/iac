@@ -27,7 +27,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AdministratorAccess-Amplify
-        - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
       Policies: 
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
@@ -36,6 +35,22 @@ Resources:
               - Effect: Allow
                 Action: 'sqs:*'
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+
+        - PolicyName: "access-to-cloudwatch"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "autoscaling:Describe*",
+                  - "cloudwatch:Describe*",
+                  - "cloudwatch:Get*",
+                  - "cloudwatch:List*",
+                  - "logs:Get*",
+                  - "logs:Describe*",
+                  - "sns:Get*",
+                  - "sns:List*"
+                Resource: "*"
 
         - PolicyName: "access-to-ses"
           PolicyDocument:
