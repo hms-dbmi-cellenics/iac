@@ -22,7 +22,7 @@ The github workflow that triggers an update to the base infrastructure with the 
     
     - `deploy and configure`: If you've made changes that require re-creation of the cluster. For example: changing the EC2 node type.
     - `configure`: If you've made changes that only require update of the configuratio of the existing cluster.
-
+6. After you've chosen 
 
 ### The Kubernetes Cluster
 

@@ -241,7 +241,11 @@ jobs:
         name: Deploy 503 default route for subscription confirmation endpoints
         run: |-
           sleep 20
-
+          URL=$(kubectl get ingress -o=jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
+          ingress_ready=false;
+          while [ingress_ready==false]
+            ingress_ready= wget URL
+          done;
           helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
             --namespace default \
             --set clusterEnv=$CLUSTER_ENV \
