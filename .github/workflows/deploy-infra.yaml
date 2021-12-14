@@ -251,9 +251,9 @@ jobs:
           curl --connect-timeout 5 \
               --max-time 10 \
               --retry 10 \
-              --retry-all-errors 10 \
+              --retry-max-time 10 \
               $URL
-              
+    
           helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
             --namespace default \
             --set clusterEnv=$CLUSTER_ENV \
