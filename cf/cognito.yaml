@@ -170,7 +170,7 @@ Resources:
                   - "logs:DescribeLogStreams"
                   - "logs:PutLogEvents"
                 Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::Account}:log-group:/aws/cognito/${Environment}*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/cognito/*"
 
   UserPool:
     Type: AWS::Cognito::UserPool
