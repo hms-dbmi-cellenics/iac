@@ -42,13 +42,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 
-                  - "autoscaling:Describe*",
-                  - "cloudwatch:Describe*",
-                  - "cloudwatch:Get*",
-                  - "cloudwatch:List*",
-                  - "logs:Get*",
-                  - "logs:Describe*",
-                  - "sns:Get*",
+                  - "autoscaling:Describe*"
+                  - "cloudwatch:Describe*"
+                  - "cloudwatch:Get*"
+                  - "cloudwatch:List*"
+                  - "logs:Get*"
+                  - "logs:Describe*"
+                  - "sns:Get*"
                   - "sns:List*"
                 Resource: "*"
 
