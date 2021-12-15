@@ -13,15 +13,6 @@ on:
         - configure
         default: configure
 
-# // Want to redeploy the cluster -- then we need all 3 steps
-# // Want to change cluster config -- we need 1st and 3rd step
-# // We want to fix the flux secrets deletion thing
-
-# // [nice to have] Want to add or remove people from our cluster 
-#     -- We need 1st step and a subset of 3rd step (those user steps). 
-#     -- We want this to be triggered automatically
-
-
 jobs:
   check-secrets:
     name: Check if secrets are defined
@@ -66,8 +57,7 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        # environment: ['production', 'staging']
-        environment: ['staging']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       AWS_REGION: ${{ github.event.inputs.region }}
@@ -154,8 +144,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        # environment: ['production', 'staging']
-        environment: ['staging']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}

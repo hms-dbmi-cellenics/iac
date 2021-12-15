@@ -21,8 +21,9 @@ The github workflow that triggers an update to the base infrastructure with the 
 5. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:
     
     - `deploy and configure`: If you've made changes that require re-creation of the cluster. For example: changing the EC2 node type.
-    - `configure`: If you've made changes that only require update of the configuratio of the existing cluster.
-6. After you've chosen 
+    - `configure`: The default option. If you've made changes that only require update of the configuratio of the existing cluster. Most of the time, you will need to use option `configure`.
+
+6. After you've made your selections, click `run workflow`. This will update or recreate and update the cluster in the AWS region specified using the state of the iac repo in the branch selected in `use workflow from`.
 
 ### The Kubernetes Cluster
 
