@@ -139,6 +139,39 @@ Resources:
                 Resource:
                   - '*'
 
+  UserCSVImportRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "cognito-user-csv-import-role-${Environment}"
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cognito-idp.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+            }
+          ]
+        }
+      Path: /
+      Policies:
+        - PolicyName: "can-log-csv-import"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogStreams"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::Account}:log-group:/aws/cognito/${Environment}*"
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
