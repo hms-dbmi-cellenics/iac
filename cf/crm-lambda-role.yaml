@@ -1,11 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Set up role for the CRM Lambda [managed by github.com/biomage-ltd/iac]
 
-Parameters:
-  OIDCProvider:
-    Type: String
-    Description: The OIDC provider
-    
+Parameters:    
   Environment:
     Type: String
     Default: development
@@ -19,31 +15,30 @@ Resources:
   DailyUpdateLambdaRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Sub "crm-lambda-role"
-      AssumeRolePolicyDocument:
-      Fn::Sub: |-
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "lambda.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          }
+      RoleName: "crm-lambda-role"
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        }
       Path: /
       Policies:
-        - PolicyName: !Sub "can-execute-crm-lambda"
+        - PolicyName: "can-execute-crm-lambda"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: "lambda:Invoke"
                 Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:crm-*"
-        - PolicyName: !Sub "can-access-dynamodb-tables"
+        - PolicyName: "can-access-dynamodb-tables"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -57,7 +52,7 @@ Resources:
                 Resource: 
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
-        - PolicyName: !Sub "can-check-existence-of-s3-objects"
+        - PolicyName: "can-check-existence-of-s3-objects"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
