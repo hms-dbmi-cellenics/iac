@@ -17,13 +17,12 @@ The github workflow that triggers an update to the base infrastructure with the 
 [actions](https://github.com/biomage-ltd/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
 2. Click on `Run workflow` dropdown on the right side of the top workflow result. With this dropdown, you will configure the inputs with which the workflow will be run. 
 3. `Use worklow from` defines which changes the build will be run wuth. Make sure it is set to `master` to avoid situations when infrastructure changes from other branch are deployed and we have unknown state.
-4. `AWS Region to deploy to` defines the region we should be deploying changes to. For the Biomage deployment, make sure this is set to `eu-west-1`.
-5. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:
+4. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:
     
     - `deploy and configure`: If you've made changes that require re-creation of the cluster. For example: changing the EC2 node type.
     - `configure`: The default option. If you've made changes that only require update of the configuratio of the existing cluster. Most of the time, you will need to use option `configure`.
 
-6. After you've made your selections, click `run workflow`. This will update or recreate and update the cluster in the AWS region specified using the state of the iac repo in the branch selected in `use workflow from`.
+5. After you've made your selections, click `run workflow`. This will update or recreate and update the cluster in the AWS region specified using the state of the iac repo in the branch selected in `use workflow from`.
 
 ### The Kubernetes Cluster
 

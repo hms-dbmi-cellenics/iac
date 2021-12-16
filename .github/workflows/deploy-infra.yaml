@@ -2,9 +2,6 @@ name: Deploy Biomage infrastructure on AWS
 on: 
   workflow_dispatch:
     inputs:
-      region:
-        description: 'AWS Region to deploy to'
-        required: true
       workflow_actions:
         type: choice
         description: Select actions to perform
@@ -12,6 +9,8 @@ on:
         - deploy and configure
         - configure
         default: configure
+env:
+  region: 'eu-west-1'
 
 jobs:
   check-secrets:
