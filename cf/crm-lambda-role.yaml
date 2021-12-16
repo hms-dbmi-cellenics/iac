@@ -1,11 +1,21 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Set up role for the CRM Lambda [managed by github.com/biomage-ltd/iac]
 
+Parameters:    
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+
 Resources:
   DailyUpdateLambdaRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "crm-lambda-role"
+      RoleName: !Sub "crm-lambda-role-${Environment}"
       AssumeRolePolicyDocument: |-
         {
           "Version": "2012-10-17",
@@ -27,7 +37,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: "lambda:Invoke"
-                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:crm-*"
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:crm-${Environment}*"
         - PolicyName: "can-access-dynamodb-tables"
           PolicyDocument:
             Version: "2012-10-17"
@@ -40,8 +50,8 @@ Resources:
                   - "dynamodb:Query"
                   - "dynamodb:ConditionCheckItem"
                 Resource: 
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-production"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-production"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
         - PolicyName: "can-check-existence-of-s3-objects"
           PolicyDocument:
             Version: "2012-10-17"
@@ -51,5 +61,5 @@ Resources:
                   - "s3:GetObject"
                   - "s3:ListObject"
                 Resource: 
-                  - "arn:aws:s3:::biomage-originals-production/*"
-                  - "arn:aws:s3:::biomage-source-production/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
