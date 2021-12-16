@@ -59,7 +59,7 @@ jobs:
         environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
-      AWS_REGION: ${{ github.event.inputs.region }}
+      AWS_REGION: ${{ env.region }}
     steps:
       - id: checkout
         name: Check out source code
@@ -71,7 +71,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ github.event.inputs.region }}
+          aws-region: ${{ env.region }}
       
       - id: install-yq
         name: Install yq for modifying the eksctl yaml spec.
@@ -158,7 +158,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ github.event.inputs.region }}
+          aws-region: ${{ env.region }}
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
