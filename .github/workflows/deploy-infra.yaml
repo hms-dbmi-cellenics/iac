@@ -2,24 +2,15 @@ name: Deploy Biomage infrastructure on AWS
 on: 
   workflow_dispatch:
     inputs:
-      region:
-        description: 'AWS Region to deploy to'
-        required: true
       workflow_actions:
         type: choice
         description: Select actions to perform
         options:
         - deploy and configure
         - configure
-
-# // Want to redeploy the cluster -- then we need all 3 steps
-# // Want to change cluster config -- we need 1st and 3rd step
-# // We want to fix the flux secrets deletion thing
-
-# // [nice to have] Want to add or remove people from our cluster 
-#     -- We need 1st step and a subset of 3rd step (those user steps). 
-#     -- We want this to be triggered automatically
-
+        default: configure
+env:
+  region: 'eu-west-1'
 
 jobs:
   check-secrets:
@@ -65,11 +56,10 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        # environment: ['production', 'staging']
-        environment: ['staging']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
-      AWS_REGION: ${{ github.event.inputs.region }}
+      AWS_REGION: ${{ env.region }}
     steps:
       - id: checkout
         name: Check out source code
@@ -81,7 +71,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ github.event.inputs.region }}
+          aws-region: ${{ env.region }}
       
       - id: install-yq
         name: Install yq for modifying the eksctl yaml spec.
@@ -153,8 +143,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        # environment: ['production', 'staging']
-        environment: ['staging']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -169,7 +158,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ github.event.inputs.region }}
+          aws-region: ${{ env.region }}
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
@@ -220,33 +209,38 @@ jobs:
             --override-existing-serviceaccounts \
             --approve
 
+
+      # we need to retry this due to an active issue with the AWS Load Balancer Controller
+      # where there are intermittent failures that are only fixable by retrying
+      # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071 
       - id: install-lbc
         name: Deploy AWS Load Balancer Controller
-        run: |-
-          helm repo add eks https://aws.github.io/eks-charts
-          kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 600
+          max_attempts: 20
+          retry_on: error
+          on_retry_command: sleep $(shuf -i 5-15 -n 1)
+          command: |-
+            helm repo add eks https://aws.github.io/eks-charts
+            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
-          helm repo update
+            helm repo update
 
-          helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
-            --namespace kube-system \
-            --set serviceAccount.create=false \
-            --set serviceAccount.name=aws-load-balancer-controller \
-            --set clusterName=biomage-$CLUSTER_ENV \
-            --install --wait
+            helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+              --namespace kube-system \
+              --set serviceAccount.create=false \
+              --set serviceAccount.name=aws-load-balancer-controller \
+              --set clusterName=biomage-$CLUSTER_ENV \
+              --install --wait
 
-      # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-      # API staging environments because their endpoints are not yet available.
-      - id: deploy-503-default-route
-        name: Deploy 503 default route for subscription confirmation endpoints
-        run: |-
-          sleep 20
+            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+            # API staging environments because their endpoints are not yet available.
+            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+              --namespace default \
+              --set clusterEnv=$CLUSTER_ENV \
+              --install --wait
 
-          helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-            --namespace default \
-            --set clusterEnv=$CLUSTER_ENV \
-            --install --wait
-      
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
