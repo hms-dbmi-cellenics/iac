@@ -1,16 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Set up role for the CRM Lambda [managed by github.com/biomage-ltd/iac]
 
-Parameters:    
-  Environment:
-    Type: String
-    Default: development
-    AllowedValues:
-      - development
-      - staging
-      - production
-    Description: The environment for which the role needs to be created.
-
 Resources:
   DailyUpdateLambdaRole:
     Type: "AWS::IAM::Role"
@@ -50,8 +40,8 @@ Resources:
                   - "dynamodb:Query"
                   - "dynamodb:ConditionCheckItem"
                 Resource: 
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-${Environment}*"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/experiments-production"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-production"
         - PolicyName: "can-check-existence-of-s3-objects"
           PolicyDocument:
             Version: "2012-10-17"
@@ -61,5 +51,5 @@ Resources:
                   - "s3:GetObject"
                   - "s3:ListObject"
                 Resource: 
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
+                  - "arn:aws:s3:::biomage-originals-production/*"
+                  - "arn:aws:s3:::biomage-source-production/*"
