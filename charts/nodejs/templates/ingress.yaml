@@ -24,6 +24,13 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
 {{- end }}
     kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/success-codes: "{{ .Values.loadBalancerHealthCheck.successCodes }}"
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: {{ .Values.loadBalancerHealthCheck.periodSeconds }}
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: {{ .Values.loadBalancerHealthCheck.timeoutSeconds }}
+    alb.ingress.kubernetes.io/healthcheck-path: {{ .Values.loadBalancerHealthCheck.path }}
+    alb.ingress.kubernetes.io/healthcheck-protocol: {{ .Values.loadBalancerHealthCheck.scheme }}
+    alb.ingress.kubernetes.io/healthy-threshold-count: {{ .Values.loadBalancerHealthCheck.successThreshold }}
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: {{ .Values.loadBalancerHealthCheck.failureThreshold }}
     alb.ingress.kubernetes.io/group.name: {{ .Values.kubernetes.env }}
 spec:
   rules:

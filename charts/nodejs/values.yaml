@@ -62,6 +62,15 @@ readinessProbe:
   scheme: "HTTP"
   probeType: "httpGet"
 
+loadBalancerHealthCheck:
+  path: "/"
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 2
+  successThreshold: 2
+  scheme: "HTTP"
+  successCodes: "200-399"
+
 resources:
 #  limits:
 #    cpu: 100m
