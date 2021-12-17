@@ -32,12 +32,13 @@ spec:
       tag: refs-pull-582-merge-56536f4d72513c8e10115bbddc1b9587f35b08ed
     kubernetes:
       env: staging
+    readinessProbe:
+      probeType: none
+    loadBalancerHealthCheck:
+      path: "/robots.txt"
+      periodSeconds: 30
     livenessProbe:
       probeType: tcpSocket
-    readinessProbe:
-      failureThreshold: 2
-      path: /robots.txt
-      periodSeconds: 30
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
