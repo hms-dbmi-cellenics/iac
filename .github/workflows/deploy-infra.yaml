@@ -59,7 +59,6 @@ jobs:
         environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
-      AWS_REGION: ${{ env.region }}
     steps:
       - id: checkout
         name: Check out source code
@@ -81,7 +80,7 @@ jobs:
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region $AWS_REGION > /tmp/cluster-$CLUSTER_ENV.yaml
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
       
       - id: install-eksctl
