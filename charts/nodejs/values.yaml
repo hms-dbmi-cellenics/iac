@@ -65,7 +65,7 @@ readinessProbe:
 loadBalancerHealthCheck:
   path: "/"
   timeoutSeconds: 5
-  periodSeconds: 10
+  periodSeconds: 15
   failureThreshold: 2
   successThreshold: 2
   scheme: "HTTPS"
