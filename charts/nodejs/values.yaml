@@ -68,7 +68,7 @@ loadBalancerHealthCheck:
   periodSeconds: 15
   failureThreshold: 2
   successThreshold: 2
-  scheme: "HTTPS"
+  scheme: "HTTP"
   successCodes: "200-399"
 
 resources:
