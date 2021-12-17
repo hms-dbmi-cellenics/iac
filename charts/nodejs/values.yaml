@@ -43,6 +43,7 @@ prometheus:
   metrics: false
 
 livenessProbe:
+  enabled: true
   path: "/"
   initialDelaySeconds: 30
   timeoutSeconds: 10
@@ -53,6 +54,7 @@ livenessProbe:
   probeType: "tcpSocket"
 
 readinessProbe:
+  enabled: true
   path: "/"
   initialDelaySeconds: 30
   timeoutSeconds: 10
@@ -64,7 +66,7 @@ readinessProbe:
 
 loadBalancerHealthCheck:
   path: "/"
-  timeoutSeconds: 10
+  timeoutSeconds: 5
   periodSeconds: 10
   failureThreshold: 2
   successThreshold: 2
