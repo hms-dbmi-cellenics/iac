@@ -55,7 +55,7 @@ Resources:
       SmsConfiguration:
         ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
         SnsCallerArn: 
-          Fn::ImportValue: !Sub 'cognito-${Environment}::SMSCallerArn'
+          Fn::ImportValue: !Sub 'cognito-${Environment}::SMSRoleArn'
       MfaConfiguration: "OPTIONAL"
       Schema:
         - Name: name

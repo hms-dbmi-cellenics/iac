@@ -195,7 +195,7 @@ Resources:
       UsernameAttributes:
         - email
       UsernameConfiguration:
-        CaseSensitive: false
+        CaseSensitive: true
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
