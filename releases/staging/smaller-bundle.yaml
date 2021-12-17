@@ -38,7 +38,8 @@ spec:
       path: /robots.txt
       periodSeconds: 30
     readinessProbe:
-      probeType: none
+      probeType: exec
+      command: ["echo", "0"]
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
