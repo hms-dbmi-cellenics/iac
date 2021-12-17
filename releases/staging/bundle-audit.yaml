@@ -38,7 +38,7 @@ spec:
       periodSeconds: 30
     readinessProbe:
       probeType: exec
-      command: exit 0
+      command: ["exit", "0"]
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
