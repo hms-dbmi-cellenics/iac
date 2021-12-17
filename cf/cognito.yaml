@@ -157,9 +157,9 @@ Resources:
       AdminCreateUserConfig: 
         AllowAdminCreateUserOnly: false
         InviteMessageTemplate: 
-          EmailSubject: 'Your temporary password for Cellscope'
-          EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
-          SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
+          EmailSubject: 'Your temporary password for Cellenics'
+          EmailMessage: 'Thank you for signing up to Cellenics by Biomage. Your username is {username} and temporary password is {####}.'
+          SMSMessage: 'Your Cellenics username is {username} and temporary password is {####}.'
         UnusedAccountValidityDays: 7
       AutoVerifiedAttributes:
         - email
@@ -195,7 +195,7 @@ Resources:
       UsernameAttributes:
         - email
       UsernameConfiguration:
-        CaseSensitive: true
+        CaseSensitive: false
 
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
