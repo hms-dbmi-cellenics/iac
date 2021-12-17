@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up Cognito resources for Biomage SCP [managed by github.com/biomage-ltd/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the buckets need to be created.
+
+Outputs:
+  UserPoolId:
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub 'user-pool-insensitive-${Environment}::UserPoolId'
+  UserPoolProviderName:
+    Description: Address to use to connect to Primary Cluster endpoint
+    Value: !GetAtt UserPool.ProviderName
+    Export:
+      Name: !Sub 'user-pool-insensitive-${Environment}::UserPoolProviderName'
+
+Resources:  
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      UserPoolName: !Sub "biomage-user-pool-insensitive-${Environment}"
+      AccountRecoverySetting: 
+        RecoveryMechanisms: 
+          - Name: verified_email
+            Priority: 1
+          - Name: verified_phone_number
+            Priority: 2
+      AdminCreateUserConfig: 
+        AllowAdminCreateUserOnly: false
+        InviteMessageTemplate: 
+          EmailSubject: 'Your temporary password for Cellscope'
+          EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
+          SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
+        UnusedAccountValidityDays: 7
+      AutoVerifiedAttributes:
+        - email
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: true
+        DeviceOnlyRememberedOnUserPrompt: true
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+        #From: noreply@biomage.net
+        ReplyToEmailAddress: hello@biomage.net
+      EnabledMfas:
+        - SMS_MFA
+        - SOFTWARE_TOKEN_MFA
+      SmsConfiguration:
+        ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
+        SnsCallerArn: 
+          Fn::ImportValue: !Sub 'cognito-${Environment}::SMSCallerArn'
+      MfaConfiguration: "OPTIONAL"
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: institution
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
+      SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false

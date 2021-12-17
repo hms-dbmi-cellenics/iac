@@ -25,10 +25,15 @@ Outputs:
     Export:
       Name: !Sub 'cognito-${Environment}::UserPoolProviderName'
   UIRoleArn:
-    Description: Address to use to connect to Primary Cluster endpoint
+    Description: ARN of the UI role
     Value: !GetAtt UIRole.Arn
     Export:
       Name: !Sub 'cognito-${Environment}::UIRoleArn'
+  SMSRoleArn:
+    Description: ARN of the SMS role
+    Value: !GetAtt SMSRole.Arn
+    Export:
+      Name: !Sub 'cognito-${Environment}::SMSRoleArn'
 
 
 Resources:  
