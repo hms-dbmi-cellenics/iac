@@ -11,6 +11,9 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
 Outputs:
   UserPoolId:
     Value: !Ref UserPool
@@ -75,3 +78,9 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+      UserPoolId: !Ref UserPool 
+      Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
