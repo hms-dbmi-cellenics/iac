@@ -18,18 +18,18 @@ Outputs:
   UserPoolId:
     Value: !Ref UserPool
     Export:
-      Name: !Sub 'user-pool-insensitive-${Environment}::UserPoolId'
+      Name: !Sub 'user-pool-case-insensitive-${Environment}::UserPoolId'
   UserPoolProviderName:
     Description: Address to use to connect to Primary Cluster endpoint
     Value: !GetAtt UserPool.ProviderName
     Export:
-      Name: !Sub 'user-pool-insensitive-${Environment}::UserPoolProviderName'
+      Name: !Sub 'user-pool-case-insensitive-${Environment}::UserPoolProviderName'
 
 Resources:  
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
-      UserPoolName: !Sub "biomage-user-pool-insensitive-${Environment}"
+      UserPoolName: !Sub "biomage-user-pool-case-insensitive-${Environment}"
       AccountRecoverySetting: 
         RecoveryMechanisms: 
           - Name: verified_email
