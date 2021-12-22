@@ -53,7 +53,7 @@ Resources:
       CognitoIdentityProviders:          
         - ClientId: !Ref UserPoolClientCluster
           ProviderName:
-            Fn::ImportValue: !Sub "cognito-${Environment}::UserPoolProviderName"
+            Fn::ImportValue: !Sub "user-pool-case-insensitive-${Environment}::UserPoolProviderName"
 
   # TODO: this will have to be refactored once authentication is done.
   # this will have to work with attribute-based access control or role-based
@@ -68,4 +68,4 @@ Resources:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
         "authenticated":
-          Fn::ImportValue: !Sub "cognito-${Environment}::UIRoleArn"
+          Fn::ImportValue: !Sub "user-pool-case-insensitive-${Environment}::UIRoleArn"
