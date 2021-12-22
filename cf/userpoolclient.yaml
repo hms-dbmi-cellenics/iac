@@ -68,4 +68,4 @@ Resources:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
         "authenticated":
-          Fn::ImportValue: !Sub "user-pool-case-insensitive-${Environment}::UIRoleArn"
+          Fn::ImportValue: !Sub "cognito-${Environment}::UIRoleArn"
