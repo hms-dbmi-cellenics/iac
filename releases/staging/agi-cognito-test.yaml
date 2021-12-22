@@ -1,21 +1,20 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: smaller-bundle
-  name: ui-smaller-bundle
+    sandboxId: agi-cognito-test
+  name: ui-agi-cognito-test
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-582-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-592-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: smaller-bundle
+    sandboxId: agi-cognito-test
   name: ui
-  namespace: ui-smaller-bundle
+  namespace: ui-agi-cognito-test
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -25,21 +24,17 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/ui
-      sandboxId: smaller-bundle
+      sandboxId: agi-cognito-test
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-582-merge-5cee9115f110233b937de7d82d071bc4aa3ab7cb
+      tag: refs-pull-592-merge-6945fa02b1bb8eb403cfeff898dda5fc5c56af7d
     kubernetes:
       env: staging
     livenessProbe:
       probeType: tcpSocket
-    loadBalancerHealthCheck:
-      path: /robots.txt
-      periodSeconds: 30
     readinessProbe:
-      probeType: exec
-      command: ["echo", "0"]
+      path: /data-management
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
@@ -48,19 +43,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: smaller-bundle
-  name: api-smaller-bundle
+    sandboxId: agi-cognito-test
+  name: api-agi-cognito-test
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-273-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: smaller-bundle
+    sandboxId: agi-cognito-test
   name: api
-  namespace: api-smaller-bundle
+  namespace: api-agi-cognito-test
 spec:
   chart:
     git: git@github.com:biomage-ltd/iac
@@ -70,13 +65,13 @@ spec:
   values:
     biomageCi:
       repo: biomage-ltd/api
-      sandboxId: smaller-bundle
+      sandboxId: agi-cognito-test
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-46fe9841b24267fd7c4d7672cd74e947dc76b628
+      tag: refs-pull-273-merge-05c783790a34d8d7067994d36d9193a08661747e
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -100,8 +95,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: smaller-bundle
-  name: worker-smaller-bundle
+    sandboxId: agi-cognito-test
+  name: worker-agi-cognito-test
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -109,27 +104,27 @@ metadata:
   annotations:
     filter.fluxcd.io/python: glob:refs-heads-master-*-python
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: smaller-bundle
+    sandboxId: agi-cognito-test
   name: worker
-  namespace: worker-smaller-bundle
+  namespace: worker-agi-cognito-test
 spec:
   chart:
     git: git@github.com:biomage-ltd/worker
     path: chart-infra/
-    ref: refs/heads/master
+    ref: ddeaa14f7bf6405bdabbc48c671f1f2b4b2d58b0
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-866f2825b8794792eb24b754931f6553a9cc3193-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ddeaa14f7bf6405bdabbc48c671f1f2b4b2d58b0-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ddeaa14f7bf6405bdabbc48c671f1f2b4b2d58b0-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: smaller-bundle
+    sandboxId: agi-cognito-test
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -137,8 +132,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: smaller-bundle
-  name: pipeline-smaller-bundle
+    sandboxId: agi-cognito-test
+  name: pipeline-agi-cognito-test
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -147,16 +142,16 @@ metadata:
     filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: smaller-bundle
+    sandboxId: agi-cognito-test
   name: pipeline
-  namespace: pipeline-smaller-bundle
+  namespace: pipeline-agi-cognito-test
 spec:
   chart:
     git: git@github.com:biomage-ltd/pipeline
     path: chart-infra/
-    ref: refs/heads/master
+    ref: 24df2fd53e1a01f38e59773775b929e543c7d15d
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
@@ -166,6 +161,6 @@ spec:
     pipelineRunner:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-24df2fd53e1a01f38e59773775b929e543c7d15d-pipeline-runner
     replicaCount: 0
-    sandboxId: smaller-bundle
+    sandboxId: agi-cognito-test
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
