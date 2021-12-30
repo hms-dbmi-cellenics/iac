@@ -25,7 +25,7 @@ Resources:
       ClientName: !Sub "biomage-cellscope-cluster-${SandboxID}"
       AllowedOAuthFlowsUserPoolClient: true
       UserPoolId:
-        Fn::ImportValue: !Sub "user-pool-case-insensitive-${Environment}::UserPoolId"
+        Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolId"
       CallbackURLs:
         - !If [isProd, "https://scp.biomage.net/data-management",
           !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
