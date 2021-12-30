@@ -18,12 +18,12 @@ Outputs:
   UserPoolId:
     Value: !Ref UserPool
     Export:
-      Name: !Sub 'user-pool-case-insensitive-${Environment}::UserPoolId'
+      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolId'
   UserPoolProviderName:
     Description: Address to use to connect to Primary Cluster endpoint
     Value: !GetAtt UserPool.ProviderName
     Export:
-      Name: !Sub 'user-pool-case-insensitive-${Environment}::UserPoolProviderName'
+      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
 
 Resources:  
   UserPool:
