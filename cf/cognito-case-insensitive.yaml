@@ -34,7 +34,7 @@ Resources:
   UIRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Sub "biomage-user-pool-case-insensitive-auth-user-role-${Environment}"
+      RoleName: !Sub "biomage-user-pool-case-insensitive-ui-auth-user-role-${Environment}"
       AssumeRolePolicyDocument: |-
         {
           "Version": "2012-10-17",
