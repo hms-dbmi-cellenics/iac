@@ -142,7 +142,7 @@ Resources:
                 Action:
                   - "iam:ChangePassword"
                   - "iam:GetUser"
-                  - "iam:ListGroup"
+                  - "iam:ListGroups"
                   - "iam:ListPolicies"
                   - "iam:CreateAccessKey"
                   - "iam:DeleteAccessKey"
