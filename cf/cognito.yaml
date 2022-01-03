@@ -29,11 +29,6 @@ Outputs:
     Value: !GetAtt UIRole.Arn
     Export:
       Name: !Sub 'cognito-${Environment}::UIRoleArn'
-  SMSRoleArn:
-    Description: ARN of the SMS role
-    Value: !GetAtt SMSRole.Arn
-    Export:
-      Name: !Sub 'cognito-${Environment}::SMSRoleArn'
 
 
 Resources:  
