@@ -24,8 +24,120 @@ Outputs:
     Value: !GetAtt UserPool.ProviderName
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
+  UIRoleArn:
+    Description: ARN of the UI role
+    Value: !GetAtt UIRole.Arn
+    Export:
+      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UIRoleArn'
 
-Resources:  
+Resources: 
+  UIRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "biomage-user-pool-case-insensitive-auth-user-role-${Environment}"
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": "authenticated"
+                }
+              }
+            }
+          ]
+        }
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:PutObject"
+                  - "s3:ListMultipartUploadParts"
+                  - "s3:AbortMultipartUpload"
+                  - "s3:ListBucketMultipartUploads"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+
+        - PolicyName: !Sub "can-get-from-work-response-bucket-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:GetObjectTagging"
+                Resource:
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
+                Condition:
+                  StringEquals:
+                    "s3:ExistingObjectTag/public": "true"
+
+        - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
+        - PolicyName: !Sub "can-get-public-datasets-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:GetObjectTagging"
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}/*"
+
+  SMSRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "biomage-user-pool-case-insensitive-sms-role-${Environment}"
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cognito-idp.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "92bd350f-b2ad-455a-b614-a24e63555edb"
+                }
+              }
+            }
+          ]
+        }
+      Path: /
+      Policies:
+        - PolicyName: "can-send-sms"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sns:publish"
+                Resource:
+                  - '*'
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties: 
@@ -39,9 +151,9 @@ Resources:
       AdminCreateUserConfig: 
         AllowAdminCreateUserOnly: false
         InviteMessageTemplate: 
-          EmailSubject: 'Your temporary password for Cellscope'
-          EmailMessage: 'Thank you for signing up to Cellscope by Biomage. Your username is {username} and temporary password is {####}.'
-          SMSMessage: 'Your Cellscope username is {username} and temporary password is {####}.'
+          EmailSubject: 'Your temporary password for Cellenics'
+          EmailMessage: 'Thank you for signing up to Cellenics by Biomage. Your username is {username} and temporary password is {####}.'
+          SMSMessage: 'Your Cellenics username is {username} and temporary password is {####}.'
         UnusedAccountValidityDays: 7
       AutoVerifiedAttributes:
         - email
@@ -57,7 +169,7 @@ Resources:
         - SOFTWARE_TOKEN_MFA
       SmsConfiguration:
         ExternalId: '92bd350f-b2ad-455a-b614-a24e63555edb'
-        SnsCallerArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/biomage-cognito-sms-role-${Environment}'
+        SnsCallerArn: !GetAtt SMSRole.Arn
       MfaConfiguration: "OPTIONAL"
       Schema:
         - Name: name
@@ -72,8 +184,8 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-      SmsAuthenticationMessage: 'Your authentication code for Cellscope by Biomage is {####}.'
-      SmsVerificationMessage: 'Your verification code for Cellscope by Biomage is {####}.'
+      SmsAuthenticationMessage: 'Your authentication code for Cellenics by Biomage is {####}.'
+      SmsVerificationMessage: 'Your verification code for Cellenics by Biomage is {####}.'
       UsernameAttributes:
         - email
       UsernameConfiguration:
