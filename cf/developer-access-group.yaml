@@ -215,3 +215,23 @@ Resources:
                   - "iam:ListMFADevices"
                   - "iam:ResyncMFADevice"
                 Resource: "arn:aws:iam::*:user/${aws:username}"
+
+        - PolicyName: "can-access-eventbridge"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - events:DeleteRule
+                  - events:DescribeRule
+                  - events:DisableRule
+                  - events:EnableRule
+                  - events:ListRuleNamesByTarget
+                  - events:ListRules
+                  - events:ListTargetsByRule
+                  - events:PutEvents
+                  - events:PutRule
+                  - events:PutTargets
+                  - events:RemoveTargets
+                  - events:TestEventPattern
+                Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:*"
