@@ -15,6 +15,6 @@ jobs:
         comment: |-
             Pull requests may not modify the `releases/` directory.
             
-            Check the [README](https://github.com/biomage-ltd/iac/blob/master/releases/README.md) for more details.
+            Check the [README](https://github.com/hms-dbmi-cellenics/iac/blob/master/releases/README.md) for more details.
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
