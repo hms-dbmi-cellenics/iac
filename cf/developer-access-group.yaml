@@ -11,10 +11,10 @@ Parameters:
       - production
     Description: The environment for which the access group is created.
 
-Resources: 
-  DeveloperAccessGroup: 
+Resources:
+  DeveloperAccessGroup:
     Type: AWS::IAM::Group
-    Properties: 
+    Properties:
       GroupName: !Sub "engineer-${Environment}-access"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess
@@ -27,7 +27,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
-      Policies: 
+      Policies:
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
             Version: "2012-10-17"
@@ -41,7 +41,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "autoscaling:Describe*"
                   - "cloudwatch:Describe*"
                   - "cloudwatch:Get*"
@@ -57,31 +57,13 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "ses:Get"
                   - "ses:List"
                   - "ses:SendEmail"
                   - "ses:PutIdentityPolicy"
                   - "ses:ListConfigurationSets"
                 Resource: "*"
-
-        - PolicyName: "can-access-s3-aws-console"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:ListAllMyBuckets'
-                Resource:
-                  - "arn:aws:s3:::*"
-
-        - PolicyName: !Sub "can-manage-${Environment}-s3"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:*'
-                Resource:
-                  - !Sub "arn:aws:s3:::*-${Environment}/*"
 
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
@@ -99,7 +81,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 'sns:*'
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms"
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-validation-alarms"
