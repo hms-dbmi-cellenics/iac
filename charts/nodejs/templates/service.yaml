@@ -8,10 +8,6 @@ metadata:
 {{- if .Values.service.annotations }}
 {{ toYaml .Values.service.annotations | indent 4 }}
 {{- end }}
-{{- if .Values.prometheus.metrics }}
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "{{ .Values.service.internalPort }}"
-{{- end }}
   labels:
     app: {{ template "appname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
