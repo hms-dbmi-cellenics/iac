@@ -3,8 +3,8 @@ strategyType:
 deploymentApiVersion: apps/v1
 
 image:
-  registry: 
-  tag: 
+  registry:
+  tag:
   pullPolicy: IfNotPresent
   secrets:
 
@@ -38,9 +38,6 @@ ingress:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-
-prometheus:
-  metrics: false
 
 livenessProbe:
   path: "/"

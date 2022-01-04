@@ -3,9 +3,6 @@ kind: Service
 metadata:
   name: xray-service
   namespace: default
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "2000"
 spec:
   selector:
     app: xray-daemon
