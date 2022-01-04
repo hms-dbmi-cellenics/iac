@@ -20,7 +20,7 @@ metadata:
 spec:
   releaseName: pipeline
   chart:
-    git: git@github.com:biomage-ltd/pipeline
+    git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
     ref: 46eeb2299ff7ba8dbc77b90d77fc293c4065e1cb
   values:
