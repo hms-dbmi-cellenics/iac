@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up permissions for bioinformatics to manage the data ingest script [managed by github.com/biomage-ltd/iac]
+Description: Set up permissions for bioinformatics to manage the data ingest script [managed by github.com/hms-dbmi-cellenics/iac]
 
 Parameters:
   Environment:
