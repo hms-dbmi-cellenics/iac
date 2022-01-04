@@ -27,7 +27,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
@@ -65,6 +64,24 @@ Resources:
                   - "ses:PutIdentityPolicy"
                   - "ses:ListConfigurationSets"
                 Resource: "*"
+
+        - PolicyName: "can-access-s3-aws-console"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 's3:ListAllMyBuckets'
+                Resource:
+                  - "arn:aws:s3:::*"
+
+        - PolicyName: !Sub "can-manage-${Environment}-s3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource:
+                  - !Sub "arn:aws:s3:::*-${Environment}/*"
 
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
