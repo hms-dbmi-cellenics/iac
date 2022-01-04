@@ -169,8 +169,8 @@ Resources:
                   - "iam:ListMFADevices"
                   - "iam:ResyncMFADevice"
                 Resource:
-                  - "arn:aws:iam::*:user/${aws:username}"
-                  - "arn:aws:iam::*:group"
+                  - "arn:aws:iam::${AWS::AccountId}:user/${aws:username}"
+                  - "arn:aws:iam::${AWS::AccountId}:group/*"
 
         - PolicyName: "can-access-eventbridge"
           PolicyDocument:
