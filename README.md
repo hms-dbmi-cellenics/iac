@@ -8,13 +8,13 @@ Base infrastructure
 Base infrastructure means infrastructure required for the single-cell pipeline to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
 infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
-from the [actions](https://github.com/biomage-ltd/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
+from the [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
 The configuration for these infraustructure components are under `infra/`.
 
 #### Changing base infrastructure
-The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/biomage-ltd/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
+The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/hms-dbmi-cellenics/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
 1. Go to the *Deploy Biomage infrastructure*
-[actions](https://github.com/biomage-ltd/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
+[actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
 2. Click on `Run workflow` dropdown on the right side of the top workflow result. With this dropdown, you will configure the inputs with which the workflow will be run. 
 3. `Use worklow from` defines which changes the build will be run wuth. Make sure it is set to `master` to avoid situations when infrastructure changes from other branch are deployed and we have unknown state.
 4. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:
@@ -127,7 +127,7 @@ as well as any custom configuration to the chart that may be necessary. Broadly,
 `helm install` or `helm upgrade` operations.
 
 Flux is granted read and write access to this repository by the deploy script. This is by automatically creating/updating a
-[deploy key](https://github.com/biomage-ltd/iac/settings/keys) for this repository by the base infrastructure deployment
+[deploy key](https://github.com/hms-dbmi-cellenics/iac/settings/keys) for this repository by the base infrastructure deployment
 workflow.
 
 ### Releases
@@ -224,4 +224,4 @@ Each CI pipeline needs a certain set of permissions from both GitHub and AWS to 
 AWS privileges that should be available to the CI pipeline should be placed under `.ci.yaml`.
 
 Changes to CI privileges must be deployed *manually* by someone with sufficient access
-by running `biomage rotate-ci` using [biomage-utils](https://github.com/biomage-ltd/biomage-utils).
+by running `biomage rotate-ci` using [biomage-utils](https://github.com/hms-dbmi-cellenics/biomage-utils).
