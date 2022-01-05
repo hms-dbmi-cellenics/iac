@@ -19,7 +19,7 @@ metadata:
 spec:
   releaseName: worker
   chart:
-    git: git@github.com:biomage-ltd/worker
+    git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
     ref: STAGING_CHART_REF
   values:
@@ -30,7 +30,7 @@ spec:
     sandboxId: STAGING_SANDBOX_ID
     replicaCount: 0
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-536e4f6ddde9b22166781d4293925e8e933cb674-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e-r
       memoryRequest: 4Gi
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-536e4f6ddde9b22166781d4293925e8e933cb674-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e-python
