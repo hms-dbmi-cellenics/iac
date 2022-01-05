@@ -20,7 +20,7 @@ metadata:
 spec:
   releaseName: pipeline
   chart:
-    git: git@github.com:biomage-ltd/pipeline
+    git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
     ref: STAGING_CHART_REF
   values:
@@ -28,7 +28,7 @@ spec:
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-46eeb2299ff7ba8dbc77b90d77fc293c4065e1cb-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-ace7da51e0458983bcc359ee99f9d7247c1f0e71-pipeline-runner
     sandboxId: STAGING_SANDBOX_ID
     memoryRequest: 4Gi
     replicaCount: 0
