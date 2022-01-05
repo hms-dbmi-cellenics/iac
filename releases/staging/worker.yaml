@@ -19,9 +19,9 @@ metadata:
 spec:
   releaseName: worker
   chart:
-    git: git@github.com:biomage-ltd/worker
+    git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: 536e4f6ddde9b22166781d4293925e8e933cb674
+    ref: fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e
   values:
     kubernetes:
       env: staging
@@ -30,7 +30,7 @@ spec:
     sandboxId: default
     replicaCount: 1
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-536e4f6ddde9b22166781d4293925e8e933cb674-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e-r
       memoryRequest: 28Gi
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-536e4f6ddde9b22166781d4293925e8e933cb674-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e-python
