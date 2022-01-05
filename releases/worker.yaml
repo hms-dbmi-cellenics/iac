@@ -19,7 +19,7 @@ metadata:
 spec:
   releaseName: worker
   chart:
-    git: git@github.com:hms-dbmi-cellenics/worker
+    git: git@github.com:biomage-ltd/worker
     path: chart-infra/
     ref: 46e345edc4266fc2aaf998e2b6a51976c5256763
   values:

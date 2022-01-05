@@ -19,7 +19,7 @@ metadata:
 spec:
   releaseName: api
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: git@github.com:biomage-ltd/iac
     path: charts/nodejs
     ref: master
   values:
@@ -41,7 +41,7 @@ spec:
     kubernetes:
       env: production
     biomageCi:
-      repo: hms-dbmi-cellenics/api
+      repo: biomage-ltd/api
       sandboxId: default
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
