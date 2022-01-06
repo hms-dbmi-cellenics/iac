@@ -30,7 +30,7 @@ jobs:
 
           if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
           then
-            echo AWS Access Key ID not defined.
+            echo AWS Secret Access Key not defined.
             ERROR=true
           fi
 
