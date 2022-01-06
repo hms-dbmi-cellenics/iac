@@ -40,14 +40,6 @@ jobs:
             ERROR=true
           fi
 
-          if [ ! -z "$ERROR" ]
-          then
-            echo
-            echo Make sure you launch this job using the biomage devops tools, and not from GitHub.
-            echo Launching from GitHub directly is not supported to ensure cluster credentials are not
-            echo kept in the repository.
-            false
-          fi
 
   create-eks-cluster:
     name: Create EKS cluster
