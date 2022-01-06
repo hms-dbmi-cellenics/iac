@@ -43,9 +43,8 @@ jobs:
           if [ ! -z "$ERROR" ]
           then
             echo
-            echo This workflow requires some secrets to run. The secrets can be set/rotated
-            echo by running `rotate-ci` from `biomage-utils`. The command has to be run by a
-            echo user with admin privileges for the repository.
+            echo This workflow requires some secrets to complete. The secrets can be set/rotated
+            echo by running `rotate-ci` from `biomage-utils`.
             false
           fi
 
