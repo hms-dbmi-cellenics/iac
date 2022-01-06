@@ -1,0 +1,172 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: ui-chummy-heliotrope-cockroach
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: ui
+  namespace: ui-chummy-heliotrope-cockroach
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: 13cc7aa6367e4763533c63435ba70835c2a0cec7
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: chummy-heliotrope-cockroach
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-3a4f06e4c351f719f3009f8346a669ac2976acb1
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: api-chummy-heliotrope-cockroach
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: api
+  namespace: api-chummy-heliotrope-cockroach
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: 13cc7aa6367e4763533c63435ba70835c2a0cec7
+  releaseName: api
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/api
+      sandboxId: chummy-heliotrope-cockroach
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-475cfd653abd32e76fd6c6a4e7072e094d9e711b
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: worker-chummy-heliotrope-cockroach
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: worker
+  namespace: worker-chummy-heliotrope-cockroach
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fb23cdc7d4eb1aa1c94a156ff0a4a962971db94e-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: chummy-heliotrope-cockroach
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: pipeline-chummy-heliotrope-cockroach
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: chummy-heliotrope-cockroach
+  name: pipeline
+  namespace: pipeline-chummy-heliotrope-cockroach
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: ace7da51e0458983bcc359ee99f9d7247c1f0e71
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-ace7da51e0458983bcc359ee99f9d7247c1f0e71-pipeline-runner
+    replicaCount: 0
+    sandboxId: chummy-heliotrope-cockroach
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
