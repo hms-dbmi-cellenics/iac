@@ -1,4 +1,4 @@
-{{ if and (eq .Values.biomageCi.repo "hms-dbmi-cellenics/api") (eq .Values.biomageCi.sandboxId "default") }}
+{{ if and (contains "api" .Values.biomageCi.repo) (eq .Values.biomageCi.sandboxId "default") }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
