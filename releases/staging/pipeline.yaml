@@ -23,7 +23,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: ace7da51e0458983bcc359ee99f9d7247c1f0e71
+    ref: 5f508ae1e70e9f0534b48d7e7bb43fec383fff55
   values:
     clusterEnv: staging
     awsAccountId: "242905224710"
