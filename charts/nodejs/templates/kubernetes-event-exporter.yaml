@@ -1,5 +1,5 @@
 # the event export should be deployed only once per cluster, ie. as part of the default sandbox of the api repo
-{{ if and (eq .Values.biomageCi.repo "hms-dbmi-cellenics/api") (eq .Values.biomageCi.sandboxId "default") }}
+{{ if and (contains "api" .Values.biomageCi.repo) (eq .Values.biomageCi.sandboxId "default") }}
 apiVersion: v1
 kind: Namespace
 metadata:
