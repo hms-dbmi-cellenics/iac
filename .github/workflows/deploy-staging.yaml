@@ -204,11 +204,36 @@ jobs:
           enforce_admins: true
           retries: 8
 
-      - id: cleanup-fargate-if-failure
-        name: Remove fargate profiles if the staging failed
+      - id: cleanup-pipeline-fargate-profile-if-failure
+        name: Remove Fargate profile for the pipelines
         if: ${{ failure() }}
-        run: |-
-          eksctl delete fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} || echo "unsuccessful delete"
-          eksctl delete fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} || echo "unsuccessful delete"
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 900
+          max_attempts: 30
+          retry_on: error
+          command: |
+            output=$(eksctl delete fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} 2>&1)
+            echo $output
+            echo $output | egrep "deleted Fargate profile|No Fargate Profile found"
+          # Add jitter to break up correlated events.
+          on_retry_command: sleep $((20 + RANDOM % 10));
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
+      - id: cleanup-worker-fargate-profile-if-failure
+        name: Remove Fargate profile for the workers
+        if: ${{ failure() }}
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 900
+          max_attempts: 30
+          retry_on: error
+          command: |
+            output=$(eksctl delete fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} 2>&1)
+            echo $output
+            echo $output | egrep "deleted Fargate profile|No Fargate Profile found"
+          # Add jitter to break up correlated events.
+          on_retry_command: sleep $((20 + RANDOM % 10));
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
