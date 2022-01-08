@@ -143,6 +143,7 @@ Resources:
                   - "iam:ChangePassword"
                   - "iam:GetUser"
                   - "iam:ListGroups"
+                  - "iam:GetGroup"
                   - "iam:ListPolicies"
                   - "iam:CreateAccessKey"
                   - "iam:DeleteAccessKey"
@@ -169,8 +170,8 @@ Resources:
                   - "iam:ListMFADevices"
                   - "iam:ResyncMFADevice"
                 Resource:
-                  - "arn:aws:iam::*:user/${aws:username}"
-                  - "arn:aws:iam::*:group/*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:user/${!aws:username}"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:group/*"
 
         - PolicyName: "can-access-eventbridge"
           PolicyDocument:
