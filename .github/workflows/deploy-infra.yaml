@@ -268,6 +268,8 @@ jobs:
             --set git.url=git@github.com:$GITHUB_REPOSITORY \
             --set git.path="releases/$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
+            --set git.pollInterval="2m" \
+            --set git.timeout="40s" \
             --set syncGarbageCollection.enabled=true \
             --namespace flux \
             --install --wait
@@ -275,7 +277,8 @@ jobs:
           helm upgrade helm-operator fluxcd/helm-operator \
             --set git.ssh.secretName=flux-git-deploy \
             --set helm.versions=v3 \
-            --set git.timeout=40s \
+            --set git.pollInterval="2m" \
+            --set git.timeout="40s" \
             --namespace flux \
             --install --wait
       
