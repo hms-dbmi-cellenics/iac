@@ -37,7 +37,7 @@ jobs:
         name: Decrypt credentials from user.
         run: |-
             SECRETS="$(aws kms decrypt \
-              --key-id arn:aws:kms:${REGION}:242905224710:alias/iac-secret-key \
+              --key-id arn:aws:kms:${REGION}:${AWS_ACCOUNT_ID}:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
               --output text --query Plaintext)"
 
@@ -57,6 +57,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           CIPHERTEXT: ${{ github.event.inputs.secrets }}
           REGION: ${{ env.region }}
 
@@ -217,7 +218,7 @@ jobs:
       - id: update-flux-namespace
         name: Update flux staging
         run: |-
-          fluxctl sync --k8s-fwd-ns flux --context arn:aws:eks:eu-west-1:242905224710:cluster/biomage-staging
+          fluxctl sync --k8s-fwd-ns flux --context arn:aws:eks:${{ env.region }}:${{ steps.setup-aws.outputs.aws-account-id }}:cluster/biomage-staging
 
       - id: cleanup-pipeline-fargate-profile-if-failure
         name: Remove Fargate profile for the pipelines
