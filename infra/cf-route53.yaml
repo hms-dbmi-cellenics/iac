@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up DNS records for the NGINX Ingress Controller.
+Description: Set up DNS records for the ELB.
 
 Parameters:
   Environment:
@@ -8,7 +8,7 @@ Parameters:
     AllowedValues:
       - staging
       - production
-    Description: The environment for which the SNS topic needs to be created.
+    Description: The environment for which the Route 53 records needs to be created.
 
   DNSName:
     Type: String
