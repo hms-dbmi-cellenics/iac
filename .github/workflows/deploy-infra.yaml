@@ -12,6 +12,10 @@ on:
 env:
   region: 'eu-west-1'
 
+# this ensures that only one CI pipeline with the same key
+#  can run at once in order to prevent undefined states
+concurrency: cluster-update-mutex
+
 jobs:
   check-secrets:
     name: Check if secrets are defined
