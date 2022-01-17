@@ -11,6 +11,9 @@ on:
 env:
   region: 'eu-west-1'
 
+# this ensures that only one CI pipeline executing
+# these steps can run at the same time
+concurrency: deploy-changed-users
 
 jobs:
   check-secrets:
