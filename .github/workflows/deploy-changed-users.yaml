@@ -141,7 +141,7 @@ jobs:
               --cluster=biomage-$CLUSTER_ENV \
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
-              --username $user
+              --username ${user##*/}
           done
 
       # see https://eksctl.io/usage/iam-identity-mappings/
