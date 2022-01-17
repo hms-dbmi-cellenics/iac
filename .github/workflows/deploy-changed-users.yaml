@@ -11,9 +11,9 @@ on:
 env:
   region: 'eu-west-1'
 
-# this ensures that only one CI pipeline executing
-# these steps can run at the same time
-concurrency: deploy-changed-users
+# this ensures that only one CI pipeline with the same key
+# can run at once in order to prevent undefined states
+concurrency: cluster-update-mutex
 
 jobs:
   check-secrets:
