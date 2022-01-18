@@ -60,7 +60,7 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
@@ -146,7 +146,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -274,6 +274,7 @@ jobs:
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \
             --set git.timeout="40s" \
+            --set git.readonly=true \
             --set syncGarbageCollection.enabled=true \
             --namespace flux \
             --install --wait
@@ -286,56 +287,57 @@ jobs:
             --namespace flux \
             --install --wait
       
-      - id: get-public-key
-        name: Get flux SSH deploy key
-        run: |-
-          fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
+      # Disable getting and uploading the flux key to github, since flux is in read-only mode.
+      # - id: get-public-key
+      #   name: Get flux SSH deploy key
+      #   run: |-
+      #     fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
               
-      - id: add-key-to-github
-        name: Add Flux deploy key to GitHub repository
-        run: |-
-          # find existing key IDs. save them to a file
-          curl \
-            -H"Authorization: token $API_TOKEN_GITHUB"\
-            https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
-            | jq '.[] | select(.title | contains(env.CLUSTER_ENV)) | .id' > /tmp/key_ids
+      # - id: add-key-to-github
+      #   name: Add Flux deploy key to GitHub repository
+      #   run: |-
+      #     # find existing key IDs. save them to a file
+      #     curl \
+      #       -H"Authorization: token $API_TOKEN_GITHUB"\
+      #       https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
+      #       | jq '.[] | select(.title | contains(env.CLUSTER_ENV)) | .id' > /tmp/key_ids
           
-          # iterate through them and delete all existing deploy keys
-          cat /tmp/key_ids | \
-            while read _id; do
-              echo "- delete  deploy key: $_id"
-              curl \
-                -X "DELETE"\
-                -H"Authorization: token $API_TOKEN_GITHUB"\
-                https://api.github.com/repos/$GITHUB_REPOSITORY/keys/$_id 2>/dev/null
-            done
+      #     # iterate through them and delete all existing deploy keys
+      #     cat /tmp/key_ids | \
+      #       while read _id; do
+      #         echo "- delete  deploy key: $_id"
+      #         curl \
+      #           -X "DELETE"\
+      #           -H"Authorization: token $API_TOKEN_GITHUB"\
+      #           https://api.github.com/repos/$GITHUB_REPOSITORY/keys/$_id 2>/dev/null
+      #       done
 
-          # add the keyfile to github
-          echo
-          echo "+ flux deploy key:"
-          echo -n ">> "
-          {
-            curl \
-              -i\
-              -H"Authorization: token $API_TOKEN_GITHUB"\
-              --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
-            {
-              "title" : "Flux CI -- $CLUSTER_ENV -- $(date)",
-              "key" : "$(cat ~/flux.pub)",
-              "read_only" : false
-            }
-          EOF
-          } 2>/dev/null | tee /tmp/create_key_result | head -1
+      #     # add the keyfile to github
+      #     echo
+      #     echo "+ flux deploy key:"
+      #     echo -n ">> "
+      #     {
+      #       curl \
+      #         -i\
+      #         -H"Authorization: token $API_TOKEN_GITHUB"\
+      #         --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
+      #       {
+      #         "title" : "Flux CI -- $CLUSTER_ENV -- $(date)",
+      #         "key" : "$(cat ~/flux.pub)",
+      #         "read_only" : false
+      #       }
+      #     EOF
+      #     } 2>/dev/null | tee /tmp/create_key_result | head -1
 
-          # check if key was created
-          KEY_CREATED=$(grep 201 /tmp/create_key_result | wc -l | xargs)
-          if [ $KEY_CREATED -eq 0 ]
-          then
-            echo
-            echo Key creation failed. Full response shown below:
-            cat /tmp/create_key_result
-            false
-          fi
+      #     # check if key was created
+      #     KEY_CREATED=$(grep 201 /tmp/create_key_result | wc -l | xargs)
+      #     if [ $KEY_CREATED -eq 0 ]
+      #     then
+      #       echo
+      #       echo Key creation failed. Full response shown below:
+      #       cat /tmp/create_key_result
+      #       false
+      #     fi
 
       - id: deploy-xray-daemon
         name: Deploy AWS X-Ray daemon
