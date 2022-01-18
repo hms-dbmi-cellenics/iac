@@ -15,7 +15,7 @@ Resources:
   PlotsTablesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "plots-tables-${Environment}"
+      BucketName: !Sub "plots-tables-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -25,7 +25,7 @@ Resources:
   CellSetsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "cell-sets-${Environment}"
+      BucketName: !Sub "cell-sets-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -35,7 +35,7 @@ Resources:
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "worker-results-${Environment}"
+      BucketName: !Sub "worker-results-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -73,7 +73,7 @@ Resources:
   PipelineResultBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "processed-matrix-${Environment}"
+      BucketName: !Sub "processed-matrix-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -84,7 +84,7 @@ Resources:
   SourceBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-source-${Environment}"
+      BucketName: !Sub "biomage-source-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -105,7 +105,7 @@ Resources:
   FilteredCellsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-filtered-cells-${Environment}"
+      BucketName: !Sub "biomage-filtered-cells-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -116,7 +116,7 @@ Resources:
   OriginalFilesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-originals-${Environment}"
+      BucketName: !Sub "biomage-originals-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -152,7 +152,7 @@ Resources:
   PublicDatasetsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub "biomage-public-datasets-${Environment}"
+        BucketName: !Sub "biomage-public-datasets-${Environment}-${AWS::AccountId}"
         PublicAccessBlockConfiguration:
           BlockPublicAcls: True
           BlockPublicPolicy: True

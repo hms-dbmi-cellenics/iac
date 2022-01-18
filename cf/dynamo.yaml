@@ -11,6 +11,7 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
+
 Resources:
   ExperimentTable:
     Type: AWS::DynamoDB::Table
