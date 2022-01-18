@@ -244,23 +244,25 @@ jobs:
               --set clusterEnv=$CLUSTER_ENV \
               --install --wait
 
-      - id: deploy-env-loadbalancer
-        name: Deploy AWS Application Load Balancer for environment
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-k8s-alb-${{ matrix.environment }}"
-          template: 'infra/cf-loadbalancer.yaml'
-          no-fail-on-empty-changeset: "1"
+# TEMPORARY disable these, because they also include our website.
+# With them disabled, we can deploy the infrastrastructure.
+      # - id: deploy-env-loadbalancer
+      #   name: Deploy AWS Application Load Balancer for environment
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment }}"
+      #     name: "biomage-k8s-alb-${{ matrix.environment }}"
+      #     template: 'infra/cf-loadbalancer.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }}"
-          name: "biomage-alb-route53-${{ matrix.environment }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-route53
+      #   name: Deploy Route 53 DNS records to ELB
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment }}"
+      #     template: 'infra/cf-route53.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: install-flux
         name: Deploy flux
