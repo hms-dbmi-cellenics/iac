@@ -30,7 +30,6 @@ Outputs:
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UIRoleArn'
 
-
 Resources: 
   UIRole:
     Type: "AWS::IAM::Role"
