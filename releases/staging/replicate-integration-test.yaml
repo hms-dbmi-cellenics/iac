@@ -78,7 +78,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-9d5f738b55b596c30c279ad1aa1d75c9ecb14b89
+      tag: refs-heads-master-4ce95e4f10c5fc6e40c1bc529350d2021ca4345e
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
