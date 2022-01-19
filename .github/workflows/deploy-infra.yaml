@@ -271,7 +271,7 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
           helm upgrade flux fluxcd/flux \
-            --set git.url=git@github.com:$GITHUB_REPOSITORY \
+            --set git.url="https://github.com/$GITHUB_REPOSITORY.git" \
             --set git.path="releases/$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \
