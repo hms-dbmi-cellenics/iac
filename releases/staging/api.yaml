@@ -18,7 +18,7 @@ metadata:
 spec:
   releaseName: api
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: https://github.com/hms-dbmi-cellenics/iac.git
     path: charts/nodejs
     ref: master
   values:
