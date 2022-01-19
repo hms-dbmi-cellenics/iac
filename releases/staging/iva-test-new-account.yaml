@@ -18,7 +18,7 @@ metadata:
   namespace: ui-iva-test-new-account
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: https://github.com/hms-dbmi-cellenics/iac.git
     path: charts/nodejs
     ref: refs/heads/master
   releaseName: ui
@@ -44,7 +44,7 @@ spec:
       probeType: exec
     replicaCount: 1
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+      iamRole: arn:aws:iam::762789002881:role/ui-role-staging
 ---
 apiVersion: v1
 kind: Namespace
@@ -65,7 +65,7 @@ metadata:
   namespace: api-iva-test-new-account
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: https://github.com/hms-dbmi-cellenics/iac.git
     path: charts/nodejs
     ref: refs/heads/master
   releaseName: api
@@ -96,7 +96,7 @@ spec:
       externalPort: 3000
       internalPort: 3000
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+      iamRole: arn:aws:iam::762789002881:role/api-role-staging
 ---
 apiVersion: v1
 kind: Namespace
@@ -118,7 +118,7 @@ metadata:
   namespace: worker-iva-test-new-account
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/worker
+    git: https://github.com/hms-dbmi-cellenics/worker.git
     path: chart-infra/
     ref: refs/heads/master
   releaseName: worker
@@ -133,7 +133,7 @@ spec:
     replicaCount: 0
     sandboxId: iva-test-new-account
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+      iamRole: arn:aws:iam::762789002881:role/worker-role-staging
 ---
 apiVersion: v1
 kind: Namespace
@@ -156,7 +156,7 @@ metadata:
   namespace: pipeline-iva-test-new-account
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/pipeline
+    git: https://github.com/hms-dbmi-cellenics/pipeline.git
     path: chart-infra/
     ref: refs/heads/master
   releaseName: pipeline
@@ -170,4 +170,4 @@ spec:
     replicaCount: 0
     sandboxId: iva-test-new-account
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
+      iamRole: arn:aws:iam::762789002881:role/pipeline-role-staging
