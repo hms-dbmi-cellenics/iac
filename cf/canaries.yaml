@@ -158,3 +158,42 @@ Resources:
       Schedule: 
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
+
+  CanarySNSTopic: 
+    Type: AWS::SNS::Topic
+    Properties: 
+      KmsMasterKeyId: "alias/aws/sns"
+      TopicName: !Sub "cloudwatch-alarms-${Environment}"
+  CanarySNSSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref CanarySNSTopic
+      Endpoint: iva@biomage.net
+      Protocol: "email"
+
+  CanariesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties: 
+      AlarmName: !Sub "${Environment} UI is down"
+      ActionsEnabled: True
+      Namespace: CloudWatchSynthetics
+      Dimensions:
+        - Name: CanaryName
+          Value: !Sub "is-ui-up-${Environment}"
+      Statistic: Minimum
+      MetricName: SuccessPercent
+      ComparisonOperator: LessThanThreshold
+      Threshold: 100
+      DatapointsToAlarm: 2
+      EvaluationPeriods: 2
+      Period: 600
+      AlarmActions: 
+        - !Ref CanarySNSTopic
+      EvaluateLowSampleCountPercentile: evaluate
+      TreatMissingData: missing
+
+  # XrayGroupAPI500:
+  #   Type: AWS::XRay::Group
+  #   Properties: 
+  #     FilterExpression: (http.url BEGINSWITH "http://api.scp.biomage.net") AND (http.status >= 500)
+  #     GroupName: !Sub "${Environment}-api-5xx-error"
