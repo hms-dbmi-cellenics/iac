@@ -189,7 +189,6 @@ Resources:
       Period: 600
       AlarmActions: 
         - !Ref CanarySNSTopic
-      EvaluateLowSampleCountPercentile: evaluate
       TreatMissingData: missing
 
   # XrayGroupAPI500:
