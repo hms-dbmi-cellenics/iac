@@ -80,11 +80,8 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "userEmail"
           AttributeType: "S"
-        - AttributeName: "projectUuid"
-          AttributeType: "S"
         - AttributeName: "experimentId"
           AttributeType: "S"
-        - AttributeName: "role"
       KeySchema:
         - AttributeName: "experimentId"
           KeyType: "HASH"
@@ -98,11 +95,8 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "userId"
           AttributeType: "S"
-        - AttributeName: "projectUuid"
-          AttributeType: "S"
         - AttributeName: "experimentId"
           AttributeType: "S"
-        - AttributeName: "role"
       KeySchema:
         - AttributeName: "experimentId"
           KeyType: "HASH"
