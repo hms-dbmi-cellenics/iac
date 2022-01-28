@@ -52,7 +52,7 @@ Resources:
           KeyType: "HASH"
       GlobalSecondaryIndexes:
         - IndexName: gsiByProjectAndExperimentID
-          KeySchema: 
+          KeySchema:
             - AttributeName: "projectUuid"
               KeyType: "HASH"
             - AttributeName: "experimentId"
@@ -72,4 +72,34 @@ Resources:
       KeySchema:
         - AttributeName: "projectUuid"
           KeyType: "HASH"
+      BillingMode: "PAY_PER_REQUEST"
+  InviteAccessTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "invite-access-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: "userEmail"
+          AttributeType: "S"
+        - AttributeName: "experimentId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "experimentId"
+          KeyType: "HASH"
+        - AttributeName: "userEmail"
+          KeyType: "RANGE"
+      BillingMode: "PAY_PER_REQUEST"
+  UserAccessTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "user-access-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: "userId"
+          AttributeType: "S"
+        - AttributeName: "experimentId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "experimentId"
+          KeyType: "HASH"
+        - AttributeName: "userId"
+          KeyType: "RANGE"
       BillingMode: "PAY_PER_REQUEST"
