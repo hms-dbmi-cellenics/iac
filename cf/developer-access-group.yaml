@@ -178,10 +178,12 @@ Resources:
                   - "iam:ListUsers"
                   - "iam:GetUser"
                   - "iam:ListGroups"
+                  - "iam:ListGroupsForUser"
                   - "iam:GetGroup"
                   - "iam:ListRoles"
                   - "iam:GetRole"
                   - "iam:ListPolicies"
+                  - "iam:ListUserPolicies"
                   - "iam:GetPolicy"
                   - "iam:GetRolePolicy"
                 Resource:
