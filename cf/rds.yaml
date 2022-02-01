@@ -11,6 +11,10 @@ Parameters:
       - production
     Description: The environment for which the cluster need to be created.
 
+  DBEngineVersion:
+    Default: 13.4
+    Type: Number
+
   DBPort:
     Default: '5432'
     Type: String
@@ -37,24 +41,15 @@ Parameters:
     Description: The memory to be allocated for your database
     Type: Number
 
-  EnablePerformanceInsights:
-    Description: A value that indicates whether to enable Performance Insights for the DB instance.
-    Type: String
-    Default: false
+  # EnablePerformanceInsights:
+  #   Description: A value that indicates whether to enable Performance Insights for the DB instance.
+  #   Type: String
+  #   Default: false
 
-  MultiAZ:
-    Description: true, in case you wish to have a multi-AZ deployment
-    Type: String
-    Default: true
-
-Mappings: 
-  DBFamilyMap: 
-    "11.13":
-      "family": "aurora-postgresql11"
-    "12.8":
-      "family": "aurora-postgresql12"
-    "13.4":
-      "family": "aurora-postgresql13"
+  # MultiAZ:
+  #   Description: true, in case you wish to have a multi-AZ deployment
+  #   Type: String
+  #   Default: true
 
 Outputs:
   RDSEndpoint:
@@ -76,38 +71,32 @@ Resources:
       Engine: aurora-postgresql
       EngineMode: provisioned
       EngineVersion: 13.4
-      DBClusterIdentifier: auroradbcluster
-      DBClusterParameterGroupName: !Ref DBClusterPG
+      DBClusterParameterGroupName: !Ref DBParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       DatabaseName: !Ref DBName
-      DeletionProtection: false
+      Port: !Ref DBPort
+      # Can't be deleted before first setting this to false
+      DeletionProtection: true
       MasterUserPassword: !Ref DBMasterUserPassword
       MasterUsername: !Ref DBMasterUsername
-      Port: 5432
+      EnableIAMDatabaseAuthentication: true
       BackupRetentionPeriod: 5
-      SourceRegion: !Ref 'AWS::Region'
-      StorageEncrypted: true
+      SourceRegion: eu-west-1
+      # Check if we want to change this
+      StorageEncrypted: false
       VpcSecurityGroupIds: 
         - !Ref RDSSecurityGroup
-    
-  DBClusterPG:
-    Type: AWS::RDS::DBClusterParameterGroup
-    Properties:
-      Description: DB Cluster Parameter Group for your Aurora DB cluster
-      Family: aurora-postgresql10
-      Parameters:
-        rds.logical_replication: 1
-        
+
   DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
+      Description: !Join [ "- ", [ "Aurora PG Database Instance Parameter Group for Cloudformation Stack ", !Ref DBName ] ]
+      Family: aurora-postgresql13
+      # Parameters:
+        # shared_preload_libraries: "pg_stat_statements, pg_hint_plan"
       Tags:
         - Key: "Name"
           Value: RdsParameterGroup
-      Description: Database Parameter Group for your Aurora DB Instnace
-      Family: postgres10
-      Parameters:
-        shared_preload_libraries: "pg_stat_statements, pg_hint_plan"
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -125,37 +114,45 @@ Resources:
   DBInstance:
     Type: AWS::RDS::DBInstance
     Properties:
+      # DBInstanceIdentifier: mypostgresdb
+      DBInstanceClass:
+        Ref: DBInstanceClass
+      # DBClusterIdentifier: !Ref AuroraDBCluster  
+      Engine: aurora-postgresql
+      EngineVersion: !Ref DBEngineVersion
+      DBParameterGroupName: !Ref DBParameterGroup
+      MonitoringInterval: !If [IsProd, 1, 0]
+      MonitoringRoleArn: !If [IsProd, !GetAtt MonitoringIAMRole.Arn, !Ref "AWS::NoValue"]
+      AutoMinorVersionUpgrade: !If [IsProd, 'false', 'true']
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      PerformanceInsightsKMSKeyId: !Ref AuroraKMSCMK
+      PerformanceInsightsRetentionPeriod: !If [IsProd, 731, 7]
       Tags:
         - Key: "Name"
           Value: mypostgresdb
-      DBInstanceIdentifier: mypostgresdb
-      DBName:
-        !Ref: DBName
-      AllocatedStorage:
-        !Ref: DBAllocatedStorage
-      DBInstanceClass:
-        !Ref: DBInstanceClass
-      Engine: aurora-postgresql
-      EngineVersion: 10.11
-      MasterUsername:
-        !Ref: DBMasterUsername
-      MasterUserPassword:
-        !Ref: DBMasterUserPassword
-      DBSubnetGroupName:
-        !Ref: DBSubnetGroup
-      DBParameterGroupName:
-        !Ref: DBParameterGroup
-      VPCSecurityGroups: 
-        - !Ref RDSSecurityGroup
-      StorageType: gp2
-      StorageEncrypted: "false"
-      EnablePerformanceInsights:
-        !Ref: EnablePerformanceInsights
-      MultiAZ: !Ref MultiAZ
-      AutoMinorVersionUpgrade: true
-      CopyTagsToSnapshot: true
-      BackupRetentionPeriod: 7
-      PubliclyAccessible: false
+      # DBName:
+      #   !Ref: DBName
+      # DBInstanceClass:
+      #   !Ref: DBInstanceClass
+      # Engine: aurora-postgresql
+      # EngineVersion: 10.11
+      # MasterUsername:
+      #   !Ref: DBMasterUsername
+      # MasterUserPassword:
+      #   !Ref: DBMasterUserPassword
+      # DBSubnetGroupName:
+      #   !Ref: DBSubnetGroup
+      # VPCSecurityGroups: 
+      #   - !Ref RDSSecurityGroup
+      # StorageType: gp2
+      # StorageEncrypted: "false"
+      # EnablePerformanceInsights:
+      #   !Ref: EnablePerformanceInsights
+      # AutoMinorVersionUpgrade: true
+      # BackupRetentionPeriod: 7
+      # PubliclyAccessible: false
   
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
