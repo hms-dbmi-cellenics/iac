@@ -37,9 +37,9 @@ Parameters:
     Description: Database instance class
     Type: String
 
-  DBAllocatedStorage:
-    Description: The memory to be allocated for your database
-    Type: Number
+  # DBAllocatedStorage:
+  #   Description: The memory to be allocated for your database
+  #   Type: Number
 
   # EnablePerformanceInsights:
   #   Description: A value that indicates whether to enable Performance Insights for the DB instance.
@@ -58,9 +58,9 @@ Outputs:
       Fn::GetAtt:
         - DBInstance
         - Endpoint.Address
-    Export:
-      Name:
-        Fn::Sub: "RDSEndpoint"
+    # Export:
+    #   Name:
+    #     Fn::Sub: "RDSEndpoint"
 
 Resources:
   DBCluster:
@@ -121,14 +121,14 @@ Resources:
       Engine: aurora-postgresql
       EngineVersion: !Ref DBEngineVersion
       DBParameterGroupName: !Ref DBParameterGroup
-      MonitoringInterval: !If [IsProd, 1, 0]
-      MonitoringRoleArn: !If [IsProd, !GetAtt MonitoringIAMRole.Arn, !Ref "AWS::NoValue"]
-      AutoMinorVersionUpgrade: !If [IsProd, 'false', 'true']
+      # MonitoringInterval: !If [IsProd, 1, 0]
+      # MonitoringRoleArn: !If [IsProd, !GetAtt MonitoringIAMRole.Arn, !Ref "AWS::NoValue"]
+      AutoMinorVersionUpgrade: true
       DBSubnetGroupName: !Ref DBSubnetGroup
       PubliclyAccessible: false
       EnablePerformanceInsights: true
-      PerformanceInsightsKMSKeyId: !Ref AuroraKMSCMK
-      PerformanceInsightsRetentionPeriod: !If [IsProd, 731, 7]
+      # PerformanceInsightsKMSKeyId: !Ref AuroraKMSCMK
+      # PerformanceInsightsRetentionPeriod: !If [IsProd, 731, 7]
       Tags:
         - Key: "Name"
           Value: mypostgresdb
