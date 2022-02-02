@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the cluster need to be created.
+
+  DBEngineVersion:
+    Default: 13.4
+    Type: Number
+
+  DBPort:
+    Default: '5432'
+    Type: String
+
+  DBName:
+    Description: The database name for Aurora PostgreSQL DB instance
+    Type: String
+
+  DBMasterUsername:
+    Description: The database master/super username.
+    Type: String
+    NoEcho: "true"
+
+  DBMasterUserPassword:
+    Description: The password for database master/super user.
+    Type: String
+    NoEcho: "true"
+
+  DBInstanceClass:
+    Description: Database instance class
+    Type: String
+
+  # DBAllocatedStorage:
+  #   Description: The memory to be allocated for your database
+  #   Type: Number
+
+  # EnablePerformanceInsights:
+  #   Description: A value that indicates whether to enable Performance Insights for the DB instance.
+  #   Type: String
+  #   Default: false
+
+  # MultiAZ:
+  #   Description: true, in case you wish to have a multi-AZ deployment
+  #   Type: String
+  #   Default: true
+
+Outputs:
+  RDSEndpoint:
+    Description: RDS Database Endpoint
+    Value:
+      Fn::GetAtt:
+        - DBInstance
+        - Endpoint.Address
+    # Export:
+    #   Name:
+    #     Fn::Sub: "RDSEndpoint"
+
+Resources:
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: aurora-postgresql
+      EngineMode: provisioned
+      EngineVersion: 13.4
+      DBClusterParameterGroupName: !Ref DBParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DatabaseName: !Ref DBName
+      Port: !Ref DBPort
+      # Can't be deleted before first setting this to false
+      DeletionProtection: true
+      MasterUserPassword: !Ref DBMasterUserPassword
+      MasterUsername: !Ref DBMasterUsername
+      EnableIAMDatabaseAuthentication: true
+      BackupRetentionPeriod: 5
+      SourceRegion: eu-west-1
+      # Check if we want to change this
+      StorageEncrypted: false
+      VpcSecurityGroupIds: 
+        - !Ref RDSSecurityGroup
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: !Join [ "- ", [ "Aurora PG Database Instance Parameter Group for Cloudformation Stack ", !Ref DBName ] ]
+      Family: aurora-postgresql13
+      # Parameters:
+        # shared_preload_libraries: "pg_stat_statements, pg_hint_plan"
+      Tags:
+        - Key: "Name"
+          Value: RdsParameterGroup
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub Biomage subnet group for ${Environment}.
+      DBSubnetGroupName: !Sub AuroraSubnetGroup${Environment}
+      Tags:
+        - Key: "Name"
+          Value: AuroraSubnetGroupName
+      SubnetIds:
+        Fn::Split:
+          - ','
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      # DBInstanceIdentifier: mypostgresdb
+      DBInstanceClass:
+        Ref: DBInstanceClass
+      # DBClusterIdentifier: !Ref AuroraDBCluster  
+      Engine: aurora-postgresql
+      EngineVersion: !Ref DBEngineVersion
+      DBParameterGroupName: !Ref DBParameterGroup
+      # MonitoringInterval: !If [IsProd, 1, 0]
+      # MonitoringRoleArn: !If [IsProd, !GetAtt MonitoringIAMRole.Arn, !Ref "AWS::NoValue"]
+      AutoMinorVersionUpgrade: true
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      # PerformanceInsightsKMSKeyId: !Ref AuroraKMSCMK
+      # PerformanceInsightsRetentionPeriod: !If [IsProd, 731, 7]
+      Tags:
+        - Key: "Name"
+          Value: mypostgresdb
+      # DBName:
+      #   !Ref: DBName
+      # DBInstanceClass:
+      #   !Ref: DBInstanceClass
+      # Engine: aurora-postgresql
+      # EngineVersion: 10.11
+      # MasterUsername:
+      #   !Ref: DBMasterUsername
+      # MasterUserPassword:
+      #   !Ref: DBMasterUserPassword
+      # DBSubnetGroupName:
+      #   !Ref: DBSubnetGroup
+      # VPCSecurityGroups: 
+      #   - !Ref RDSSecurityGroup
+      # StorageType: gp2
+      # StorageEncrypted: "false"
+      # EnablePerformanceInsights:
+      #   !Ref: EnablePerformanceInsights
+      # AutoMinorVersionUpgrade: true
+      # BackupRetentionPeriod: 7
+      # PubliclyAccessible: false
+  
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "Biomage RDS security group for ${Environment}"
+      SecurityGroupEgress: []
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: 
+            Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SharedNodeSecurityGroup"
+          FromPort: !Ref DBPort
+          IpProtocol: tcp
+          ToPort: !Ref DBPort
+        # - SourceSecurityGroupId: 
+        #     Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"
+        #   FromPort: !Ref DBPort
+        #   IpProtocol: tcp
+        #   ToPort: !Ref DBPort
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-security-group"
+        - Key: StackName
+          Value: !Ref AWS::StackName
+      VpcId:
+        Fn::ImportValue:
+          !Sub "eksctl-biomage-${Environment}-cluster::VPC"
+  
