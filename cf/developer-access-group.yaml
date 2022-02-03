@@ -184,6 +184,7 @@ Resources:
                   - "iam:GetRole"
                   - "iam:ListPolicies"
                   - "iam:ListUserPolicies"
+                  - "iam:ListAttachedUserPolicies"
                   - "iam:GetPolicy"
                   - "iam:GetRolePolicy"
                 Resource:
