@@ -121,8 +121,15 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: "Enabled"
       LifecycleConfiguration:
         Rules:
+          # Non-current versions of source files are stored in normal S3 for
+          # 7 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 7
           - Id: BackupRetentionDays
             Status: "Enabled"
             ExpirationInDays: 90
