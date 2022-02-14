@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -127,7 +128,7 @@ spec:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-240-merge-81e7e705e5b3fe18207e1339a0851878be754207-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-240-merge-81e7e705e5b3fe18207e1339a0851878be754207-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-240-merge-e98d36cc6721cc46b9ecf8d24bc611e53973a939-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: olivergibson-worker240
