@@ -1,40 +1,50 @@
 import boto3
-client = boto3.client('cognito-idp')
+import csv
+from datetime import datetime
+from botocore.exceptions import ClientError
+import os
 
-# def backup_users():
-#     response = client.get_csv_header(
-#     UserPoolId='eu-west-1_eYTCV3Nl7'
-#     )
-#     #cognito:username,name,given_name,family_name,middle_name,nickname,preferred_username,profile,picture,website,email,email_verified,gender,birthdate,zoneinfo,locale,phone_number,phone_number_verified,address,updated_at,cognito:mfa_enabled
-    
-#     users_resp = client.list_users (
-#             UserPoolId = 'eu-west-1_eYTCV3Nl7',
-#             AttributesToGet = ['email', 'email_verified', 'name',])
-#     print('hi', len(users_resp['Users']))
+client = boto3.client('cognito-idp')
+s3_client = boto3.client('s3')
+
 def backup_users():
-    all_users = get_all_users()
+    try:
+        all_users = get_all_users()
+    except Exception as e:
+        print('Getting current cognito users has failed ', e)
+
     csv_headers = ['cognito:username','name','given_name',
     'family_name','middle_name','nickname','preferred_username',
     'profile','picture','website','email','email_verified',
     'gender','birthdate','zoneinfo','locale','phone_number',
     'phone_number_verified','address','updated_at','cognito:mfa_enabled']
-    csv_data = []
+    
     with open('data.csv','w', encoding='UTF8') as f:
         writer = csv.writer(f)
         writer.writerow(csv_headers)
+
         for user in all_users:
-            const name = filter(lambda field: score >= 70, user)
-            name = 
-            const data = [user['Username'], ]
-
-
-
+            name = list(filter(lambda attribute: attribute['Name']=='name', user['Attributes']))[0]['Value']
+            email = list(filter(lambda attribute: attribute['Name']=='email', user['Attributes']))[0]['Value']
+            email_verified = list(filter(lambda attribute: attribute['Name']=='email_verified', user['Attributes']))[0]['Value']
+            
+            new_row = [email,name,'','','','','','','','',email,email_verified,'','','','','','FALSE','','','FALSE']
+            writer.writerow(new_row)
+            file_name = '{}/biomage-userpool-case-insensitive-production/data.csv'.format(datetime.now().isoformat())
+    try:
+        s3_client.upload_file('data.csv', 'biomage-backups-production', file_name)
+        #removing the local file after saving to S3
+        os.remove('data.csv')
+    except ClientError as e:
+        print('Uploading backup to S3 has failed ', e)
+    
 def get_all_users():
     cognito = boto3.client('cognito-idp')
     
     users = []
     next_page = None
     kwargs = {
+        # users-insensitive-production pool
         'UserPoolId': 'eu-west-1_eYTCV3Nl7',
         'AttributesToGet': ['email', 'email_verified', 'name']
     }
@@ -48,24 +58,6 @@ def get_all_users():
         next_page = response.get('PaginationToken', None)
         users_remain = next_page is not None
 
-    print('USERS ARE ', users[0])
     return users
-    # {"Username":"00db34d7-5058-413b-b550-5f3fb4cdc5cc",
-    # "Attributes":[{"Name":"sub","Value":"00db34d7-5058-413b-b550-5f3fb4cdc5cc"},
-    # {"Name":"email_verified","Value":"true"},{"Name":"name","Value":"Pawel Herzyk"},
-    # {"Name":"email","Value":"pawel.herzyk@glasgow.ac.uk"}],
-    # "UserCreateDate":"2021-12-22T11:31:23.389Z","UserLastModifiedDate":"2022-01-03T10:41:11.718Z","Enabled":true,"UserStatus":"CONFIRMED"}
 
-    # {'UserPoolId': 'eu-west-1_eYTCV3Nl7', 
-    # 'CSVHeader': ['name', 'given_name', 'family_name', 'middle_name', 
-    # 'nickname', 'preferred_username', 'profile', 'picture', 'website', 'email', 
-    # 'email_verified', 'gender', 'birthdate', 'zoneinfo', 'locale', 'phone_number', 
-    # 'phone_number_verified', 'address', 'updated_at', 'custom:institution',
-    #  'cognito:mfa_enabled', 'cognito:username'], \
-    # 'ResponseMetadata': {'RequestId': '296b8af3-79cd-4f01-83b6-76625f001499', 
-    # 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Wed, 16 Feb 2022 11:39:08 GMT', 
-    # 'content-type': 'application/x-amz-json-1.1', 'content-length': '350', 
-    # 'connection': 'keep-alive', 'x-amzn-requestid': '296b8af3-79cd-4f01-83b6-76625f001499'
-    # }, 'RetryAttempts': 0}}
-
-get_all_users()
+backup_users()
