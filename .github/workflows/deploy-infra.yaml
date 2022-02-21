@@ -140,7 +140,7 @@ jobs:
           eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
   configure-cluster:
-    name: Configure Kubernetes resources (nginx ingress, flux, Helm) on the EKS cluster
+    name: Configure Kubernetes resources (Load Balancer Controller, flux, Helm) on the EKS cluster
     runs-on: ubuntu-20.04
     needs: create-eks-cluster
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')

@@ -74,18 +74,15 @@ Simply download and install [lens](https://k8slens.dev/) and then follow the ins
 
 ### Ingress
 
-Ingress into the cluster is managed by an NGINX Ingress Controller. This is automatically set up by the pipeline
-according to the instructions [here](https://kubernetes.github.io/ingress-nginx/deploy/#aws). There is no Helm
-chart supporting this exact deployment, so a regular manifest file is applied. The deployment creates an Elastic
-Load Balancer automatically.
+Ingress into the cluster is managed by the [AWS Load Balancer Controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller).
 
-After NGINX Ingress Controller is installed, the DNS of the hosted domain must be modified to redirect to the
+
+After the AWS Load Balancer Controller is installed, the DNS of the hosted domain must be modified to redirect to the
 load balancer automatically. This is done automatically as a CloudFormation chart under `infra/cf-route53.yaml`.
 
-Ingress resources need to specify the following in their annotations for them to be managed by the NGINX Ingress
-Controller:
+Ingress resources need to specify the following in their annotations for them to be managed by the AWS Load Balancer Controller:
 
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: alb
 
 This is automatically configured for the charts in this repository.    
 

@@ -8,7 +8,7 @@ Parameters:
     AllowedValues:
       - staging
       - production
-    Description: The environment for which the SNS topic needs to be created.
+    Description: The environment for which the Load Balancer needs to be created.
 
 Resources: 
   LoadBalancer:
