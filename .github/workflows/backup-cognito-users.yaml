@@ -7,6 +7,14 @@ jobs:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
     steps:
+      - id: setup-node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - id: install
+        name: Install dependencies
+        run: |-
+          npm install -g cognito-backup-restore
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -16,7 +24,6 @@ jobs:
           aws-region: ${{ env.region }}
       - id: backup-users
         name: create backup json of cognito users
-        uses: rahulpsd18/cognito-backup-restore
         run: |-
           cbr backup --region ${{env.region}} --profile default --pool ${{env.userPool}} --directory .
 
