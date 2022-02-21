@@ -16,7 +16,7 @@ jobs:
       - id: install
         name: Install dependencies
         run: |-
-          npm install -g cognito-backup-restore
+          npm install cognito-backup-restore
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
