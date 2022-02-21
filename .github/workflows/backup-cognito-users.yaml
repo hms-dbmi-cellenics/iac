@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
 env:
   region: 'eu-west-1'
-  userPool: 'eu-west-1_eYTCV3Nl7'
+  backups-bucket: 'biomage-backups-production'
+
 jobs:
   backup-users:
     name: create backup of cognito users
@@ -13,10 +14,13 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14'
+
       - id: install
         name: Install dependencies
         run: |-
           npm install -g cognito-backup-restore
+          sudo apt-get install jq
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -28,10 +32,13 @@ jobs:
       - id: backup-users
         name: create backup json of cognito users
         run: |-
-          cbr backup --region ${{env.region}} --key  ${{secrets.AWS_ACCESS_KEY_ID}} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }} --pool ${{env.userPool}} --directory .
+          userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("production")) | .Id')
+          cbr backup --region ${{env.region}} --key  ${{secrets.AWS_ACCESS_KEY_ID}} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }} --pool ${userPoolId} --directory .
+
       - id: save-to-s3
         name: save backup json to s3
         run: |-
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
-          aws s3api put-object --bucket biomage-backups-production --key ${current_date}/biomage-user-pool-case-insensitive-production/data.json --body ./${{env.userPool}}.json
-          
+          userPoolName=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("production")) | .Name')
+          userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("production")) | .Id')
+          aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${userPoolName}/data.json --body ./${userPoolId}.json
