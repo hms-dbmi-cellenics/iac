@@ -1,6 +1,11 @@
 name: Create backup of cognito users
 on:
   workflow_dispatch:
+    inputs:
+      tables:
+        description: 'Space separated ids of tables to backup, all if not specified'
+        required: false
+        default: 'all'
 env:
   region: 'eu-west-1'
   userPool: 'eu-west-1_eYTCV3Nl7'
