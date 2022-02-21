@@ -1,4 +1,6 @@
 name: Create backup of cognito users
+on:
+  workflow_dispatch:
 env:
   region: 'eu-west-1'
   userPool: 'eu-west-1_eYTCV3Nl7'
