@@ -33,5 +33,5 @@ jobs:
         name: save backup json to s3
         run: |-
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
-          aws s3api put-object --bucket biomage-backups-production --key ${current_date}/biomage-user-pool-case-insensitive-production/data.json --body ./eu-west-1_eYTCV3Nl7.json
+          aws s3api put-object --bucket biomage-backups-production --key ${current_date}/biomage-user-pool-case-insensitive-production/data.json --body ./${{env.userPool}}.json
           
