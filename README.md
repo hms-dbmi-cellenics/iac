@@ -5,7 +5,7 @@ Our infrastructure as code.
 Base infrastructure
 -------------------
 
-Base infrastructure means infrastructure required for the single-cell pipeline to be deployed.
+Base infrastructure means infrastructure required for Cellenics to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
 infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
 from the [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
@@ -45,7 +45,7 @@ granted.
 
 #### 1. Make sure you have the correct aws credentials set in your `~/.aws/credentials` file. 
 
-To check if your credentials are correct, try running step 2. If step 2 fails with an error saying `error: You must be logged in to the server (Unauthorized)` this means that your current credentials are wrong. In that case, talk to Iva or Marcell to give you correct ones.
+To check if your credentials are correct, try running step 2. If step 2 fails with an error saying `error: You must be logged in to the server (Unauthorized)` this means that your current credentials are wrong. In that case, talk to Iva to give you correct ones.
 
 #### 2. Configure kube config to point to the right cluster.
 This step guides you through how to configure your kubeconfig file in order to have access to the
