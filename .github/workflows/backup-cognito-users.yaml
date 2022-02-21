@@ -16,7 +16,7 @@ jobs:
       - id: install
         name: Install dependencies
         run: |-
-          npm install cognito-backup-restore
+          npm install -g cognito-backup-restore
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -27,7 +27,7 @@ jobs:
       - id: backup-users
         name: create backup json of cognito users
         run: |-
-          cbr backup --region ${{env.region}} --profile default --pool ${{env.userPool}} --directory .
+          cbr backup --region eu-west-1 --profile default --pool eu-west-1_eYTCV3Nl7 --directory .
 
       - id: save-to-s3
         name: save backup json to s3
