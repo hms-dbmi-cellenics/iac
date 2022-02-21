@@ -91,25 +91,6 @@ the internet. If redeploying the infrastructure to another region, **make sure t
 There can only be one deployment bound to the domain at any given time. Destroying the old deployment before creating
 the new one will result in downtime.
 
-### TLS certificates
-
-TLS certificates are handled by [cert-manager](https://cert-manager.io/) which is deployed using a Helm chart
-and can be accessed in Lens under `Apps > Releases`. This sets up the infrastructure necessary to automatically
-manage TLS certificates.
-
-We use Let's Encrypt for our deployment's TLS certificates. To configure cert-manager to use this, we need to install
-a `ClusterIssuer` resource to configure cert-manager to recognize it as a way of getting certificates. This is automatically
-managed by the pipeline by deploying the Helm chart under `infra/k8s-cert-manager-issuers`. The ClusterIssuer called
-*letsencrypt-prod* (under `infra/k8s-cert-manager-issuers/templates/le-prod-issuer.yaml`) is the one that generates
-valid certificates, the *letsencrypt-staging* is used for verifying a configuration if there are errors, as the
-production version is rate-limited.
-
-To use *letsencrypt-prod* as the issuer for a TLS certificate, the Ingress deployed must have the following annotation:
-
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-
-This is automatically configured for the charts in this repository.
-
 Deployments
 -----------
 
