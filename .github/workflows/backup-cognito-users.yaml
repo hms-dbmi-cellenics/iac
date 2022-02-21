@@ -17,6 +17,11 @@ jobs:
         name: Install dependencies
         run: |-
           npm install -g cognito-backup-restore
+      - id: backup-users
+        name: create backup json of cognito users
+        run: |-
+          cbr backup --region ${{env.region}} --profile default --pool ${{env.userPool}} --directory .
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -24,10 +29,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
-      - id: backup-users
-        name: create backup json of cognito users
-        run: |-
-          cbr backup --region eu-west-1 --profile default --pool eu-west-1_eYTCV3Nl7 --directory .
 
       - id: save-to-s3
         name: save backup json to s3
