@@ -20,7 +20,7 @@ jobs:
         name: Install dependencies
         run: |-
           npm install -g cognito-backup-restore
-          sudo apt-get install jq
+          sudo apt install -y jq
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
