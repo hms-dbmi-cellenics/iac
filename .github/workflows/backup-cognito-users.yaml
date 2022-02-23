@@ -23,6 +23,7 @@ jobs:
         run: |-
           npm install -g cognito-backup-restore
           sudo apt install -y jq
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -54,3 +55,4 @@ jobs:
           channel: pipelines
           status: FAILED
           color: danger
+          
