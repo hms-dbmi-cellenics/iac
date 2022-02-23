@@ -32,6 +32,7 @@ jobs:
       - id: backup-users
         name: create backup json of cognito users
         run: |-
+          aws cognito-idp list-user-pools
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id')
           cbr backup --region ${{env.region}} --key  ${{secrets.AWS_ACCESS_KEY_ID}} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }} --pool ${userPoolId} --directory .
       - id: save-to-s3
@@ -41,13 +42,13 @@ jobs:
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{ env.pool-name }}")) | .Id')
           aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
       
-      - id: send-to-slack
-        name: Send failure notification to Slack
-        if: failure()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: pipelines
-          status: FAILED
-          color: danger
+#       - id: send-to-slack
+#         name: Send failure notification to Slack
+#         if: failure()
+#         env:
+#           SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
+#         uses: voxmedia/github-action-slack-notify-build@v1
+#         with:
+#           channel: pipelines
+#           status: FAILED
+#           color: danger
