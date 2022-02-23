@@ -45,7 +45,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-299-merge-f2e77ecd2da81cca21af5f60536999634b0094d9
+      tag: refs-pull-299-merge-b2ac19762c75c14cf8832df2646ea130e214bee8
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
