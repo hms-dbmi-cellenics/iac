@@ -4,7 +4,7 @@ on:
 env:
   region: 'eu-west-1'
   backups-bucket: 'biomage-backups-production'
-  pool-name: 'biomage-user-pool-case-insensitive-productionn'
+  pool-name: 'biomage-user-pool-case-insensitive-production'
 
 jobs:
   backup-users:
