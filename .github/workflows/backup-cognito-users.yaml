@@ -1,9 +1,12 @@
 name: Create backup of cognito users
 on:
+  schedule: 
+    - cron: '0 1 * * 0'
   workflow_dispatch:
 env:
   region: 'eu-west-1'
   backups-bucket: 'biomage-backups-production'
+  pool-name: 'biomage-user-pool-case-insensitive-production'
 
 jobs:
   backup-users:
@@ -39,6 +42,16 @@ jobs:
         name: save backup json to s3
         run: |-
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
-          userPoolName=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("production")) | .Name')
-          userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("production")) | .Id')
-          aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${userPoolName}/data.json --body ./${userPoolId}.json
+          userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test(${{ env.pool-name }})) | .Id')
+          aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
+      
+      - id: send-to-slack
+        name: Send failure notification to Slack
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pipelines
+          status: FAILED
+          color: danger
