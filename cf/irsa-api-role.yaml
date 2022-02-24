@@ -211,4 +211,5 @@ Resources:
                   - "cognito-idp:ListUserPoolClients"
                   - "cognito-idp:DescribeUserPool"
                   - "cognito-idp:DescribeUserPoolClient"
+                  - "cognito-idp:AdminGetUser"
                 Resource: '*'
