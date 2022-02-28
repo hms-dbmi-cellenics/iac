@@ -5,7 +5,7 @@ Our infrastructure as code.
 Base infrastructure
 -------------------
 
-Base infrastructure means infrastructure required for the single-cell pipeline to be deployed.
+Base infrastructure means infrastructure required for Cellenics to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
 infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
 from the [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
@@ -45,7 +45,7 @@ granted.
 
 #### 1. Make sure you have the correct aws credentials set in your `~/.aws/credentials` file. 
 
-To check if your credentials are correct, try running step 2. If step 2 fails with an error saying `error: You must be logged in to the server (Unauthorized)` this means that your current credentials are wrong. In that case, talk to Iva or Marcell to give you correct ones.
+To check if your credentials are correct, try running step 2. If step 2 fails with an error saying `error: You must be logged in to the server (Unauthorized)` this means that your current credentials are wrong. In that case, talk to Iva to give you correct ones.
 
 #### 2. Configure kube config to point to the right cluster.
 This step guides you through how to configure your kubeconfig file in order to have access to the
@@ -74,18 +74,15 @@ Simply download and install [lens](https://k8slens.dev/) and then follow the ins
 
 ### Ingress
 
-Ingress into the cluster is managed by an NGINX Ingress Controller. This is automatically set up by the pipeline
-according to the instructions [here](https://kubernetes.github.io/ingress-nginx/deploy/#aws). There is no Helm
-chart supporting this exact deployment, so a regular manifest file is applied. The deployment creates an Elastic
-Load Balancer automatically.
+Ingress into the cluster is managed by the [AWS Load Balancer Controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller).
 
-After NGINX Ingress Controller is installed, the DNS of the hosted domain must be modified to redirect to the
+
+After the AWS Load Balancer Controller is installed, the DNS of the hosted domain must be modified to redirect to the
 load balancer automatically. This is done automatically as a CloudFormation chart under `infra/cf-route53.yaml`.
 
-Ingress resources need to specify the following in their annotations for them to be managed by the NGINX Ingress
-Controller:
+Ingress resources need to specify the following in their annotations for them to be managed by the AWS Load Balancer Controller:
 
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: alb
 
 This is automatically configured for the charts in this repository.    
 
@@ -93,25 +90,6 @@ This is automatically configured for the charts in this repository.
 the internet. If redeploying the infrastructure to another region, **make sure the old deployment still exists**.
 There can only be one deployment bound to the domain at any given time. Destroying the old deployment before creating
 the new one will result in downtime.
-
-### TLS certificates
-
-TLS certificates are handled by [cert-manager](https://cert-manager.io/) which is deployed using a Helm chart
-and can be accessed in Lens under `Apps > Releases`. This sets up the infrastructure necessary to automatically
-manage TLS certificates.
-
-We use Let's Encrypt for our deployment's TLS certificates. To configure cert-manager to use this, we need to install
-a `ClusterIssuer` resource to configure cert-manager to recognize it as a way of getting certificates. This is automatically
-managed by the pipeline by deploying the Helm chart under `infra/k8s-cert-manager-issuers`. The ClusterIssuer called
-*letsencrypt-prod* (under `infra/k8s-cert-manager-issuers/templates/le-prod-issuer.yaml`) is the one that generates
-valid certificates, the *letsencrypt-staging* is used for verifying a configuration if there are errors, as the
-production version is rate-limited.
-
-To use *letsencrypt-prod* as the issuer for a TLS certificate, the Ingress deployed must have the following annotation:
-
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-
-This is automatically configured for the charts in this repository.
 
 Deployments
 -----------
