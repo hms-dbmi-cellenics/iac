@@ -32,12 +32,14 @@ metadata:
 data:
   config.yaml: |
     logLevel: info
+    logLevel: info
     logFormat: json
     route:
-      routes:
-        - match:
-          - kind: "Pod"
-            receiver: "cleanup"
+      match:
+        - reason: "BackOff"
+          receiver: "cleanup"
+      drop:
+        - type: "Normal"
     receivers:
       - name: "cleanup"
         webhook:
@@ -65,7 +67,7 @@ spec:
       serviceAccountName: event-exporter
       containers:
         - name: event-exporter
-          image: ghcr.io/opsgenie/kubernetes-event-exporter:v0.10
+          image: ghcr.io/opsgenie/kubernetes-event-exporter:v0.11
           imagePullPolicy: IfNotPresent
           args:
             - -conf=/data/config.yaml
