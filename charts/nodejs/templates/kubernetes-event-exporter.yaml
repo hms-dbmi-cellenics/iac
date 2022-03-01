@@ -32,7 +32,6 @@ metadata:
 data:
   config.yaml: |
     logLevel: info
-    logLevel: info
     logFormat: json
     route:
       match:
