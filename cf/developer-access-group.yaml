@@ -213,3 +213,15 @@ Resources:
                   - events:RemoveTargets
                   - events:TestEventPattern
                 Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:*"
+
+        - PolicyName: "can-start-an-ssm-session"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:StartSession
+                  - ssm:TerminateSession
+                Resource: 
+                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:session/*"
