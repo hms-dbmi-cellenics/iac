@@ -19,14 +19,14 @@ Resources:
   SSMProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
-      InstanceProfileName: SSMInstanceProfile
+      InstanceProfileName: !Sub "ssm-instance-profile-${Environment}"
       Roles: 
         - !Ref SSMRole
 
   SSMRole:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: SSMInstanceProfile
+      RoleName: !Sub "ssm-role-${Environment}"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
