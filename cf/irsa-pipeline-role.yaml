@@ -85,6 +85,14 @@ Resources:
                 Action: "s3:DeleteObject"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+        - PolicyName: !Sub "can-modify-object-tags-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "s3:PutObjectTagging"
+                Resource:
+                  - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"

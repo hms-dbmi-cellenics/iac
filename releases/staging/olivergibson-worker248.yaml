@@ -3,33 +3,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-ui621
-  name: ui-grasp6-ui621
+    sandboxId: olivergibson-worker248
+  name: ui-olivergibson-worker248
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-621-merge-*
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: grasp6-ui621
+    sandboxId: olivergibson-worker248
   name: ui
-  namespace: ui-grasp6-ui621
+  namespace: ui-olivergibson-worker248
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: 57a14b10e9ab022aa3788b19fd53af90f08a1dba
   releaseName: ui
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: grasp6-ui621
+      sandboxId: olivergibson-worker248
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-621-merge-cc75777af807179d57994a8bfae55cf415b77657
+      tag: refs-heads-master-384eb501bc4fe46e5b6f164f21c25a810f5cb040
     kubernetes:
       env: staging
     livenessProbe:
@@ -50,8 +50,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-ui621
-  name: api-grasp6-ui621
+    sandboxId: olivergibson-worker248
+  name: api-olivergibson-worker248
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -60,25 +60,25 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: grasp6-ui621
+    sandboxId: olivergibson-worker248
   name: api
-  namespace: api-grasp6-ui621
+  namespace: api-olivergibson-worker248
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: bd6d3ff63b1dc27df77caa879b1cb8e5ed5673d9
+    ref: 57a14b10e9ab022aa3788b19fd53af90f08a1dba
   releaseName: api
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/api
-      sandboxId: grasp6-ui621
+      sandboxId: olivergibson-worker248
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-ac53d2d61e42c11f32f889c72c4856305c78173e
+      tag: refs-heads-master-b357f3875a61d237714fc23cdb22777267a73ad1
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -102,36 +102,36 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-ui621
-  name: worker-grasp6-ui621
+    sandboxId: olivergibson-worker248
+  name: worker-olivergibson-worker248
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-heads-master-*-python
-    filter.fluxcd.io/r: glob:refs-heads-master-*-r
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/python: glob:refs-pull-248-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-248-merge-*-r
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: grasp6-ui621
+    sandboxId: olivergibson-worker248
   name: worker
-  namespace: worker-grasp6-ui621
+  namespace: worker-olivergibson-worker248
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: ad62f4d303a7e72e95fade809b8da5792413ede9
+    ref: refs/pull/248/head
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ad62f4d303a7e72e95fade809b8da5792413ede9-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-248-merge-77cc517d9322b808f267aa6ce4d707eca684060a-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-ad62f4d303a7e72e95fade809b8da5792413ede9-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-248-merge-77cc517d9322b808f267aa6ce4d707eca684060a-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: grasp6-ui621
+    sandboxId: olivergibson-worker248
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -139,8 +139,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-ui621
-  name: pipeline-grasp6-ui621
+    sandboxId: olivergibson-worker248
+  name: pipeline-olivergibson-worker248
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -151,14 +151,14 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: grasp6-ui621
+    sandboxId: olivergibson-worker248
   name: pipeline
-  namespace: pipeline-grasp6-ui621
+  namespace: pipeline-olivergibson-worker248
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: 83fe97db349da45907b274d3c6844f9e862a6d38
+    ref: c9fb5d5213dbb275237b1ba1769f15faeee8e43a
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
@@ -166,8 +166,8 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-83fe97db349da45907b274d3c6844f9e862a6d38-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-c9fb5d5213dbb275237b1ba1769f15faeee8e43a-pipeline-runner
     replicaCount: 0
-    sandboxId: grasp6-ui621
+    sandboxId: olivergibson-worker248
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

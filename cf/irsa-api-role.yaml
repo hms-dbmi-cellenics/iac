@@ -48,6 +48,7 @@ Resources:
               - Effect: Allow
                 Action: "sqs:CreateQueue"
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+    
         - PolicyName: !Sub "can-send-to-worker-queue-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -55,6 +56,7 @@ Resources:
               - Effect: Allow
                 Action: "sqs:SendMessage"
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+   
         - PolicyName: !Sub "can-manage-tables-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -77,6 +79,9 @@ Resources:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/plots-tables-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/samples-${Environment}*"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/projects-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
+     
         - PolicyName: "Access-to-SES"
           PolicyDocument:
             Version: "2012-10-17"
@@ -85,6 +90,7 @@ Resources:
                 Action:
                   - "ses:SendEmail"
                 Resource: "*"
+      
         - PolicyName: !Sub "can-download-objects-from-s3-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -98,6 +104,7 @@ Resources:
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+      
         - PolicyName: !Sub "can-upload-cell-sets-in-s3-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -107,6 +114,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+      
         - PolicyName: !Sub "can-get-object-tagging-from-s3-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -115,6 +123,7 @@ Resources:
                 Action: "s3:GetObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
+      
         - PolicyName: !Sub "can-delete-original-files-s3-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -124,6 +133,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+        
         - PolicyName: !Sub "can-list-s3-cell-ids-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -132,6 +142,7 @@ Resources:
                 Action: "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}"
+       
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -140,6 +151,7 @@ Resources:
                 Action: "elasticache:DescribeReplicationGroups"
                 Resource:
                   - !Sub "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:biomage-redis-${Environment}"
+       
         - PolicyName: !Sub "can-access-details-of-kubernetes-cluster-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -148,6 +160,7 @@ Resources:
                 Action: "eks:DescribeCluster"
                 Resource:
                   - !Sub "arn:aws:eks:${AWS::Region}:${AWS::AccountId}:cluster/biomage-${Environment}"
+       
         - PolicyName: !Sub "can-manage-state-machine-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -164,6 +177,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:pipeline-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-gem2s-${Environment}-*"
+        
         - PolicyName: !Sub "can-stop-execution-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -178,6 +192,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:pipeline-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-qc-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-gem2s-${Environment}-*:*"
+
         - PolicyName: !Sub "can-create-activity-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -189,6 +204,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
+
         - PolicyName: !Sub "can-pass-state-machine-executionrole-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -198,6 +214,7 @@ Resources:
                   - "iam:PassRole"
                 Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/state-machine-role-${Environment}"
+                  
         - PolicyName: "can-read-cognito"
           PolicyDocument:
             Version: "2012-10-17"
@@ -210,3 +227,18 @@ Resources:
                   - "cognito-idp:DescribeUserPool"
                   - "cognito-idp:DescribeUserPoolClient"
                 Resource: '*'
+                
+        - PolicyName: "can-access-rds"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "rds-db:connect"
+                Resource:
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/api_role"
+              - Effect: Allow
+                Action:
+                  - "rds:DescribeDBClusterEndpoints"
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"

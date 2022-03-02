@@ -22,7 +22,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: 9fce119fdfe8434ccb6c2bb8178cb637ea3a4fb3
+    ref: e237ad8b284ca040cef6f15f8309e4ee8d29a060
   values:
     kubernetes:
       env: staging
@@ -31,7 +31,7 @@ spec:
     sandboxId: default
     replicaCount: 1
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-456dbabfa5107e0111f1403e994ae4b5f8afa7b7-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cb15a1b08ec27dac79ab82f1700740cd50f5bf89-r
       memoryRequest: 28Gi
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9fce119fdfe8434ccb6c2bb8178cb637ea3a4fb3-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-5c61c77b818e7318500094289cf5e817c9d3fd52-python

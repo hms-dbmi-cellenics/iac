@@ -3,33 +3,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: pol-api294
-  name: ui-pol-api294
+    sandboxId: alex-ui634-pipeline206
+  name: ui-alex-ui634-pipeline206
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-634-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: pol-api294
+    sandboxId: alex-ui634-pipeline206
   name: ui
-  namespace: ui-pol-api294
+  namespace: ui-alex-ui634-pipeline206
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: c0b0441e13f2355a2af298734e2014c62eb85eae
+    ref: refs/heads/master
   releaseName: ui
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: pol-api294
+      sandboxId: alex-ui634-pipeline206
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-d82a4318d2663ab1a3d90d4d22f0e2055cdd462f
+      tag: refs-pull-634-merge-290cb3565aaa50481b3c21f9080cb2a5ca3d35f2
     kubernetes:
       env: staging
     livenessProbe:
@@ -50,35 +50,35 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: pol-api294
-  name: api-pol-api294
+    sandboxId: alex-ui634-pipeline206
+  name: api-alex-ui634-pipeline206
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-294-merge-*
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: pol-api294
+    sandboxId: alex-ui634-pipeline206
   name: api
-  namespace: api-pol-api294
+  namespace: api-alex-ui634-pipeline206
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: 6f3b353ae63e0a1db063c3e5da965e3269ebdf96
   releaseName: api
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/api
-      sandboxId: pol-api294
+      sandboxId: alex-ui634-pipeline206
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-294-merge-13b6ddbbc73fced0ba45ec20b80b209c965a5e0a
+      tag: refs-heads-master-13aff0629942a5c8517879173aa7b0e4d7fca82a
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -102,8 +102,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: pol-api294
-  name: worker-pol-api294
+    sandboxId: alex-ui634-pipeline206
+  name: worker-alex-ui634-pipeline206
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -113,25 +113,25 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: pol-api294
+    sandboxId: alex-ui634-pipeline206
   name: worker
-  namespace: worker-pol-api294
+  namespace: worker-alex-ui634-pipeline206
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: 60995e259ea58a54807145ad774345f226b36d62
+    ref: 5c61c77b818e7318500094289cf5e817c9d3fd52
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-60995e259ea58a54807145ad774345f226b36d62-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-5c61c77b818e7318500094289cf5e817c9d3fd52-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-60995e259ea58a54807145ad774345f226b36d62-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-5c61c77b818e7318500094289cf5e817c9d3fd52-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: pol-api294
+    sandboxId: alex-ui634-pipeline206
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -139,26 +139,26 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: pol-api294
-  name: pipeline-pol-api294
+    sandboxId: alex-ui634-pipeline206
+  name: pipeline-alex-ui634-pipeline206
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:refs-pull-206-merge-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'false'
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: pol-api294
+    sandboxId: alex-ui634-pipeline206
   name: pipeline
-  namespace: pipeline-pol-api294
+  namespace: pipeline-alex-ui634-pipeline206
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: 83fe97db349da45907b274d3c6844f9e862a6d38
+    ref: refs/pull/206/head
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
@@ -166,8 +166,8 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-83fe97db349da45907b274d3c6844f9e862a6d38-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-206-merge-afed84ab7a5bc00609b882bf81c16d850b1b548e-pipeline-runner
     replicaCount: 0
-    sandboxId: pol-api294
+    sandboxId: alex-ui634-pipeline206
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
