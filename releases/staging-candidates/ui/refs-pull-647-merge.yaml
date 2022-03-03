@@ -1,26 +1,26 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ui-default
+  name: ui-STAGING_SANDBOX_ID
   labels:
-    sandboxId: default
+    sandboxId: STAGING_SANDBOX_ID
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   name: ui
-  namespace: ui-default
+  namespace: ui-STAGING_SANDBOX_ID
   labels:
-    sandboxId: default
+    sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-647-merge-*
 spec:
   releaseName: ui
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: master
+    ref: STAGING_CHART_REF
   values:
     # disable readiness probes as load balancer performs
     # its own health checks/cordoning
@@ -36,12 +36,12 @@ spec:
       env: staging
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: default
+      sandboxId: STAGING_SANDBOX_ID
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-fa03fcb8704e9705d3b161dd7584f2244820b7d9
-    replicaCount: 4
+      tag: refs-pull-647-merge-8d13fffab071293ef8e40585bdf3cf169a67539c
+    replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
 

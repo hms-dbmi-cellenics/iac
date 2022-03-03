@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up EC2 instance, can be accessed through SSM for connecting to RDS. For more information read https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+  
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Resources:
+  SSMProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub "ssm-instance-profile-${Environment}"
+      Roles: 
+        - !Ref SSMRole
+
+  SSMRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Sub "ssm-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: Basic SSM permissions for EC2
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: "can-access-rds"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "rds-db:connect"
+                Resource: 
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
+              - Effect: Allow
+                Action:
+                  - "rds:DescribeDBClusterEndpoints"
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+
+  RDSAgent:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.nano
+      IamInstanceProfile: !Ref SSMProfile
+      ImageId: !Ref LatestAmiId
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
+      SubnetId:
+      #Pick first element in SubnetsPrivate
+        !Select [ 0, Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"] ]
+
+      #UserData Runs when ec2 is being deployed
+      UserData:
+        Fn::Base64:
+          '
+          Content-Type: multipart/mixed; boundary="//"
+          MIME-Version: 1.0
+
+          --//
+          Content-Type: text/cloud-config; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="cloud-config.txt"
+
+          #cloud-config
+          cloud_final_modules:
+          - [scripts-user, always]
+
+          --//
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="userdata.txt"
+          
+          #!/bin/bash -e
+          sudo yum -y install postgresql
+          '
+      Tags:
+        - Key: "Name"
+          Value: !Sub "rds-${Environment}-ssm-agent"

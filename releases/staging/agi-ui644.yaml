@@ -3,19 +3,19 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui642
-  name: ui-agi-ui642
+    sandboxId: agi-ui644
+  name: ui-agi-ui644
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-642-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-644-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: agi-ui642
+    sandboxId: agi-ui644
   name: ui
-  namespace: ui-agi-ui642
+  namespace: ui-agi-ui644
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
@@ -25,11 +25,11 @@ spec:
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: agi-ui642
+      sandboxId: agi-ui644
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-642-merge-9dc233c4d9bac9047de4bf1041edb504b21a76e1
+      tag: refs-pull-644-merge-fe736e3bf428aea901249570099ef12cea59dcb5
     kubernetes:
       env: staging
     livenessProbe:
@@ -50,8 +50,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui642
-  name: api-agi-ui642
+    sandboxId: agi-ui644
+  name: api-agi-ui644
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -60,25 +60,25 @@ metadata:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-ui642
+    sandboxId: agi-ui644
   name: api
-  namespace: api-agi-ui642
+  namespace: api-agi-ui644
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: ae13aac3ea469fa1f7bb6e4d003a2cd619668f74
+    ref: 05236ae7e014e77e899a208f8ed56ab8e7b52d81
   releaseName: api
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/api
-      sandboxId: agi-ui642
+      sandboxId: agi-ui644
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-45c40f4f03218175f67dd675c134adadeae7a3f8
+      tag: refs-heads-master-cc0356c47c108d85194115b672f0dbb6910ec610
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -102,8 +102,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui642
-  name: worker-agi-ui642
+    sandboxId: agi-ui644
+  name: worker-agi-ui644
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -113,9 +113,9 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-ui642
+    sandboxId: agi-ui644
   name: worker
-  namespace: worker-agi-ui642
+  namespace: worker-agi-ui644
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
@@ -131,7 +131,7 @@ spec:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-31b0ae15e79971d030cc96da9a558919e95a48c9-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: agi-ui642
+    sandboxId: agi-ui644
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -139,8 +139,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: agi-ui642
-  name: pipeline-agi-ui642
+    sandboxId: agi-ui644
+  name: pipeline-agi-ui644
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -151,14 +151,14 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: agi-ui642
+    sandboxId: agi-ui644
   name: pipeline
-  namespace: pipeline-agi-ui642
+  namespace: pipeline-agi-ui644
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: 0c3d79abad0cb485f96e513bbfca88ab07242a1a
+    ref: 6cda23221202fc8119379aa7d316985f48070223
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
@@ -166,8 +166,8 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-0c3d79abad0cb485f96e513bbfca88ab07242a1a-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-6cda23221202fc8119379aa7d316985f48070223-pipeline-runner
     replicaCount: 0
-    sandboxId: agi-ui642
+    sandboxId: agi-ui644
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
