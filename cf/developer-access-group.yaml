@@ -222,6 +222,7 @@ Resources:
                 Action:
                   - ssm:StartSession
                   - ssm:TerminateSession
+                  - ec2-instance-connect:SendSSHPublicKey
                 Resource: 
                   - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
                   - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:session/*"
