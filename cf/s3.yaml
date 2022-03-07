@@ -80,8 +80,8 @@ Resources:
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
 
-  # Stores, for each experiment, the log and dump files for errors from the pipeline
-  # Indexed by experimentId
+  # Stores, for each experiment and timestamp, the log and dump files for errors from the pipeline
+  # Indexed by experimentId and timepoint
   PipelineDebugBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -91,6 +91,11 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+        - Id: DeleteObjectAfter7Days
+          Status: Enabled
+          ExpirationInDays: 10
 
   # The bucket that contains the count matrix files (in .rds format) used for the experiments.
   SourceBucket:
