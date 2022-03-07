@@ -80,6 +80,8 @@ Resources:
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
 
+  # Stores, for each experiment, the log and dump files for errors from the pipeline
+  # Indexed by experimentId
   PipelineDebugBucket:
     Type: AWS::S3::Bucket
     Properties:
