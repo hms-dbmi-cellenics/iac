@@ -81,7 +81,7 @@ Resources:
         RestrictPublicBuckets: True
 
   # Stores, for each experiment and timestamp, the log and dump files for errors from the pipeline
-  # Indexed by experimentId and timepoint
+  # Indexed by experimentId and timestamp
   PipelineDebugBucket:
     Type: AWS::S3::Bucket
     Properties:
