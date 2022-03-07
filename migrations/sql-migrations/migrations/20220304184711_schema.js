@@ -6,11 +6,15 @@ const setOnUpdateTrigger = (table) => (`
   EXECUTE PROCEDURE on_update_timestamp();
 `);
 
+const nativeEnum = (table, tableName) => (
+  table.enu(tableName, null, { useNative: true, existingType: true, enumName: tableName })
+)
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async function(knex) {  
+ exports.up = async function(knex) {  
   await knex.raw(`CREATE TYPE pipeline_type AS ENUM ('qc', 'gem2s');`);
   await knex.raw(`CREATE TYPE sample_technology AS ENUM ('10x', 'rhapsody');`);
   await knex.raw(`CREATE TYPE sample_file_type AS ENUM ('features10x', 'barcodes10x', 'matrix10x', 'rhapsody');`);
@@ -34,7 +38,7 @@ exports.up = async function(knex) {
   await knex.schema
     .createTable('experiment_execution', table => {
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
-      table.enu('pipeline_type', null, { useNative: true, existingType: true, enumName: 'pipeline_type' });
+      nativeEnum(table, 'pipeline_type').notNullable();
       table.string('params_hash').notNullable();
       table.string('state_machine_arn').notNullable();
       table.string('execution_arn').notNullable();
@@ -46,9 +50,9 @@ exports.up = async function(knex) {
   await knex.schema
     .createTable('sample', table => {
       table.uuid('id').primary();
-      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
-      table.string('name');
-      table.enu('sample_technology', null, { useNative: true, existingType: true, enumName: 'sample_technology' });
+      table.uuid('experiment_id').notNullable().references('experiment.id').onDelete('CASCADE');
+      table.string('name').notNullable();
+      nativeEnum(table, 'sample_technology').notNullable();
       table.timestamps(true, true);
     }).then(() => {
       knex.raw(setOnUpdateTrigger('experiment'));
@@ -57,11 +61,10 @@ exports.up = async function(knex) {
   await knex.schema
     .createTable('sample_file', table => {
       table.uuid('id').primary();
-      table.enu('sample_file_type', null, { useNative: true, existingType: true, enumName: 'sample_file_type' });
-      table.boolean('valid');
-      table.string('s3_path');
-      table.enu('upload_status', null, { useNative: true, existingType: true, enumName: 'upload_status' });
-
+      nativeEnum(table, 'sample_file_type').notNullable();
+      table.boolean('valid').notNullable();
+      table.string('s3_path').notNullable();
+      nativeEnum(table, 'upload_status').notNullable();
       table.timestamp('updated_at').defaultTo(knex.fn.now());
     }).then(() => {
       knex.raw(setOnUpdateTrigger('experiment'));
@@ -70,42 +73,42 @@ exports.up = async function(knex) {
   await knex.schema
     .createTable('metadata_track', table => {
       table.string('key').primary();
-      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
+      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
     });
     
   await  knex.schema
     .createTable('sample_to_sample_file_map', table => {
-      table.uuid('sample_id');
-      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
+      table.uuid('sample_id').notNullable();
+      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
       
       table.primary(['sample_id', 'experiment_id']);
     });
     
   await knex.schema
     .createTable('sample_in_metadata_track_map', table => {
-      table.string('metadata_track_key').references('metadata_track.key').onDelete('CASCADE');
-      table.uuid('sample_id').references('sample.id').onDelete('CASCADE');
-      table.string('value');
+      table.string('metadata_track_key').references('metadata_track.key').onDelete('CASCADE').notNullable();
+      table.uuid('sample_id').references('sample.id').onDelete('CASCADE').notNullable();
+      table.string('value').notNullable();
   
       table.primary(['metadata_track_key', 'sample_id']);
     });
     
   await knex.schema
     .createTable('plot', table => {
-      table.uuid('id');
-      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
-      table.jsonb('config');
-      table.string('plot_s3_data_key');
+      table.uuid('id').notNullable();
+      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
+      table.jsonb('config').notNullable();
+      table.string('plot_s3_data_key').notNullable();
       
       table.primary(['id', 'experiment_id']);
     });
-};
+}
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function(knex) {
+ exports.down = async function(knex) {  
   return Promise.all([
     knex.schema.dropTable('plot'),
     knex.schema.dropTable('sample_to_sample_file_map'),
@@ -120,4 +123,4 @@ exports.down = function(knex) {
     knex.schema.raw('DROP TYPE sample_technology;'),
     knex.schema.raw('DROP TYPE pipeline_type;'),
   ]);
-};
+}
