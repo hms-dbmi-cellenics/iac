@@ -93,7 +93,7 @@ Resources:
         RestrictPublicBuckets: True
       LifecycleConfiguration:
         Rules:
-        - Id: DeleteObjectAfter7Days
+        - Id: DeleteObjectAfter10Days
           Status: Enabled
           ExpirationInDays: 10
 
