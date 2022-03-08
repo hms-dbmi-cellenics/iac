@@ -21,6 +21,7 @@ const nativeEnum = (table, tableName) => (
   await knex.raw(
     `CREATE TYPE upload_status AS ENUM ('uploaded', 'uploading', 'compressing', 'uploadError', 'fileNotFound');`
   );
+  await knex.raw(`CREATE TYPE access_role AS ENUM ('owner', 'admin', 'explorer', 'viewer');`);
   
   await knex.schema
     .createTable('experiment', table => {
@@ -55,7 +56,7 @@ const nativeEnum = (table, tableName) => (
       nativeEnum(table, 'sample_technology').notNullable();
       table.timestamps(true, true);
     }).then(() => {
-      knex.raw(setOnUpdateTrigger('experiment'));
+      knex.raw(setOnUpdateTrigger('sample'));
     });
   
   await knex.schema
@@ -67,7 +68,7 @@ const nativeEnum = (table, tableName) => (
       nativeEnum(table, 'upload_status').notNullable();
       table.timestamp('updated_at').defaultTo(knex.fn.now());
     }).then(() => {
-      knex.raw(setOnUpdateTrigger('experiment'));
+      knex.raw(setOnUpdateTrigger('sample_file'));
     });
     
   await knex.schema
@@ -95,12 +96,36 @@ const nativeEnum = (table, tableName) => (
     
   await knex.schema
     .createTable('plot', table => {
-      table.uuid('id').notNullable();
+      table.string('id').notNullable();
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
       table.jsonb('config').notNullable();
-      table.string('plot_s3_data_key').notNullable();
+      table.string('s3_data_key').nullable();
       
       table.primary(['id', 'experiment_id']);
+    });
+
+  await knex.schema
+  .createTable('invite-access', function (table) {
+    table.string('user_email', 255).notNullable();
+    table.uuid('experiment_id').notNullable().references('experiment.id');
+    nativeEnum(table, 'access_role').notNullable();
+    table.timestamp('updated_at').defaultTo(knex.fn.now());
+
+    table.primary(['user_email', 'experiment_id']);
+  }).then(() => {
+    knex.raw(setOnUpdateTrigger('invite-access'));
+  });
+
+  await knex.schema
+  .createTable('user-access', function (table) {
+      table.uuid('user_id').notNullable();
+      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
+      nativeEnum(table, 'access_role').notNullable();
+      table.timestamp('updated_at').defaultTo(knex.fn.now());
+
+      table.primary(['user_id', 'experiment_id']);
+    }).then(() => {
+      knex.raw(setOnUpdateTrigger('user-access'));
     });
 }
 
@@ -110,6 +135,8 @@ const nativeEnum = (table, tableName) => (
  */
  exports.down = async function(knex) {  
   return Promise.all([
+    knex.schema.dropTable('user-access'),
+    knex.schema.dropTable('invite-access'),
     knex.schema.dropTable('plot'),
     knex.schema.dropTable('sample_to_sample_file_map'),
     knex.schema.dropTable('sample_in_metadata_track_map'),
@@ -118,6 +145,8 @@ const nativeEnum = (table, tableName) => (
     knex.schema.dropTable('sample'),
     knex.schema.dropTable('experiment_execution'),
     knex.schema.dropTable('experiment'),
+
+    knex.schema.raw('DROP TYPE access_role;'),
     knex.schema.raw('DROP TYPE upload_status;'),
     knex.schema.raw('DROP TYPE sample_file_type;'),
     knex.schema.raw('DROP TYPE sample_technology;'),
