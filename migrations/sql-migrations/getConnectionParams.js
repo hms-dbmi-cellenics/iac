@@ -29,7 +29,7 @@ const getConnectionParams = async (environment) => {
   if (environment === 'development') {
     return {
       host: 'localhost',
-      port: 5432,
+      port: 5431,
       user: 'dev_role',
       password: 'postgres', // pragma: allowlist secret
       database: 'aurora_db',
