@@ -105,7 +105,7 @@ const nativeEnum = (table, tableName) => (
     });
 
   await knex.schema
-  .createTable('invite-access', function (table) {
+  .createTable('invite_access', function (table) {
     table.string('user_email', 255).notNullable();
     table.uuid('experiment_id').notNullable().references('experiment.id');
     nativeEnum(table, 'access_role').notNullable();
@@ -113,11 +113,11 @@ const nativeEnum = (table, tableName) => (
 
     table.primary(['user_email', 'experiment_id']);
   }).then(() => {
-    knex.raw(setOnUpdateTrigger('invite-access'));
+    knex.raw(setOnUpdateTrigger('invite_access'));
   });
 
   await knex.schema
-  .createTable('user-access', function (table) {
+  .createTable('user_access', function (table) {
       table.uuid('user_id').notNullable();
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
       nativeEnum(table, 'access_role').notNullable();
@@ -125,7 +125,7 @@ const nativeEnum = (table, tableName) => (
 
       table.primary(['user_id', 'experiment_id']);
     }).then(() => {
-      knex.raw(setOnUpdateTrigger('user-access'));
+      knex.raw(setOnUpdateTrigger('user_access'));
     });
 }
 
@@ -135,8 +135,8 @@ const nativeEnum = (table, tableName) => (
  */
  exports.down = async function(knex) {  
   return Promise.all([
-    knex.schema.dropTable('user-access'),
-    knex.schema.dropTable('invite-access'),
+    knex.schema.dropTable('user_access'),
+    knex.schema.dropTable('invite_access'),
     knex.schema.dropTable('plot'),
     knex.schema.dropTable('sample_to_sample_file_map'),
     knex.schema.dropTable('sample_in_metadata_track_map'),
