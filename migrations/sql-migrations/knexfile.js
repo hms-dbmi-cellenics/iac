@@ -11,9 +11,9 @@ const fetchConfiguration = async (environment) => {
   };
 };
 
-module.exports = async () => {
-  const environment = process.env.NODE_ENV;
-
+module.exports = async (env) => {
+  const environment = env || process.env.NODE_ENV;
+  
   const configuration = await fetchConfiguration(environment);
   return {
     ...configuration,

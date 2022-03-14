@@ -2,7 +2,9 @@
   "name": "sql-migrations",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
+  "scripts": {
+    "dynamoToSql": "node dynamoToSql"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
