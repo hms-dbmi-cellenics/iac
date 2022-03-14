@@ -5,16 +5,23 @@ const AWS = require('aws-sdk');
 const knexfileLoader = require('./knexfile');
 const knex = require('knex');
 
-
 // ----------------------Dynamo dumps----------------------
 const projects = require('./downloaded_data/projects-production.json');
 const experiments = require('./downloaded_data/experiments-production.json');
 const samples = require('./downloaded_data/samples-production.json');
 // ----------------------Dynamo dumps END------------------
 
+const environments = { 
+  DEVELOPMENT: 'development',
+  STAGING: 'staging',
+  PRODUCTION: 'production',
+}
+
+const activeEnvironment = environments.DEVELOPMENT;
+
 const getSqlClient = async () => {
-  const knexfile = await knexfileLoader('staging');
-  return knex.default(knexfile['staging']);
+  const knexfile = await knexfileLoader(activeEnvironment);
+  return knex.default(knexfile[activeEnvironment]);
 }
 
 const migrateProject = async (project) => {
@@ -69,7 +76,6 @@ const migrateProject = async (project) => {
   await sqlClient('experiment').insert(sqlExperiment);
 
   // Create experiment executions if we need to
-
   if (!_.isNil(experimentData.meta.gem2s)) {
     const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.gem2s;
 
