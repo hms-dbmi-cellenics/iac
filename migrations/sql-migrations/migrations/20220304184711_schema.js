@@ -65,6 +65,7 @@ const nativeEnum = (table, tableName) => (
       nativeEnum(table, 'sample_file_type').notNullable();
       table.boolean('valid').notNullable();
       table.string('s3_path').notNullable();
+      table.string('bundle_path').notNullable();
       nativeEnum(table, 'upload_status').notNullable();
       table.timestamp('updated_at').defaultTo(knex.fn.now());
     }).then(() => {

@@ -5,6 +5,8 @@ const AWS = require('aws-sdk');
 const knexfileLoader = require('./knexfile');
 const knex = require('knex');
 
+const { v4: uuidv4 } = require('uuid');
+
 // ----------------------Dynamo dumps----------------------
 const projects = require('./downloaded_data/projects-production.json');
 const experiments = require('./downloaded_data/experiments-production.json');
@@ -18,7 +20,7 @@ const environments = {
   DEVELOPMENT: 'development',
   STAGING: 'staging',
   PRODUCTION: 'production',
-}
+};
 
 const activeEnvironment = environments.DEVELOPMENT;
 
@@ -26,6 +28,13 @@ const getSqlClient = async () => {
   const knexfile = await knexfileLoader(activeEnvironment);
   return knex.default(knexfile[activeEnvironment]);
 }
+
+
+// ------------------- Utils -------------------------- 
+
+
+
+// ------------------- Utils END----------------------- 
 
 const migrateProject = async (project) => {
   const { projectUuid, projects: projectData } = project;
@@ -91,18 +100,96 @@ const migrateProject = async (project) => {
   }
 
   if (!_.isNil(experimentData.meta.pipeline)) {
-    const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.pipeline;
+    const { stateMachineArn, executionArn } = experimentData.meta.pipeline;
 
     const sqlExperimentExecution = {
       experiment_id: experimentId,
       pipeline_type: 'qc',
-      params_hash: paramsHash,
+      // QC doesn't have paramsHash (it isn't needed)
+      params_hash: null,
       state_machine_arn: stateMachineArn,
       execution_arn: executionArn,
     };
 
     await sqlClient('experiment_execution').insert(sqlExperimentExecution);
   }
+
+  // Samples migrations
+  const samples = Object.values(sampleData.samples);
+  if (samples.length === 0) {
+    console.log(`No samples in the project ${projectUuid}, experiment ${experimentId}`)
+  }
+
+  samples.forEach((sample) => {
+    // SQL "sample" table
+    const sqlSample = {
+      id: sample.uuid,
+      experiment_id: experimentId,
+      name: sample.name,
+      sample_technology: '10x',
+      created_at: sample.createdDate,
+      updated_at: sample.lastModified,
+    };
+    
+    await sqlClient('sample').insert(sqlSample);
+
+    const sampleFileTypeDynamoToEnum = {
+      'features.tsv.gz': 'features10x',
+      'barcodes.tsv.gz': 'barcodes10x',
+      'matrix.mtx.gz': 'matrix10x',
+    }
+
+    const files = Object.values(sample.files);
+    files.forEach((file) => {
+      const sampleFileUuid = uuidv4();
+
+      const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
+
+      const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
+
+      // SQL "sample_file" table
+      const sqlSampleFile = {
+        id: sampleFileUuid,
+        sample_file_type: sampleFileTypeEnumKey,
+        valid: file.valid,
+        s3_path: s3Path,
+        bundle_path: file.bundle.path,
+        upload_status: file.upload.status,
+        updated_at: file.lastModified
+      };
+
+      await sqlClient('sample_file').insert(sqlSampleFile);
+
+      const sqlSampleToSampleFile = {
+        sample_id: sample.uuid,
+        sample_file_id: sampleFileUuid,
+      }
+
+      await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
+    });
+  });
+
+  // We can pick the metadata tracks from any sample, any of them has a reference to every metadata track
+  const metadataTracks = Object.keys(samples[0].metadata);
+
+  metadataTracks.forEach((metadataTrack) => {
+    const sqlMetadataTrack = {
+      metadata_track_key: metadataTrack,
+      experiment_id: experimentId,
+    }
+
+    await sqlClient('metadata_track').insert(sqlMetadataTrack);
+
+    samples.forEach((sample) => {
+      const sqlSampleInMetadataTrackMap = {
+        metadata_track_key: metadataTrack,
+        sample_id: sample.uuid,
+        value: sample.metadata[metadataTrack],
+      };
+
+      await sqlClient('sample_in_metadata_track_map').insert(sqlSampleInMetadataTrackMap);
+    })
+  })
 }
 
 const migrateUserAccess = async () => {
@@ -114,7 +201,6 @@ const migrateUserAccess = async () => {
     experiment_id: ua.experimentId,
     access_role: ua.role,
     updated_at: ua.createdAt
-    
   };
 
   await sqlClient('user_access').insert(sqlUserAccess);
@@ -122,11 +208,13 @@ const migrateUserAccess = async () => {
 
 
 const run = async () => {
-  migrateProject(projects[0]);
   // projects.forEach(async (project) => {
   //   await migrateProject(project);
   // });
-  await migrateUserAccess()
+  await Promise.all([
+    migrateProject(projects[0]),
+    migrateUserAccess()
+  ]);
 };
 
 run()
