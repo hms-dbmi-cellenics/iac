@@ -37,4 +37,4 @@ for table in tables:
     name = f'{table}-{env}'
     print(f'Table {name}')
     experiments = get_all(name)
-    write_to_disk(experiments, f'{name}.json')
+    write_to_disk(experiments, f'downloaded_data/{name}.json')

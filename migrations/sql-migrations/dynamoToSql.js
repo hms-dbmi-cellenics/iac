@@ -9,6 +9,9 @@ const knex = require('knex');
 const projects = require('./downloaded_data/projects-production.json');
 const experiments = require('./downloaded_data/experiments-production.json');
 const samples = require('./downloaded_data/samples-production.json');
+const userAccess = require('./downloaded_data/user-access-production.json');
+const inviteAccess = require('./downloaded_data/invite-access-production.json');
+const plots = require('./downloaded_data/plots-tables-production.json');
 // ----------------------Dynamo dumps END------------------
 
 const environments = { 
