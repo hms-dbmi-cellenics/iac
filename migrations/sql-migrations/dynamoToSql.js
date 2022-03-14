@@ -27,9 +27,6 @@ const getSqlClient = async () => {
 const migrateProject = async (project) => {
   const { projectUuid, projects: projectData } = project;
   
-  console.log('projectDebug');
-  console.log(project);
-
   const experimentId = projectData.experiments[0];
   const experimentData = _.find(experiments, { 'experimentId': experimentId });
 
@@ -105,11 +102,28 @@ const migrateProject = async (project) => {
   }
 }
 
+const migrateUserAccess = async () => {
+    userAccess[0].forEach(async (ua) => {
+  });
+
+  const sqlUserAccess = {
+    user_id: ua.userId,
+    experiment_id: ua.experimentId,
+    access_role: ua.role,
+    updated_at: ua.createdAt
+    
+  };
+
+  await sqlClient('user_access').insert(sqlUserAccess);
+}
+
+
 const run = async () => {
   migrateProject(projects[0]);
   // projects.forEach(async (project) => {
   //   await migrateProject(project);
   // });
+  await migrateUserAccess()
 };
 
 run()

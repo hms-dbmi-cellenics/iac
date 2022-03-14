@@ -40,7 +40,7 @@ const nativeEnum = (table, tableName) => (
     .createTable('experiment_execution', table => {
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE');
       nativeEnum(table, 'pipeline_type').notNullable();
-      table.string('params_hash').notNullable();
+      table.string('params_hash').nullable();
       table.string('state_machine_arn').notNullable();
       table.string('execution_arn').notNullable();
   
@@ -77,11 +77,11 @@ const nativeEnum = (table, tableName) => (
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
     });
     
-  await  knex.schema
+  await knex.schema
     .createTable('sample_to_sample_file_map', table => {
       table.uuid('sample_id').notNullable();
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
-      
+
       table.primary(['sample_id', 'experiment_id']);
     });
     
