@@ -65,30 +65,37 @@ const run = async () => {
       notify_by_email: experimentData.notifyByEmail,
     };
 
-    sqlClient('experiment').insert(sqlExperiment);
+    await sqlClient('experiment').insert(sqlExperiment);
 
     // Create experiment executions if we need to
+
     if (!_.isNil(experimentData.meta.gem2s)) {
+      const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.gem2s;
+
       const sqlExperimentExecution = {
         experiment_id: experimentId,
         pipeline_type: 'gem2s',
-
+        params_hash: paramsHash,
+        state_machine_arn: stateMachineArn,
+        execution_arn: executionArn,
       };
+
+      await sqlClient('experiment_execution').insert(sqlExperimentExecution);
     }
 
     if (!_.isNil(experimentData.meta.pipeline)) {
+      const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.pipeline;
 
+      const sqlExperimentExecution = {
+        experiment_id: experimentId,
+        pipeline_type: 'qc',
+        params_hash: paramsHash,
+        state_machine_arn: stateMachineArn,
+        execution_arn: executionArn,
+      };
+
+      await sqlClient('experiment_execution').insert(sqlExperimentExecution);
     }
-
-    // experiment_execution:
-    // - experiment_id (uuid, FK on experiment)
-    // - pipeline_type (enum(pipeline_type))
-    // - params_hash (string)
-    // - state_machine_arn (string)
-    // - execution_arn (string)
-    
-
-
   });
 };
 
