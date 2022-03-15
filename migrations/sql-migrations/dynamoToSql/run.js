@@ -60,7 +60,8 @@ const migrateProject = async (project, helper) => {
 
   const samples = Object.values(sampleData.samples);
   if (samples.length === 0) {
-    console.log(`No samples in the project ${projectUuid}, experiment ${experimentId}`)
+    console.log(`No samples in the project ${projectUuid}, experiment ${experimentId}, finishing`)
+    return;
   }
 
   // Migrate all samples
@@ -82,6 +83,7 @@ const migrateProject = async (project, helper) => {
           } catch (e) {
             console.log(`Error sample_file exp: ${experimentId}, sample: ${sample.uuid}, file: ${file.name}`)
             console.log(e);
+            throw new Error(e);
           }
         })
       );
@@ -106,9 +108,15 @@ const migrateProject = async (project, helper) => {
 
 const migrateProjects = async (projects, helper) => {
   await Promise.all(
-    projects.map(async (p) => (
-      await migrateProject(p, helper)
-    ))
+    projects.map(async (p) => {
+      try {
+        await migrateProject(p, helper);
+      } catch (e) {
+        console.log(`----------------------------------Error on project ${p.projectUuid}-------------------------`);
+        console.log(e);
+        console.log(`-------------------------------END Error on project ${p.projectUuid}------------------------`);
+      }
+    })
   )
 }
 

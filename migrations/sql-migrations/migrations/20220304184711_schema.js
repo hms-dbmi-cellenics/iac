@@ -19,7 +19,7 @@ const nativeEnum = (table, tableName) => (
   await knex.raw(`CREATE TYPE sample_technology AS ENUM ('10x', 'rhapsody');`);
   await knex.raw(`CREATE TYPE sample_file_type AS ENUM ('features10x', 'barcodes10x', 'matrix10x', 'rhapsody');`);
   await knex.raw(
-    `CREATE TYPE upload_status AS ENUM ('uploaded', 'uploading', 'compressing', 'uploadError', 'fileNotFound');`
+    `CREATE TYPE upload_status AS ENUM ('uploaded', 'uploading', 'compressing', 'uploadError', 'fileNotFound', 'fileReadError', 'fileReadAborted');`
   );
   await knex.raw(`CREATE TYPE access_role AS ENUM ('owner', 'admin', 'explorer', 'viewer');`);
   
