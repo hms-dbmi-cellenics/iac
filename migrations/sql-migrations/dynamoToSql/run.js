@@ -58,12 +58,12 @@ const migrateProject = async (project, helper) => {
     await helper.sqlInsertExperimentExecutionQC(experimentId, experimentData);
   }
 
-  // Samples migrations
   const samples = Object.values(sampleData.samples);
   if (samples.length === 0) {
     console.log(`No samples in the project ${projectUuid}, experiment ${experimentId}`)
   }
 
+  // Migrate all samples
   await Promise.all(
     samples.map(async (sample) => {
 
@@ -105,7 +105,7 @@ const migrateProject = async (project, helper) => {
 }
 
 const migrateProjects = async (projects, helper) => {
-  projects.forEach( async (p) => await migrateProject(p, helper))
+  projects.forEach(async (p) => await migrateProject(p, helper))
 }
 
 const migrateUserAccess = async (sqlClient, userAccess) => {
