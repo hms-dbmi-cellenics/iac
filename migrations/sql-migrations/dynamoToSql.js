@@ -213,22 +213,31 @@ const migrateProjects = async (sqlClient, projects) => {
 }
 
 const migrateUserAccess = async (sqlClient, userAccess) => {
-
-  // const sqlClient = await getSqlClient();
-
   userAccess.forEach(async (ua) => {
-    console.log(ua)
     const sqlUserAccess = {
       user_id: ua.userId,
       experiment_id: ua.experimentId,
       access_role: ua.role,
-      updated_at: ua.createdAt
+      updated_at: ua.createdDate
 
     };
 
     await sqlClient('user_access').insert(sqlUserAccess);
   });
+}
 
+const migrateInviteAccess = async (sqlClient, inviteAccess) => {
+  inviteAccess.forEach(async (ia) => {
+    const sqlAccess = {
+      user_email: ia.userEmail,
+      experiment_id: ia.experimentId,
+      access_role: ia.role,
+      updated_at: ia.createdDate
+
+    };
+
+    await sqlClient('invite_access').insert(sqlAccess);
+  });
 }
 
 
@@ -236,8 +245,9 @@ const run = async () => {
   const sqlClient = await getSqlClient();
 
   await Promise.all([
-    // migrateProjects(sqlClient, projectsJson),
-    migrateUserAccess(sqlClient, userAccessJson.slice(0, 1))
+    migrateProjects(sqlClient, projectsJson),
+    migrateUserAccess(sqlClient, userAccessJson.slice(0, 1)),
+    migrateInviteAccess(sqlClient, inviteAccessJson)
   ]);
 };
 
