@@ -149,5 +149,8 @@ const run = async () => {
 };
 
 run()
-  .then(() => console.log('finished'))
-  .catch((e) => console.log(e));
+  .then(() => {
+    console.log('---------------------------------------------------------');
+    console.log('                     finished');
+    console.log('---------------------------------------------------------');
+  }).catch((e) => console.log(e));
