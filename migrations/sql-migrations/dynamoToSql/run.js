@@ -41,9 +41,14 @@ const migrateProject = async (project, helper) => {
 
   console.log(`Migrating ${projectUuid}, experiment ${experimentId}`);
 
-  if (_.isNil(projectData), _.isNil(experimentData), _.isNil(sampleData)) {
-    console.log(`[ ERROR ] - ${experimentId} - One of these is nil:`);
+  if (_.isNil(projectData) || _.isNil(experimentData) || _.isNil(sampleData)) {
+    console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
+    console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
+    console.log(`[ ERROR ] - p: ${projectUuid}, e: ${experimentId} - One of these is nil:`);
     console.log(`projectData: ${projectData}, experimentData: ${experimentData}, sampleData: ${sampleData}`)
+    console.log(`Finishing`);
+    console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
+    console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
     return;
   }
   
@@ -107,14 +112,21 @@ const migrateProject = async (project, helper) => {
 }
 
 const migrateProjects = async (projects, helper) => {
+  const project = _.find(projects, {projectUuid: '669dea2a-e87d-4fa0-a072-626d60bd8c2e'});
+  await migrateProject(project, helper);
+
   await Promise.all(
     projects.map(async (p) => {
       try {
         await migrateProject(p, helper);
       } catch (e) {
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------Error on project ${p.projectUuid}-------------------------`);
         console.log(e);
         console.log(`-------------------------------END Error on project ${p.projectUuid}------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
       }
     })
   )
@@ -155,8 +167,8 @@ const run = async () => {
 
   await Promise.all([
     migrateProjects(projectsJson, helper),
-    migrateUserAccess(sqlClient, userAccessJson.slice(0, 1)),
-    migrateInviteAccess(sqlClient, inviteAccessJson)
+    // migrateUserAccess(sqlClient, userAccessJson.slice(0, 1)),
+    // migrateInviteAccess(sqlClient, inviteAccessJson)
   ]);
 };
 
