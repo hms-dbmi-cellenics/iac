@@ -30,12 +30,118 @@ const getSqlClient = async () => {
   return knex.default(knexfile[activeEnvironment]);
 }
 
+// ------------------- Utils -------------------------- 
+const sampleFileTypeDynamoToEnum = {
+  'features.tsv.gz': 'features10x',
+  'barcodes.tsv.gz': 'barcodes10x',
+  'matrix.mtx.gz': 'matrix10x',
+}
 
-// ------------------- Utils --------------------------
+const insertExperiment = async (experimentId, projectData, experimentData) => {
+  const sqlClient = await getSqlClient();
 
+  const sqlExperiment = {
+    id: experimentId,
+    name: projectData.name,
+    description: projectData.description,
+    processing_config: experimentData.processingConfig,
+    created_at: projectData.createdDate,
+    updated_at: projectData.lastModified,
+    notify_by_email: experimentData.notifyByEmail,
+  };
 
+  await sqlClient('experiment').insert(sqlExperiment);
+}
 
-// ------------------- Utils END-----------------------
+const insertExperimentExecutionGem2s = async (experimentId, experimentData) => {
+  const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.gem2s;
+
+  const sqlExperimentExecution = {
+    experiment_id: experimentId,
+    pipeline_type: 'gem2s',
+    params_hash: paramsHash,
+    state_machine_arn: stateMachineArn,
+    execution_arn: executionArn,
+  };
+
+  await sqlClient('experiment_execution').insert(sqlExperimentExecution);
+};
+
+const insertExperimentExecutionQC = async (experimentId, experimentData) => {
+  const { stateMachineArn, executionArn } = experimentData.meta.pipeline;
+
+  const sqlExperimentExecution = {
+    experiment_id: experimentId,
+    pipeline_type: 'qc',
+    // QC doesn't have paramsHash (it isn't needed)
+    params_hash: null,
+    state_machine_arn: stateMachineArn,
+    execution_arn: executionArn,
+  };
+
+  await sqlClient('experiment_execution').insert(sqlExperimentExecution);
+};
+
+const insertSample = async (experimentId, sample) => {
+  const sqlSample = {
+    id: sample.uuid,
+    experiment_id: experimentId,
+    name: sample.name,
+    sample_technology: '10x',
+    created_at: sample.createdDate,
+    updated_at: sample.lastModified,
+  };
+  
+  await sqlClient('sample').insert(sqlSample);
+};
+
+const insertSampleFile = async (sampleFileUuid, projectUuid, sample, file) => {
+  const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
+  
+  const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
+
+  // SQL "sample_file" table
+  const sqlSampleFile = {
+    id: sampleFileUuid,
+    sample_file_type: sampleFileTypeEnumKey,
+    valid: file.valid,
+    s3_path: s3Path,
+    bundle_path: file.path,
+    upload_status: file.upload.status,
+    updated_at: file.lastModified
+  };
+
+  await sqlClient('sample_file').insert(sqlSampleFile);     
+};
+
+const insertSampleToSampleFileMap = async (sampleFileUuid, sample) => {
+  const sqlSampleToSampleFile = {
+    sample_id: sample.uuid,
+    sample_file_id: sampleFileUuid,
+  }
+  
+  await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
+}
+
+const insertMetadataTrack = async (metadataTrack, experimentId) => {
+  const sqlMetadataTrack = {
+    metadata_track_key: metadataTrack,
+    experiment_id: experimentId,
+  }
+
+  await sqlClient('metadata_track').insert(sqlMetadataTrack);
+}
+
+const insertSampleInMetadataTrackMap = async (metadataTrack, sample) => {
+  const sqlSampleInMetadataTrackMap = {
+    metadata_track_key: metadataTrack,
+    sample_id: sample.uuid,
+    value: sample.metadata[metadataTrack],
+  };
+
+  await sqlClient('sample_in_metadata_track_map').insert(sqlSampleInMetadataTrackMap);
+}
+// ------------------- Utils END----------------------- 
 
 const migrateProject = async (sqlClient, project) => {
   const { projectUuid, projects: projectData } = project;
@@ -69,48 +175,16 @@ const migrateProject = async (sqlClient, project) => {
   // - invite_access
   // - user_access
   // - plot
-
-
-  const sqlExperiment = {
-    id: experimentId,
-    name: projectData.name,
-    description: projectData.description,
-    processing_config: experimentData.processingConfig,
-    created_at: projectData.createdDate,
-    updated_at: projectData.lastModified,
-    notify_by_email: experimentData.notifyByEmail,
-  };
-
-  await sqlClient('experiment').insert(sqlExperiment);
+  
+  await insertExperiment(experimentId, projectData, experimentData);
 
   // Create experiment executions if we need to
   if (!_.isNil(experimentData.meta.gem2s)) {
-    const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.gem2s;
-
-    const sqlExperimentExecution = {
-      experiment_id: experimentId,
-      pipeline_type: 'gem2s',
-      params_hash: paramsHash,
-      state_machine_arn: stateMachineArn,
-      execution_arn: executionArn,
-    };
-
-    await sqlClient('experiment_execution').insert(sqlExperimentExecution);
+    await insertExperimentExecutionGem2s(experimentId, experimentData);
   }
 
   if (!_.isNil(experimentData.meta.pipeline)) {
-    const { stateMachineArn, executionArn } = experimentData.meta.pipeline;
-
-    const sqlExperimentExecution = {
-      experiment_id: experimentId,
-      pipeline_type: 'qc',
-      // QC doesn't have paramsHash (it isn't needed)
-      params_hash: null,
-      state_machine_arn: stateMachineArn,
-      execution_arn: executionArn,
-    };
-
-    await sqlClient('experiment_execution').insert(sqlExperimentExecution);
+    await insertExperimentExecutionQC(experimentId, experimentData);
   }
 
   // Samples migrations
@@ -122,22 +196,8 @@ const migrateProject = async (sqlClient, project) => {
   await Promise.all(
     samples.map(async (sample) => {
       // SQL "sample" table
-      const sqlSample = {
-        id: sample.uuid,
-        experiment_id: experimentId,
-        name: sample.name,
-        sample_technology: '10x',
-        created_at: sample.createdDate,
-        updated_at: sample.lastModified,
-      };
 
-      await sqlClient('sample').insert(sqlSample);
-
-      const sampleFileTypeDynamoToEnum = {
-        'features.tsv.gz': 'features10x',
-        'barcodes.tsv.gz': 'barcodes10x',
-        'matrix.mtx.gz': 'matrix10x',
-      }
+      await insertSample(experimentId, sample);
 
       const files = Object.values(_.omit(sample.files, ['lastModified']));
 
@@ -146,33 +206,11 @@ const migrateProject = async (sqlClient, project) => {
           try {
             const sampleFileUuid = uuidv4();
 
-            const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
+            await insertSampleFile(sampleFileUuid, projectUuid, sample, file);
 
-            const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
-
-            // SQL "sample_file" table
-            const sqlSampleFile = {
-              id: sampleFileUuid,
-              sample_file_type: sampleFileTypeEnumKey,
-              valid: file.valid,
-              s3_path: s3Path,
-              bundle_path: file.path,
-              upload_status: file.upload.status,
-              updated_at: file.lastModified
-            };
-
-            await sqlClient('sample_file').insert(sqlSampleFile);
-
-            const sqlSampleToSampleFile = {
-              sample_id: sample.uuid,
-              sample_file_id: sampleFileUuid,
-            }
-
-            await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
+            await insertSampleToSampleFileMap(sampleFileUuid, sample);
           } catch (e) {
             console.log(`Error sample_file exp: ${experimentId}, sample: ${sample.uuid}, file: ${file.name}`)
-            // console.log('fileDebugError');
-            // console.log(file);
             console.log(e);
           }
         })
@@ -185,22 +223,11 @@ const migrateProject = async (sqlClient, project) => {
 
   await Promise.all(
     metadataTracks.map(async (metadataTrack) => {
-      const sqlMetadataTrack = {
-        metadata_track_key: metadataTrack,
-        experiment_id: experimentId,
-      }
-
-      await sqlClient('metadata_track').insert(sqlMetadataTrack);
+      await insertMetadataTrack(metadataTrack, experimentId);
 
       await Promise.all(
         samples.map(async (sample) => {
-          const sqlSampleInMetadataTrackMap = {
-            metadata_track_key: metadataTrack,
-            sample_id: sample.uuid,
-            value: sample.metadata[metadataTrack],
-          };
-
-          await sqlClient('sample_in_metadata_track_map').insert(sqlSampleInMetadataTrackMap);
+          await insertSampleInMetadataTrackMap(metadataTrack, sample);
         })
       );
     })
