@@ -81,9 +81,9 @@ const nativeEnum = (table, tableName) => (
   await knex.schema
     .createTable('sample_to_sample_file_map', table => {
       table.uuid('sample_id').notNullable();
-      table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
+      table.uuid('sample_file_id').references('sample_file.id').onDelete('CASCADE').notNullable();
 
-      table.primary(['sample_id', 'experiment_id']);
+      table.primary(['sample_id', 'sample_file_id']);
     });
     
   await knex.schema
