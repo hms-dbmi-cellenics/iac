@@ -8,21 +8,13 @@ const knex = require('knex');
 const { v4: uuidv4 } = require('uuid');
 
 // ----------------------Dynamo dumps----------------------
-<<<<<<< Updated upstream
 const projectsJson = require('./downloaded_data/projects-production.json');
 const experimentsJson = require('./downloaded_data/experiments-production.json');
 const samplesJson = require('./downloaded_data/samples-production.json');
 const userAccessJson = require('./downloaded_data/user-access-production.json');
 const inviteAccessJson = require('./downloaded_data/invite-access-production.json');
 const plotsJson = require('./downloaded_data/plots-tables-production.json');
-=======
-const projects = require('./downloaded_data/projects-production.json');
-const experiments = require('./downloaded_data/experiments-production.json');
-const samples = require('./downloaded_data/samples-production.json');
-const userAccess = require('./downloaded_data/user-access-production.json');
-const inviteAccess = require('./downloaded_data/invite-access-production.json');
-const plots = require('./downloaded_data/plots-tables-production.json');
->>>>>>> Stashed changes
+
 // ----------------------Dynamo dumps END------------------
 
 const environments = {
@@ -47,11 +39,6 @@ const getSqlClient = async () => {
 
 const migrateProject = async (project) => {
   const { projectUuid, projects: projectData } = project;
-<<<<<<< Updated upstream
-
-=======
-
->>>>>>> Stashed changes
   const experimentId = projectData.experiments[0];
   const experimentData = _.find(experimentsJson, { 'experimentId': experimentId });
 
@@ -213,7 +200,7 @@ const migrateProject = async (project) => {
   );
 }
 
-const migrateUserAccess = async () => {
+const migrateUserAccess = async (userAccess) => {
 
   const sqlClient = await getSqlClient();
 
@@ -236,7 +223,7 @@ const migrateUserAccess = async () => {
 const run = async () => {
   await Promise.all([
     // migrateProject(projectsJson[0]),
-    migrateUserAccess()
+    migrateUserAccess(userAccessJson.slice(0,2))
   ]);
 };
 
