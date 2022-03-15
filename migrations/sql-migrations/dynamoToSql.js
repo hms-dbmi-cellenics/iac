@@ -140,34 +140,42 @@ const migrateProject = async (project) => {
         'matrix.mtx.gz': 'matrix10x',
       }
 
-      const files = Object.values(sample.files);
+      const files = Object.values(_.omit(sample.files, ['lastModified']));
+
       await Promise.all(
-        files.forEach(async (file) => {
-          const sampleFileUuid = uuidv4();
-
-          const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
-
-          const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
-
-          // SQL "sample_file" table
-          const sqlSampleFile = {
-            id: sampleFileUuid,
-            sample_file_type: sampleFileTypeEnumKey,
-            valid: file.valid,
-            s3_path: s3Path,
-            bundle_path: file.bundle.path,
-            upload_status: file.upload.status,
-            updated_at: file.lastModified
-          };
-
-          await sqlClient('sample_file').insert(sqlSampleFile);
-
-          const sqlSampleToSampleFile = {
-            sample_id: sample.uuid,
-            sample_file_id: sampleFileUuid,
+        files.map(async (file) => {
+          try {
+            const sampleFileUuid = uuidv4();
+  
+            const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
+  
+            const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
+  
+            // SQL "sample_file" table
+            const sqlSampleFile = {
+              id: sampleFileUuid,
+              sample_file_type: sampleFileTypeEnumKey,
+              valid: file.valid,
+              s3_path: s3Path,
+              bundle_path: file.path,
+              upload_status: file.upload.status,
+              updated_at: file.lastModified
+            };
+  
+            await sqlClient('sample_file').insert(sqlSampleFile);            
+            
+            const sqlSampleToSampleFile = {
+              sample_id: sample.uuid,
+              sample_file_id: sampleFileUuid,
+            }
+            
+            await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
+          } catch (e) {
+            console.log(`Error sample_file exp: ${experimentId}, sample: ${sample.uuid}, file: ${file.name}`)
+            // console.log('fileDebugError');
+            // console.log(file);
+            console.log(e);
           }
-
-          await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
         })
       );
     })
@@ -186,7 +194,7 @@ const migrateProject = async (project) => {
       await sqlClient('metadata_track').insert(sqlMetadataTrack);
 
       await Promise.all(
-        samples.forEach(async (sample) => {
+        samples.map(async (sample) => {
           const sqlSampleInMetadataTrackMap = {
             metadata_track_key: metadataTrack,
             sample_id: sample.uuid,
