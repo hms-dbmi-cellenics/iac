@@ -66,7 +66,7 @@ class Helper {
   };
   
   sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, file) => {
-    const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
+    const sampleFileTypeEnumKey = this.sampleFileTypeDynamoToEnum[file.name];
     
     const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
   
