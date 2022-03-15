@@ -8,15 +8,24 @@ const knex = require('knex');
 const { v4: uuidv4 } = require('uuid');
 
 // ----------------------Dynamo dumps----------------------
+<<<<<<< Updated upstream
 const projectsJson = require('./downloaded_data/projects-production.json');
 const experimentsJson = require('./downloaded_data/experiments-production.json');
 const samplesJson = require('./downloaded_data/samples-production.json');
 const userAccessJson = require('./downloaded_data/user-access-production.json');
 const inviteAccessJson = require('./downloaded_data/invite-access-production.json');
 const plotsJson = require('./downloaded_data/plots-tables-production.json');
+=======
+const projects = require('./downloaded_data/projects-production.json');
+const experiments = require('./downloaded_data/experiments-production.json');
+const samples = require('./downloaded_data/samples-production.json');
+const userAccess = require('./downloaded_data/user-access-production.json');
+const inviteAccess = require('./downloaded_data/invite-access-production.json');
+const plots = require('./downloaded_data/plots-tables-production.json');
+>>>>>>> Stashed changes
 // ----------------------Dynamo dumps END------------------
 
-const environments = { 
+const environments = {
   DEVELOPMENT: 'development',
   STAGING: 'staging',
   PRODUCTION: 'production',
@@ -30,15 +39,19 @@ const getSqlClient = async () => {
 }
 
 
-// ------------------- Utils -------------------------- 
+// ------------------- Utils --------------------------
 
 
 
-// ------------------- Utils END----------------------- 
+// ------------------- Utils END-----------------------
 
 const migrateProject = async (project) => {
   const { projectUuid, projects: projectData } = project;
-  
+<<<<<<< Updated upstream
+
+=======
+
+>>>>>>> Stashed changes
   const experimentId = projectData.experiments[0];
   const experimentData = _.find(experimentsJson, { 'experimentId': experimentId });
 
@@ -53,23 +66,23 @@ const migrateProject = async (project) => {
   }
 
   // SQL tables we will need to upload into:
-  // 
+  //
   //  dynamo experiments and projects:
   //    - experiment
   //    - experiment_execution
-  // 
+  //
   //  dynamo samples:
   //    - sample
   //    – sample_file
   //    - sample_to_sample_file_map
   //    - metadata_track
   //    - sample_in_metadata_track_map
-  // 
+  //
   // Separate tables to insert into with their dynamo counterparts:
   // - invite_access
   // - user_access
   // - plot
-  
+
   const sqlClient = await getSqlClient();
 
   const sqlExperiment = {
@@ -131,7 +144,7 @@ const migrateProject = async (project) => {
         created_at: sample.createdDate,
         updated_at: sample.lastModified,
       };
-      
+
       await sqlClient('sample').insert(sqlSample);
 
       const sampleFileTypeDynamoToEnum = {
@@ -201,27 +214,29 @@ const migrateProject = async (project) => {
 }
 
 const migrateUserAccess = async () => {
-    userAccessJson[0].forEach(async (ua) => {
+
+  const sqlClient = await getSqlClient();
+
+  userAccess.slice(0, 2).forEach(async (ua) => {
+
+    const sqlUserAccess = {
+      user_id: ua.userId,
+      experiment_id: ua.experimentId,
+      access_role: ua.role,
+      updated_at: ua.createdAt
+
+    };
+
+    await sqlClient('user_access').insert(sqlUserAccess);
   });
 
-  const sqlUserAccess = {
-    user_id: ua.userId,
-    experiment_id: ua.experimentId,
-    access_role: ua.role,
-    updated_at: ua.createdAt
-  };
-
-  await sqlClient('user_access').insert(sqlUserAccess);
 }
 
 
 const run = async () => {
-  // projects.forEach(async (project) => {
-  //   await migrateProject(project);
-  // });
   await Promise.all([
-    migrateProject(projectsJson[0]),
-    // migrateUserAccess()
+    // migrateProject(projectsJson[0]),
+    migrateUserAccess()
   ]);
 };
 
