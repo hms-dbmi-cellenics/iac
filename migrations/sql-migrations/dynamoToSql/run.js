@@ -105,7 +105,11 @@ const migrateProject = async (project, helper) => {
 }
 
 const migrateProjects = async (projects, helper) => {
-  projects.forEach(async (p) => await migrateProject(p, helper))
+  await Promise.all(
+    projects.map(async (p) => (
+      await migrateProject(p, helper)
+    ))
+  )
 }
 
 const migrateUserAccess = async (sqlClient, userAccess) => {
