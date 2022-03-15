@@ -37,7 +37,7 @@ const getSqlClient = async () => {
 
 // ------------------- Utils END-----------------------
 
-const migrateProject = async (project) => {
+const migrateProject = async (sqlClient, project) => {
   const { projectUuid, projects: projectData } = project;
   const experimentId = projectData.experiments[0];
   const experimentData = _.find(experimentsJson, { 'experimentId': experimentId });
@@ -70,7 +70,6 @@ const migrateProject = async (project) => {
   // - user_access
   // - plot
 
-  const sqlClient = await getSqlClient();
 
   const sqlExperiment = {
     id: experimentId,
@@ -146,11 +145,11 @@ const migrateProject = async (project) => {
         files.map(async (file) => {
           try {
             const sampleFileUuid = uuidv4();
-  
+
             const sampleFileTypeEnumKey = sampleFileTypeDynamoToEnum[file.name];
-  
+
             const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
-  
+
             // SQL "sample_file" table
             const sqlSampleFile = {
               id: sampleFileUuid,
@@ -161,14 +160,14 @@ const migrateProject = async (project) => {
               upload_status: file.upload.status,
               updated_at: file.lastModified
             };
-  
-            await sqlClient('sample_file').insert(sqlSampleFile);            
-            
+
+            await sqlClient('sample_file').insert(sqlSampleFile);
+
             const sqlSampleToSampleFile = {
               sample_id: sample.uuid,
               sample_file_id: sampleFileUuid,
             }
-            
+
             await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
           } catch (e) {
             console.log(`Error sample_file exp: ${experimentId}, sample: ${sample.uuid}, file: ${file.name}`)
@@ -208,12 +207,17 @@ const migrateProject = async (project) => {
   );
 }
 
-const migrateUserAccess = async (userAccess) => {
+const migrateProjects = async (sqlClient, projects) => {
 
-  const sqlClient = await getSqlClient();
+  projects.forEach( async (p) => await migrateProject(sqlClient, p))
+}
 
-  userAccess.slice(0, 2).forEach(async (ua) => {
+const migrateUserAccess = async (sqlClient, userAccess) => {
 
+  // const sqlClient = await getSqlClient();
+
+  userAccess.forEach(async (ua) => {
+    console.log(ua)
     const sqlUserAccess = {
       user_id: ua.userId,
       experiment_id: ua.experimentId,
@@ -229,9 +233,11 @@ const migrateUserAccess = async (userAccess) => {
 
 
 const run = async () => {
+  const sqlClient = await getSqlClient();
+
   await Promise.all([
-    // migrateProject(projectsJson[0]),
-    migrateUserAccess(userAccessJson.slice(0,2))
+    // migrateProjects(sqlClient, projectsJson),
+    migrateUserAccess(sqlClient, userAccessJson.slice(0, 1))
   ]);
 };
 
