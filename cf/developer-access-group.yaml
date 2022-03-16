@@ -27,6 +27,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess
       Policies:
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
@@ -242,15 +243,4 @@ Resources:
                   - "rds:DescribeDBClusterEndpoints"
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
-
-        - PolicyName: "can-view-rds-resources"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "rds:Describe*"
-                  - "rds:ListTagsForResource"
-                Resource:
-                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*:*"
 
