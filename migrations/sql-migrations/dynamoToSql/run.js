@@ -128,20 +128,43 @@ const migrateProjects = async (projects, helper) => {
         throw e;
       }
     })
-  )
+  );
+
+  console.log('(`---------------------------------------FINSIHED MIGRATING PROJECTS---------------------------------------------------------`);')
 }
 
 const migrateUserAccess = async (sqlClient, userAccess) => {
   await Promise.all(
     userAccess.map(async (ua) => {
-      const sqlUserAccess = {
-        user_id: ua.userId,
-        experiment_id: ua.experimentId,
-        access_role: ua.role,
-        updated_at: ua.createdDate
-      };
+      try {
+        const experimentData = _.find(experimentsJson, { 'experimentId': ua.experimentId });
+        if (_.isNil(experimentData)) {
+          console.log(`[ ORPHAN USER ACCESS ]: eId ${ua.experimentId}`);
+          console.log('Skipping this one');
+          return;
+        }
 
-      await sqlClient('user_access').insert(sqlUserAccess);
+        const sqlUserAccess = {
+          user_id: ua.userId,
+          experiment_id: ua.experimentId,
+          access_role: ua.role,
+          updated_at: ua.createdDate
+        };
+  
+        await sqlClient('user_access').insert(sqlUserAccess);
+      } catch (e) {
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`---------------------------------- Error on user access exp ${ua.experimentId} -------------------------`);
+        console.log('userAccessDynamoObject:');
+        console.log(JSON.stringify(ua));
+        console.log('Error:');
+        console.log(e);
+        console.log(`------------------------------- END Error on user access exp ${ua.experimentId} ------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        throw e;
+      }
     })
   );
 }
@@ -149,15 +172,36 @@ const migrateUserAccess = async (sqlClient, userAccess) => {
 const migrateInviteAccess = async (sqlClient, inviteAccess) => {
   await Promise.all(
     inviteAccess.map(async (ia) => {
-      const sqlAccess = {
-        user_email: ia.userEmail,
-        experiment_id: ia.experimentId,
-        access_role: ia.role,
-        updated_at: ia.createdDate
+      try {
+        const experimentData = _.find(experimentsJson, { 'experimentId': ia.experimentId });
+        if (_.isNil(experimentData)) {
+          console.log(`[ ORPHAN INVITE ACCESS ]: eId ${ia.experimentId}`);
+          console.log('Skipping this one');
+          return;
+        }
 
-      };
-
-      await sqlClient('invite_access').insert(sqlAccess);
+        const sqlAccess = {
+          user_email: ia.userEmail,
+          experiment_id: ia.experimentId,
+          access_role: ia.role,
+          updated_at: ia.createdDate
+  
+        };
+    
+        await sqlClient('invite_access').insert(sqlAccess);
+      } catch (e) {
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`---------------------------------- Error on invite access exp ${ia.experimentId} -------------------------`);
+        console.log('inviteAccessDynamoObject:');
+        console.log(JSON.stringify(ia));
+        console.log('Error:');
+        console.log(e);
+        console.log(`------------------------------- END Error on invite access exp ${ia.experimentId} ------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        throw e;
+      }
     })
   );
 }
@@ -165,15 +209,34 @@ const migrateInviteAccess = async (sqlClient, inviteAccess) => {
 const migratePlots = async (sqlClient, plots) => {
   await Promise.all(
     plots.map(async (p) => {
-      const sql = {
-        id: p.plotUuid,
-        experiment_id: p.experimentId,
-        config: p.config,
-        s3_data_key: p.plotDataKey
-
-      };
-
-      await sqlClient('plot').insert(sql);
+      try {
+        const experimentData = _.find(experimentsJson, { 'experimentId': p.experimentId });
+        if (_.isNil(experimentData)) {
+          console.log(`[ ORPHAN PLOT ]: eId ${p.experimentId}, plotUuid ${p.plotUuid}. Skipping this one...`);
+          return;
+        }
+        
+        const sql = {
+          id: p.plotUuid,
+          experiment_id: p.experimentId,
+          config: p.config,
+          s3_data_key: p.plotDataKey
+        };
+  
+        await sqlClient('plot').insert(sql);
+      } catch (e) {
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`---------------------------------- Error on plot exp ${p.experimentId} -------------------------`);
+        console.log('plotDynamoObject:');
+        console.log(JSON.stringify(p));
+        console.log('Error:');
+        console.log(e);
+        console.log(`------------------------------- END Error on plot exp ${p.experimentId} ------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        console.log(`----------------------------------------------------------------------------------------------------------------`);
+        throw e;
+      }
     })
   );
 }
