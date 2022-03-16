@@ -1,7 +1,5 @@
 const _ = require('lodash');
 
-const AWS = require('aws-sdk');
-
 const knexfileLoader = require('../knexfile');
 const knex = require('knex');
 
