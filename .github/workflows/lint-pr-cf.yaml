@@ -1,4 +1,4 @@
-name: Deploy changed CloudFormation templates
+name: Lint CF files before merging
 on:
   pull_request:
     branches:
@@ -39,7 +39,7 @@ jobs:
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
 
   lint-templates:
-    name: Deploy changed CloudFormation template
+    name: Lint changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
