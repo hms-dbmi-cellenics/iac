@@ -35,14 +35,12 @@ Resources:
                   - "dynamodb:PutItem"
                   - "dynamodb:Scan"
                   - "dynamodb:UpdateItem"
-            
                 Resource:
                   - !Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
                   - !Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Name: !Sub "post-register-invite-lambda-${Environment}"
       Runtime: nodejs14.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
