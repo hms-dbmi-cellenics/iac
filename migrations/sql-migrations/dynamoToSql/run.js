@@ -97,7 +97,7 @@ const migrateProject = async (project, helper) => {
 
       await Promise.all(
         samples.map(async (sample) => {
-          await helper.sqlInsertSampleInMetadataTrackMap(metadataTrack, experimentId, sample);
+          await helper.sqlInsertSampleInMetadataTrackMap(experimentId, metadataTrack, sample);
         })
       );
     })
@@ -132,7 +132,6 @@ const migrateUserAccess = async (sqlClient, userAccess) => {
       experiment_id: ua.experimentId,
       access_role: ua.role,
       updated_at: ua.createdDate
-
     };
 
     await sqlClient('user_access').insert(sqlUserAccess);
@@ -172,9 +171,9 @@ const run = async () => {
 
   const helper = new Helper(sqlClient);
 
-  await Promise.all([
-    migrateProjects(projectsJson, helper),
+  await migrateProjects(projectsJson, helper);
 
+  await Promise.all([
     migrateUserAccess(sqlClient, userAccessJson),
     migrateInviteAccess(sqlClient, inviteAccessJson),
     migratePlots(sqlClient, plotsJson)
