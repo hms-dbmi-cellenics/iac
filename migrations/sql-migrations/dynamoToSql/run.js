@@ -14,14 +14,7 @@ const samplesJson = require('../downloaded_data/samples-production.json');
 const userAccessJson = require('../downloaded_data/user-access-production.json');
 const inviteAccessJson = require('../downloaded_data/invite-access-production.json');
 const plotsJson = require('../downloaded_data/plots-tables-production.json');
-
 // ----------------------Dynamo dumps END------------------
-
-const environments = {
-  DEVELOPMENT: 'development',
-  STAGING: 'staging',
-  PRODUCTION: 'production',
-};
 
 const createSqlClient = async (activeEnvironment) => {
   const knexfile = await knexfileLoader(activeEnvironment);
@@ -238,8 +231,8 @@ const migratePlots = async (sqlClient, plots) => {
 }
 
 const run = async () => {
-  const activeEnvironment = environments.DEVELOPMENT;
-  sqlClient = await createSqlClient(activeEnvironment);
+  const environment = process.env.MIGRATION_ENV;
+  sqlClient = await createSqlClient(environment);
 
   const helper = new Helper(sqlClient);
 
