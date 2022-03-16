@@ -3,9 +3,6 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - 'cf/**.yaml'
-      - 'cf/**.yml'
   workflow_dispatch:
 
 jobs:
