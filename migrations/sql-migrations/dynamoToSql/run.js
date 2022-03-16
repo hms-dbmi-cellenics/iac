@@ -125,50 +125,57 @@ const migrateProjects = async (projects, helper) => {
         console.log(`------------------------------- END Error on project ${p.projectUuid} ------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
+        throw e;
       }
     })
   )
 }
 
 const migrateUserAccess = async (sqlClient, userAccess) => {
-  userAccess.forEach(async (ua) => {
-    const sqlUserAccess = {
-      user_id: ua.userId,
-      experiment_id: ua.experimentId,
-      access_role: ua.role,
-      updated_at: ua.createdDate
-    };
+  await Promise.all(
+    userAccess.map(async (ua) => {
+      const sqlUserAccess = {
+        user_id: ua.userId,
+        experiment_id: ua.experimentId,
+        access_role: ua.role,
+        updated_at: ua.createdDate
+      };
 
-    await sqlClient('user_access').insert(sqlUserAccess);
-  });
+      await sqlClient('user_access').insert(sqlUserAccess);
+    })
+  );
 }
 
 const migrateInviteAccess = async (sqlClient, inviteAccess) => {
-  inviteAccess.forEach(async (ia) => {
-    const sqlAccess = {
-      user_email: ia.userEmail,
-      experiment_id: ia.experimentId,
-      access_role: ia.role,
-      updated_at: ia.createdDate
+  await Promise.all(
+    inviteAccess.map(async (ia) => {
+      const sqlAccess = {
+        user_email: ia.userEmail,
+        experiment_id: ia.experimentId,
+        access_role: ia.role,
+        updated_at: ia.createdDate
 
-    };
+      };
 
-    await sqlClient('invite_access').insert(sqlAccess);
-  });
+      await sqlClient('invite_access').insert(sqlAccess);
+    })
+  );
 }
 
 const migratePlots = async (sqlClient, plots) => {
-  plots.forEach(async (p) => {
-    const sql = {
-      id: p.plotUuid,
-      experiment_id: p.experimentId,
-      config: p.config,
-      s3_data_key: p.plotDataKey
+  await Promise.all(
+    plots.map(async (p) => {
+      const sql = {
+        id: p.plotUuid,
+        experiment_id: p.experimentId,
+        config: p.config,
+        s3_data_key: p.plotDataKey
 
-    };
+      };
 
-    await sqlClient('plot').insert(sql);
-  });
+      await sqlClient('plot').insert(sql);
+    })
+  );
 }
 
 const run = async () => {
