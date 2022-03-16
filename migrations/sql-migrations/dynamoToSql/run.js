@@ -51,7 +51,7 @@ const migrateProject = async (project, helper) => {
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
     return;
   }
-  
+
   await helper.sqlInsertExperiment(experimentId, projectData, experimentData);
 
   // Create experiment executions if we need to
@@ -112,8 +112,8 @@ const migrateProject = async (project, helper) => {
 }
 
 const migrateProjects = async (projects, helper) => {
-  const project = _.find(projects, {projectUuid: '669dea2a-e87d-4fa0-a072-626d60bd8c2e'});
-  await migrateProject(project, helper);
+  // const project = _.find(projects, {projectUuid: '669dea2a-e87d-4fa0-a072-626d60bd8c2e'});
+  // await migrateProject(project, helper);
 
   await Promise.all(
     projects.map(async (p) => {
@@ -160,6 +160,20 @@ const migrateInviteAccess = async (sqlClient, inviteAccess) => {
   });
 }
 
+const migratePlots = async (sqlClient, plots) => {
+  plots.forEach(async (p) => {
+    const sql = {
+      id: p.plotUuid,
+      experiment_id: p.experimentId,
+      config: p.config,
+      s3_data_key: p.plotDataKey
+
+    };
+
+    await sqlClient('plot').insert(sql);
+  });
+}
+
 const run = async () => {
   sqlClient = await createSqlClient();
 
@@ -167,8 +181,9 @@ const run = async () => {
 
   await Promise.all([
     migrateProjects(projectsJson, helper),
-    // migrateUserAccess(sqlClient, userAccessJson.slice(0, 1)),
-    // migrateInviteAccess(sqlClient, inviteAccessJson)
+    migrateUserAccess(sqlClient, userAccessJson),
+    migrateInviteAccess(sqlClient, inviteAccessJson),
+    migratePlots(sqlClient, plotsJson)
   ]);
 };
 

@@ -30,8 +30,10 @@ def write_to_disk(data, name):
     with open(name, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4, default=json_serial)
 
-env = 'production'
 
+
+env = 'production'
+print(f'Download {env} dynamoDB tables into JSON.')
 tables = ['experiments', 'projects', 'samples', 'user-access', 'invite-access', 'plots-tables']
 for table in tables:
     name = f'{table}-{env}'
