@@ -6,6 +6,7 @@ on:
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
+  workflow_dispatch:
 
 jobs:
   get-modified-templates:
