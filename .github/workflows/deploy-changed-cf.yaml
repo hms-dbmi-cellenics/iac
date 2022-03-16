@@ -1,8 +1,8 @@
 name: Deploy changed CloudFormation templates
 on:
   push:
-    branches:
-      - master
+    # branches:
+    #   - master
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'

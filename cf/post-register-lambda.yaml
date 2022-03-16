@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up canaries to check for heartbeat of services [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the tables need to be created.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
+Resources:
+  PostRegisterLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-execute-post-register-lambda-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action": 
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+            
+                Resource:
+                  - !Sub: "arn:aws:dynamodb:eu-west-1:242905224710:table/user-access-${Environment}"
+                  - !Sub: "arn:aws:dynamodb:eu-west-1:242905224710:table/invite-access-${Environment}"
+  PostRegisterLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Name: !Sub "post-register-invite-lambda-${Environment}"
+      Runtime: nodejs14.x
+      Role: !GetAtt PostRegisterLambdaRole.Arn
+      Handler: index.handler
+      Code: 
+        ZipFile: |
+         exports.handler = function(event, context) {
+            console.log('hello :)');
+         }
+      SuccessRetentionPeriod: 2
+      RuntimeVersion: syn-nodejs-puppeteer-3.3
+      Schedule: 
+        Expression: rate(5 minutes)
+      StartCanaryAfterCreation: True
+  LoggingGroup: 
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub "/aws/lambda/post-register-invite-lambda-${Environment}"
+      RetentionInDays: 14
