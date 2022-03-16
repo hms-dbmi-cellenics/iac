@@ -11,9 +11,6 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-
 Resources:
   PostRegisterLambdaRole:
     Type: "AWS::IAM::Role"
@@ -32,7 +29,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action": 
+                Action: 
                   - "dynamodb:DeleteItem"
                   - "dynamodb:GetItem"
                   - "dynamodb:PutItem"
@@ -40,8 +37,8 @@ Resources:
                   - "dynamodb:UpdateItem"
             
                 Resource:
-                  - !Sub: "arn:aws:dynamodb:eu-west-1:242905224710:table/user-access-${Environment}"
-                  - !Sub: "arn:aws:dynamodb:eu-west-1:242905224710:table/invite-access-${Environment}"
+                  - !Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
+                  - !Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -54,11 +51,7 @@ Resources:
          exports.handler = function(event, context) {
             console.log('hello :)');
          }
-      SuccessRetentionPeriod: 2
-      RuntimeVersion: syn-nodejs-puppeteer-3.3
-      Schedule: 
-        Expression: rate(5 minutes)
-      StartCanaryAfterCreation: True
+
   LoggingGroup: 
     Type: AWS::Logs::LogGroup
     Properties: 
