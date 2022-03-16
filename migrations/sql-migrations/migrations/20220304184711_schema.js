@@ -64,8 +64,8 @@ const nativeEnum = (table, tableName) => (
       table.uuid('id').primary();
       nativeEnum(table, 'sample_file_type').notNullable();
       table.boolean('valid').notNullable();
+      table.integer('size').notNullable();
       table.string('s3_path').notNullable();
-      table.string('bundle_path').notNullable();
       nativeEnum(table, 'upload_status').notNullable();
       table.timestamp('updated_at').defaultTo(knex.fn.now());
     }).then(() => {
@@ -74,8 +74,10 @@ const nativeEnum = (table, tableName) => (
     
   await knex.schema
     .createTable('metadata_track', table => {
-      table.string('key').primary();
+      table.string('key');
       table.uuid('experiment_id').references('experiment.id').onDelete('CASCADE').notNullable();
+
+      table.primary(['key', 'experiment_id']);
     });
     
   await knex.schema
@@ -88,11 +90,17 @@ const nativeEnum = (table, tableName) => (
     
   await knex.schema
     .createTable('sample_in_metadata_track_map', table => {
-      table.string('metadata_track_key').references('metadata_track.key').onDelete('CASCADE').notNullable();
+      table.string('metadata_track_key').notNullable();
+      table.uuid('experiment_id').notNullable();
       table.uuid('sample_id').references('sample.id').onDelete('CASCADE').notNullable();
       table.string('value').notNullable();
   
-      table.primary(['metadata_track_key', 'sample_id']);
+      table.primary(['metadata_track_key', 'experiment_id', 'sample_id']);
+      
+      table.foreign(
+          ['metadata_track_key', 'experiment_id'], 
+          ['metadata_track.key', 'metadata_track.experiment_id'])
+        .onDelete('CASCADE');
     });
     
   await knex.schema

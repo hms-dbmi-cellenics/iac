@@ -3,6 +3,26 @@ class Helper {
     this.sqlClient = sqlClient;
   }
 
+  sqlInsert = async (sqlObject, tableName, extraLoggingData = {}) => {
+    try {
+      await sqlClient(tableName).insert(sqlObject);
+    } catch (e) {
+      throw new Error(
+        `
+        ----------------------
+        -------------------
+        Error inserting this object in ${tableName}:
+        sqlObject: ${JSON.stringify(sqlObject)}
+        -------------------
+        Original Error: ${e}
+        -------------------
+        ----------------------
+        extraLoggingData: ${JSON.stringify(extraLoggingData)}
+        `
+      );
+    }
+  }
+
   sampleFileTypeDynamoToEnum = {
     'features.tsv.gz': 'features10x',
     'barcodes.tsv.gz': 'barcodes10x',
@@ -20,7 +40,7 @@ class Helper {
       notify_by_email: experimentData.notifyByEmail,
     };
   
-    await sqlClient('experiment').insert(sqlExperiment);
+    await this.sqlInsert(sqlExperiment, 'experiment', { experimentId, projectData });
   }
   
   sqlInsertExperimentExecutionGem2s = async (experimentId, experimentData) => {
@@ -34,7 +54,7 @@ class Helper {
       execution_arn: executionArn,
     };
   
-    await sqlClient('experiment_execution').insert(sqlExperimentExecution);
+    await this.sqlInsert(sqlExperimentExecution, 'experiment_execution', { experimentId, experimentData });
   };
   
   sqlInsertExperimentExecutionQC = async (experimentId, experimentData) => {
@@ -49,7 +69,7 @@ class Helper {
       execution_arn: executionArn,
     };
   
-    await sqlClient('experiment_execution').insert(sqlExperimentExecution);
+    await this.sqlInsert(sqlExperimentExecution, 'experiment_execution', { experimentId, experimentData });
   };
   
   sqlInsertSample = async (experimentId, sample) => {
@@ -62,26 +82,30 @@ class Helper {
       updated_at: sample.lastModified,
     };
     
-    await sqlClient('sample').insert(sqlSample);
+    await this.sqlInsert(sqlSample, 'sample');
   };
   
-  sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, file) => {
-    const sampleFileTypeEnumKey = this.sampleFileTypeDynamoToEnum[file.name];
-    
-    const s3Path = `${projectUuid}/${sample.uuid}/${file.name}`;
-  
+  sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, fileName, file) => {
+    const sampleFileTypeEnumKey = this.sampleFileTypeDynamoToEnum[fileName];
+
+    const s3Path = `${projectUuid}/${sample.uuid}/${fileName}`;
+
+    // If the file size is not saved (there's some functional experiments in this state)
+    // then set a negative value that we can recognize and let it go on
+    const fileSize = file.size || -1;
+
     // SQL "sample_file" table
     const sqlSampleFile = {
       id: sampleFileUuid,
       sample_file_type: sampleFileTypeEnumKey,
       valid: file.valid,
+      size: fileSize,
       s3_path: s3Path,
-      bundle_path: file.path,
       upload_status: file.upload.status,
       updated_at: file.lastModified
     };
-  
-    await sqlClient('sample_file').insert(sqlSampleFile);     
+
+    await this.sqlInsert(sqlSampleFile, 'sample_file', { projectUuid, sample, file });
   };
   
   sqlInsertSampleToSampleFileMap = async (sampleFileUuid, sample) => {
@@ -90,26 +114,27 @@ class Helper {
       sample_file_id: sampleFileUuid,
     }
     
-    await sqlClient('sample_to_sample_file_map').insert(sqlSampleToSampleFile);
+    await this.sqlInsert(sqlSampleToSampleFile, 'sample_to_sample_file_map', { sample });
   }
   
   sqlInsertMetadataTrack = async (metadataTrack, experimentId) => {
     const sqlMetadataTrack = {
-      metadata_track_key: metadataTrack,
+      key: metadataTrack,
       experiment_id: experimentId,
     }
   
-    await sqlClient('metadata_track').insert(sqlMetadataTrack);
+    await this.sqlInsert(sqlMetadataTrack, 'metadata_track');
   }
   
-  sqlInsertSampleInMetadataTrackMap = async (metadataTrack, sample) => {
+  sqlInsertSampleInMetadataTrackMap = async (experimentId, metadataTrack, sample) => {
     const sqlSampleInMetadataTrackMap = {
       metadata_track_key: metadataTrack,
+      experiment_id: experimentId,
       sample_id: sample.uuid,
       value: sample.metadata[metadataTrack],
     };
   
-    await sqlClient('sample_in_metadata_track_map').insert(sqlSampleInMetadataTrackMap);
+    await this.sqlInsert(sqlSampleInMetadataTrackMap, 'sample_in_metadata_track_map', { sample });
   }
 };
 

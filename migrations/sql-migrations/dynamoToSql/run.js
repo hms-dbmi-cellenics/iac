@@ -44,7 +44,7 @@ const migrateProject = async (project, helper) => {
   if (_.isNil(projectData) || _.isNil(experimentData) || _.isNil(sampleData)) {
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
-    console.log(`[ ERROR ] - p: ${projectUuid}, e: ${experimentId} - One of these is nil:`);
+    console.log(`[ MALFORMED ] - p: ${projectUuid}, e: ${experimentId} - One of these is nil:`);
     console.log(`projectData: ${projectData}, experimentData: ${experimentData}, sampleData: ${sampleData}`)
     console.log(`Finishing`);
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
@@ -72,24 +72,17 @@ const migrateProject = async (project, helper) => {
   // Migrate all samples
   await Promise.all(
     samples.map(async (sample) => {
-
       await helper.sqlInsertSample(experimentId, sample);
 
-      const files = Object.values(_.omit(sample.files, ['lastModified']));
+      const files = Object.entries(_.omit(sample.files, ['lastModified']));
 
       await Promise.all(
-        files.map(async (file) => {
-          try {
-            const sampleFileUuid = uuidv4();
+        files.map(async ([fileName, file]) => {
+          const sampleFileUuid = uuidv4();
 
-            await helper.sqlInsertSampleFile(sampleFileUuid, projectUuid, sample, file);
+          await helper.sqlInsertSampleFile(sampleFileUuid, projectUuid, sample, fileName, file);
 
-            await helper.sqlInsertSampleToSampleFileMap(sampleFileUuid, sample);
-          } catch (e) {
-            console.log(`Error sample_file exp: ${experimentId}, sample: ${sample.uuid}, file: ${file.name}`)
-            console.log(e);
-            throw new Error(e);
-          }
+          await helper.sqlInsertSampleToSampleFileMap(sampleFileUuid, sample);
         })
       );
     })
@@ -104,7 +97,7 @@ const migrateProject = async (project, helper) => {
 
       await Promise.all(
         samples.map(async (sample) => {
-          await helper.sqlInsertSampleInMetadataTrackMap(metadataTrack, sample);
+          await helper.sqlInsertSampleInMetadataTrackMap(metadataTrack, experimentId, sample);
         })
       );
     })
@@ -122,9 +115,9 @@ const migrateProjects = async (projects, helper) => {
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
-        console.log(`----------------------------------Error on project ${p.projectUuid}-------------------------`);
+        console.log(`---------------------------------- Error on project ${p.projectUuid} -------------------------`);
         console.log(e);
-        console.log(`-------------------------------END Error on project ${p.projectUuid}------------------------`);
+        console.log(`------------------------------- END Error on project ${p.projectUuid} ------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
       }
@@ -181,6 +174,7 @@ const run = async () => {
 
   await Promise.all([
     migrateProjects(projectsJson, helper),
+
     migrateUserAccess(sqlClient, userAccessJson),
     migrateInviteAccess(sqlClient, inviteAccessJson),
     migratePlots(sqlClient, plotsJson)
@@ -189,7 +183,7 @@ const run = async () => {
 
 run()
   .then(() => {
-    console.log('---------------------------------------------------------');
+    console.log('>>>>--------------------------------------------------------->>>>');
     console.log('                     finished');
-    console.log('---------------------------------------------------------');
+    console.log('>>>>--------------------------------------------------------->>>>');
   }).catch((e) => console.log(e));
