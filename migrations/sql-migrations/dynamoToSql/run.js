@@ -23,9 +23,7 @@ const environments = {
   PRODUCTION: 'production',
 };
 
-const activeEnvironment = environments.DEVELOPMENT;
-
-const createSqlClient = async () => {
+const createSqlClient = async (activeEnvironment) => {
   const knexfile = await knexfileLoader(activeEnvironment);
   return knex.default(knexfile[activeEnvironment]);
 }
@@ -240,7 +238,8 @@ const migratePlots = async (sqlClient, plots) => {
 }
 
 const run = async () => {
-  sqlClient = await createSqlClient();
+  const activeEnvironment = environments.DEVELOPMENT;
+  sqlClient = await createSqlClient(activeEnvironment);
 
   const helper = new Helper(sqlClient);
 

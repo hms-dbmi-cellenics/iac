@@ -7,6 +7,8 @@ const fetchConfiguration = async (environment) => {
     [environment]: {
       client: 'postgresql',
       connection: params,
+      pool: { min: 0, max: 100 },
+      acquireConnectionTimeout: 6000000
     },
   };
 };
