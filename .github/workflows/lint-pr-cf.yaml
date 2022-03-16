@@ -4,8 +4,7 @@ on:
     branches:
       - master
     paths:
-      - 'cf/**.yaml'
-      - 'cf/**.yml'
+      - 'cf/**'
   workflow_dispatch:
 
 jobs:
