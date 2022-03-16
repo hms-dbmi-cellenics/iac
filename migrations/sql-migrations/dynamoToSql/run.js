@@ -231,7 +231,6 @@ const migratePlots = async (sqlClient, plots) => {
 }
 
 const run = async () => {
-  const environment = process.env.MIGRATION_ENV;
   sqlClient = await createSqlClient(environment);
 
   const helper = new Helper(sqlClient);
@@ -245,9 +244,16 @@ const run = async () => {
   ]);
 };
 
-run()
-  .then(() => {
-    console.log('>>>>--------------------------------------------------------->>>>');
-    console.log('                     finished');
-    console.log('>>>>--------------------------------------------------------->>>>');
-  }).catch((e) => console.log(e));
+const environment = process.env.MIGRATION_ENV;
+
+if (!_.isNil(environment)) {
+  run()
+    .then(() => {
+      console.log('>>>>--------------------------------------------------------->>>>');
+      console.log('                     finished');
+      console.log('>>>>--------------------------------------------------------->>>>');
+    }).catch((e) => console.log(e));
+} else {
+  console.log('You need to specify what environment to run this on.');
+  console.log('e.g.: MIGRATION_ENV=staging npm run dynamoToSql');
+}
