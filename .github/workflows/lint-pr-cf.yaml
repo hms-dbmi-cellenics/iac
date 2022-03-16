@@ -4,11 +4,12 @@ on:
     branches:
       - master
     paths:
-      - 'cf/**'
+      - 'cf/**.yaml'
+      - 'cf/**.yml'
   workflow_dispatch:
 
 jobs:
-  get-modified-templates:
+  get-edited-templates:
     name: Fetch paths to modified CloudFormation templates
     runs-on: ubuntu-20.04
     outputs:
@@ -38,11 +39,11 @@ jobs:
           echo "$(jq -c . < ${HOME}/cf_files.json)"
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
 
-  lint-templates:
+  lint-changed-cf:
     name: Lint changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: get-modified-templates
-    if: needs.get-modified-templates.outputs.num-files > 0
+    needs: get-edited-templates
+    if: needs.get-edited-templates.outputs.num-files > 0
     steps:
       - id: checkout
         name: Check out source code
