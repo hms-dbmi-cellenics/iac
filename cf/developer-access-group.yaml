@@ -223,7 +223,7 @@ Resources:
                   - ssm:StartSession
                   - ssm:TerminateSession
                   - ec2-instance-connect:SendSSHPublicKey
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
                   - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:session/*"
                   - !Sub "arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession"
@@ -235,10 +235,22 @@ Resources:
               - Effect: Allow
                 Action:
                   - "rds-db:connect"
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
               - Effect: Allow
                 Action:
                   - "rds:DescribeDBClusterEndpoints"
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+
+        - PolicyName: "can-view-rds-resources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "rds:Describe*"
+                  - "rds:ListTagsForResource"
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+
