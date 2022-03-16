@@ -1,8 +1,8 @@
 name: Lint CF files before merging
 on:
   pull_request:
-      branches-ignore:
-      - 'master'
+    branches:
+      - master
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
