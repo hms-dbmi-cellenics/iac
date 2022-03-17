@@ -46,27 +46,34 @@ jobs:
           echo "$(jq -c . < ${HOME}/cf_files.json)"
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
 
-  deploy-templates:
-    name: Deploy changed CloudFormation template
+  lint-templates:
+    name: Lint changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
+    steps:
+        - id: checkout
+          name: Check out source code
+          uses: actions/checkout@v2
+        - id: lint
+          name: Lint template
+          uses: scottbrenner/cfn-lint-action@1.6.1
+          with:
+            args: ${{fromJson(needs.get-modified-templates.outputs.files)}}
+
+  deploy-templates:
+    name: Deploy changed CloudFormation template
+    runs-on: ubuntu-20.04
+    needs:
+      - lint-templates
+      - get-modified-templates
+    if: github.ref == 'refs/heads/master'
     strategy:
       matrix:
         environment: ['production', 'staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
-    steps:
-      - id: checkout
-        name: Check out source code
-        uses: actions/checkout@v2
-
-      - id: lint
-        name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
-        with:
-          args: ${{ matrix.template }}
 
       - id: set-up-creds
         name: Configure AWS credentials
@@ -78,7 +85,7 @@ jobs:
 
       # This is only necessary for IAM Service Account roles.
       - id: get-oidc
-        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ contains(matrix.template, 'irsa-') }}
         name: Get OIDC provider information for IRSA role
         run: |-
           OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
@@ -95,7 +102,7 @@ jobs:
 
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ !contains(matrix.template, 'irsa-') }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }}"
@@ -105,7 +112,7 @@ jobs:
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: deploy-irsa-template
-        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ contains(matrix.template, 'irsa-') }}
         name: Deploy IRSA CloudFormation template
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
