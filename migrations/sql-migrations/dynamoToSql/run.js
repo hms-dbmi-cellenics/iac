@@ -140,7 +140,7 @@ const migrateUserAccess = async (sqlClient, userAccess) => {
           updated_at: ua.createdDate
         };
   
-        console.log(`Migrating user access ${ia.experimentId}, ${ua.userId}`);
+        console.log(`Migrating user access ${ua.experimentId}, ${ua.userId}`);
         await sqlClient('user_access').insert(sqlUserAccess);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
