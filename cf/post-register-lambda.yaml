@@ -82,8 +82,7 @@ Resources:
       CognitoUserPoolPreSignup:
         Type: Cognito
         Properties:
-          UserPool:
-            Ref: !Sub "biomage-user-pool-case-insensitive-${Environment}"
+          UserPool: !Sub "biomage-user-pool-case-insensitive-${Environment}"
           Trigger: PostConfirmation
 
 
