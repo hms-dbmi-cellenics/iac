@@ -140,6 +140,7 @@ const migrateUserAccess = async (sqlClient, userAccess) => {
           updated_at: ua.createdDate
         };
   
+        console.log(`Migrating user access ${ia.experimentId}, ${ua.userId}`);
         await sqlClient('user_access').insert(sqlUserAccess);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
@@ -176,7 +177,8 @@ const migrateInviteAccess = async (sqlClient, inviteAccess) => {
           updated_at: ia.createdDate
   
         };
-    
+        
+        console.log(`Migrating invite access ${ia.experimentId}, ${ia.userEmail}`);
         await sqlClient('invite_access').insert(sqlAccess);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
@@ -212,6 +214,7 @@ const migratePlots = async (sqlClient, plots) => {
           s3_data_key: p.plotDataKey
         };
   
+        console.log(`Migrating plot ${p.experimentId}, ${p.plotUuid}`);
         await sqlClient('plot').insert(sql);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
