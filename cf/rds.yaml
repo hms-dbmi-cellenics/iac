@@ -70,20 +70,6 @@ Resources:
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
       PubliclyAccessible: false
-  
-  RDSAgentSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub Biomage RDS security group for ${Environment} to connect ec2 agent with rds
-      VpcId:
-        Fn::ImportValue:
-          !Sub 'eksctl-biomage-${Environment}-cluster::VPC'
-    # this says who can access anyone within this security group
-      SecurityGroupIngress:
-        - FromPort: !Ref DBPort
-          ToPort: !Ref DBPort
-          IpProtocol: tcp
-          CidrIp: 0.0.0.0/0
 
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -98,7 +84,7 @@ Resources:
           ToPort: !Ref DBPort
           IpProtocol: tcp
         - SourceSecurityGroupId: 
-            !Ref RDSAgentSecurityGroup
+            Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
           FromPort: !Ref DBPort
           ToPort: !Ref DBPort
           IpProtocol: tcp
@@ -110,9 +96,3 @@ Resources:
       VpcId:
         Fn::ImportValue:
           !Sub "eksctl-biomage-${Environment}-cluster::VPC"
-
-Outputs:
-  SecurityGroupId:
-    Value: !Ref RDSAgentSecurityGroup
-    Export:
-      Name: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
