@@ -170,6 +170,7 @@ Resources:
                   - "iam:ResyncMFADevice"
                 Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:user/${!aws:username}"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:mfa/${!aws:username}"
 
         - PolicyName: "can-see-user-and-group-policies"
           PolicyDocument:
