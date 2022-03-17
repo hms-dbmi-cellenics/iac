@@ -34,14 +34,18 @@ jobs:
         run: |-
           # Merge all modified and renamed files into one JSON array
           #jq -s add ${HOME}/files_added.json ${HOME}/files_modified.json ${HOME}/files_renamed.json > ${HOME}/files_to_check.json
+
           cat ${HOME}/files.json
           echo
+
           # Select those that are CF templates (path starts with `cf/`)
           jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/cf_files.json
+
           # Set as output the minified JSON.
           echo "::set-output name=files::$(jq -c . < ${HOME}/cf_files.json)"
           echo "$(jq -c . < ${HOME}/cf_files.json)"
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
+
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
@@ -79,6 +83,7 @@ jobs:
         run: |-
           OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
           echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
+
       - id: set-name
         name: Set name of the CloudFormation stack
         run: |-
