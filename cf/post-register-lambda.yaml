@@ -24,7 +24,7 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
-        - PolicyName: !Sub "can-execute-post-register-lambda-${Environment}"
+        - PolicyName: !Sub "can-access-dynamo-lambda-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -38,6 +38,25 @@ Resources:
                 Resource:
                   - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
                   - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "logs:CreateLogGroup"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
