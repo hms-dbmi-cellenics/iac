@@ -68,7 +68,7 @@ Resources:
         #           - Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
 
   PostRegisterLambda:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       Runtime: nodejs14.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
@@ -78,10 +78,13 @@ Resources:
          exports.handler = function(event, context) {
             console.log('hello :)');
          }
-    events:
-      - cognitoUserPool:
-          pool: !Sub "biomage-user-pool-case-insensitive-${Environment}"
-          trigger: PostConfirmation
+    Events:
+      CognitoUserPoolPreSignup:
+        Type: Cognito
+        Properties:
+          UserPool:
+            Ref: !Sub "biomage-user-pool-case-insensitive-${Environment}"
+          Trigger: PostConfirmation
 
 
   LoggingGroup: 
