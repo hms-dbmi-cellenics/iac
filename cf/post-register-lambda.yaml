@@ -36,8 +36,8 @@ Resources:
                   - "dynamodb:Scan"
                   - "dynamodb:UpdateItem"
                 Resource:
-                  - !Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
-                  - !Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
+                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
+                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
