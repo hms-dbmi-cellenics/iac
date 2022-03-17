@@ -11,6 +11,7 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
+Transform: AWS::Serverless-2016-10-31
 Resources:
   PostRegisterLambdaRole:
     Type: "AWS::IAM::Role"
@@ -66,8 +67,6 @@ Resources:
         #           - "lambda:InvokeFunction"
         #         Resource:
         #           - Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
-Transform: AWS::Serverless-2016-10-31
-Resources:
   PostRegisterLambda:
     Type: AWS::Serverless::Function
     Properties:
