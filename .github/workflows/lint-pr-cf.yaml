@@ -6,8 +6,6 @@ on:
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
-env:
-  region: 'eu-west-1'
 
 jobs:
   get-modified-templates:
@@ -40,17 +38,11 @@ jobs:
           echo "$(jq -c . < ${HOME}/cf_files.json)"
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
 
-  deploy-templates:
+  lint-pr-templates:
     name: Lint changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
-    strategy:
-      matrix:
-        environment: ['production', 'staging']
-        template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
-    env:
-      CLUSTER_ENV: ${{ matrix.environment }}
     steps:
       - id: checkout
         name: Check out source code
@@ -60,4 +52,4 @@ jobs:
         name: Lint template
         uses: scottbrenner/cfn-lint-action@1.6.1
         with:
-          args: ${{ matrix.template }}
+          args: ${{fromJson(needs.get-modified-templates.outputs.files)}}
