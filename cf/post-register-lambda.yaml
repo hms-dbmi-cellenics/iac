@@ -78,8 +78,11 @@ Resources:
          exports.handler = function(event, context) {
             console.log('hello :)');
          }
-    Schedule: 
-      Expression: rate(3 minutes)
+    events:
+      - cognitoUserPool:
+          pool: !Sub "biomage-user-pool-case-insensitive-${Environment}"
+          trigger: PostConfirmation
+
 
   LoggingGroup: 
     Type: AWS::Logs::LogGroup
