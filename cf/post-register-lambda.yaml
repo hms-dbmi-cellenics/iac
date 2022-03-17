@@ -66,15 +66,15 @@ Resources:
         #           - "lambda:InvokeFunction"
         #         Resource:
         #           - Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
-
+Transform: AWS::Serverless-2016-10-31
+Resources:
   PostRegisterLambda:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: nodejs14.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
-      Code: 
-        ZipFile: |
+      InlineCode: |
          exports.handler = function(event, context) {
             console.log('hello :)');
          }
