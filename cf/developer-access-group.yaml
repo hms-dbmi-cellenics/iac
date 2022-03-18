@@ -27,7 +27,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
-        - arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess
       Policies:
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
           PolicyDocument:
