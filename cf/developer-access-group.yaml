@@ -244,12 +244,13 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
-        - PolicyName: "test-changes"
+        - PolicyName: "can-read-rds"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "rds:DescribeDBClusterEndpoints"
+                  - "rds:Describe*"
+                  - "rds:ListTagsForResource"
                 Resource:
-                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
