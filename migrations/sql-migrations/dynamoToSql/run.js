@@ -86,12 +86,12 @@ const migrateProject = async (project, helper) => {
   const metadataTracks = Object.keys(samples[0].metadata);
 
   await Promise.all(
-    metadataTracks.map(async (metadataTrack) => {
-      await helper.sqlInsertMetadataTrack(metadataTrack, experimentId);
+    metadataTracks.map(async (metadataTrackKey) => {
+      const insertedTrack = await helper.sqlInsertMetadataTrack(metadataTrackKey, experimentId);
 
       await Promise.all(
         samples.map(async (sample) => {
-          await helper.sqlInsertSampleInMetadataTrackMap(experimentId, metadataTrack, sample);
+          await helper.sqlInsertSampleInMetadataTrackMap(insertedTrack[0], sample);
         })
       );
     })

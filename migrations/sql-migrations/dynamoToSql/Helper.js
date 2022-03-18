@@ -5,7 +5,7 @@ class Helper {
 
   sqlInsert = async (sqlObject, tableName, extraLoggingData = {}) => {
     try {
-      await sqlClient(tableName).insert(sqlObject);
+      return await sqlClient(tableName).insert(sqlObject).returning('*');
     } catch (e) {
       throw new Error(
         `
@@ -40,7 +40,7 @@ class Helper {
       notify_by_email: experimentData.notifyByEmail,
     };
   
-    await this.sqlInsert(sqlExperiment, 'experiment', { experimentId, projectData });
+    return await this.sqlInsert(sqlExperiment, 'experiment', { experimentId, projectData });
   }
   
   sqlInsertExperimentExecutionGem2s = async (experimentId, experimentData) => {
@@ -54,7 +54,7 @@ class Helper {
       execution_arn: executionArn,
     };
   
-    await this.sqlInsert(sqlExperimentExecution, 'experiment_execution', { experimentId, experimentData });
+    return await this.sqlInsert(sqlExperimentExecution, 'experiment_execution', { experimentId, experimentData });
   };
   
   sqlInsertExperimentExecutionQC = async (experimentId, experimentData) => {
@@ -69,7 +69,7 @@ class Helper {
       execution_arn: executionArn,
     };
   
-    await this.sqlInsert(sqlExperimentExecution, 'experiment_execution', { experimentId, experimentData });
+    return await this.sqlInsert(sqlExperimentExecution, 'experiment_execution', { experimentId, experimentData });
   };
   
   sqlInsertSample = async (experimentId, sample) => {
@@ -82,7 +82,7 @@ class Helper {
       updated_at: sample.lastModified,
     };
     
-    await this.sqlInsert(sqlSample, 'sample');
+    return await this.sqlInsert(sqlSample, 'sample');
   };
   
   sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, fileName, file) => {
@@ -105,7 +105,7 @@ class Helper {
       updated_at: file.lastModified
     };
 
-    await this.sqlInsert(sqlSampleFile, 'sample_file', { projectUuid, sample, file });
+    return await this.sqlInsert(sqlSampleFile, 'sample_file', { projectUuid, sample, file });
   };
   
   sqlInsertSampleToSampleFileMap = async (sampleFileUuid, sample) => {
@@ -114,27 +114,26 @@ class Helper {
       sample_file_id: sampleFileUuid,
     }
     
-    await this.sqlInsert(sqlSampleToSampleFile, 'sample_to_sample_file_map', { sample });
+    return await this.sqlInsert(sqlSampleToSampleFile, 'sample_to_sample_file_map', { sample });
   }
   
-  sqlInsertMetadataTrack = async (metadataTrack, experimentId) => {
+  sqlInsertMetadataTrack = async (metadataTrackKey, experimentId) => {
     const sqlMetadataTrack = {
-      key: metadataTrack,
+      key: metadataTrackKey,
       experiment_id: experimentId,
     }
   
-    await this.sqlInsert(sqlMetadataTrack, 'metadata_track');
+    return await this.sqlInsert(sqlMetadataTrack, 'metadata_track');
   }
   
-  sqlInsertSampleInMetadataTrackMap = async (experimentId, metadataTrack, sample) => {
+  sqlInsertSampleInMetadataTrackMap = async (sqlMetadataTrack, sample) => {
     const sqlSampleInMetadataTrackMap = {
-      metadata_track_key: metadataTrack,
-      experiment_id: experimentId,
+      metadata_track_id: sqlMetadataTrack.id,
       sample_id: sample.uuid,
-      value: sample.metadata[metadataTrack],
+      value: sample.metadata[sqlMetadataTrack.key],
     };
   
-    await this.sqlInsert(sqlSampleInMetadataTrackMap, 'sample_in_metadata_track_map', { sample });
+    return await this.sqlInsert(sqlSampleInMetadataTrackMap, 'sample_in_metadata_track_map', { sqlMetadataTrack, sample });
   }
 };
 
