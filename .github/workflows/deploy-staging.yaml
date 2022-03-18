@@ -135,9 +135,6 @@ jobs:
           BASE_NAME=biomage-sns-staging-$SANDBOX_ID
           echo "::set-output name=sns-name::$BASE_NAME"
 
-          BASE_NAME=biomage-rds-staging-$SANDBOX_ID
-          echo "::set-output name=rds-name::$BASE_NAME"
-
           BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
@@ -151,17 +148,6 @@ jobs:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-name.outputs.sns-name }}
           template: cf/sns.yaml
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
-      - id: deploy-template-rds
-        name: Deploy CloudFormation stack for RDS
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
-        with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.rds-name }}
-          template: cf/rds.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
