@@ -142,6 +142,7 @@ const migrateUserAccess = async (sqlClient, userAccess) => {
   
         console.log(`Migrating user access ${ua.experimentId}, ${ua.userId}`);
         await sqlClient('user_access').insert(sqlUserAccess);
+        console.log(`>>>>>>> Finished migrating user access ${ua.experimentId}, ${ua.userId} <<<<<<<<`);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
@@ -180,6 +181,7 @@ const migrateInviteAccess = async (sqlClient, inviteAccess) => {
         
         console.log(`Migrating invite access ${ia.experimentId}, ${ia.userEmail}`);
         await sqlClient('invite_access').insert(sqlAccess);
+        console.log(`>>>>>>> Finished migrating invite access ${ia.experimentId}, ${ia.userEmail} <<<<<<<<`);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);
@@ -216,6 +218,7 @@ const migratePlots = async (sqlClient, plots) => {
   
         console.log(`Migrating plot ${p.experimentId}, ${p.plotUuid}`);
         await sqlClient('plot').insert(sql);
+        console.log(`>>>>>>> Finished migrating plot ${p.experimentId}, ${p.plotUuid} <<<<<<<<`);
       } catch (e) {
         console.log(`----------------------------------------------------------------------------------------------------------------`);
         console.log(`----------------------------------------------------------------------------------------------------------------`);

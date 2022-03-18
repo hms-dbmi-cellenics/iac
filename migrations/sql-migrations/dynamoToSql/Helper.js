@@ -35,6 +35,7 @@ class Helper {
       name: projectData.name,
       description: projectData.description,
       processing_config: experimentData.processingConfig,
+      samples_order: experimentData.sampleIds,
       created_at: projectData.createdDate,
       updated_at: projectData.lastModified,
       notify_by_email: experimentData.notifyByEmail,
