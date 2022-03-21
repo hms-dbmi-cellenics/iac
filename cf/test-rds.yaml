@@ -10,6 +10,10 @@ Parameters:
       - staging
       - production
     Description: The environment for which the cluster needs to be created.
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this cluster is created for.
 
 # --------------------------------------- Constants ---------------------------------------
   DBPort:
@@ -21,7 +25,7 @@ Parameters:
     Default: 13.4
 
   DBSecretPrefix:
-    Description: The prefix of the secret used to store master user and password, 
+    Description: The prefix of the secret used to store master user and password,
       the missing suffix is the environment (and both are connected with -).
     Type: String
     Default: aurora
@@ -36,7 +40,7 @@ Resources:
       EngineMode: provisioned
       EngineVersion: !Ref DBEngineVersion
       DBSubnetGroupName: !Ref DBSubnetGroup
-      DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment] ]
+      DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment, !Ref SandboxID] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
       # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
