@@ -35,7 +35,9 @@ Resources:
       Engine: aurora-postgresql
       EngineMode: provisioned
       EngineVersion: !Ref DBEngineVersion
-      DBSubnetGroupName: !Ref DBSubnetGroup
+      DBSubnetGroupName:
+        Fn::ImportValue:
+          !Sub "biomage-${Environment}-rds::DBSubnetGroup"
       DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
@@ -48,19 +50,9 @@ Resources:
       SourceRegion: !Sub '${AWS::Region}'
       # Check if we want to change this
       StorageEncrypted: false
-      VpcSecurityGroupIds: 
-        - !Ref RDSSecurityGroup
-
-  DBSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: !Sub Biomage subnet group for ${Environment}.
-      DBSubnetGroupName: !Sub rds-subnet-group-${Environment}
-      SubnetIds:
-        Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
-      Tags:
-        - Key: "Name"
-          Value: AuroraSubnetGroup
+      VpcSecurityGroupIds:
+        - Fn::ImportValue:
+            !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
 
   DBInstance1:
     Type: AWS::RDS::DBInstance
@@ -70,29 +62,3 @@ Resources:
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
       PubliclyAccessible: false
-
-  RDSSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub "Biomage RDS security group for ${Environment}"
-      SecurityGroupEgress: []
-      SecurityGroupIngress:
-        - SourceSecurityGroupId: 
-          # This is the important security group, SharedNodeSecurityGroup is supposed to be no longer in real use
-            Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"
-          FromPort: !Ref DBPort
-          ToPort: !Ref DBPort
-          IpProtocol: tcp
-        - SourceSecurityGroupId: 
-            Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
-          FromPort: !Ref DBPort
-          ToPort: !Ref DBPort
-          IpProtocol: tcp
-      Tags:
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-security-group"
-        - Key: StackName
-          Value: !Ref AWS::StackName
-      VpcId:
-        Fn::ImportValue:
-          !Sub "eksctl-biomage-${Environment}-cluster::VPC"
