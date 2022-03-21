@@ -1,0 +1,16 @@
+{
+  "name": "sql-migrations",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dynamoToSql": "node dynamoToSql/run"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1087.0",
+    "knex": "^1.0.3",
+    "pg": "^8.7.3",
+    "uuidv4": "^6.2.12"
+  }
+}
