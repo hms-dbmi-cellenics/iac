@@ -244,13 +244,17 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
-        - PolicyName: "can-read-rds"
+        - PolicyName: "rds-full-access"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "rds:Describe*"
-                  - "rds:ListTagsForResource"
+                  - "rds:*"
+                  - "ec2:DescribeAccountAttributes"
+                  - "ec2:DescribeAvailabilityZones"
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeVpcs"
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
