@@ -179,6 +179,7 @@ Resources:
                 Action:
                   - "iam:ListUsers"
                   - "iam:GetUser"
+                  - "iam:ListUserTags"
                   - "iam:ListGroups"
                   - "iam:ListGroupsForUser"
                   - "iam:GetGroup"
@@ -186,7 +187,9 @@ Resources:
                   - "iam:GetRole"
                   - "iam:ListPolicies"
                   - "iam:ListUserPolicies"
+                  - "iam:ListGroupPolicies"
                   - "iam:ListAttachedUserPolicies"
+                  - "iam:ListAttachedGroupPolicies"
                   - "iam:GetPolicy"
                   - "iam:GetRolePolicy"
                 Resource:
