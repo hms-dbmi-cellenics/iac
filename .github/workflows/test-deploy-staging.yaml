@@ -159,16 +159,16 @@ jobs:
         run: |-
           USERNAME=postgres
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
-            --region {{ env.region }} \
-            --db-cluster-identifier aurora-cluster-staging-{{ github.event.inputs.sandbox-id }} \
+            --region $REGION \
+            --db-cluster-identifier aurora-cluster-staging-$SANDBOX_ID \
             --filter Name=db-cluster-endpoint-type,Values='writer' \
             --query 'DBClusterEndpoints[0].Endpoint')
 
           PASSWORD=$(aws rds generate-db-auth-token \
             --hostname $RDSHOST \
             --port 5432 \
-            --region {{ env.region }} \
-            --username ${USERNAME})
+            --region $REGION \
+            --username $USERNAME)
 
           PGPASSWORD=$PASSWORD psql \
             --host=${RDSHOST} \
@@ -187,6 +187,9 @@ jobs:
             GRANT rds_iam TO api_role;
             GRANT rds_iam, postgres TO dev_role;
           '
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+          REGION: ${{ env.region }}
 
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
