@@ -132,27 +132,16 @@ jobs:
       - id: set-name
         name: Set name of the CloudFormation stack for SNS topic
         run: |-
-          BASE_NAME=biomage-sns-staging-$SANDBOX_ID
-          echo "::set-output name=sns-name::$BASE_NAME"
-
           BASE_NAME=biomage-rds-staging-$SANDBOX_ID
           echo "::set-output name=rds-name::$BASE_NAME"
+
+          BASE_NAME=biomage-sns-staging-$SANDBOX_ID
+          echo "::set-output name=sns-name::$BASE_NAME"
 
           BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-
-      - id: deploy-template-sns
-        name: Deploy CloudFormation stack for SNS topic
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
-        with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.sns-name }}
-          template: cf/sns.yaml
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: deploy-template-rds
         name: Deploy CloudFormation stack for RDS
@@ -162,6 +151,51 @@ jobs:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-name.outputs.rds-name }}
           template: cf/test-rds.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: setup-rds-credentials
+        name: Add access credentials to RDS
+        run: |-
+          USERNAME=postgres
+          RDSHOST=$(aws rds describe-db-cluster-endpoints \
+            --region {{ env.region }} \
+            --db-cluster-identifier aurora-cluster-staging-{{ github.event.inputs.sandbox-id }} \
+            --filter Name=db-cluster-endpoint-type,Values='writer' \
+            --query 'DBClusterEndpoints[0].Endpoint')
+
+          PASSWORD=$(aws rds generate-db-auth-token \
+            --hostname $RDSHOST \
+            --port 5432 \
+            --region {{ env.region }} \
+            --username ${USERNAME})
+
+          PGPASSWORD=$PASSWORD psql \
+            --host=${RDSHOST} \
+            --port=5432 \
+            --username=${USERNAME} \
+            --dbname=aurora_db \
+            -c '
+            CREATE ROLE api_role WITH LOGIN;
+            CREATE ROLE dev_role WITH LOGIN;
+            GRANT USAGE ON SCHEMA public TO api_role;
+            -- RDS doesnt allow master user some things, so we need to
+            -- grant and later revoke dev_role from postgres to move its privileges
+            GRANT dev_role TO postgres;
+            ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
+            REVOKE dev_role FROM postgres;
+            GRANT rds_iam TO api_role;
+            GRANT rds_iam, postgres TO dev_role;
+          '
+
+      - id: deploy-template-sns
+        name: Deploy CloudFormation stack for SNS topic
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.sns-name }}
+          template: cf/sns.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
