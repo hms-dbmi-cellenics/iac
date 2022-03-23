@@ -162,7 +162,8 @@ jobs:
             --region $REGION \
             --db-cluster-identifier aurora-cluster-staging-$SANDBOX_ID \
             --filter Name=db-cluster-endpoint-type,Values='writer' \
-            --query 'DBClusterEndpoints[0].Endpoint')
+            --query 'DBClusterEndpoints[0].Endpoint' \
+            --output text)
 
           PASSWORD=$(aws rds generate-db-auth-token \
             --hostname $RDSHOST \
@@ -170,10 +171,11 @@ jobs:
             --region $REGION \
             --username $USERNAME)
 
-          PGPASSWORD=$PASSWORD psql \
+          psql \
             --host=${RDSHOST} \
             --port=5432 \
             --username=${USERNAME} \
+            --password=${PASSWORD} \
             --dbname=aurora_db \
             -c '
             CREATE ROLE api_role WITH LOGIN;
