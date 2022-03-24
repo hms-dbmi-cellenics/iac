@@ -59,6 +59,9 @@ Resources:
                   - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
   PostRegisterLambda:
     Type: AWS::Lambda::Function
+    Environment:
+      Variables:
+        Environment: !Ref Environment
     Properties:
       Runtime: nodejs14.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
@@ -71,9 +74,9 @@ Resources:
               data, { convertEmptyValues: false },
             );
             
-            const region = 'eu-west-1'
-            const userAccessTableName = 'user-access-staging'
-            const inviteAccessTableName = 'invite-access-staging'
+            const region = process.env.AWS_REGION
+            const userAccessTableName = `user-access-${Environment}`
+            const inviteAccessTableName = `invite-access-${Environment}`
             
             const db = new AWS.DynamoDB({
               region,
@@ -139,7 +142,12 @@ Resources:
             
             callback(null, event);
           };
-
+  Outputs:
+    PostRegisterLambda:
+      Description: The ARN of the PostRegisterLambda
+      Value: !GetAtt PostRegisterLambda.Arn
+      Export:
+        Name: PostRegisterLambdaArn
 
   LoggingGroup: 
     Type: AWS::Logs::LogGroup
