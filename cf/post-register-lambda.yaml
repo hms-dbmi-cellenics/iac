@@ -65,9 +65,80 @@ Resources:
       Handler: index.handler
       Code: 
         ZipFile: |
-         exports.handler = function(event, context) {
-            console.log('hello :)');
-         }
+          const AWS = require('aws-sdk');
+          exports.handler = async (event, context, callback) => {
+            const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(
+              data, { convertEmptyValues: false },
+            );
+            
+            const region = 'eu-west-1'
+            const userAccessTableName = 'user-access-staging'
+            const inviteAccessTableName = 'invite-access-staging'
+            
+            const db = new AWS.DynamoDB({
+              region,
+            });
+          
+            // getting projects that the user is invited in
+            const userEmail = event.request.userAttributes.email;
+            const userId = event.request.userAttributes.sub;
+            
+            const params = {
+              TableName: inviteAccessTableName,
+              FilterExpression: '(userEmail = :userEmail)',
+              ExpressionAttributeValues: {
+                ...convertToDynamoDbRecord({ ':userEmail': userEmail }),
+              },
+            };
+            const response = await db.scan(params).promise();
+
+            // add those rows in user-access
+
+            const experimentIds = []
+            await Promise.all(response.Items.map((item)=>{
+              
+              const projectId = item.projectId.S;
+              const experimentId = item.experimentId.S;
+              experimentIds.push(experimentId)
+              const role = item.role.S;
+              
+              const addRoleParams = {
+                  TableName: userAccessTableName,
+                  Item: {
+                    userId,
+                    experimentId,
+                    projectId,
+                    role,
+                    createdDate: new Date().toISOString(),
+                  },
+                };
+            
+                const docClient = new AWS.DynamoDB.DocumentClient({
+                  region,
+                });
+            
+                return docClient.put(addRoleParams).promise();
+                
+            }))
+            
+            //remove rows from invite-access
+            await Promise.all(experimentIds.map((id)=>{
+                
+              const key = convertToDynamoDbRecord({
+                experimentId: id,
+                userEmail,
+              });
+              
+              const dynamoParams = {
+                TableName: inviteAccessTableName,
+                Key: key,
+              };
+
+              return db.deleteItem(dynamoParams).send();
+            }))
+            
+            callback(null, event);
+          };
 
 
   LoggingGroup: 
