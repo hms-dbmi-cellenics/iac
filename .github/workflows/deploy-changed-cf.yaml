@@ -2,7 +2,7 @@ name: Deploy changed CloudFormation templates
 on:
   push:
     branches:
-      - post-register-lambda
+      - master
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
