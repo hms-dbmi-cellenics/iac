@@ -199,7 +199,9 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
-
+      LambdaConfig:
+        PostConfirmation: 
+          Fn::ImportValue: !Sub PostRegisterLambdaArn
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
