@@ -114,7 +114,6 @@ jobs:
       - id: get-rds-params
         name: Get RDS connection params
         run: |-
-
           # Remove these checks for production
           [ -z $AURORA_STAGING_USERNAME ] && echo "No AURORA_STAGING_USERNAME" && exit 1
           [ -z $AURORA_STAGING_PASSWORD ] && echo "No AURORA_STAGING_PASSWORD" && exit 1
@@ -137,6 +136,9 @@ jobs:
 
           echo "::set-output name=rds-host::$RDSHOST"
           echo "::set-output name=rds-instance-id::$INSTANCE_ID"
+        env:
+          REGION: {{ env.region }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
         name: Deploy CloudFormation stack for RDS
