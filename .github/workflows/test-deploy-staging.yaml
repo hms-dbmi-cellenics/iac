@@ -148,11 +148,16 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          parameter-overrides: "Environment=staging,DBInstanceType=db.t3.micro,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-name.outputs.rds-name }}
-          template: cf/test-rds.yaml
+          template: cf/staging-rds.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: Get RDS secrets
+        name: Get RDS secrets
+
+
 
       - id: setup-rds-credentials
         name: Add access credentials to RDS
