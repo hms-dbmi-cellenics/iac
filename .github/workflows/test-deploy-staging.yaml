@@ -158,9 +158,9 @@ jobs:
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Get RDS secrets
         with:
-        secrets: |
-          aurora-staging
-        parse-json: true
+          secrets: |
+            aurora-staging
+          parse-json: true
 
       - id: get-rds-params
         name: Get RDS connection params
