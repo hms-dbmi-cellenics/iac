@@ -10,10 +10,6 @@ Parameters:
       - staging
       - production
     Description: The environment for which the cluster needs to be created.
-  SandboxID:
-    Type: String
-    Default: default
-    Description: The sandbox ID of the environment that this cluster is created for.
 
 # --------------------------------------- Constants ---------------------------------------
   DBPort:
@@ -42,7 +38,7 @@ Resources:
       DBSubnetGroupName:
         Fn::ImportValue:
           !Sub "biomage-${Environment}-rds::DBSubnetGroup"
-      DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment, !Ref SandboxID] ]
+      DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
       # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
