@@ -157,19 +157,12 @@ jobs:
       - id: setup-rds-credentials
         name: Add access credentials to RDS
         run: |-
-          USERNAME=postgres
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
             --db-cluster-identifier aurora-cluster-staging-$SANDBOX_ID \
             --filter Name=db-cluster-endpoint-type,Values='writer' \
             --query 'DBClusterEndpoints[0].Endpoint' \
             --output text)
-
-          PASSWORD=$(aws rds generate-db-auth-token \
-            --hostname $RDSHOST \
-            --port 5432 \
-            --region $REGION \
-            --username $USERNAME)
 
           PGPASSWORD=${PASSWORD} psql \
             --host=${RDSHOST} \
@@ -191,6 +184,8 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
           REGION: ${{ env.region }}
+          USERNAME: 'postgres'
+          PASSWORD: ${{ secrets.PGPASSWORD }}
 
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
