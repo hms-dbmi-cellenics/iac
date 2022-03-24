@@ -111,6 +111,17 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
+      - id: deploy-template-rds
+        name: Deploy CloudFormation stack for RDS
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-name.outputs.rds-name }}
+          template: cf/test-rds.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
       - id: get-rds-params
         name: Get RDS connection params
         run: |-
@@ -139,17 +150,6 @@ jobs:
         env:
           REGION: ${{ env.region }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-
-      - id: deploy-template-rds
-        name: Deploy CloudFormation stack for RDS
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
-        with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.rds-name }}
-          template: cf/test-rds.yaml
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: setup-rds-roles
         name: AWS SSM Send-Command
