@@ -199,9 +199,10 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
-
+      LambdaConfig:
+        PostConfirmation: !Ref PostRegisterLambda
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
-      UserPoolId: !Ref UserPool 
+      UserPoolId: !GetAtt PostRegisterLambda.Arn
       Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
