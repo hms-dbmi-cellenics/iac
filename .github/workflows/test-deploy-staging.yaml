@@ -150,47 +150,63 @@ jobs:
         with:
           parameter-overrides: "Environment=staging,DBInstanceType=db.t3.micro,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-name.outputs.rds-name }}
-          template: cf/staging-rds.yaml
+          template: cf/test-rds.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      - id: Get RDS secrets
+      - id: get-rds-secrets
+        uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Get RDS secrets
+        with:
+        secrets: |
+          aurora-staging
+        parse-json: true
 
-
-
-      - id: setup-rds-credentials
-        name: Add access credentials to RDS
+      - id: get-rds-params
+        name: Get RDS connection params
         run: |-
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
-            --db-cluster-identifier aurora-cluster-staging-$SANDBOX_ID \
+            --db-cluster-identifier aurora-cluster-staging-${SANDBOX_ID} \
             --filter Name=db-cluster-endpoint-type,Values='writer' \
             --query 'DBClusterEndpoints[0].Endpoint' \
             --output text)
 
-          PGPASSWORD=${PASSWORD} psql \
-            --host=${RDSHOST} \
-            --port=5432 \
-            --username=${USERNAME} \
-            --dbname=aurora_db \
-            -c '
-            CREATE ROLE api_role WITH LOGIN;
-            CREATE ROLE dev_role WITH LOGIN;
-            GRANT USAGE ON SCHEMA public TO api_role;
-            -- RDS doesnt allow master user some things, so we need to
-            -- grant and later revoke dev_role from postgres to move its privileges
-            GRANT dev_role TO postgres;
-            ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
-            REVOKE dev_role FROM postgres;
-            GRANT rds_iam TO api_role;
-            GRANT rds_iam, postgres TO dev_role;
-          '
-        env:
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-          REGION: ${{ env.region }}
-          USERNAME: 'postgres'
-          PASSWORD: ${{ secrets.PGPASSWORD }}
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
+            --output text \
+            --query 'Reservations[*].Instances[*].InstanceId')
+
+          echo "::set-output name=rds-host::$RDSHOST"
+          echo "::set-output name=rds-instance-id::$INSTANCE_ID"
+
+      - id: setup-rds-roles
+        name: AWS SSM Send-Command
+        uses: peterkimzz/aws-ssm-send-command@v1.1.1
+        with:
+          aws-region: ${{ env.REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          instance-ids: ${{ steps.get-rds-params.outputs.rds-instance-id }}
+
+          working-directory: /
+          command: |
+            PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
+              --host={{ steps.get-rds-params.outputs.rds-host }} \
+              --port=5432 \
+              --username=${AURORA_STAGING_USERNAME} \
+              --dbname=aurora_db \
+              -c '
+              CREATE ROLE api_role WITH LOGIN;
+              CREATE ROLE dev_role WITH LOGIN;
+              GRANT USAGE ON SCHEMA public TO api_role;
+              -- RDS doesnt allow master user some things, so we need to
+              -- grant and later revoke dev_role from ${AURORA_STAGING_USERNAME} to move its privileges
+              GRANT dev_role TO ${AURORA_STAGING_USERNAME};
+              ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
+              REVOKE dev_role FROM ${AURORA_STAGING_USERNAME};
+              GRANT rds_iam TO api_role;
+              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;
 
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
