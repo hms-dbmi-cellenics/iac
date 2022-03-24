@@ -114,7 +114,7 @@ jobs:
       - id: deploy-template-rds
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
+        # if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-name.outputs.rds-name }}
@@ -152,7 +152,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: setup-rds-roles
-        name: AWS SSM Send-Command
+        name: Setup RDS roles using RDS agent
         uses: peterkimzz/aws-ssm-send-command@v1.1.1
         with:
           aws-region: ${{ env.REGION }}
@@ -271,7 +271,7 @@ jobs:
           retry_on: error
           command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
           # Add jitter to break up correlated events.
-          on_retry_command: sleep $[($RANDOM % 10) + 5]s
+          on_retry_command: sleep $((5 + RANDOM % 10))
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement
