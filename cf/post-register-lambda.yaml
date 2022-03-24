@@ -11,7 +11,6 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
-Transform: AWS::Serverless-2016-10-31
 Resources:
   PostRegisterLambdaRole:
     Type: "AWS::IAM::Role"
@@ -58,31 +57,17 @@ Resources:
                   - "logs:PutLogEvents"
                 Resource:
                   - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
-        # - PolicyName: !Sub "can-execute-lambda-${Environment}"
-        #   PolicyDocument:
-        #     Version: "2012-10-17"
-        #     Statement:
-        #       - Effect: Allow
-        #         Action: 
-        #           - "lambda:InvokeFunction"
-        #         Resource:
-        #           - Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
   PostRegisterLambda:
-    Type: AWS::Serverless::Function
+    Type: AWS::Lambda::Function
     Properties:
       Runtime: nodejs14.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
-      InlineCode: |
+      Code: 
+        ZipFile: |
          exports.handler = function(event, context) {
             console.log('hello :)');
          }
-    Events:
-      CognitoUserPoolPreSignup:
-        Type: Cognito
-        Properties:
-          UserPool: !Sub "biomage-user-pool-case-insensitive-${Environment}"
-          Trigger: PostConfirmation
 
 
   LoggingGroup: 

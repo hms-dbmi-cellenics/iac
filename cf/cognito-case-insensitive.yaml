@@ -102,6 +102,15 @@ Resources:
                   - "s3:GetObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}/*"
+        - PolicyName: !Sub "can-execute-lambda-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "lambda:InvokeFunction"
+                Resource:
+                  - Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
 
   SMSRole:
     Type: "AWS::IAM::Role"
