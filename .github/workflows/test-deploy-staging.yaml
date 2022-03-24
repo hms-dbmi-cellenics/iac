@@ -137,7 +137,7 @@ jobs:
           echo "::set-output name=rds-host::$RDSHOST"
           echo "::set-output name=rds-instance-id::$INSTANCE_ID"
         env:
-          REGION: {{ env.region }}
+          REGION: ${{ env.region }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
