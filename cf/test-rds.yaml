@@ -16,7 +16,7 @@ Parameters:
     Description: The sandbox ID of the environment that this cluster is created for.
   DBInstanceType:
     Type: String
-    Default: db.t3.micro
+    Default: db.t4g.medium
     Description: The instance type for the database.
 
 # --------------------------------------- Constants ---------------------------------------
