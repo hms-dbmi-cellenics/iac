@@ -155,7 +155,7 @@ jobs:
         name: Setup RDS roles using RDS agent
         uses: peterkimzz/aws-ssm-send-command@v1.1.1
         with:
-          aws-region: ${{ env.REGION }}
+          aws-region: ${{ env.region }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           instance-ids: ${{ steps.get-rds-params.outputs.rds-instance-id }}
