@@ -97,6 +97,35 @@ jobs:
             aurora-staging
           parse-json: true
 
+      - id: get-rds-params
+        name: Get RDS connection params
+        run: |-
+          # These checks if the RDS username and passwords are set
+          [ -z $AURORA_STAGING_USERNAME ] && echo "No RDS username" && exit 1
+          [ -z $AURORA_STAGING_PASSWORD ] && echo "No RDS password" && exit 1
+
+          RDSHOST=$(aws rds describe-db-cluster-endpoints \
+            --region $REGION \
+            --db-cluster-identifier aurora-cluster-staging-${SANDBOX_ID} \
+            --filter Name=db-cluster-endpoint-type,Values='writer' \
+            --query 'DBClusterEndpoints[0].Endpoint' \
+            --output text)
+
+          [ -z $RDSHOST ] && echo "No RDSHOST" && exit 1
+
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
+            --output text \
+            --query 'Reservations[*].Instances[*].InstanceId')
+
+          [ -z $INSTANCE_ID ] && echo "No INSTANCE_ID" && exit 1
+
+          echo "::set-output name=rds-host::$RDSHOST"
+          echo "::set-output name=rds-instance-id::$INSTANCE_ID"
+        env:
+          REGION: ${{ env.region }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
       - id: set-stack-name
         name: Set name of the CloudFormation stacks
         run: |-
@@ -161,35 +190,6 @@ jobs:
           template: cf/test-rds.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
-      - id: get-rds-params
-        name: Get RDS connection params
-        run: |-
-          # Remove these checks for production
-          [ -z $AURORA_STAGING_USERNAME ] && echo "No AURORA_STAGING_USERNAME" && exit 1
-          [ -z $AURORA_STAGING_PASSWORD ] && echo "No AURORA_STAGING_PASSWORD" && exit 1
-
-          RDSHOST=$(aws rds describe-db-cluster-endpoints \
-            --region $REGION \
-            --db-cluster-identifier aurora-cluster-staging-${SANDBOX_ID} \
-            --filter Name=db-cluster-endpoint-type,Values='writer' \
-            --query 'DBClusterEndpoints[0].Endpoint' \
-            --output text)
-
-          [ -z $RDSHOST ] && echo "No RDSHOST" && exit 1
-
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
-            --output text \
-            --query 'Reservations[*].Instances[*].InstanceId')
-
-          [ -z $INSTANCE_ID ] && echo "No INSTANCE_ID" && exit 1
-
-          echo "::set-output name=rds-host::$RDSHOST"
-          echo "::set-output name=rds-instance-id::$INSTANCE_ID"
-        env:
-          REGION: ${{ env.region }}
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: setup-rds-roles
         name: Setup RDS roles using RDS agent
