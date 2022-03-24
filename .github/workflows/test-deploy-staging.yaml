@@ -171,11 +171,10 @@ jobs:
             --region $REGION \
             --username $USERNAME)
 
-          psql \
+          PGPASSWORD=${PASSWORD} psql \
             --host=${RDSHOST} \
             --port=5432 \
             --username=${USERNAME} \
-            --password=${PASSWORD} \
             --dbname=aurora_db \
             -c '
             CREATE ROLE api_role WITH LOGIN;
