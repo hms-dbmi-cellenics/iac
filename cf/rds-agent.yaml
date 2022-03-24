@@ -53,6 +53,7 @@ Resources:
                 Action:
                   - "rds:DescribeDBClusterEndpoints"
                 Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}-*"
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
   RDSAgent:
@@ -66,7 +67,6 @@ Resources:
       SubnetId:
       #Pick first element in SubnetsPrivate
         !Select [ 0, Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"] ]
-
       #UserData Runs when ec2 is being deployed
       UserData:
         Fn::Base64:
