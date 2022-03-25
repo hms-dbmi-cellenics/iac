@@ -101,8 +101,8 @@ jobs:
         name: Get RDS connection params
         run: |-
           # These checks if the RDS username and passwords are set
-          [ -z $AURORA_STAGING_USERNAME ] && echo "No RDS username" && exit 1
-          [ -z $AURORA_STAGING_PASSWORD ] && echo "No RDS password" && exit 1
+          [ -z $AURORA_STAGING_USERNAME ] && echo "RDS username not provided" && exit 1
+          [ -z $AURORA_STAGING_PASSWORD ] && echo "RDS password not provided" && exit 1
 
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
@@ -111,14 +111,14 @@ jobs:
             --query 'DBClusterEndpoints[0].Endpoint' \
             --output text)
 
-          [ -z $RDSHOST ] && echo "No RDSHOST" && exit 1
+          [ -z $RDSHOST ] && echo "Failed getting RDSHOST" && exit 1
 
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
             --output text \
             --query 'Reservations[*].Instances[*].InstanceId')
 
-          [ -z $INSTANCE_ID ] && echo "No INSTANCE_ID" && exit 1
+          [ -z $INSTANCE_ID ] && echo "Failed getting INSTANCE_ID" && exit 1
 
           echo "::set-output name=rds-host::$RDSHOST"
           echo "::set-output name=rds-instance-id::$INSTANCE_ID"
