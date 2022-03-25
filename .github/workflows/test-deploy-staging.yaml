@@ -83,48 +83,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-
       - id: get-rds-secrets
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
-        name: Get RDS secrets
+        name: Export RDS secrets into environment variables
         with:
           secrets: |
             aurora-staging
           parse-json: true
 
-      - id: get-rds-params
-        name: Get RDS connection params
+      - id: check-rds-params
+        name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
           [ -z $AURORA_STAGING_USERNAME ] && echo "RDS username not provided" && exit 1
           [ -z $AURORA_STAGING_PASSWORD ] && echo "RDS password not provided" && exit 1
 
-          RDSHOST=$(aws rds describe-db-cluster-endpoints \
-            --region $REGION \
-            --db-cluster-identifier aurora-cluster-staging-${SANDBOX_ID} \
-            --filter Name=db-cluster-endpoint-type,Values='writer' \
-            --query 'DBClusterEndpoints[0].Endpoint' \
-            --output text)
-
-          [ -z $RDSHOST ] && echo "Failed getting RDSHOST" && exit 1
-
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
-            --output text \
-            --query 'Reservations[*].Instances[*].InstanceId')
-
-          [ -z $INSTANCE_ID ] && echo "Failed getting INSTANCE_ID" && exit 1
-
-          echo "::set-output name=rds-host::$RDSHOST"
-          echo "::set-output name=rds-instance-id::$INSTANCE_ID"
-        env:
-          REGION: ${{ env.region }}
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
 
       - id: set-stack-name
         name: Set name of the CloudFormation stacks
@@ -190,6 +168,31 @@ jobs:
           template: cf/test-rds.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: get-rds-params
+        name: Get RDS connection params
+        run: |-
+          RDSHOST=$(aws rds describe-db-cluster-endpoints \
+            --region $REGION \
+            --db-cluster-identifier aurora-cluster-staging-${SANDBOX_ID} \
+            --filter Name=db-cluster-endpoint-type,Values='writer' \
+            --query 'DBClusterEndpoints[0].Endpoint' \
+            --output text)
+
+          [ -z $RDSHOST ] && echo "Failed getting RDSHOST" && exit 1
+
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
+            --output text \
+            --query 'Reservations[*].Instances[*].InstanceId')
+
+          [ -z $INSTANCE_ID ] && echo "Failed getting INSTANCE_ID" && exit 1
+
+          echo "::set-output name=rds-host::$RDSHOST"
+          echo "::set-output name=rds-instance-id::$INSTANCE_ID"
+        env:
+          REGION: ${{ env.region }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: setup-rds-roles
         name: Setup RDS roles using RDS agent
