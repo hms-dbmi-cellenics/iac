@@ -59,11 +59,11 @@ Resources:
                   - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
   PostRegisterLambda:
     Type: AWS::Lambda::Function
-    Environment:
-      Variables:
-        ENVIRONMENT: !Ref Environment
     Properties:
       Runtime: nodejs14.x
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
       Code: 
