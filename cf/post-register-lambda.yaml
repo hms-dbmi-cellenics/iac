@@ -61,9 +61,6 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Runtime: nodejs14.x
-      Environment:
-        Variables:
-          ENVIRONMENT: !Ref Environment
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
       Code: 
@@ -75,8 +72,8 @@ Resources:
             );
             
             const region = process.env.AWS_REGION
-            const userAccessTableName = `user-access-${process.env.ENVIRONMENT}`
-            const inviteAccessTableName = `invite-access-${process.env.ENVIRONMENT}`
+            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`
+            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`
             
             const db = new AWS.DynamoDB({
               region,
