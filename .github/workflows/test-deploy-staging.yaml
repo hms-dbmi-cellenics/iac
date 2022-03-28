@@ -217,7 +217,7 @@ jobs:
               ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
               REVOKE dev_role FROM ${AURORA_STAGING_USERNAME};
               GRANT rds_iam TO api_role;
-              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;"
+              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;'"
 
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
