@@ -152,4 +152,3 @@ Outputs:
     Value: !GetAtt PostRegisterLambda.Arn
     Export:
       Name: !Sub PostRegisterLambdaArn-${Environment}
-      
