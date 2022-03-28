@@ -217,7 +217,7 @@ jobs:
 
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
-            --parameters "commands=\"$SETUP_ROLES_CMD\""
+            --parameters "commands='$SETUP_ROLES_CMD'"
 
         env:
           REGION: ${{ env.region }}
