@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up canaries to check for heartbeat of services [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Setting up a lambda function to handle user invites for non-existing users
 
 Parameters:
   Environment:
@@ -71,9 +71,9 @@ Resources:
               data, { convertEmptyValues: false },
             );
             
-            const region = 'eu-west-1'
-            const userAccessTableName = 'user-access-staging'
-            const inviteAccessTableName = 'invite-access-staging'
+            const region = process.env.AWS_REGION
+            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`
+            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`
             
             const db = new AWS.DynamoDB({
               region,
@@ -139,10 +139,14 @@ Resources:
             
             callback(null, event);
           };
-
-
   LoggingGroup: 
     Type: AWS::Logs::LogGroup
     Properties: 
       LogGroupName: !Sub "/aws/lambda/post-register-invite-lambda-${Environment}"
       RetentionInDays: 14
+Outputs:
+  PostRegisterLambdaArn:
+    Description: The ARN of the PostRegisterLambda
+    Value: !GetAtt PostRegisterLambda.Arn
+    Export:
+      Name: PostRegisterLambdaArn
