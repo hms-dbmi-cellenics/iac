@@ -87,11 +87,9 @@ jobs:
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
         with:
-          secrets: |
-            aurora-staging
-          parse-json: true
+          secrets: aurora-staging
 
-      - id: check-rds-params
+      - id: check-rds-secrets
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
