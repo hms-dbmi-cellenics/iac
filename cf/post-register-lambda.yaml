@@ -151,4 +151,4 @@ Outputs:
     Description: The ARN of the PostRegisterLambda
     Value: !GetAtt PostRegisterLambda.Arn
     Export:
-      Name: PostRegisterLambdaArn
+      Name: !Sub PostRegisterLambdaArn-${Environment}
