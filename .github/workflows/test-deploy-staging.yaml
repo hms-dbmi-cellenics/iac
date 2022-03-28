@@ -175,41 +175,35 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      - id: get-rds-params
-        name: Get RDS connection params
+      - id: setup-rds-roles
+        name: Setup RDS roles using RDS agent
         run: |-
-          RDSHOST=$(aws rds describe-db-cluster-endpoints \
-            --region $REGION \
-            --db-cluster-identifier aurora-cluster-staging-${SANDBOX_ID} \
-            --filter Name=db-cluster-endpoint-type,Values='writer' \
-            --query 'DBClusterEndpoints[0].Endpoint' \
-            --output text)
-
-          [ -z $RDSHOST ] && echo "Failed getting RDSHOST" && exit 1
-
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
             --output text \
             --query 'Reservations[*].Instances[*].InstanceId')
 
-          [ -z $INSTANCE_ID ] && echo "Failed getting INSTANCE_ID" && exit 1
+          if [ -z $INSTANCE_ID ]; then
+            echo "Can not connect to RDS agent: No instances found for staging"
+            exit 1
+          fi
 
-          echo "::set-output name=rds-host::$RDSHOST"
-          echo "::set-output name=rds-instance-id::$INSTANCE_ID"
-        env:
-          REGION: ${{ env.region }}
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+          CLUSTER_NAME=aurora-cluster-staging-${SANDBOX_ID}
+          RDSHOST=$(aws rds describe-db-cluster-endpoints \
+            --region $REGION \
+            --db-cluster-identifier $CLUSTER_NAME \
+            --filter Name=db-cluster-endpoint-type,Values='writer' \
+            --query 'DBClusterEndpoints[0].Endpoint' \
+            --output text)
 
-      - id: setup-rds-roles
-        name: Setup RDS roles using RDS agent
-        run: |-
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=rds-$ENVIRONMENT-ssm-agent" \
-            --output text \
-            --query "Reservations[*].Instances[*].InstanceId")
+          if [ -z $RDSHOST ]; then
+            echo "Failed getting RDS host with name $CLUSTER_NAME"
+            exit 1
+          fi
+
 
           SETUP_ROLES_CMD="PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
-              --host={{ steps.get-rds-params.outputs.rds-host }} \
+              --host=RDSHOST \
               --port=5432 \
               --username=${AURORA_STAGING_USERNAME} \
               --dbname=aurora_db \
@@ -228,6 +222,10 @@ jobs:
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript
             --parameters 'commands="$SETUP_ROLES_CMD"'
+
+        env:
+          REGION: ${{ env.region }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
