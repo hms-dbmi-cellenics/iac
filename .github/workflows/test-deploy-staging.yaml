@@ -220,8 +220,8 @@ jobs:
               GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;"
 
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
-            --document-name AWS-RunShellScript
-            --parameters 'commands="$SETUP_ROLES_CMD"'
+            --document-name AWS-RunShellScript \
+            --parameters "commands=$SETUP_ROLES_CMD"
 
         env:
           REGION: ${{ env.region }}
