@@ -201,13 +201,12 @@ jobs:
             exit 1
           fi
 
-
           SETUP_ROLES_CMD="PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
               --host=RDSHOST \
               --port=5432 \
               --username=${AURORA_STAGING_USERNAME} \
               --dbname=aurora_db \
-              -c '
+              <<EOF
               CREATE ROLE api_role WITH LOGIN;
               CREATE ROLE dev_role WITH LOGIN;
               GRANT USAGE ON SCHEMA public TO api_role;
@@ -217,7 +216,9 @@ jobs:
               ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
               REVOKE dev_role FROM ${AURORA_STAGING_USERNAME};
               GRANT rds_iam TO api_role;
-              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;'"
+              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;
+              EOF
+              "
 
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
