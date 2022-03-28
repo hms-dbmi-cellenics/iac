@@ -206,14 +206,14 @@ jobs:
             --port=5432 \
             --username=${USERNAME} \
             --dbname=aurora_db \
-            -c "CREATE ROLE api_role WITH LOGIN;" \
-            -c "CREATE ROLE dev_role WITH LOGIN;" \
-            -c "GRANT USAGE ON SCHEMA public TO api_role;" \
-            -c "GRANT dev_role TO ${USERNAME};" \
-            -c "ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;" \
-            -c "REVOKE dev_role FROM ${USERNAME};" \
-            -c "GRANT rds_iam TO api_role;" \
-            -c "GRANT rds_iam, ${USERNAME} TO dev_role;"
+            -c \"CREATE ROLE api_role WITH LOGIN;\" \
+            -c \"CREATE ROLE dev_role WITH LOGIN;\" \
+            -c \"GRANT USAGE ON SCHEMA public TO api_role;\" \
+            -c \"GRANT dev_role TO ${USERNAME};\" \
+            -c \"ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;\" \
+            -c \"REVOKE dev_role FROM ${USERNAME};\" \
+            -c \"GRANT rds_iam TO api_role;\" \
+            -c \"GRANT rds_iam, ${USERNAME} TO dev_role;\""
 
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
