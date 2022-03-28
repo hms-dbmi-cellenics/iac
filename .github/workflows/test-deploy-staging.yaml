@@ -88,6 +88,7 @@ jobs:
         name: Export RDS secrets into environment variables
         with:
           secrets: aurora-staging
+          parse-json: true
 
       - id: check-rds-secrets
         name: Check RDS secrets are fetched
