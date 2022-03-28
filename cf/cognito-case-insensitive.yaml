@@ -110,7 +110,8 @@ Resources:
                 Action: 
                   - "lambda:InvokeFunction"
                 Resource:
-                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+                  Fn::ImportValue: 
+                    Fn::Sub: PostRegisterLambdaArn-${Environment}
 
   SMSRole:
     Type: "AWS::IAM::Role"
