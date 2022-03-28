@@ -94,8 +94,15 @@ jobs:
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
-          [ -z $AURORA_STAGING_USERNAME ] && echo "RDS username not provided" && exit 1
-          [ -z $AURORA_STAGING_PASSWORD ] && echo "RDS password not provided" && exit 1
+          if [ -z $AURORA_STAGING_USERNAME ]; then
+            echo "RDS username not provided"
+            exit 1
+          fi
+
+          if [ -z $AURORA_STAGING_PASSWORD ]; then
+            echo "RDS password not provided"
+            exit 1
+          fi
 
       - id: install-eksctl
         name: Install eksctl
