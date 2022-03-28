@@ -91,7 +91,9 @@ Resources:
               },
             };
             const response = await db.scan(params).promise();
-
+            if(!response.Items.length){
+              callback(null, event);
+            }
             // add those rows in user-access
 
             const experimentIds = []
