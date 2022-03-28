@@ -202,16 +202,13 @@ jobs:
 
       - id: setup-rds-roles
         name: Setup RDS roles using RDS agent
-        uses: peterkimzz/aws-ssm-send-command@v1.1.1
-        with:
-          aws-region: ${{ env.region }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          instance-ids: ${{ steps.get-rds-params.outputs.rds-instance-id }}
+        run: |-
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=rds-$ENVIRONMENT-ssm-agent" \
+            --output text \
+            --query "Reservations[*].Instances[*].InstanceId")
 
-          working-directory: /
-          command: |
-            PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
+          SETUP_ROLES_CMD="PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
               --host={{ steps.get-rds-params.outputs.rds-host }} \
               --port=5432 \
               --username=${AURORA_STAGING_USERNAME} \
@@ -226,7 +223,11 @@ jobs:
               ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
               REVOKE dev_role FROM ${AURORA_STAGING_USERNAME};
               GRANT rds_iam TO api_role;
-              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;
+              GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;"
+
+          aws ssm send-command --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript
+            --parameters 'commands="$SETUP_ROLES_CMD"'
 
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
