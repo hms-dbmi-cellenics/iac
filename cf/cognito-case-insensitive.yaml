@@ -207,3 +207,4 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool 
       Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
+      
