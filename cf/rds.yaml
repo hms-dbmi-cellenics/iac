@@ -21,7 +21,7 @@ Parameters:
     Default: 13.4
 
   DBSecretPrefix:
-    Description: The prefix of the secret used to store master user and password, 
+    Description: The prefix of the secret used to store master user and password,
       the missing suffix is the environment (and both are connected with -).
     Type: String
     Default: aurora
@@ -57,7 +57,7 @@ Resources:
   DBInstance1:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceClass: db.t3.medium
+      DBInstanceClass: db.t4g.medium
       DBClusterIdentifier: !Ref DBCluster
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
