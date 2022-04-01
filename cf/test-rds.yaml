@@ -14,6 +14,10 @@ Parameters:
     Type: String
     Default: default
     Description: The sandbox ID of the environment that this cluster is created for.
+  DBInstanceType:
+    Type: String
+    Default: db.t4g.medium
+    Description: The instance type for the database.
 
 # --------------------------------------- Constants ---------------------------------------
   DBPort:
@@ -61,7 +65,7 @@ Resources:
   DBInstance1:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceClass: db.t3.medium
+      DBInstanceClass: !Ref DBInstanceType
       DBClusterIdentifier: !Ref DBCluster
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
