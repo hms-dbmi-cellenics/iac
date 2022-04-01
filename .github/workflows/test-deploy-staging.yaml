@@ -158,7 +158,7 @@ jobs:
       - id: deploy-template-rds
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        # if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.rds-name }}
@@ -213,7 +213,7 @@ jobs:
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        # if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.sns-name }}
@@ -224,7 +224,7 @@ jobs:
       - id: deploy-template-cognito
         name: Deploy CloudFormation stack for Cognito pool clients
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        # if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.cognito-name }}
