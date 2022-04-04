@@ -10,7 +10,8 @@ on:
         required: true
       stage-rds:
         description: 'Should task deploy a new RDS instance'
-        required: true
+        default: False
+        required: false
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
