@@ -48,21 +48,9 @@ Resources:
                   - "cloudwatch:List*"
                   - "logs:Get*"
                   - "logs:Describe*"
+                  # todo
                   - "sns:Get*"
                   - "sns:List*"
-                Resource: "*"
-
-        - PolicyName: "access-to-ses"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "ses:Get"
-                  - "ses:List"
-                  - "ses:SendEmail"
-                  - "ses:PutIdentityPolicy"
-                  - "ses:ListConfigurationSets"
                 Resource: "*"
 
         - PolicyName: "can-access-s3-aws-console"
@@ -198,26 +186,7 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
 
-        - PolicyName: "can-access-eventbridge"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - events:DeleteRule
-                  - events:DescribeRule
-                  - events:DisableRule
-                  - events:EnableRule
-                  - events:ListRuleNamesByTarget
-                  - events:ListRules
-                  - events:ListTargetsByRule
-                  - events:PutEvents
-                  - events:PutRule
-                  - events:PutTargets
-                  - events:RemoveTargets
-                  - events:TestEventPattern
-                Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:*"
-
+# todo
         - PolicyName: "can-start-an-ssm-session"
           PolicyDocument:
             Version: "2012-10-17"
