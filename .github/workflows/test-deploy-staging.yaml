@@ -8,6 +8,9 @@ on:
       sandbox-id:
         description: 'The sandbox ID to deploy under'
         required: true
+      stage-rds:
+        description: 'Should task deploy a new RDS instance'
+        required: true
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
@@ -84,6 +87,7 @@ jobs:
           aws-region: ${{ env.region }}
 
       - id: get-rds-secrets
+        if: github.event.inputs.stage-rds == True
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
         with:
@@ -91,6 +95,7 @@ jobs:
           parse-json: true
 
       - id: check-rds-secrets
+        if: github.event.inputs.stage-rds == True
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -165,6 +170,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
+        if: github.event.inputs.stage-rds == True
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         # if: ${{ github.ref == 'refs/heads/master' }}
@@ -176,6 +182,7 @@ jobs:
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: setup-rds-roles
+        if: github.event.inputs.stage-rds == True
         name: Setup RDS roles
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
