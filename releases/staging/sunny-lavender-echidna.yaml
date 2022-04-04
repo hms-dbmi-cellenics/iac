@@ -1,0 +1,172 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: ui-sunny-lavender-echidna
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-665-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: ui
+  namespace: ui-sunny-lavender-echidna
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: sunny-lavender-echidna
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-665-merge-14a897ebf525a4c026c0eba189c3b863d0ff5c5b
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: api-sunny-lavender-echidna
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: api
+  namespace: api-sunny-lavender-echidna
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: 43854f2b63334bbc95771074b9ea47ae8df568b7
+  releaseName: api
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/api
+      sandboxId: sunny-lavender-echidna
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-fc39c07f8226d6b3440e9b9fd577535a712292cb
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: worker-sunny-lavender-echidna
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: worker
+  namespace: worker-sunny-lavender-echidna
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: b0220e8aa1bacea5f53f8fc4ffd8bbcca396ba82
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b0220e8aa1bacea5f53f8fc4ffd8bbcca396ba82-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b0220e8aa1bacea5f53f8fc4ffd8bbcca396ba82-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: sunny-lavender-echidna
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: pipeline-sunny-lavender-echidna
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: sunny-lavender-echidna
+  name: pipeline
+  namespace: pipeline-sunny-lavender-echidna
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: 9047f0ac5e057b196533ff56c64379480d26910c
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-9047f0ac5e057b196533ff56c64379480d26910c-pipeline-runner
+    replicaCount: 0
+    sandboxId: sunny-lavender-echidna
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
