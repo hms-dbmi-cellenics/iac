@@ -63,6 +63,9 @@ Resources:
       Runtime: nodejs14.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
+      Environment:
+        Variables:
+          CLUSTER_ENV: !Sub "${Environment}"
       Code: 
         ZipFile: |
           const AWS = require('aws-sdk');
