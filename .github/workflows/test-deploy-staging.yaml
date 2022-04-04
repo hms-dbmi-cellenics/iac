@@ -10,8 +10,9 @@ on:
         required: true
       with-rds:
         description: 'Should task stage a new RDS instance'
-        default: 'False'
+        default: false
         required: false
+        type: boolean
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
@@ -84,7 +85,7 @@ jobs:
           aws-region: ${{ env.region }}
 
       - id: get-rds-secrets
-        if: ${{ github.event.inputs.with-rds == 'True' }}
+        if: ${{ github.event.inputs.with-rds == true }}
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
         with:
@@ -92,7 +93,7 @@ jobs:
           parse-json: true
 
       - id: check-rds-secrets
-        if: ${{ github.event.inputs.with-rds == 'True' }}
+        if: ${{ github.event.inputs.with-rds == true }}
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -162,7 +163,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True'}}
+        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == true}}
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -173,7 +174,7 @@ jobs:
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: setup-rds-roles
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True'}}
+        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == true}}
         name: Setup RDS roles
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
