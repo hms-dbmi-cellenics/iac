@@ -5,17 +5,20 @@ on:
       manifest:
         description: 'The manifest file to deploy (base64 encoded)'
         required: true
+        type: string
       sandbox-id:
         description: 'The sandbox ID to deploy under'
         required: true
+        type: string
       with-rds:
         description: 'Stage a new RDS instance'
-        default: false
         required: false
-        type: boolean
+        default: 'False'
+        type: string
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
+        type: string
 env:
   region: 'eu-west-1'
 
@@ -85,7 +88,7 @@ jobs:
           aws-region: ${{ env.region }}
 
       - id: get-rds-secrets
-        if: ${{ github.event.inputs.with-rds }}
+        if: ${{ github.event.inputs.with-rds == 'True' }}
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
         with:
@@ -93,7 +96,7 @@ jobs:
           parse-json: true
 
       - id: check-rds-secrets
-        if: ${{ github.event.inputs.with-rds }}
+        if: ${{ github.event.inputs.with-rds == 'True' }}
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -163,7 +166,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds }}
+        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -174,7 +177,7 @@ jobs:
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: setup-rds-roles
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds }}
+        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
         name: Setup RDS roles
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
