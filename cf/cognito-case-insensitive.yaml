@@ -163,7 +163,6 @@ Resources:
           EmailSubject: 'Your temporary password for Cellenics'
           EmailMessage: 'Thank you for signing up to Cellenics by Biomage. Your username is {username} and temporary password is {####}.'
           SMSMessage: 'Your Cellenics username is {username} and temporary password is {####}.'
-        UnusedAccountValidityDays: 7
       AutoVerifiedAttributes:
         - email
       DeviceConfiguration:
