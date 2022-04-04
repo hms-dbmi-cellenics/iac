@@ -5,16 +5,20 @@ on:
       manifest:
         description: 'The manifest file to deploy (base64 encoded)'
         required: true
+        type: string
       sandbox-id:
         description: 'The sandbox ID to deploy under'
         required: true
+        type: string
       with-rds:
         description: 'Stage a new RDS instance'
-        default: 'False'
         required: false
+        default: 'False'
+        type: string
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
+        type: string
 env:
   region: 'eu-west-1'
 
