@@ -1,0 +1,31 @@
+{{- if .Values.service.enabled -}}
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: {{ template "appname" . }}
+  annotations:
+{{- if .Values.service.annotations }}
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ template "appname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    sandboxId: "{{ .Values.biomageCi.sandboxId }}"
+
+spec:
+  type: {{ .Values.service.type }}
+
+  ports:
+  - port: {{ .Values.service.externalPort }}
+    targetPort: {{ .Values.service.internalPort }}
+    protocol: TCP
+    name: {{ .Values.service.name }}
+
+  selector:
+    app: {{ template "appname" . }}
+    sandboxId: "{{ .Values.biomageCi.sandboxId }}"
+    release: {{ .Release.Name }}
+{{- end -}}

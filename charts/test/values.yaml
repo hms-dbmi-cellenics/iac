@@ -1,0 +1,109 @@
+replicaCount: 1
+strategyType:
+deploymentApiVersion: apps/v1
+
+image:
+  registry:
+  tag:
+  pullPolicy: IfNotPresent
+  secrets:
+
+podAnnotations: {}
+
+application:
+  secretName:
+  secretChecksum:
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+service:
+  enabled: true
+  annotations: {}
+  name: web
+  type: ClusterIP
+  additionalHosts:
+  externalPort: 5000
+  internalPort: 5000
+
+serviceAccount:
+  iamRole:
+
+ingress:
+  tls:
+    enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+
+livenessProbe:
+  path: "/"
+  initialDelaySeconds: 30
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
+  scheme: "HTTP"
+  probeType: "tcpSocket"
+
+readinessProbe:
+  path: "/"
+  initialDelaySeconds: 30
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
+  scheme: "HTTP"
+  probeType: "httpGet"
+
+loadBalancerHealthCheck:
+  path: "/"
+  timeoutSeconds: 5
+  periodSeconds: 15
+  failureThreshold: 2
+  successThreshold: 2
+  scheme: "HTTP"
+  successCodes: "200-399"
+
+resources:
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+## Configure PodDisruptionBudget
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
+podDisruptionBudget:
+  enabled: false
+  # minAvailable: 1
+  maxUnavailable: 1
+
+## Configure NetworkPolicy
+## ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+networkPolicy:
+  enabled: false
+  spec:
+    podSelector:
+      matchLabels: {}
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels: {}
+      - namespaceSelector:
+          matchLabels:
+            # add some namespace selectors here
+
+# SHOULD BE FILLED IN BY THE CI SYSTEM
+biomageCi:
+  ref: refs-heads-master
+  repo: hms-dbmi-cellenics/ui
+  sandboxId: default
+  rdsClusterId: default
+
+kubernetes:
+  env: production

@@ -1,0 +1,84 @@
+# the event export should be deployed only once per cluster, ie. as part of the default sandbox of the api repo
+{{ if and (contains "api" .Values.biomageCi.repo) (eq .Values.biomageCi.sandboxId "default") }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: monitoring
+  name: event-exporter
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: event-exporter
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    namespace: monitoring
+    name: event-exporter
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: event-exporter-cfg
+  namespace: monitoring
+data:
+  config.yaml: |
+    logLevel: info
+    logFormat: json
+    route:
+      match:
+        - reason: "BackOff"
+          receiver: "cleanup"
+      drop:
+        - type: "Normal"
+    receivers:
+      - name: "cleanup"
+        webhook:
+{{ if eq .Values.kubernetes.env "production" }}
+          endpoint: https://api.scp.biomage.net/v1/kubernetesEvents
+{{ else }}
+          endpoint: https://api-{{ .Values.biomageCi.sandboxId }}.scp-staging.biomage.net/v1/kubernetesEvents
+{{ end }}
+          headers:
+            User-Agent: kube-event-exporter 1.0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-exporter
+  namespace: monitoring
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: event-exporter
+        version: v1
+    spec:
+      serviceAccountName: event-exporter
+      containers:
+        - name: event-exporter
+          image: ghcr.io/opsgenie/kubernetes-event-exporter:v0.11
+          imagePullPolicy: IfNotPresent
+          args:
+            - -conf=/data/config.yaml
+          volumeMounts:
+            - mountPath: /data
+              name: cfg
+      volumes:
+        - name: cfg
+          configMap:
+            name: event-exporter-cfg
+  selector:
+    matchLabels:
+      app: event-exporter
+      version: v1
+{{ end }}
