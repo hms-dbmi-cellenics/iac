@@ -56,9 +56,12 @@ spec:
         env:
         - name: K8S_ENV
           value: {{ .Values.kubernetes.env | quote }}
-        
+
         - name: SANDBOX_ID
           value: {{ .Values.biomageCi.sandboxId | quote }}
+
+        - name: RDS_CLUSTER_ID
+          value: {{ .Values.biomageCi.rdsClusterId | quote }}
 
         - name: AWS_XRAY_DAEMON_ADDRESS
           value: xray-service.default:2000
