@@ -19,7 +19,7 @@ spec:
   releaseName: api
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
-    path: charts/nodejs
+    path: charts/test
     ref: STAGING_CHART_REF
   values:
     service:
@@ -46,7 +46,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-323-merge-b2c3d98f49a0002312b52584585882872f449471
+      tag: refs-pull-323-merge-f0ee8ced25bb990eb7fa455aa299a04b31dab71b
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
