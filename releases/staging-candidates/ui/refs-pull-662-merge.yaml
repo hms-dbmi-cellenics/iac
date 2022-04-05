@@ -19,7 +19,7 @@ spec:
   releaseName: ui
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
-    path: charts/nodejs
+    path: charts/test
     ref: STAGING_CHART_REF
   values:
     # disable readiness probes as load balancer performs
@@ -40,7 +40,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-662-merge-6d7a925948f52e153f16985c7023f825573d5f78
+      tag: refs-pull-662-merge-2b62dc174a6f8a7b34d830b6bc12d625ff327c08
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
