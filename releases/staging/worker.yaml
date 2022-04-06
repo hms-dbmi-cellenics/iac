@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -30,7 +31,7 @@ spec:
     sandboxId: default
     replicaCount: 1
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b7100e4299b15d295c2af1b8bba618b16f4c57ec-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-4932efee8d58757b24ce2d1df527e27ae2a48b0e-r
       memoryRequest: 28Gi
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b7100e4299b15d295c2af1b8bba618b16f4c57ec-python
