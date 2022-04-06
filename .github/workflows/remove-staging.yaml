@@ -138,6 +138,9 @@ jobs:
           BASE_NAME=biomage-sns-staging-$SANDBOX_ID
           echo "::set-output name=sns-name::$BASE_NAME"
 
+          BASE_NAME=biomage-rds-staging-$SANDBOX_ID
+          echo "::set-output name=rds-name::$BASE_NAME"
+
           BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
@@ -149,6 +152,13 @@ jobs:
           aws cloudformation delete-stack --stack-name $STACK_NAME
         env:
           STACK_NAME: ${{ steps.set-name.outputs.sns-name }}
+
+      - id: remove-template-rds
+        name: Remove CloudFormation stack for RDS
+        run: |-
+          aws cloudformation delete-stack --stack-name $STACK_NAME
+        env:
+          STACK_NAME: ${{ steps.set-name.outputs.rds-name }}
 
       - id: remove-template-cognito
         name: Remove CloudFormation stack for Cognito pool clients

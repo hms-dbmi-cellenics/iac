@@ -10,6 +10,10 @@ Parameters:
       - staging
       - production
     Description: The environment for which the cluster needs to be created.
+  DBInstanceType:
+    Type: String
+    Default: db.t4g.medium
+    Description: The instance type for the database.
 
 # --------------------------------------- Constants ---------------------------------------
   DBPort:
@@ -57,7 +61,7 @@ Resources:
   DBInstance1:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceClass: db.t4g.medium
+      DBInstanceClass: !Ref DBInstanceType
       DBClusterIdentifier: !Ref DBCluster
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true

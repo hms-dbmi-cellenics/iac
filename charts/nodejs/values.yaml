@@ -103,6 +103,7 @@ biomageCi:
   ref: refs-heads-master
   repo: hms-dbmi-cellenics/ui
   sandboxId: default
+  rdsClusterId: default
 
 kubernetes:
   env: production

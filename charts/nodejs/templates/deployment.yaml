@@ -56,9 +56,12 @@ spec:
         env:
         - name: K8S_ENV
           value: {{ .Values.kubernetes.env | quote }}
-        
+
         - name: SANDBOX_ID
           value: {{ .Values.biomageCi.sandboxId | quote }}
+
+        - name: RDS_CLUSTER_ID
+          value: {{ .Values.biomageCi.rdsClusterId | quote }}
 
         - name: AWS_XRAY_DAEMON_ADDRESS
           value: xray-service.default:2000
@@ -71,7 +74,7 @@ spec:
         ports:
         - name: "{{ .Values.service.name }}"
           containerPort: {{ .Values.service.internalPort }}
-        
+
         livenessProbe:
 {{- if eq .Values.livenessProbe.probeType "httpGet" }}
           httpGet:
@@ -88,7 +91,7 @@ spec:
 {{- end }}
           initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
           timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
-        
+
         readinessProbe:
 {{- if eq .Values.readinessProbe.probeType "httpGet" }}
           httpGet:
@@ -107,7 +110,7 @@ spec:
           timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
           successThreshold: {{ .Values.readinessProbe.successThreshold }}
           failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-        
+
         resources:
 {{ toYaml .Values.resources | indent 12 }}
 {{- end -}}
