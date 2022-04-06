@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-trippy-loon
+  name: ui-agi-trippy-loon
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-662-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-trippy-loon
+  name: ui
+  namespace: ui-agi-trippy-loon
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/test
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: agi-trippy-loon
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-662-merge-2b62dc174a6f8a7b34d830b6bc12d625ff327c08
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-trippy-loon
+  name: api-agi-trippy-loon
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-323-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-trippy-loon
+  name: api
+  namespace: api-agi-trippy-loon
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/test
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      rdsClusterId: default
+      repo: hms-dbmi-cellenics/api
+      sandboxId: agi-trippy-loon
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-323-merge-f0ee8ced25bb990eb7fa455aa299a04b31dab71b
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-trippy-loon
+  name: worker-agi-trippy-loon
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-trippy-loon
+  name: worker
+  namespace: worker-agi-trippy-loon
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: b7100e4299b15d295c2af1b8bba618b16f4c57ec
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b7100e4299b15d295c2af1b8bba618b16f4c57ec-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-b7100e4299b15d295c2af1b8bba618b16f4c57ec-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: agi-trippy-loon
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-trippy-loon
+  name: pipeline-agi-trippy-loon
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-trippy-loon
+  name: pipeline
+  namespace: pipeline-agi-trippy-loon
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: 9047f0ac5e057b196533ff56c64379480d26910c
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-9047f0ac5e057b196533ff56c64379480d26910c-pipeline-runner
+    replicaCount: 0
+    sandboxId: agi-trippy-loon
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
