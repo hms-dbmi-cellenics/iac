@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   namespace: default
@@ -19,10 +19,14 @@ spec:
     - http:
         paths:
           - path: /v1/pipelineResults
-            backend:
-              serviceName: response-503
-              servicePort: use-annotation
+            defaultBackend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
           - path: /v1/gem2sResults
-            backend:
-              serviceName: response-503
-              servicePort: use-annotation
+            defaultBackend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
