@@ -90,7 +90,7 @@ Resources:
                 Action: 'sns:*'
                 Resource:
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms-{Environment}"
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-validation-alarms"
 
         - PolicyName: !Sub "can-access-${Environment}-eks-cluster"
