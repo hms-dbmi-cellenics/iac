@@ -48,7 +48,6 @@ Resources:
                   - "cloudwatch:List*"
                   - "logs:Get*"
                   - "logs:Describe*"
-                  # todo
                   - "sns:Get*"
                   - "sns:List*"
                 Resource: "*"
@@ -186,7 +185,6 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
 
-# todo
         - PolicyName: "can-start-an-ssm-session"
           PolicyDocument:
             Version: "2012-10-17"
