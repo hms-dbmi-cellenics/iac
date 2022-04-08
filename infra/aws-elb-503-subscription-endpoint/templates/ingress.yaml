@@ -19,13 +19,13 @@ spec:
     - http:
         paths:
           - path: /v1/pipelineResults
-            defaultBackend:
+            backend:
               service:
                 name: response-503
                 port:
                   name: use-annotation
           - path: /v1/gem2sResults
-            defaultBackend:
+            backend:
               service:
                 name: response-503
                 port:
