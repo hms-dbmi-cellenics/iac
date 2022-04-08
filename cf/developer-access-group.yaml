@@ -52,19 +52,6 @@ Resources:
                   - "sns:List*"
                 Resource: "*"
 
-        - PolicyName: "access-to-ses"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "ses:Get"
-                  - "ses:List"
-                  - "ses:SendEmail"
-                  - "ses:PutIdentityPolicy"
-                  - "ses:ListConfigurationSets"
-                Resource: "*"
-
         - PolicyName: "can-access-s3-aws-console"
           PolicyDocument:
             Version: "2012-10-17"
@@ -102,7 +89,7 @@ Resources:
                 Action: 'sns:*'
                 Resource:
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms-{Environment}"
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-validation-alarms"
 
         - PolicyName: !Sub "can-access-${Environment}-eks-cluster"
@@ -197,26 +184,6 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:user/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
-
-        - PolicyName: "can-access-eventbridge"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - events:DeleteRule
-                  - events:DescribeRule
-                  - events:DisableRule
-                  - events:EnableRule
-                  - events:ListRuleNamesByTarget
-                  - events:ListRules
-                  - events:ListTargetsByRule
-                  - events:PutEvents
-                  - events:PutRule
-                  - events:PutTargets
-                  - events:RemoveTargets
-                  - events:TestEventPattern
-                Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:*"
 
         - PolicyName: "can-start-an-ssm-session"
           PolicyDocument:
