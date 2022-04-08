@@ -119,7 +119,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: b7100e4299b15d295c2af1b8bba618b16f4c57ec
+    ref: refs/heads/configure-staging
   releaseName: worker
   values:
     kubernetes:
@@ -157,7 +157,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: 9047f0ac5e057b196533ff56c64379480d26910c
+    ref: refs/heads/configure-staging
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
