@@ -60,7 +60,7 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
@@ -146,7 +146,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -195,72 +195,72 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: deploy-load-balancer-role
-        name: Deploy permissions for AWS load balancer controller
-        run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+      # - id: deploy-load-balancer-role
+      #   name: Deploy permissions for AWS load balancer controller
+      #   run: |-
+      #     curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
-          aws iam create-policy \
-            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --policy-document file://iam-policy.json || true
+      #     aws iam create-policy \
+      #       --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+      #       --policy-document file://iam-policy.json || true
           
-          eksctl create iamserviceaccount \
-            --cluster=biomage-$CLUSTER_ENV \
-            --namespace=kube-system \
-            --name=aws-load-balancer-controller \
-            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --override-existing-serviceaccounts \
-            --approve
+      #     eksctl create iamserviceaccount \
+      #       --cluster=biomage-$CLUSTER_ENV \
+      #       --namespace=kube-system \
+      #       --name=aws-load-balancer-controller \
+      #       --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+      #       --override-existing-serviceaccounts \
+      #       --approve
 
 
       # we need to retry this due to an active issue with the AWS Load Balancer Controller
       # where there are intermittent failures that are only fixable by retrying
       # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071 
-      - id: install-lbc
-        name: Deploy AWS Load Balancer Controller
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 600
-          max_attempts: 20
-          retry_on: error
-          on_retry_command: sleep $(shuf -i 5-15 -n 1)
-          command: |-
-            helm repo add eks https://aws.github.io/eks-charts
-            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+      # - id: install-lbc
+      #   name: Deploy AWS Load Balancer Controller
+      #   uses: nick-invision/retry@v2
+      #   with:
+      #     timeout_seconds: 600
+      #     max_attempts: 20
+      #     retry_on: error
+      #     on_retry_command: sleep $(shuf -i 5-15 -n 1)
+      #     command: |-
+      #       helm repo add eks https://aws.github.io/eks-charts
+      #       kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
-            helm repo update
+      #       helm repo update
 
-            helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
-              --namespace kube-system \
-              --set serviceAccount.create=false \
-              --set serviceAccount.name=aws-load-balancer-controller \
-              --set clusterName=biomage-$CLUSTER_ENV \
-              --install --wait
+      #       helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+      #         --namespace kube-system \
+      #         --set serviceAccount.create=false \
+      #         --set serviceAccount.name=aws-load-balancer-controller \
+      #         --set clusterName=biomage-$CLUSTER_ENV \
+      #         --install --wait
 
-            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-            # API staging environments because their endpoints are not yet available.
-            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-              --namespace default \
-              --set clusterEnv=$CLUSTER_ENV \
-              --install --wait
+      #       # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+      #       # API staging environments because their endpoints are not yet available.
+      #       helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+      #         --namespace default \
+      #         --set clusterEnv=$CLUSTER_ENV \
+      #         --install --wait
 
-      - id: deploy-env-loadbalancer
-        name: Deploy AWS Application Load Balancer for environment
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-k8s-alb-${{ matrix.environment }}"
-          template: 'infra/cf-loadbalancer.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-env-loadbalancer
+      #   name: Deploy AWS Application Load Balancer for environment
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment }}"
+      #     name: "biomage-k8s-alb-${{ matrix.environment }}"
+      #     template: 'infra/cf-loadbalancer.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }}"
-          name: "biomage-alb-route53-${{ matrix.environment }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-route53
+      #   name: Deploy Route 53 DNS records to ELB
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment }}"
+      #     template: 'infra/cf-route53.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: install-flux
         name: Deploy flux
@@ -337,90 +337,90 @@ jobs:
             false
           fi
 
-      - id: deploy-xray-daemon
-        name: Deploy AWS X-Ray daemon
-        run: |-
-          helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
-            --namespace default \
-            --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
-            --install --wait
+      # - id: deploy-xray-daemon
+      #   name: Deploy AWS X-Ray daemon
+      #   run: |-
+      #     helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
+      #       --namespace default \
+      #       --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
+      #       --install --wait
 
-      - id: install-ebs-csi-driver
-        name: Install AWS EBS Container Storage Interface (CSI) drivers
-        run: |-
-          helm upgrade \
-            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/v0.6.0/helm-chart.tgz \
-            --namespace kube-system \
-            --set enableVolumeScheduling=true \
-            --set enableVolumeResizing=true \
-            --set enableVolumeSnapshot=true \
-            --install --wait \
+      # - id: install-ebs-csi-driver
+      #   name: Install AWS EBS Container Storage Interface (CSI) drivers
+      #   run: |-
+      #     helm upgrade \
+      #       aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/v0.6.0/helm-chart.tgz \
+      #       --namespace kube-system \
+      #       --set enableVolumeScheduling=true \
+      #       --set enableVolumeResizing=true \
+      #       --set enableVolumeSnapshot=true \
+      #       --install --wait \
 
-      - id: deploy-read-only-group
-        name: Deploy read-only permission definition for cluster
-        run: |-
-          helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
-            --install --wait
+      # - id: deploy-read-only-group
+      #   name: Deploy read-only permission definition for cluster
+      #   run: |-
+      #     helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
+      #       --install --wait
 
-      - id: deploy-state-machine-role
-        name: Deploy AWS Step Function (state machine) roles
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-state-machine-role-${{ matrix.environment }}"
-          template: 'infra/cf-state-machine-role.yaml'
-          capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-state-machine-role
+      #   name: Deploy AWS Step Function (state machine) roles
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment }}"
+      #     name: "biomage-state-machine-role-${{ matrix.environment }}"
+      #     template: 'infra/cf-state-machine-role.yaml'
+      #     capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
+      #     no-fail-on-empty-changeset: "1"
       
-      - id: remove-identitymappings
-        name: Remove all previous identity mappings for IAM users
-        run: |-
-          eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
-          jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
+      # - id: remove-identitymappings
+      #   name: Remove all previous identity mappings for IAM users
+      #   run: |-
+      #     eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
+      #     jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
 
-          while IFS= read -r user
-          do
-            echo "Remove rights of $user"
-            eksctl delete iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn $user \
-              --all
-          done < "/tmp/users_to_remove"
+      #     while IFS= read -r user
+      #     do
+      #       echo "Remove rights of $user"
+      #       eksctl delete iamidentitymapping \
+      #         --cluster=biomage-$CLUSTER_ENV \
+      #         --arn $user \
+      #         --all
+      #     done < "/tmp/users_to_remove"
     
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: add-state-machine-role
-        name: Grant rights to the state machine IAM role.
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster=biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
-            --group state-machine-runner-group \
-            --username state-machine-runner
+      # - id: add-state-machine-role
+      #   name: Grant rights to the state machine IAM role.
+      #   run: |-
+      #     eksctl create iamidentitymapping \
+      #       --cluster=biomage-$CLUSTER_ENV \
+      #       --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
+      #       --group state-machine-runner-group \
+      #       --username state-machine-runner
       
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: update-identitymapping-admin
-        name: Add cluster admin rights to everyone on the admin list.
-        run: |-
-          while IFS= read -r user
-          do
-            echo "Adding cluster admin rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group system:masters \
-              --username $user
-          done < "infra/cluster_admins_$CLUSTER_ENV"
+      # - id: update-identitymapping-admin
+      #   name: Add cluster admin rights to everyone on the admin list.
+      #   run: |-
+      #     while IFS= read -r user
+      #     do
+      #       echo "Adding cluster admin rights to $user"
+      #       eksctl create iamidentitymapping \
+      #         --cluster=biomage-$CLUSTER_ENV \
+      #         --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+      #         --group system:masters \
+      #         --username $user
+      #     done < "infra/cluster_admins_$CLUSTER_ENV"
 
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: update-identitymapping
-        name: Add cluster read-only rights to everyone on the user list.
-        run: |-
-          while IFS= read -r user
-          do
-            echo "Adding cluster read-only rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group read-only \
-              --username $user
-          done < "infra/cluster_users"
+      # - id: update-identitymapping
+      #   name: Add cluster read-only rights to everyone on the user list.
+      #   run: |-
+      #     while IFS= read -r user
+      #     do
+      #       echo "Adding cluster read-only rights to $user"
+      #       eksctl create iamidentitymapping \
+      #         --cluster=biomage-$CLUSTER_ENV \
+      #         --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+      #         --group read-only \
+      #         --username $user
+      #     done < "infra/cluster_users"
