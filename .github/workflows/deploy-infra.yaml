@@ -216,42 +216,42 @@ jobs:
       # we need to retry this due to an active issue with the AWS Load Balancer Controller
       # where there are intermittent failures that are only fixable by retrying
       # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071 
-      # - id: install-lbc
-      #   name: Deploy AWS Load Balancer Controller
-      #   uses: nick-invision/retry@v2
-      #   with:
-      #     timeout_seconds: 600
-      #     max_attempts: 20
-      #     retry_on: error
-      #     on_retry_command: sleep $(shuf -i 5-15 -n 1)
-      #     command: |-
-      #       helm repo add eks https://aws.github.io/eks-charts
-      #       kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+      - id: install-lbc
+        name: Deploy AWS Load Balancer Controller
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 600
+          max_attempts: 20
+          retry_on: error
+          on_retry_command: sleep $(shuf -i 5-15 -n 1)
+          command: |-
+            helm repo add eks https://aws.github.io/eks-charts
+            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
-      #       helm repo update
+            helm repo update
 
-      #       helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
-      #         --namespace kube-system \
-      #         --set serviceAccount.create=false \
-      #         --set serviceAccount.name=aws-load-balancer-controller \
-      #         --set clusterName=biomage-$CLUSTER_ENV \
-      #         --install --wait
+            helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+              --namespace kube-system \
+              --set serviceAccount.create=false \
+              --set serviceAccount.name=aws-load-balancer-controller \
+              --set clusterName=biomage-$CLUSTER_ENV \
+              --install --wait
 
-      #       # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-      #       # API staging environments because their endpoints are not yet available.
-      #       helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-      #         --namespace default \
-      #         --set clusterEnv=$CLUSTER_ENV \
-      #         --install --wait
+            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+            # API staging environments because their endpoints are not yet available.
+            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+              --namespace default \
+              --set clusterEnv=$CLUSTER_ENV \
+              --install --wait
 
-      # - id: deploy-env-loadbalancer
-      #   name: Deploy AWS Application Load Balancer for environment
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment }}"
-      #     name: "biomage-k8s-alb-${{ matrix.environment }}"
-      #     template: 'infra/cf-loadbalancer.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-env-loadbalancer
+        name: Deploy AWS Application Load Balancer for environment
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: "biomage-k8s-alb-${{ matrix.environment }}"
+          template: 'infra/cf-loadbalancer.yaml'
+          no-fail-on-empty-changeset: "1"
 
       - id: deploy-route53
         name: Deploy Route 53 DNS records to ELB
