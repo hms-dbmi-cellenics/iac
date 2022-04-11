@@ -237,12 +237,12 @@ jobs:
               --set clusterName=biomage-$CLUSTER_ENV \
               --install --wait
 
-            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-            # API staging environments because their endpoints are not yet available.
-            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-              --namespace default \
-              --set clusterEnv=$CLUSTER_ENV \
-              --install --wait
+            # # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+            # # API staging environments because their endpoints are not yet available.
+            # helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+            #   --namespace default \
+            #   --set clusterEnv=$CLUSTER_ENV \
+            #   --install --wait
 
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
