@@ -60,7 +60,7 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        environment: ['staging']
+        environment: ['production', 'staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
