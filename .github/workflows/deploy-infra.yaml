@@ -60,7 +60,7 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
@@ -146,7 +146,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -221,7 +221,7 @@ jobs:
         uses: nick-invision/retry@v2
         with:
           timeout_seconds: 600
-          max_attempts: 20
+          max_attempts: 1
           retry_on: error
           on_retry_command: sleep $(shuf -i 5-15 -n 1)
           command: |-
