@@ -218,6 +218,7 @@ jobs:
       # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071 
       - id: install-lbc
         name: Deploy AWS Load Balancer Controller
+        uses: nick-invision/retry@v2
         with:
           timeout_seconds: 600
           max_attempts: 20
