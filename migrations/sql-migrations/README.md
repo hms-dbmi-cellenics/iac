@@ -1,4 +1,4 @@
-# Running SQL migrations
+# Running dynamo to SQL migration
 
 ### 1. Download data from DynamoDB
 
