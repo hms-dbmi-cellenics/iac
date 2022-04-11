@@ -60,7 +60,7 @@ jobs:
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
@@ -146,7 +146,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['production']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
