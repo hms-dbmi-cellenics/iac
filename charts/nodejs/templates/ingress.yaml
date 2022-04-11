@@ -1,5 +1,5 @@
 {{- if .Values.service.enabled -}}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 
 metadata:
@@ -10,6 +10,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
+
   annotations:
 {{- if .Values.ingress.annotations }}
 {{ toYaml .Values.ingress.annotations | indent 4 }}
@@ -39,14 +40,20 @@ spec:
       paths:
 {{- if .Values.ingress.tls.enabled }}
       - path: /*
+        pathType: ImplementationSpecific
         backend:
-          serviceName: ssl-redirect
-          servicePort: use-annotation
+          service:
+            name: ssl-redirect
+            port:
+              name: use-annotation
 {{- end }}
       - path: /*
+        pathType: ImplementationSpecific
         backend:
-          serviceName: {{ template "appname" . }}
-          servicePort: {{ .Values.service.externalPort }}
+          service:
+            name: {{ template "appname" . }}
+            port:
+              number: {{ .Values.service.externalPort }}
 {{- if .Values.service.additionalHosts }}
 {{- range $host := .Values.service.additionalHosts }}
   - host: {{ $host }}
