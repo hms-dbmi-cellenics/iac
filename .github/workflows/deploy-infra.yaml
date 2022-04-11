@@ -1,5 +1,5 @@
 name: Deploy Biomage infrastructure on AWS
-on: 
+on:
   workflow_dispatch:
     inputs:
       workflow_actions:
@@ -75,24 +75,24 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
-      
+
       - id: install-yq
         name: Install yq for modifying the eksctl yaml spec.
         run: |-
           sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-      
+
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
           yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
-      
+
       - id: install-eksctl
         name: Install eksctl
         run: |-
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
-      
+
       - id: create-clusters
         name: Attempt to create clusters from spec.
         # this job will always pass, irrespective of whether creation was successful or not.
@@ -154,7 +154,7 @@ jobs:
       - id: checkout
         name: Check out source code
         uses: actions/checkout@v2
-      
+
       - id: setup-aws
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -167,7 +167,7 @@ jobs:
         name: Add k8s config file for existing cluster.
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
-              
+
       - id: deploy-metrics-server
         name: Deploy k8s metrics server
         run: |-
@@ -178,12 +178,12 @@ jobs:
         continue-on-error: true
         run: |-
           kubectl create namespace flux
-      
+
       - id: install-fluxctl
         name: Install fluxctl
         run: |-
           sudo snap install fluxctl --classic
-      
+
       - id: install-helm
         name: Install Helm
         run: |-
@@ -203,7 +203,7 @@ jobs:
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --policy-document file://iam-policy.json || true
-          
+
           eksctl create iamserviceaccount \
             --cluster=biomage-$CLUSTER_ENV \
             --namespace=kube-system \
@@ -215,43 +215,43 @@ jobs:
 
       # we need to retry this due to an active issue with the AWS Load Balancer Controller
       # where there are intermittent failures that are only fixable by retrying
-      # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071 
-      # - id: install-lbc
-      #   name: Deploy AWS Load Balancer Controller
-      #   uses: nick-invision/retry@v2
-      #   with:
-      #     timeout_seconds: 600
-      #     max_attempts: 20
-      #     retry_on: error
-      #     on_retry_command: sleep $(shuf -i 5-15 -n 1)
-      #     command: |-
-      #       helm repo add eks https://aws.github.io/eks-charts
-      #       kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+      # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
+      - id: install-lbc
+        name: Deploy AWS Load Balancer Controller
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 600
+          max_attempts: 20
+          retry_on: error
+          on_retry_command: sleep $(shuf -i 5-15 -n 1)
+          command: |-
+            helm repo add eks https://aws.github.io/eks-charts
+            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
-      #       helm repo update
+            helm repo update
 
-      #       helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
-      #         --namespace kube-system \
-      #         --set serviceAccount.create=false \
-      #         --set serviceAccount.name=aws-load-balancer-controller \
-      #         --set clusterName=biomage-$CLUSTER_ENV \
-      #         --install --wait
+            helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+              --namespace kube-system \
+              --set serviceAccount.create=false \
+              --set serviceAccount.name=aws-load-balancer-controller \
+              --set clusterName=biomage-$CLUSTER_ENV \
+              --install --wait
 
-      #       # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-      #       # API staging environments because their endpoints are not yet available.
-      #       helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-      #         --namespace default \
-      #         --set clusterEnv=$CLUSTER_ENV \
-      #         --install --wait
+            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+            # API staging environments because their endpoints are not yet available.
+            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+              --namespace default \
+              --set clusterEnv=$CLUSTER_ENV \
+              --install --wait
 
-      # - id: deploy-env-loadbalancer
-      #   name: Deploy AWS Application Load Balancer for environment
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment }}"
-      #     name: "biomage-k8s-alb-${{ matrix.environment }}"
-      #     template: 'infra/cf-loadbalancer.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-env-loadbalancer
+        name: Deploy AWS Application Load Balancer for environment
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: "biomage-k8s-alb-${{ matrix.environment }}"
+          template: 'infra/cf-loadbalancer.yaml'
+          no-fail-on-empty-changeset: "1"
 
       - id: deploy-route53
         name: Deploy Route 53 DNS records to ELB
@@ -277,7 +277,7 @@ jobs:
             --set syncGarbageCollection.enabled=true \
             --namespace flux \
             --install --wait
-       
+
           helm upgrade helm-operator fluxcd/helm-operator \
             --set git.ssh.secretName=flux-git-deploy \
             --set helm.versions=v3 \
@@ -285,12 +285,12 @@ jobs:
             --set git.timeout="40s" \
             --namespace flux \
             --install --wait
-      
+
       - id: get-public-key
         name: Get flux SSH deploy key
         run: |-
           fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
-              
+
       - id: add-key-to-github
         name: Add Flux deploy key to GitHub repository
         run: |-
@@ -299,7 +299,7 @@ jobs:
             -H"Authorization: token $API_TOKEN_GITHUB"\
             https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
             | jq '.[] | select(.title | contains(env.CLUSTER_ENV)) | .id' > /tmp/key_ids
-          
+
           # iterate through them and delete all existing deploy keys
           cat /tmp/key_ids | \
             while read _id; do
@@ -371,7 +371,7 @@ jobs:
           template: 'infra/cf-state-machine-role.yaml'
           capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
           no-fail-on-empty-changeset: "1"
-      
+
       - id: remove-identitymappings
         name: Remove all previous identity mappings for IAM users
         run: |-
@@ -386,7 +386,7 @@ jobs:
               --arn $user \
               --all
           done < "/tmp/users_to_remove"
-    
+
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: add-state-machine-role
         name: Grant rights to the state machine IAM role.
@@ -396,7 +396,7 @@ jobs:
             --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
             --group state-machine-runner-group \
             --username state-machine-runner
-      
+
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
