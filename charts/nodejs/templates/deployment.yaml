@@ -60,7 +60,7 @@ spec:
         - name: SANDBOX_ID
           value: {{ .Values.biomageCi.sandboxId | quote }}
 
-        - name: RDS_CLUSTER_ID
+        - name: RDS_SANDBOX_ID
           value: {{ .Values.biomageCi.rdsClusterId | quote }}
 
         - name: AWS_XRAY_DAEMON_ADDRESS
