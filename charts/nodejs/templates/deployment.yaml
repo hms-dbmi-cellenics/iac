@@ -61,7 +61,7 @@ spec:
           value: {{ .Values.biomageCi.sandboxId | quote }}
 
         - name: RDS_SANDBOX_ID
-          value: {{ .Values.biomageCi.rdsClusterId | quote }}
+          value: {{ .Values.biomageCi.rdsSandboxId | quote }}
 
         - name: AWS_XRAY_DAEMON_ADDRESS
           value: xray-service.default:2000
