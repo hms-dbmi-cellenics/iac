@@ -42,10 +42,11 @@ spec:
     biomageCi:
       repo: hms-dbmi-cellenics/api
       sandboxId: STAGING_SANDBOX_ID
+      rdsSandboxId: STAGING_RDS_SANDBOX_ID
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-332-merge-d1c05a41b99e38e7b34e2d44dfe3898d8a2e544f
+      tag: refs-pull-332-merge-4bc677beaf54db2c7a454655b7ae36b47b11a5e7
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/api-role-staging
