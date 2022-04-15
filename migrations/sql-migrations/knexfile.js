@@ -18,9 +18,9 @@ const fetchConfiguration = async (environment, sandboxId) => {
   };
 };
 
-module.exports = async (env) => {
+module.exports = async (env, inputSandboxId) => {
   const environment = env || process.env.NODE_ENV;
-  const sandboxId = process.env.SANDBOX_ID || 'default';
+  const sandboxId = inputSandboxId || process.env.SANDBOX_ID || 'default';
 
   const configuration = await fetchConfiguration(environment, sandboxId);
   return {
