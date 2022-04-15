@@ -127,9 +127,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-266-merge-2ea2589cb6389b7912b16bb622a201595102346f-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-266-merge-eff327208373c3375bfe3d472d680328ec69d5a7-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-266-merge-2ea2589cb6389b7912b16bb622a201595102346f-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-266-merge-eff327208373c3375bfe3d472d680328ec69d5a7-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: german-worker266
