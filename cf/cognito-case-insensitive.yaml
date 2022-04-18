@@ -102,6 +102,15 @@ Resources:
                   - "s3:GetObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}/*"
+        - PolicyName: !Sub "can-execute-lambda-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "lambda:InvokeFunction"
+                Resource:
+                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
 
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -154,7 +163,6 @@ Resources:
           EmailSubject: 'Your temporary password for Cellenics'
           EmailMessage: 'Thank you for signing up to Cellenics by Biomage. Your username is {username} and temporary password is {####}.'
           SMSMessage: 'Your Cellenics username is {username} and temporary password is {####}.'
-        UnusedAccountValidityDays: 7
       AutoVerifiedAttributes:
         - email
       DeviceConfiguration:
@@ -190,9 +198,12 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
-
+      LambdaConfig:
+        PostConfirmation: 
+          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
       UserPoolId: !Ref UserPool 
       Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
+      

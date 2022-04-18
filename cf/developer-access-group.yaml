@@ -52,19 +52,6 @@ Resources:
                   - "sns:List*"
                 Resource: "*"
 
-        - PolicyName: "access-to-ses"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "ses:Get"
-                  - "ses:List"
-                  - "ses:SendEmail"
-                  - "ses:PutIdentityPolicy"
-                  - "ses:ListConfigurationSets"
-                Resource: "*"
-
         - PolicyName: "can-access-s3-aws-console"
           PolicyDocument:
             Version: "2012-10-17"
@@ -102,7 +89,7 @@ Resources:
                 Action: 'sns:*'
                 Resource:
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms-{Environment}"
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-validation-alarms"
 
         - PolicyName: !Sub "can-access-${Environment}-eks-cluster"
@@ -169,6 +156,7 @@ Resources:
                   - "iam:ResyncMFADevice"
                 Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:user/${!aws:username}"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:mfa/${!aws:username}"
 
         - PolicyName: "can-see-user-and-group-policies"
           PolicyDocument:
@@ -178,6 +166,7 @@ Resources:
                 Action:
                   - "iam:ListUsers"
                   - "iam:GetUser"
+                  - "iam:ListUserTags"
                   - "iam:ListGroups"
                   - "iam:ListGroupsForUser"
                   - "iam:GetGroup"
@@ -185,7 +174,9 @@ Resources:
                   - "iam:GetRole"
                   - "iam:ListPolicies"
                   - "iam:ListUserPolicies"
+                  - "iam:ListGroupPolicies"
                   - "iam:ListAttachedUserPolicies"
+                  - "iam:ListAttachedGroupPolicies"
                   - "iam:GetPolicy"
                   - "iam:GetRolePolicy"
                 Resource:
@@ -194,22 +185,41 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
 
-        - PolicyName: "can-access-eventbridge"
+        - PolicyName: "can-start-an-ssm-session"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - events:DeleteRule
-                  - events:DescribeRule
-                  - events:DisableRule
-                  - events:EnableRule
-                  - events:ListRuleNamesByTarget
-                  - events:ListRules
-                  - events:ListTargetsByRule
-                  - events:PutEvents
-                  - events:PutRule
-                  - events:PutTargets
-                  - events:RemoveTargets
-                  - events:TestEventPattern
-                Resource: !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:*"
+                  - ssm:StartSession
+                  - ssm:TerminateSession
+                  - ec2-instance-connect:SendSSHPublicKey
+                Resource:
+                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:session/*"
+                  - !Sub "arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession"
+
+        - PolicyName: "can-access-rds"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "rds-db:connect"
+                Resource:
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
+              - Effect: Allow
+                Action:
+                  - "rds:DescribeDBClusterEndpoints"
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+
+        - PolicyName: "can-modify-rds"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "rds:*"
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"

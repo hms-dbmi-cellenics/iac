@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Setting up a lambda function to handle user invites for non-existing users
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the tables need to be created.
+
+Resources:
+  PostRegisterLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-access-dynamo-lambda-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+                Resource:
+                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
+                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "logs:CreateLogGroup"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
+  PostRegisterLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs14.x
+      Role: !GetAtt PostRegisterLambdaRole.Arn
+      Handler: index.handler
+      Environment:
+        Variables:
+          CLUSTER_ENV: !Sub "${Environment}"
+      Code: 
+        ZipFile: |
+          const AWS = require('aws-sdk');
+          exports.handler = async (event, context, callback) => {
+            const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(
+              data, { convertEmptyValues: false },
+            );
+            
+            const region = process.env.AWS_REGION
+            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`
+            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`
+            
+            const db = new AWS.DynamoDB({
+              region,
+            });
+          
+            // getting projects that the user is invited in
+            const userEmail = event.request.userAttributes.email;
+            const userId = event.request.userAttributes.sub;
+            
+            const params = {
+              TableName: inviteAccessTableName,
+              FilterExpression: '(userEmail = :userEmail)',
+              ExpressionAttributeValues: {
+                ...convertToDynamoDbRecord({ ':userEmail': userEmail }),
+              },
+            };
+            const response = await db.scan(params).promise();
+            if(!response.Items.length){
+              callback(null, event);
+            }
+            // add those rows in user-access
+
+            const experimentIds = []
+            await Promise.all(response.Items.map((item)=>{
+              
+              const projectId = item.projectId.S;
+              const experimentId = item.experimentId.S;
+              experimentIds.push(experimentId)
+              const role = item.role.S;
+              
+              const addRoleParams = {
+                  TableName: userAccessTableName,
+                  Item: {
+                    userId,
+                    experimentId,
+                    projectId,
+                    role,
+                    createdDate: new Date().toISOString(),
+                  },
+                };
+            
+                const docClient = new AWS.DynamoDB.DocumentClient({
+                  region,
+                });
+            
+                return docClient.put(addRoleParams).promise();
+                
+            }))
+            
+            //remove rows from invite-access
+            await Promise.all(experimentIds.map((id)=>{
+                
+              const key = convertToDynamoDbRecord({
+                experimentId: id,
+                userEmail,
+              });
+              
+              const dynamoParams = {
+                TableName: inviteAccessTableName,
+                Key: key,
+              };
+
+              return db.deleteItem(dynamoParams).send();
+            }))
+            
+            callback(null, event);
+          };
+  LoggingGroup: 
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub "/aws/lambda/post-register-invite-lambda-${Environment}"
+      RetentionInDays: 14
+Outputs:
+  PostRegisterLambdaArn:
+    Description: The ARN of the PostRegisterLambda
+    Value: !GetAtt PostRegisterLambda.Arn
+    Export:
+      Name: !Sub PostRegisterLambdaArn-${Environment}
+      
+      

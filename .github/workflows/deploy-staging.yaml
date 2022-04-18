@@ -5,12 +5,20 @@ on:
       manifest:
         description: 'The manifest file to deploy (base64 encoded)'
         required: true
+        type: string
       sandbox-id:
         description: 'The sandbox ID to deploy under'
         required: true
+        type: string
+      with-rds:
+        description: 'Stage a new RDS instance'
+        required: false
+        default: 'False'
+        type: string
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
+        type: string
 env:
   region: 'eu-west-1'
 
@@ -83,11 +91,45 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
+      - id: get-rds-secrets
+        if: ${{ github.event.inputs.with-rds == 'True' }}
+        uses: abhilash1in/aws-secrets-manager-action@v2.0.0
+        name: Export RDS secrets into environment variables
+        with:
+          secrets: aurora-staging
+          parse-json: true
+
+      - id: check-rds-secrets
+        if: ${{ github.event.inputs.with-rds == 'True' }}
+        name: Check RDS secrets are fetched
+        run: |-
+          # These checks if the RDS username and passwords are set
+          if [ -z $AURORA_STAGING_USERNAME ]; then
+            echo "RDS username not provided"
+            exit 1
+          fi
+          if [ -z $AURORA_STAGING_PASSWORD ]; then
+            echo "RDS password not provided"
+            exit 1
+          fi
       - id: install-eksctl
         name: Install eksctl
         run: |-
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
+      - id: set-stack-name
+        name: Set name of the CloudFormation stacks
+        run: |-
+          BASE_NAME=biomage-rds-staging-$SANDBOX_ID
+          echo "::set-output name=rds-name::$BASE_NAME"
+
+          BASE_NAME=biomage-sns-staging-$SANDBOX_ID
+          echo "::set-output name=sns-name::$BASE_NAME"
+
+          BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
+          echo "::set-output name=cognito-name::$BASE_NAME"
+        env:
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: create-worker-fargate-profile
         name: Attempt to create worker Fargate profile
@@ -129,15 +171,63 @@ jobs:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: set-name
-        name: Set name of the CloudFormation stack for SNS topic
-        run: |-
-          BASE_NAME=biomage-sns-staging-$SANDBOX_ID
-          echo "::set-output name=sns-name::$BASE_NAME"
+      - id: deploy-template-rds
+        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        name: Deploy CloudFormation stack for RDS
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-stack-name.outputs.rds-name }}
+          template: cf/rds.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-          BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
-          echo "::set-output name=cognito-name::$BASE_NAME"
+      - id: setup-rds-roles
+        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        name: Setup RDS roles
+        run: |-
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters 'Name=tag:Name,Values=rds-staging-ssm-agent' \
+            --output text \
+            --query 'Reservations[*].Instances[*].InstanceId')
+          if [ -z $INSTANCE_ID ]; then
+            echo "Can not connect to RDS agent: No instances found for staging"
+            exit 1
+          fi
+
+          CLUSTER_NAME=aurora-cluster-staging-${SANDBOX_ID}
+          RDSHOST=$(aws rds describe-db-cluster-endpoints \
+            --region $REGION \
+            --db-cluster-identifier $CLUSTER_NAME \
+            --filter Name=db-cluster-endpoint-type,Values='writer' \
+            --query 'DBClusterEndpoints[0].Endpoint' \
+            --output text)
+          if [ -z $RDSHOST ]; then
+            echo "Failed getting RDS host with name $CLUSTER_NAME"
+            exit 1
+          fi
+
+          SETUP_ROLES_CMD="
+            PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
+              --host=${RDSHOST} \
+              --port=5432 \
+              --username=${AURORA_STAGING_USERNAME} \
+              --dbname=aurora_db <<EOF
+                CREATE ROLE api_role WITH LOGIN;
+                CREATE ROLE dev_role WITH LOGIN;
+                GRANT USAGE ON SCHEMA public TO api_role;
+                GRANT dev_role TO ${AURORA_STAGING_USERNAME};
+                ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
+                REVOKE dev_role FROM ${AURORA_STAGING_USERNAME};
+                GRANT rds_iam TO api_role;
+                GRANT rds_iam, ${AURORA_STAGING_USERNAME} TO dev_role;
+              EOF"
+
+          aws ssm send-command --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --parameters "commands='$SETUP_ROLES_CMD'"
         env:
+          REGION: ${{ env.region }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-sns
@@ -146,7 +236,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.sns-name }}
+          name: ${{ steps.set-stack-name.outputs.sns-name }}
           template: cf/sns.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
@@ -157,7 +247,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
-          name: ${{ steps.set-name.outputs.cognito-name }}
+          name: ${{ steps.set-stack-name.outputs.cognito-name }}
           template: cf/userpoolclient.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
@@ -192,7 +282,7 @@ jobs:
           retry_on: error
           command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
           # Add jitter to break up correlated events.
-          on_retry_command: sleep $[($RANDOM % 10) + 5]s
+          on_retry_command: sleep $((5 + RANDOM % 10))
 
       - id: enable-admin-enforcement
         name: Re-enable admin enforcement

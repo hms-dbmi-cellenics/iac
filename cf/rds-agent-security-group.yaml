@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the cluster needs to be created.
+
+# --------------------------------------- Constants ---------------------------------------
+  DBPort:
+    Type: String
+    Default: "5432"
+# --------------------------------------- END Constants -----------------------------------
+
+Resources:
+  RDSAgentSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub Biomage RDS security group for ${Environment} to connect ec2 agent with rds
+      VpcId:
+        Fn::ImportValue:
+          !Sub 'eksctl-biomage-${Environment}-cluster::VPC'
+    # this says who can access anyone within this security group
+      SecurityGroupIngress:
+        - FromPort: !Ref DBPort
+          ToPort: !Ref DBPort
+          IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  SecurityGroupId:
+    Value: !Ref RDSAgentSecurityGroup
+    Export:
+      Name: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
