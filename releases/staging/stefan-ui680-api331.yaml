@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: ui-stefan-ui680-api331
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-680-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: ui
+  namespace: ui-stefan-ui680-api331
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: stefan-ui680-api331
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-680-merge-c8d435f30f7c793195a7748ef08fa21d51c232da
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: api-stefan-ui680-api331
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-331-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: api
+  namespace: api-stefan-ui680-api331
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: stefan-ui680-api331
+      repo: hms-dbmi-cellenics/api
+      sandboxId: stefan-ui680-api331
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-331-merge-013b25ecb6663843a7797e23279422542deb4abd
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: worker-stefan-ui680-api331
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: worker
+  namespace: worker-stefan-ui680-api331
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: 6a1d82f5abbefe8344062dbf94970beea48df359
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-6a1d82f5abbefe8344062dbf94970beea48df359-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-6a1d82f5abbefe8344062dbf94970beea48df359-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: stefan-ui680-api331
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: pipeline-stefan-ui680-api331
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: stefan-ui680-api331
+  name: pipeline
+  namespace: pipeline-stefan-ui680-api331
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: afdfd942f10bd89e49f5aa282fc3136699ec9d95
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-afdfd942f10bd89e49f5aa282fc3136699ec9d95-pipeline-runner
+    replicaCount: 0
+    sandboxId: stefan-ui680-api331
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
