@@ -31,7 +31,7 @@ jobs:
 
       # This will take the oldest 500 staging activities and remove them.
       - id: remove-old-activities
-        name: Remove old step functions from staging
+        name: Remove old activities from staging
         run: |-
           aws stepfunctions list-activities --output text \
             | grep staging \
