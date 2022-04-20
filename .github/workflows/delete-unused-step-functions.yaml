@@ -18,25 +18,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      # This will take the oldest 500 staging step functions and remove them.
+      # This will take everything OLDER THAN the last 500 step functions
+      # marked as staging and remove them.
       - id: remove-old-state-machines
         name: Remove old step functions from staging
         run: |-
           aws stepfunctions list-state-machines --output text \
             | grep staging \
             | sort -k2 \
-            | head -n 500 \
+            | head -n -500 \
             | awk '{print $4}' \
             | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
 
-      # This will take the oldest 500 staging activities and remove them.
+      # This will take everything OLDER THAN the last 500 activities
+      # marked as staging and remove them.
       - id: remove-old-activities
         name: Remove old activities from staging
         run: |-
           aws stepfunctions list-activities --output text \
             | grep staging \
             | sort -k2 \
-            | head -n 500 \
+            | head -n -500 \
             | awk '{print $2}' \
             | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
 
