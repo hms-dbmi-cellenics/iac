@@ -76,7 +76,6 @@ Simply download and install [lens](https://k8slens.dev/) and then follow the ins
 
 Ingress into the cluster is managed by the [AWS Load Balancer Controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller).
 
-
 After the AWS Load Balancer Controller is installed, the DNS of the hosted domain must be modified to redirect to the
 load balancer automatically. This is done automatically as a CloudFormation chart under `infra/cf-route53.yaml`.
 
