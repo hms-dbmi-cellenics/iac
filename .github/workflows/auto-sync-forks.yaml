@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: tgymnich/fork-sync@v1.4
         with:
-          token: ${{ secrets.PERSONAL_TOKEN }}
-          owner: llvm
+          # token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: ivababukova
           base: master
           head: master
