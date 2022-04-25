@@ -9,6 +9,6 @@ jobs:
       - uses: tgymnich/fork-sync@v1.4
         with:
           # token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ivababukova
+          owner: hms-dbmi-cellenics
           base: master
           head: master
