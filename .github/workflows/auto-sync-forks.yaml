@@ -1,6 +1,6 @@
 name: Sync Fork
 
-on: workflow_dispatch
+on: push
 
 jobs:
   sync:
