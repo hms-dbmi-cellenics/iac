@@ -161,7 +161,7 @@ Resources:
         AllowAdminCreateUserOnly: false
         InviteMessageTemplate: 
           EmailSubject: 'Your temporary password for Cellenics'
-          EmailMessage: 'Thank you for signing up to Cellenics by Biomage. Your username is {username} and temporary password is {####}.'
+          EmailMessage: 'Thank you for signing up to Cellenics. Your username is {username} and temporary password is {####}.'
           SMSMessage: 'Your Cellenics username is {username} and temporary password is {####}.'
       AutoVerifiedAttributes:
         - email
@@ -192,8 +192,8 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-      SmsAuthenticationMessage: 'Your authentication code for Cellenics by Biomage is {####}.'
-      SmsVerificationMessage: 'Your verification code for Cellenics by Biomage is {####}.'
+      SmsAuthenticationMessage: 'Your authentication code for Cellenics is {####}.'
+      SmsVerificationMessage: 'Your verification code for Cellenics is {####}.'
       UsernameAttributes:
         - email
       UsernameConfiguration:
