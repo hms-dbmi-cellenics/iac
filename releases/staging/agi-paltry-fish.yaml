@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-paltry-fish
+  name: ui-agi-paltry-fish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-696-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-paltry-fish
+  name: ui
+  namespace: ui-agi-paltry-fish
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: agi-paltry-fish
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-696-merge-030597be85dd3acdecd0d68ecc8f9ef5ebade8a9
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-paltry-fish
+  name: api-agi-paltry-fish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-340-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: agi-paltry-fish
+  name: api
+  namespace: api-agi-paltry-fish
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: default
+      repo: hms-dbmi-cellenics/api
+      sandboxId: agi-paltry-fish
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-340-merge-37364e7f3639d840db43bce7c8df5d05c0725229
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-paltry-fish
+  name: worker-agi-paltry-fish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-paltry-fish
+  name: worker
+  namespace: worker-agi-paltry-fish
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: 818e6d990000ef058063b44a16836e6e50c3ac98
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-818e6d990000ef058063b44a16836e6e50c3ac98-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-818e6d990000ef058063b44a16836e6e50c3ac98-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: agi-paltry-fish
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-paltry-fish
+  name: pipeline-agi-paltry-fish
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: agi-paltry-fish
+  name: pipeline
+  namespace: pipeline-agi-paltry-fish
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: 4a339132b7e4bb14b46c808a38e4b20a89838f5c
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-4a339132b7e4bb14b46c808a38e4b20a89838f5c-pipeline-runner
+    replicaCount: 0
+    sandboxId: agi-paltry-fish
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
