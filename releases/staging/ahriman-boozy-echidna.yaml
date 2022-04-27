@@ -164,7 +164,7 @@ spec:
     awsAccountId: '242905224710'
     awsRegion: eu-west-1
     clusterEnv: staging
-    memoryRequest: 4Gi
+    memoryRequest: 29Gi
     pipelineRunner:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-229-merge-8fe212599a2442a283f29fb53f117f88efa34eb3-pipeline-runner
     replicaCount: 0
