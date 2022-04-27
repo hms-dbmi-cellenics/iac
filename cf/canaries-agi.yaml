@@ -18,7 +18,7 @@ Resources:
   CanariesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-canaries-${Environment}"
+      BucketName: !Sub "agi-biomage-canaries-${Environment}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -36,7 +36,7 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
-        - PolicyName: !Sub "can-execute-canary-${Environment}"
+        - PolicyName: !Sub "agi-can-execute-canary-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -66,7 +66,7 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
-        - PolicyName: !Sub "can-publish-canary-alarm-${Environment}"
+        - PolicyName: !Sub "agi-can-publish-canary-alarm-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -87,7 +87,7 @@ Resources:
   UICanary:
     Type: AWS::Synthetics::Canary
     Properties:
-      Name: !Sub "is-ui-up-${Environment}"
+      Name: !Sub "agi-is-ui-up-${Environment}"
       ArtifactS3Location:
         !Join [ "/", ['s3:/', !Ref CanariesBucket, !Sub "is-ui-up-${Environment}"]]
       Code:
@@ -165,7 +165,7 @@ Resources:
                     throw new Error(logNoResponseString);
                 }
               });
-              
+
               // Wait for 15 seconds to let page load fully before taking screenshot.
               if (domcontentloaded && takeScreenshot) {
                   await page.waitFor(15000);
@@ -173,7 +173,7 @@ Resources:
                   await resetPage(page);
               }
           };
-                    
+
           exports.handler = async () => {
             return await runCanary();
           };
@@ -193,7 +193,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       KmsMasterKeyId: "alias/aws/sns"
-      TopicName: !Sub "cloudwatch-alarms-${Environment}"
+      TopicName: !Sub "agi-cloudwatch-alarms-${Environment}"
   CanarySNSSubscription:
     Type: 'AWS::SNS::Subscription'
     Properties:
@@ -204,12 +204,12 @@ Resources:
   CanariesAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "${Environment} UI is down"
+      AlarmName: !Sub "Agi - ${Environment} UI is down"
       ActionsEnabled: True
       Namespace: CloudWatchSynthetics
       Dimensions:
         - Name: CanaryName
-          Value: !Sub "is-ui-up-${Environment}"
+          Value: !Sub "agi-is-ui-up-${Environment}"
       Statistic: Minimum
       MetricName: SuccessPercent
       ComparisonOperator: LessThanThreshold
