@@ -44,7 +44,7 @@ Resources:
                 Action:
                   - "s3:PutObject"
                 Resource:
-                  - !Sub "arn:aws:sns:::cloudwatch-alarms-${Environment}"
+                  - !Sub "arn:aws:sns:::agi-cloudwatch-alarms-${Environment}"
               - Effect: Allow
                 Action:
                   - "s3:GetBucketLocation"
@@ -74,15 +74,15 @@ Resources:
                 Action:
                   - "sns:Publish"
                 Resource:
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:biomage-canaries-${Environment}/*"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:agi-biomage-canaries-${Environment}/*"
                 Condition:
-                  ArnEquals: !Ref CanariesAlarm
+                  ArnEquals:
+                    "aws:SourceArn": !Ref CanarySNSTopic
               - Effect: Allow
                 Action:
                   - "kms:Decrypt"
                   - "kms:GenerateDataKey*"
                 Resource: '*'
-
 
   UICanary:
     Type: AWS::Synthetics::Canary
@@ -138,10 +138,10 @@ Resources:
               log.error(errorString);
               throw error;
             }
-              
+
             await synthetics.executeStep(stepName, async function () {
               const sanitizedUrl = syntheticsLogHelper.getSanitizedUrl(url);
-                  
+
               /* You can customize the wait condition here. For instance, using 'networkidle2' or 'networkidle0' to load page completely.
                 networkidle0: Navigation is successful when the page has had no network requests for half a second. This might never happen if page is constantly loading multiple resources.
                 networkidle2: Navigation is successful when the page has no more then 2 network requests for half a second.
@@ -152,7 +152,7 @@ Resources:
                     domcontentloaded = true;
                     const status = response.status();
                     const statusText = response.statusText();
-        
+
                     logResponseString = `Response from url: ${sanitizedUrl}  Status: ${status}  Status Text: ${statusText}`;
 
                     //If the response status code is not a 2xx success code
