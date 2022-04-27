@@ -74,10 +74,10 @@ Resources:
                 Action:
                   - "sns:Publish"
                 Resource:
-                  - !Ref CanarySNSTopic
+                  - !Sub "arn:aws:sns:eu-west-1:${AWS::AccountId}:agi-cloudwatch-alarms-${Environment}"
                 Condition:
-                  ArnEquals:
-                    "aws:SourceArn": !Ref CanariesAlarm
+                  ArnLike:
+                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:eu-west-1:${AWS::AccountId}:alarm:Agi*"
               - Effect: Allow
                 Action:
                   - "kms:Decrypt"
