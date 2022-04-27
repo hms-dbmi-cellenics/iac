@@ -53,7 +53,7 @@ jobs:
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}

@@ -74,10 +74,10 @@ Resources:
                 Action:
                   - "sns:Publish"
                 Resource:
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:agi-biomage-canaries-${Environment}/*"
+                  - !Ref CanarySNSTopic
                 Condition:
                   ArnEquals:
-                    "aws:SourceArn": !Ref CanarySNSTopic
+                    "aws:SourceArn": !Ref CanariesAlarm
               - Effect: Allow
                 Action:
                   - "kms:Decrypt"
@@ -111,7 +111,7 @@ Resources:
               restrictedHeaders: [], // Value of these headers will be redacted from logs and reports
               restrictedUrlParameters: [] // Values of these url parameters will be redacted from logs and reports
             });
-              
+
             let page = await synthetics.getPage();
 
             for (const url of urls) {
