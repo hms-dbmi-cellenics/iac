@@ -46,11 +46,29 @@ Resources:
                   - "cloudwatch:Describe*"
                   - "cloudwatch:Get*"
                   - "cloudwatch:List*"
-                  - "cloudwatch:*Alarms"
                   - "logs:Get*"
                   - "logs:Describe*"
                   - "sns:Get*"
                   - "sns:List*"
+                Resource: "*"
+
+        - PolicyName: "access-to-canaries"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudwatch:*Canary*"
+                  - "cloudwatch:*Canaries*"
+                Resource: "*"
+
+        - PolicyName: "access-to-alarms"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudwatch:*Alarms"
                 Resource: "*"
 
         - PolicyName: "can-access-s3-aws-console"
