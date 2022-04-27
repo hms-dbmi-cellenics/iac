@@ -46,6 +46,7 @@ Resources:
                   - "cloudwatch:Describe*"
                   - "cloudwatch:Get*"
                   - "cloudwatch:List*"
+                  - "cloudwatch:*Alarms"
                   - "logs:Get*"
                   - "logs:Describe*"
                   - "sns:Get*"
