@@ -220,7 +220,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       KmsMasterKeyId: !Ref CanarySNSTopicKMSKeyAlias
-      TopicName: !Sub "agi-cloudwatch-alarms-${Environment}"
+      TopicName: !Sub "agi-cloudwatch-alarms-${Environment}-test"
   CanarySNSSubscription:
     Type: 'AWS::SNS::Subscription'
     Properties:
