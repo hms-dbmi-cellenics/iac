@@ -96,6 +96,27 @@ Resources:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Action: 'kms:*'
             Resource: '*'
+          - Sid: Allow access for role
+            Effect: Allow
+            Principal:
+              AWS:
+               - !Sub arn:aws:iam::${AWS::AccountId}:group/engineer-${Environment}-access
+            Action:
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+            Resource: "*"
           - Sid: Allow Cloudwatch to use CMK
             Effect: Allow
             Principal:
