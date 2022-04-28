@@ -1,4 +1,4 @@
-name: [TEST] Automate RDS Roles
+name: TEST - Automate RDS Roles
 on:
   push:
     branches:
