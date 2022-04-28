@@ -128,6 +128,8 @@ jobs:
     strategy:
       matrix:
         environment: ['production']
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
     steps:
       - id: env
         uses: ASzc/change-string-case-action@v2
@@ -165,17 +167,17 @@ jobs:
         name: Setup RDS roles for default RDS instances
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters 'Name=tag:Name,Values=rds-${{ matrix.environment }}-ssm-agent' \
+            --filters 'Name=tag:Name,Values=rds-${CLUSTER_ENV}-ssm-agent' \
             --output text \
             --query 'Reservations[*].Instances[*].InstanceId')
           if [ -z $INSTANCE_ID ]; then
-            echo "Can not connect to RDS agent: No instances found for ${{ matrix.environment }}"
+            echo "Can not connect to RDS agent: No instances found for $CLUSTER_ENV"
             exit 1
           fi
-          CLUSTER_NAME=aurora-cluster-${{ matrix.environment }}-default
+          CLUSTER_NAME=aurora-cluster-${CLUSTER_ENV}-default
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
-            --db-cluster-identifier ${{ matrix.environment }} \
+            --db-cluster-identifier $CLUSTER_NAME \
             --filter Name=db-cluster-endpoint-type,Values='writer' \
             --query 'DBClusterEndpoints[0].Endpoint' \
             --output text)
