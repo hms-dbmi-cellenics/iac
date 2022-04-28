@@ -48,7 +48,9 @@ jobs:
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
-      deploy-rds: ${{ contains(steps.set-name.outputs.stack-name, '-rds-') }}
+      # The equality below will be used for production
+      # deploy-rds: ${{ steps.set-name.outputs.file-name == "rds" }}
+      deploy-rds: ${{ startsWith(steps.set-name.outputs.file-name, "rds") }}
     strategy:
       matrix:
         environment: ['staging']
@@ -85,8 +87,10 @@ jobs:
         name: Set name of the CloudFormation stack
         run: |-
           echo "Ref is $GITHUB_REF"
-          BASE_NAME=biomage-$(basename $FILE_NAME | sed "s/\..*//")-$CLUSTER_ENV
-          echo "::set-output name=stack-name::$BASE_NAME"
+          BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
+          STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
+          echo "::set-output name=file-name::$FILE_NAME"
+          echo "::set-output name=stack-name::$STACK_NAME"
         env:
           FILE_NAME: ${{ matrix.template }}
 
