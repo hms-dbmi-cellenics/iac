@@ -223,19 +223,3 @@ Resources:
                   - "rds:*"
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
-
-        - PolicyName: "access-to-agi-canaries"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "cloudwatch:*"
-                  - "synthetics:*"
-                Resource:
-                  - !Sub "arn:aws:cloudwatch:eu-west-1:${AWS::AccountId}:*agi*"
-                  - !Sub "arn:aws:synthetics:eu-west-1:${AWS::AccountId}:*agi*"
-              - Effect: Allow
-                Action:
-                  - "kms:*"
-                Resource: !Sub "arn:aws:kms:eu-west-1:${AWS::AccountId}:*agi*"
