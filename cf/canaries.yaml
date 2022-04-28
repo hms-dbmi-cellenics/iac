@@ -225,7 +225,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: iva@biomage.net
+      Endpoint: engineering@biomage.net
       Protocol: "email"
 
   CanariesAlarm:
