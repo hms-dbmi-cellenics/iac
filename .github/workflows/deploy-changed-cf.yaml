@@ -89,7 +89,7 @@ jobs:
           echo "Ref is $GITHUB_REF"
           BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
           STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
-          echo "::set-output name=file-name::$FILE_NAME"
+          echo "::set-output name=file-name::$BASE_NAME"
           echo "::set-output name=stack-name::$STACK_NAME"
         env:
           FILE_NAME: ${{ matrix.template }}
