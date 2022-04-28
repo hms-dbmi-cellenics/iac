@@ -89,6 +89,10 @@ jobs:
           echo "Ref is $GITHUB_REF"
           BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
           STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
+
+          echo "Base name: $BASE_NAME"
+          echo "Stack name: $STACK_NAME"
+
           echo "::set-output name=file-name::$BASE_NAME"
           echo "::set-output name=stack-name::$STACK_NAME"
         env:
@@ -120,7 +124,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: needs.deploy-templates.outputs.deploy-rds == true
+    if: ${{ needs.deploy-templates.outputs.deploy-rds == true }}
     strategy:
       matrix:
         environment: ['staging']
