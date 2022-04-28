@@ -52,6 +52,18 @@ Resources:
                   - "sns:List*"
                 Resource: "*"
 
+        - PolicyName: "access-to-canaries"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudwatch:*Canary*"
+                  - "cloudwatch:*Canaries*"
+                  - "synthetics:*"
+                  - "cloudwatch:*Alarms"
+                Resource: "*"
+
         - PolicyName: "can-access-s3-aws-console"
           PolicyDocument:
             Version: "2012-10-17"

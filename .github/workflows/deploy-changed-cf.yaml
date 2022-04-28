@@ -53,7 +53,7 @@ jobs:
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
@@ -95,7 +95,7 @@ jobs:
 
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ !contains(matrix.template, 'irsa-')}}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }}"
