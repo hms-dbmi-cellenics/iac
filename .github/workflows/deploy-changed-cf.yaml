@@ -131,6 +131,11 @@ jobs:
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
+      - id: env
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ matrix.environment }}
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -150,11 +155,11 @@ jobs:
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
-          if [ -z $AURORA_${{ matrix.environment }}_USERNAME ]; then
+          if [ -z $AURORA_${{ steps.env.outputs.uppercase }}_USERNAME ]; then
             echo "RDS username not provided"
             exit 1
           fi
-          if [ -z $AURORA_${{ matrix.environment }}_PASSWORD ]; then
+          if [ -z $AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD ]; then
             echo "RDS password not provided"
             exit 1
           fi
@@ -181,19 +186,19 @@ jobs:
             exit 1
           fi
           SETUP_ROLES_CMD="
-            PGPASSWORD=${AURORA_${{ matrix.environment }}_PASSWORD} psql \
+            PGPASSWORD=${AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD} psql \
               --host=${RDSHOST} \
               --port=5432 \
-              --username=${AURORA_${{ matrix.environment }}_USERNAME} \
+              --username=${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME} \
               --dbname=aurora_db <<EOF
                 CREATE ROLE api_role WITH LOGIN;
                 CREATE ROLE dev_role WITH LOGIN;
                 GRANT USAGE ON SCHEMA public TO api_role;
-                GRANT dev_role TO ${AURORA_${{ matrix.environment }}_USERNAME};
+                GRANT dev_role TO ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME};
                 ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
-                REVOKE dev_role FROM ${AURORA_${{ matrix.environment }}_USERNAME};
+                REVOKE dev_role FROM ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME};
                 GRANT rds_iam TO api_role;
-                GRANT rds_iam, ${AURORA_${{ matrix.environment }}_USERNAME} TO dev_role;
+                GRANT rds_iam, ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME} TO dev_role;
               EOF"
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
