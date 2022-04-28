@@ -1,0 +1,276 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up canaries to check for heartbeat of services [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the tables need to be created.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
+Resources:
+  CanariesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "agi-biomage-canaries-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+  CanaryExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "agi-can-execute-canary-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:PutObject"
+                Resource:
+                  - !Sub "arn:aws:sns:::agi-cloudwatch-alarms-${Environment}"
+              - Effect: Allow
+                Action:
+                  - "s3:GetBucketLocation"
+                  - "s3:ListAllMyBuckets"
+                  - "cloudwatch:PutMetricData"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: '*'
+  CanaryAlarmRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudwatch.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "agi-can-publish-canary-alarm-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sns:Publish"
+                Resource:
+                  - !Sub "arn:aws:sns:eu-west-1:${AWS::AccountId}:agi-cloudwatch-alarms-${Environment}"
+                Condition:
+                  ArnLike:
+                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:eu-west-1:${AWS::AccountId}:alarm:Agi*"
+
+  CanarySNSTopicKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Custom key to sign SNS Topic at rest
+      Enabled: True
+      EnableKeyRotation: True
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: canary-sns-topic-key
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: Allow access for role
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:user/anugerahe"
+            Action:
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+            Resource: "*"
+          - Sid: Allow Cloudwatch to use CMK
+            Effect: Allow
+            Principal:
+              Service:
+                - "cloudwatch.amazonaws.com"
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
+  CanarySNSTopicKMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/agi-canary-sns-topic-alias
+      TargetKeyId: !Ref CanarySNSTopicKMSKey
+
+  UICanary:
+    Type: AWS::Synthetics::Canary
+    Properties:
+      Name: !Sub "agi-is-ui-up-${Environment}"
+      ArtifactS3Location:
+        !Join [ "/", ['s3:/', !Ref CanariesBucket, !Sub "is-ui-up-${Environment}"]]
+      Code:
+        Handler: lambda_function.handler
+        Script: |
+          const { URL } = require('url');
+          const synthetics = require('Synthetics');
+          const log = require('SyntheticsLogger');
+          const syntheticsConfiguration = synthetics.getConfiguration();
+          const syntheticsLogHelper = require('SyntheticsLogHelper');
+
+          const runCanary = async function () {
+            const urls = [process.env.TEST_URL];
+            const takeScreenshot = true;
+
+            syntheticsConfiguration.disableStepScreenshots();
+            syntheticsConfiguration.setConfig({
+              continueOnStepFailure: true,
+              includeRequestHeaders: true, // Enable if headers should be displayed in HAR
+              includeResponseHeaders: true, // Enable if headers should be displayed in HAR
+              restrictedHeaders: [], // Value of these headers will be redacted from logs and reports
+              restrictedUrlParameters: [] // Values of these url parameters will be redacted from logs and reports
+            });
+
+            let page = await synthetics.getPage();
+
+            for (const url of urls) {
+                await loadUrl(page, url, takeScreenshot);
+            }
+          };
+
+          const resetPage = async function(page) {
+            try {
+              await page.goto('about:blank',{waitUntil: ['load', 'networkidle0'], timeout: 30000} );
+            } catch(ex) {
+              synthetics.addExecutionError('Unable to open a blank page ', ex);
+            }
+          };
+          
+          const loadUrl = async function (page, url, takeScreenshot) {
+            let stepName = null;
+            let domcontentloaded = false;
+          
+            try {
+              stepName = new URL(url).hostname;
+            } catch (error) {
+              const errorString = `Error parsing url: ${url}.  ${error}`;
+              log.error(errorString);
+              throw error;
+            }
+
+            await synthetics.executeStep(stepName, async function () {
+              const sanitizedUrl = syntheticsLogHelper.getSanitizedUrl(url);
+
+              /* You can customize the wait condition here. For instance, using 'networkidle2' or 'networkidle0' to load page completely.
+                networkidle0: Navigation is successful when the page has had no network requests for half a second. This might never happen if page is constantly loading multiple resources.
+                networkidle2: Navigation is successful when the page has no more then 2 network requests for half a second.
+                domcontentloaded: It's fired as soon as the page DOM has been loaded, without waiting for resources to finish loading. Can be used and then add explicit await page.waitFor(timeInMs) 
+              */
+              const response = await page.goto(url, { waitUntil: ['networkidle2'], timeout: 30000});
+                if (response) {
+                    domcontentloaded = true;
+                    const status = response.status();
+                    const statusText = response.statusText();
+
+                    logResponseString = `Response from url: ${sanitizedUrl}  Status: ${status}  Status Text: ${statusText}`;
+
+                    //If the response status code is not a 2xx success code
+                    if (response.status() < 200 || response.status() > 299) {
+                        throw `Failed to load url: ${sanitizedUrl} ${response.status()} ${response.statusText()}`;
+                    }
+                } else {
+                    const logNoResponseString = `No response returned for url: ${sanitizedUrl}`;
+                    log.error(logNoResponseString);
+                    throw new Error(logNoResponseString);
+                }
+              });
+
+              // Wait for 15 seconds to let page load fully before taking screenshot.
+              if (domcontentloaded && takeScreenshot) {
+                  await page.waitFor(15000);
+                  await synthetics.takeScreenshot(stepName, 'loaded');
+                  await resetPage(page);
+              }
+          };
+
+          exports.handler = async () => {
+            return await runCanary();
+          };
+
+      ExecutionRoleArn: !GetAtt CanaryExecutionRole.Arn
+      RunConfig:
+        EnvironmentVariables:
+          TEST_URL: !If [ isProd, "https://scp.biomage.net/",
+                         !Sub "https://ui-default.scp-${Environment}.biomage.net/"]
+      SuccessRetentionPeriod: 2
+      RuntimeVersion: syn-nodejs-puppeteer-3.3
+      Schedule:
+        Expression: rate(5 minutes)
+      StartCanaryAfterCreation: True
+
+  CanarySNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: !Ref CanarySNSTopicKMSKeyAlias
+      TopicName: !Sub "agi-cloudwatch-alarms-${Environment}-test"
+  CanarySNSSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref CanarySNSTopic
+      Endpoint: anugerah@biomage.net
+      Protocol: "email"
+
+  CanariesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "Agi - ${Environment} UI is down"
+      ActionsEnabled: True
+      Namespace: CloudWatchSynthetics
+      Dimensions:
+        - Name: CanaryName
+          Value: !Sub "agi-is-ui-up-${Environment}"
+      Statistic: Minimum
+      MetricName: SuccessPercent
+      ComparisonOperator: LessThanThreshold
+      Threshold: 100
+      DatapointsToAlarm: 2
+      EvaluationPeriods: 2
+      Period: 600
+      AlarmActions:
+        - !Ref CanarySNSTopic
+      OKActions:
+        - !Ref CanarySNSTopic
+      TreatMissingData: missing
+  # XrayGroupAPI500:
+  #   Type: AWS::XRay::Group
+  #   Properties:
+  #     FilterExpression: (http.url BEGINSWITH "http://api.scp.biomage.net") AND (http.status >= 500)
+  #     GroupName: !Sub "${Environment}-api-5xx-error"
