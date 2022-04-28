@@ -49,8 +49,8 @@ jobs:
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
       # The equality below will be used for production
-      # deploy-rds: ${{ steps.set-name.outputs.file-name == "rds" }}
-      deploy-rds: ${{ startsWith(steps.set-name.outputs.file-name, "rds") }}
+      # deploy-rds: ${{ steps.set-name.outputs.file-name == 'rds' }}
+      deploy-rds: ${{ startsWith(steps.set-name.outputs.file-name, 'rds') }}
     strategy:
       matrix:
         environment: ['staging']
