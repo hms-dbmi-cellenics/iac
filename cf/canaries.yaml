@@ -193,7 +193,7 @@ Resources:
       PendingWindowInDays: 7
       KeyPolicy:
         Version: "2012-10-17"
-        Id: canary-sns-topic-key
+        Id: !Sub canary-sns-topic-key-${Environment}
         Statement:
           - Sid: Enable IAM User Permissions
             Effect: Allow
@@ -235,7 +235,7 @@ Resources:
   CanarySNSTopicCMKAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: alias/canary-sns-topic
+      AliasName: !Sub alias/canary-sns-topic-${Environment}
       TargetKeyId: !Ref CanarySNSTopicCMK
 
   CanarySNSTopic:
