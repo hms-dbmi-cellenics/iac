@@ -1,14 +1,8 @@
-name: [TEST] - Deploy changed CloudFormation templates
+name: [TEST] Automate RDS Roles
 on:
   push:
     branches:
-      - master
-    paths:
-      - 'cf/**.yaml'
-      - 'cf/**.yml'
-  pull_request:
-    branches:
-      - master
+      - test-automate-rds-roles
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
