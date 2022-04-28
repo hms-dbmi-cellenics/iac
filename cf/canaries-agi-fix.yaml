@@ -99,8 +99,7 @@ Resources:
           - Sid: Allow access for role
             Effect: Allow
             Principal:
-              AWS:
-               - !Sub arn:aws:iam::${AWS::AccountId}:group/engineer-${Environment}-access
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:user/anugerahe"
             Action:
               - "kms:Create*"
               - "kms:Describe*"
