@@ -51,6 +51,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
+    outputs:
+      deploy-rds: ${{ steps.set-name.outputs.file-name == 'rds' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
@@ -88,8 +90,11 @@ jobs:
         name: Set name of the CloudFormation stack
         run: |-
           echo "Ref is $GITHUB_REF"
-          BASE_NAME=biomage-$(basename $FILE_NAME | sed "s/\..*//")-$CLUSTER_ENV
-          echo "::set-output name=stack-name::$BASE_NAME"
+          BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
+          STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
+
+          echo "::set-output name=file-name::$BASE_NAME"
+          echo "::set-output name=stack-name::$STACK_NAME"
         env:
           FILE_NAME: ${{ matrix.template }}
 
@@ -114,3 +119,90 @@ jobs:
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+  setup-rds-roles:
+    name: Setup RDS roles for default resources
+    runs-on: ubuntu-20.04
+    needs: deploy-templates
+    if: ${{ needs.deploy-templates.outputs.deploy-rds }}
+    strategy:
+      matrix:
+        environment: ['production', 'staging']
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+    steps:
+      - id: env
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ matrix.environment }}
+
+      - id: set-up-creds
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+
+      - id: get-rds-secrets
+        uses: abhilash1in/aws-secrets-manager-action@v2.0.0
+        name: Export RDS secrets into environment variables
+        with:
+          secrets: aurora-${{ matrix.environment }}
+          parse-json: true
+
+      - id: check-rds-secrets
+        name: Check RDS secrets are fetched
+        run: |-
+          # These checks if the RDS username and passwords are set
+          if [ -z $AURORA_${{ steps.env.outputs.uppercase }}_USERNAME ]; then
+            echo "RDS username not provided"
+            exit 1
+          fi
+          if [ -z $AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD ]; then
+            echo "RDS password not provided"
+            exit 1
+          fi
+
+      - id: setup-rds-roles
+        name: Setup RDS roles for default RDS instances
+        run: |-
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters 'Name=tag:Name,Values=rds-${{ matrix.environment }}-ssm-agent' \
+            --output text \
+            --query 'Reservations[*].Instances[*].InstanceId')
+          if [ -z $INSTANCE_ID ]; then
+            echo "Can not connect to RDS agent: No instances found for $CLUSTER_ENV"
+            exit 1
+          fi
+          CLUSTER_NAME=aurora-cluster-${CLUSTER_ENV}-default
+          RDSHOST=$(aws rds describe-db-cluster-endpoints \
+            --region $REGION \
+            --db-cluster-identifier $CLUSTER_NAME \
+            --filter Name=db-cluster-endpoint-type,Values='writer' \
+            --query 'DBClusterEndpoints[0].Endpoint' \
+            --output text)
+          if [ -z $RDSHOST ]; then
+            echo "Failed getting RDS host with name $CLUSTER_NAME"
+            exit 1
+          fi
+          SETUP_ROLES_CMD="
+            PGPASSWORD=${AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD} psql \
+              --host=${RDSHOST} \
+              --port=5432 \
+              --username=${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME} \
+              --dbname=aurora_db <<EOF
+                CREATE ROLE api_role WITH LOGIN;
+                CREATE ROLE dev_role WITH LOGIN;
+                GRANT USAGE ON SCHEMA public TO api_role;
+                GRANT dev_role TO ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME};
+                ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
+                REVOKE dev_role FROM ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME};
+                GRANT rds_iam TO api_role;
+                GRANT rds_iam, ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME} TO dev_role;
+              EOF"
+          aws ssm send-command --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --parameters "commands='$SETUP_ROLES_CMD'"
+        env:
+          REGION: ${{ env.region }}
