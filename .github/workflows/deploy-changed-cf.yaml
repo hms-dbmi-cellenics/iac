@@ -124,7 +124,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    # if: ${{ needs.deploy-templates.outputs.deploy-rds == true }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds }}
     strategy:
       matrix:
         environment: ['staging']
@@ -134,7 +134,7 @@ jobs:
       - id: test
         run: |
           echo "Test: ${{ needs.deploy-templates.outputs.deploy-rds }}"
-          echo "True? ${{ needs.deploy-templates.outputs.deploy-rds == true }}"
+          echo "True? ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}"
       - id: get-rds-secrets
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
