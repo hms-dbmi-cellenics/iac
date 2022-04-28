@@ -54,6 +54,31 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: '*'
+  CanaryAlarmRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudwatch.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "alarms-can-publish-sns-messages-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sns:Publish"
+                Resource:
+                  - !Sub "arn:aws:sns:eu-west-1:${AWS::AccountId}:cloudwatch-alarms-${Environment}"
+                Condition:
+                  ArnLike:
+                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:eu-west-1:${AWS::AccountId}:alarm:*"
+
   UICanary:
     Type: AWS::Synthetics::Canary
     Properties:
@@ -155,14 +180,68 @@ Resources:
                          !Sub "https://ui-default.scp-${Environment}.biomage.net/"]
       SuccessRetentionPeriod: 2
       RuntimeVersion: syn-nodejs-puppeteer-3.3
-      Schedule: 
+      Schedule:
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
 
-  CanarySNSTopic: 
+  CanarySNSTopicCMK:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: Customer Managed Key (CMK) to sign SNS topic at rest
+      Enabled: True
+      EnableKeyRotation: True
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: canary-sns-topic-key
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: Allow users to manage key
+            Effect: Allow
+            Principal:
+              AWS:
+              - !Sub "arn:aws:iam::${AWS::AccountId}:user/ibabukova"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:user/polav"
+            Action:
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+            Resource: "*"
+          - Sid: Allow Cloudwatch to use CMK
+            Effect: Allow
+            Principal:
+              Service:
+                - "cloudwatch.amazonaws.com"
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
+  CanarySNSTopicCMKAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/canary-sns-topic
+      TargetKeyId: !Ref CanarySNSTopicCMK
+
+  CanarySNSTopic:
     Type: AWS::SNS::Topic
-    Properties: 
-      KmsMasterKeyId: "alias/aws/sns"
+    Properties:
+      KmsMasterKeyId: !Ref CanarySNSTopicCMKAlias
       TopicName: !Sub "cloudwatch-alarms-${Environment}"
   CanarySNSSubscription:
     Type: 'AWS::SNS::Subscription'
@@ -173,7 +252,7 @@ Resources:
 
   CanariesAlarm:
     Type: AWS::CloudWatch::Alarm
-    Properties: 
+    Properties:
       AlarmName: !Sub "${Environment} UI is down"
       ActionsEnabled: True
       Namespace: CloudWatchSynthetics
@@ -187,7 +266,7 @@ Resources:
       DatapointsToAlarm: 2
       EvaluationPeriods: 2
       Period: 600
-      AlarmActions: 
+      AlarmActions:
         - !Ref CanarySNSTopic
       TreatMissingData: missing
 
