@@ -167,7 +167,7 @@ jobs:
         name: Setup RDS roles for default RDS instances
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters 'Name=tag:Name,Values=rds-${CLUSTER_ENV}-ssm-agent' \
+            --filters 'Name=tag:Name,Values=rds-${{ matrix.environment }}-ssm-agent' \
             --output text \
             --query 'Reservations[*].Instances[*].InstanceId')
           if [ -z $INSTANCE_ID ]; then
