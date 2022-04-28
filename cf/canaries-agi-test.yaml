@@ -128,7 +128,7 @@ Resources:
   CanarySNSTopicKMSKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: alias/agi-canary-sns-topic-alias
+      AliasName: alias/agi-canary-sns-topic
       TargetKeyId: !Ref CanarySNSTopicKMSKey
 
   UICanary:
