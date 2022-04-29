@@ -189,6 +189,6 @@ jobs:
             --document-name AWS-RunShellScript \
             --parameters "commands='$SETUP_ROLES_CMD'"
         env:
-          DB_USERNAME: ${{ join(['AURORA', steps.env.outputs.uppercase, 'USERNAME'], '_') }}
-          DB_PASSWORD : ${{ join(['AURORA', steps.env.outputs.uppercase, 'PASSWORD'], '_') }}
+          DB_USERNAME: "AURORA_${{ steps.env.outputs.uppercase }}_USERNAME"
+          DB_PASSWORD : "AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD"
           REGION: ${{ env.region }}
