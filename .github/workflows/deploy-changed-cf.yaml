@@ -53,7 +53,7 @@ jobs:
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
@@ -62,11 +62,11 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: lint
-        name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
-        with:
-          args: ${{ matrix.template }}
+      # - id: lint
+      #   name: Lint template
+      #   uses: scottbrenner/cfn-lint-action@1.6.1
+      #   with:
+      #     args: ${{ matrix.template }}
 
       - id: set-up-creds
         name: Configure AWS credentials
@@ -152,7 +152,7 @@ jobs:
         name: Setup RDS roles for default RDS instances
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters 'Name=tag:Name,Values=rds-${{ matrix.environment }}-ssm-agent' \
+            --filters "Name=tag:Name,Values=rds-${CLUSTER_ENV}-ssm-agent" \
             --output text \
             --query 'Reservations[*].Instances[*].InstanceId')
           if [ -z $INSTANCE_ID ]; then
