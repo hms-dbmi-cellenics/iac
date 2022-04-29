@@ -171,22 +171,24 @@ jobs:
             exit 1
           fi
           SETUP_ROLES_CMD="
-            PGPASSWORD=${AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD} psql \
+            PGPASSWORD=${DB_PASSWORD} psql \
               --host=${RDSHOST} \
               --port=5432 \
-              --username=${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME} \
+              --username=${DB_USERNAME} \
               --dbname=aurora_db <<EOF
                 CREATE ROLE api_role WITH LOGIN;
                 CREATE ROLE dev_role WITH LOGIN;
                 GRANT USAGE ON SCHEMA public TO api_role;
-                GRANT dev_role TO ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME};
+                GRANT dev_role TO ${DB_USERNAME};
                 ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
-                REVOKE dev_role FROM ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME};
+                REVOKE dev_role FROM ${DB_USERNAME};
                 GRANT rds_iam TO api_role;
-                GRANT rds_iam, ${AURORA_${{ steps.env.outputs.uppercase }}_USERNAME} TO dev_role;
+                GRANT rds_iam, ${DB_USERNAME} TO dev_role;
               EOF"
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --parameters "commands='$SETUP_ROLES_CMD'"
         env:
+          DB_USERNAME: ${{ join('AURORA_', steps.env.outputs.uppercase, '_USERNAME') }}
+          DB_PASSWORD : ${{ join('AURORA_', steps.env.outputs.uppercase, '_PASSWORD') }}
           REGION: ${{ env.region }}
