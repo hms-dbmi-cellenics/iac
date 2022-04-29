@@ -137,12 +137,17 @@ jobs:
         if: ${{ steps.set-name.outputs.file-name == 'rds-test' }}
         name: Check RDS secrets are fetched
         run: |-
+          UPPERCASE_ENV=$(echo "$CLUSTER_ENV" | tr '[:upper:]' '[:lower:]')
+
+          DB_USERNAME="AURORA_${UPPERCASE_ENV}_USERNAME"
+          DB_PASSWORD="AURORA_${UPPERCASE_ENV}_PASSWORD"
+
           # These checks if the RDS username and passwords are set
-          if [ -z $AURORA_${{ steps.env.outputs.uppercase }}_USERNAME ]; then
+          if [ -z ${!DB_USERNAME} ]; then
             echo "RDS username not provided"
             exit 1
           fi
-          if [ -z $AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD ]; then
+          if [ -z ${!DB_PASSWORD} ]; then
             echo "RDS password not provided"
             exit 1
           fi
@@ -151,6 +156,11 @@ jobs:
         if: ${{ steps.set-name.outputs.file-name == 'rds-test' }}
         name: Setup RDS roles for default RDS instances
         run: |-
+          UPPERCASE_ENV=$(echo "$CLUSTER_ENV" | tr '[:upper:]' '[:lower:]')
+
+          DB_USERNAME="AURORA_${UPPERCASE_ENV}_USERNAME"
+          DB_PASSWORD="AURORA_${UPPERCASE_ENV}_PASSWORD"
+
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=rds-${CLUSTER_ENV}-ssm-agent" \
             --output text \
@@ -174,21 +184,19 @@ jobs:
             PGPASSWORD=${DB_PASSWORD} psql \
               --host=${RDSHOST} \
               --port=5432 \
-              --username=${DB_USERNAME} \
+              --username=${!DB_USERNAME} \
               --dbname=aurora_db <<EOF
                 CREATE ROLE api_role WITH LOGIN;
                 CREATE ROLE dev_role WITH LOGIN;
                 GRANT USAGE ON SCHEMA public TO api_role;
-                GRANT dev_role TO ${DB_USERNAME};
+                GRANT dev_role TO ${!DB_USERNAME};
                 ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
-                REVOKE dev_role FROM ${DB_USERNAME};
+                REVOKE dev_role FROM ${!DB_USERNAME};
                 GRANT rds_iam TO api_role;
-                GRANT rds_iam, ${DB_USERNAME} TO dev_role;
+                GRANT rds_iam, ${!DB_USERNAME} TO dev_role;
               EOF"
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --parameters "commands='$SETUP_ROLES_CMD'"
         env:
-          DB_USERNAME: "AURORA_${{ steps.env.outputs.uppercase }}_USERNAME"
-          DB_PASSWORD : "AURORA_${{ steps.env.outputs.uppercase }}_PASSWORD"
           REGION: ${{ env.region }}
