@@ -172,7 +172,9 @@ jobs:
       - id: fill-metadata
         name: Fill out the AWS Account ID in value.yaml
         run: |-
-          yq w things.yaml iacCi.awsAccountId 12345678910Iva \          
+          AWS_ACCOUNT_ID_IVA="12345678910Iva"
+
+          yq w -d1 things.yaml iacCi.awsAccountId "$AWS_ACCOUNT_ID_IVA" \          
           > things.yaml
 
           cat things.yaml
