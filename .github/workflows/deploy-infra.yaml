@@ -172,7 +172,7 @@ jobs:
       - id: fill-metadata
         name: Fill out the AWS Account ID in value.yaml
         run: |-
-          yq w -d1 values.yaml iacCi.awsAccountId "12345678910Iva" \          
+          yq w -d1 charts/nodejs/values.yaml iacCi.awsAccountId "12345678910Iva" \          
           > values.yaml
 
           cat values.yaml
