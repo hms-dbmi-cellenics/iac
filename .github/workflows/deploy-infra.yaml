@@ -166,7 +166,7 @@ jobs:
 
       - id: set-accountId-in-chart
         name: Set AWS Account ID in values.yaml
-        uses: DamianReeves/write-file-action
+        uses: DamianReeves/write-file-action@v1.0
         with:
           path: charts/nodejs/values.yaml
           contents: |
