@@ -172,10 +172,10 @@ jobs:
       - id: fill-metadata
         name: Fill out the AWS Account ID in value.yaml
         run: |-
-          yq w charts/nodejs/values.yaml iacCi.awsAccountId 12345678910Iva \          
-          > values.yaml
+          yq w things.yaml iacCi.awsAccountId 12345678910Iva \          
+          > things.yaml
 
-          cat values.yaml
+          cat things.yaml
 
       - id: disable-admin-enforcement
         name: Temporarily disable admin enforcement
@@ -192,7 +192,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source_file: 'values.yaml'
+          source_file: 'things.yaml'
           destination_repo: '${{ github.repository_owner }}/iac'
           destination_folder: 'charts/nodejs'
           destination_branch: test-helm-env-vars
