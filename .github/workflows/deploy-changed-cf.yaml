@@ -1,11 +1,11 @@
 name: Deploy changed CloudFormation templates
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'cf/**.yaml'
-      - 'cf/**.yml'
+  # push:
+  #   branches:
+  #     - master
+  #   paths:
+  #     - 'cf/**.yaml'
+  #     - 'cf/**.yml'
   pull_request:
     branches:
       - master
@@ -53,7 +53,7 @@ jobs:
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
@@ -62,11 +62,11 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: lint
-        name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
-        with:
-          args: ${{ matrix.template }}
+      # - id: lint
+      #   name: Lint template
+      #   uses: scottbrenner/cfn-lint-action@1.6.1
+      #   with:
+      #     args: ${{ matrix.template }}
 
       - id: set-up-creds
         name: Configure AWS credentials
@@ -77,12 +77,12 @@ jobs:
           aws-region: ${{ env.region }}
 
       # This is only necessary for IAM Service Account roles.
-      - id: get-oidc
-        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
-        name: Get OIDC provider information for IRSA role
-        run: |-
-          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
-          echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
+      # - id: get-oidc
+      #   if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+      #   name: Get OIDC provider information for IRSA role
+      #   run: |-
+      #     OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
+      #     echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
 
       - id: set-name
         name: Set name of the CloudFormation stack
@@ -96,16 +96,16 @@ jobs:
         env:
           FILE_NAME: ${{ matrix.template }}
 
-      - id: deploy-irsa-template
-        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
-        name: Deploy IRSA CloudFormation template
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
-          name: ${{ steps.set-name.outputs.stack-name }}
-          template: ${{ matrix.template }}
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+      # - id: deploy-irsa-template
+      #   if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+      #   name: Deploy IRSA CloudFormation template
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
+      #     name: ${{ steps.set-name.outputs.stack-name }}
+      #     template: ${{ matrix.template }}
+      #     no-fail-on-empty-changeset: "1"
+      #     capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: deploy-template
         if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
@@ -123,7 +123,7 @@ jobs:
         # This step checks for the RDS agent to be up before we proceed. It retries if the rds agent is not up.
       - id: wait-for-stack
         name: Wait for CF stack to complete before continuing
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
         uses: nick-invision/retry@v2
         with:
           timeout_seconds: 600
@@ -131,7 +131,7 @@ jobs:
           retry_on: error
           on_retry_command: sleep $(shuf -i 5-15 -n 1)
           command: |-
-            AGENT_STACK_NAME="biomage-rds-agent-${CLUSTER_ENV}"
+            AGENT_STACK_NAME="biomage-test-rds-agent-${CLUSTER_ENV}"
             STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $AGENT_STACK_NAME | jq -c '.Stacks[0].StackStatus' | tr -d '"')
             if [ "$STACK_STATUS" != "CREATE_COMPLETE" ] && [ "$STACK_STATUS" != "UPDATE_COMPLETE" ]; then
                 echo "Stack is not up, retrying..."
@@ -143,14 +143,14 @@ jobs:
       # with uppercase letters (see action ref). Therefore, we need the uppercased form of the environment
       # Which is output in .outputs.uppercase of this step.
       - id: setup-rds-env
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
         name: Uppercase environment name
         uses: ASzc/change-string-case-action@v2
         with:
           string: ${{ matrix.environment }}
 
       - id: get-rds-secrets
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
         name: Export RDS secrets into environment variables
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         with:
@@ -158,7 +158,7 @@ jobs:
           parse-json: true
 
       - id: check-rds-secrets
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -172,7 +172,7 @@ jobs:
           fi
 
       - id: setup-rds-roles
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
         name: Setup RDS roles for default RDS instances
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
