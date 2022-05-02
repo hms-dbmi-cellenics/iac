@@ -164,14 +164,40 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      - id: set-accountId-in-chart
-        name: Set AWS Account ID in values.yaml
-        uses: DamianReeves/write-file-action@v1.0
+      - id: install-yq
+        name: Install yq for modifying the deployment spec.
+        run: |-
+          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+
+      - id: fill-metadata
+        name: Fill out the AWS Account ID in value.yaml
+        run: |-
+          yq w -d1 values.yaml iacCi.awsAccountId "12345678910Iva" \          
+          > values.yaml
+
+          cat values.yaml
+
+      - id: disable-admin-enforcement
+        name: Temporarily disable admin enforcement
+        uses: benjefferies/branch-protection-bot@1.0.7
         with:
-          path: charts/nodejs/values.yaml
-          contents: |
-            echo "Hello World!"
-          write-mode: append
+          access_token: ${{ secrets.API_TOKEN_GITHUB }}
+          owner: ${{ github.repository_owner }}
+          repo: iac
+          enforce_admins: false
+          retries: 8
+
+      - name: Push updated values.yaml file
+        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'values.yaml'
+          destination_repo: '${{ github.repository_owner }}/iac'
+          destination_folder: 'charts/nodejs'
+          destination_branch: test-helm-env-vars
+          user_email: 'ci@biomage.net'
+          user_name: 'Biomage CI/CD'
 
       # - id: add-kubeconfig
       #   name: Add k8s config file for existing cluster.
