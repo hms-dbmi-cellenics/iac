@@ -13,8 +13,7 @@ metadata:
     fluxcd.io/automated: 'false'
   labels:
     sandboxId: ahriman-boozy-echidna
-    envAccountId: ${{ IVAS_TEST_LABEL }}
-    trial2: 283
+    envAccountId: {{ IVAS_TEST_LABEL }}
   name: ui
   namespace: ui-ahriman-boozy-echidna
 spec:
