@@ -127,7 +127,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'false' }}
     strategy:
       matrix:
         environment: ['staging']
