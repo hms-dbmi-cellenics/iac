@@ -93,6 +93,9 @@ jobs:
           BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
           STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
 
+          echo "file name = $FILE_NAME"
+          echo "stack name = $STACK_NAME"
+
           echo "::set-output name=file-name::$BASE_NAME"
           echo "::set-output name=stack-name::$STACK_NAME"
         env:
@@ -131,6 +134,9 @@ jobs:
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
+      - id: check
+        run: echo "${{ needs.deploy-templates.outputs.deploy-rds }}"
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
