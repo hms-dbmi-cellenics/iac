@@ -93,9 +93,11 @@ jobs:
           BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
           STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
 
+          echo "base name: $BASE_NAME"
           echo "::set-output name=stack-name::$STACK_NAME"
 
           if [ "$BASE_NAME" == 'rds' ]; then
+            echo "This block is called"
             echo "::set-output name=deploy-rds::'true'"
           fi
 
