@@ -52,7 +52,7 @@ jobs:
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
-      deploy-rds: ${{ steps.set-name.outputs.deploy-rds == 'true' && github.ref == 'refs/heads/master' }}
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
@@ -96,7 +96,7 @@ jobs:
           echo "::set-output name=stack-name::$STACK_NAME"
 
           if [ "$BASE_NAME" == 'rds' ]; then
-            echo "::set-output name=deploy-rds::'true'"
+            echo "::set-output name=deploy-rds::true"
           fi
 
         env:
