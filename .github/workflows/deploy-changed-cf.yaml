@@ -104,6 +104,9 @@ jobs:
         env:
           FILE_NAME: ${{ matrix.template }}
 
+      - id: check-step-output
+        run: echo "${{ steps.set-name.outputs.deploy-rds }}"
+
       # - id: deploy-template
       #   name: Deploy CloudFormation template
       #   if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
@@ -139,7 +142,7 @@ jobs:
     steps:
       - id: test-multifile
         name: Test multi-file deployment
-        run: echo "{{ needs.deploy-templates.outputs.deploy-rds }}"
+        run: echo "${{ needs.deploy-templates.outputs.deploy-rds }}"
 
       # - id: set-up-creds
       #   name: Configure AWS credentials
