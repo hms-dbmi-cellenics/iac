@@ -12,7 +12,7 @@ Parameters:
     Description: The environment for which the cluster needs to be created.
   SandboxID:
     Type: String
-    Default: default
+    Default: test-await
     Description: The sandbox ID of the environment that this cluster is created for.
   DBInstanceType:
     Type: String
