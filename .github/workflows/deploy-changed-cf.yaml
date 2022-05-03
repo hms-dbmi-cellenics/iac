@@ -124,7 +124,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
