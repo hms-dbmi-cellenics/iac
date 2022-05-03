@@ -40,7 +40,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-8fe3e34afc38e7b909aa227fabe6e3b1d4fc7794
+      tag: refs-heads-master-e8226005d459d4f9767305ea7e4f44a2b11bd128
     replicaCount: 1
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/ui-role-staging
