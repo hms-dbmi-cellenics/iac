@@ -14,6 +14,7 @@ metadata:
   labels:
     sandboxId: ahriman-boozy-echidna
     envAccountId: $IVAS_TEST_LABEL
+    trial2: 283
   name: ui
   namespace: ui-ahriman-boozy-echidna
 spec:
