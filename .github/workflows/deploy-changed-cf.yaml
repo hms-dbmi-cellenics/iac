@@ -52,7 +52,7 @@ jobs:
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
-      deploy-rds: ${{ steps.set-name.outputs.file-name == 'rds' }}
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds == 'true' && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
@@ -93,8 +93,12 @@ jobs:
           BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
           STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
 
-          echo "::set-output name=file-name::$BASE_NAME"
           echo "::set-output name=stack-name::$STACK_NAME"
+
+          if [ "$BASE_NAME" == 'rds' ]; then
+            echo "::set-output name=deploy-rds::'true'"
+          fi
+
         env:
           FILE_NAME: ${{ matrix.template }}
 
@@ -124,7 +128,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' && github.ref == 'refs/heads/master' }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
