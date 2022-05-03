@@ -10,7 +10,7 @@ Parameters:
       - staging
       - production
     Description: The environment for which the role needs to be created.
-  
+
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
@@ -19,14 +19,14 @@ Resources:
   SSMProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
-      InstanceProfileName: !Sub "ssm-instance-profile-${Environment}"
+      InstanceProfileName: !Sub "ssm-instance-profile-test-await-${Environment}"
       Roles: 
         - !Ref SSMRole
 
   SSMRole:
     Type: AWS::IAM::Role
-    Properties: 
-      RoleName: !Sub "ssm-role-${Environment}"
+    Properties:
+      RoleName: !Sub "ssm-role-test-await-${Environment}"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -92,4 +92,4 @@ Resources:
           '
       Tags:
         - Key: "Name"
-          Value: !Sub "rds-${Environment}-ssm-agent"
+          Value: !Sub "rds-test-await-${Environment}-ssm-agent"
