@@ -55,7 +55,7 @@ jobs:
       deploy-rds: ${{ steps.set-name.outputs.file-name == 'rds' }}
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
@@ -64,11 +64,11 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: lint
-        name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
-        with:
-          args: ${{ matrix.template }}
+      # - id: lint
+      #   name: Lint template
+      #   uses: scottbrenner/cfn-lint-action@1.6.1
+      #   with:
+      #     args: ${{ matrix.template }}
 
       - id: set-up-creds
         name: Configure AWS credentials
@@ -124,10 +124,10 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds }}
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ['staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
