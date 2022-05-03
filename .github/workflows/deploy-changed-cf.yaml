@@ -52,7 +52,7 @@ jobs:
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
-      deploy-rds: ${{ steps.set-name.outputs.deploy-rds == 'true' }}
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
     strategy:
       matrix:
         environment: ['staging']
@@ -130,7 +130,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
+    # if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
         environment: ['staging']
@@ -139,7 +139,7 @@ jobs:
     steps:
       - id: test-multifile
         name: Test multi-file deployment
-        run: echo "Here"
+        run: echo "{{ needs.deploy-templates.outputs.deploy-rds }}"
 
       # - id: set-up-creds
       #   name: Configure AWS credentials
