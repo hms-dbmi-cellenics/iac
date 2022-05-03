@@ -10,7 +10,7 @@ Parameters:
       - staging
       - production
     Description: The environment for which the role needs to be created.
-
+  
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
@@ -18,15 +18,15 @@ Parameters:
 Resources:
   SSMProfile:
     Type: AWS::IAM::InstanceProfile
-    Properties:
-      InstanceProfileName: !Sub "ssm-instance-profile-test-await"
-      Roles:
+    Properties: 
+      InstanceProfileName: !Sub "ssm-instance-profile-${Environment}"
+      Roles: 
         - !Ref SSMRole
 
   SSMRole:
     Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "ssm-role-test-await"
+    Properties: 
+      RoleName: !Sub "ssm-role-${Environment}"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -37,7 +37,7 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Description: Basic SSM permissions for EC2
-      ManagedPolicyArns:
+      ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Policies:
         - PolicyName: "can-access-rds"
@@ -47,7 +47,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "rds-db:connect"
-                Resource:
+                Resource: 
                   - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
               - Effect: Allow
                 Action:
@@ -73,26 +73,23 @@ Resources:
           '
           Content-Type: multipart/mixed; boundary="//"
           MIME-Version: 1.0
-
           --//
           Content-Type: text/cloud-config; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
           Content-Disposition: attachment; filename="cloud-config.txt"
-
           #cloud-config
           cloud_final_modules:
           - [scripts-user, always]
-
           --//
           Content-Type: text/x-shellscript; charset="us-ascii"
           MIME-Version: 1.0
           Content-Transfer-Encoding: 7bit
           Content-Disposition: attachment; filename="userdata.txt"
-
+          
           #!/bin/bash -e
           sudo yum -y install postgresql
           '
       Tags:
         - Key: "Name"
-          Value: !Sub "rds-${Environment}-ssm-agent-test-await"
+          Value: !Sub "rds-${Environment}-ssm-agent"
