@@ -52,7 +52,7 @@ jobs:
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
-      deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
         environment: ['staging']
@@ -98,7 +98,7 @@ jobs:
 
           if [ "$BASE_NAME" == 'rds' ]; then
             echo "This block is called"
-            echo "::set-output name=deploy-rds::'true'"
+            echo "::set-output name=deploy-rds::true"
           fi
 
         env:
@@ -133,7 +133,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    # if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
         environment: ['staging']
