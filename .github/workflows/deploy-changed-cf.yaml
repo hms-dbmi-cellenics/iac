@@ -52,7 +52,7 @@ jobs:
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     outputs:
-      deploy-rds: ${{ steps.set-name.outputs.deploy-rds == 'true' }}
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds && 1 > 0 }}
     strategy:
       matrix:
         environment: ['staging']
