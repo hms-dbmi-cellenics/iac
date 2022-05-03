@@ -124,7 +124,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds }}
+    if: ${{ needs.deploy-templates.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
@@ -144,14 +144,12 @@ jobs:
       # with uppercase letters (see action ref). Therefore, we need the uppercased form of the environment
       # Which is output in .outputs.uppercase of this step.
       - id: setup-rds-env
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
         name: Uppercase environment name
         uses: ASzc/change-string-case-action@v2
         with:
           string: ${{ matrix.environment }}
 
       - id: get-rds-secrets
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
         name: Export RDS secrets into environment variables
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         with:
@@ -159,7 +157,6 @@ jobs:
           parse-json: true
 
       - id: check-rds-secrets
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -173,7 +170,6 @@ jobs:
           fi
 
       - id: setup-rds-roles
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
         name: Setup RDS roles for default RDS instances
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
