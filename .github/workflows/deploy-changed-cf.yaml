@@ -108,7 +108,7 @@ jobs:
       #     capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       - id: deploy-template
-        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ !contains(matrix.template, 'irsa-') }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         name: Deploy CloudFormation template
         with:
@@ -123,7 +123,7 @@ jobs:
         # This step checks for the RDS agent to be up before we proceed. It retries if the rds agent is not up.
       - id: wait-for-stack
         name: Wait for CF stack to complete before continuing
-        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' }}
         uses: nick-invision/retry@v2
         with:
           timeout_seconds: 600
@@ -143,14 +143,14 @@ jobs:
       # with uppercase letters (see action ref). Therefore, we need the uppercased form of the environment
       # Which is output in .outputs.uppercase of this step.
       - id: setup-rds-env
-        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' }}
         name: Uppercase environment name
         uses: ASzc/change-string-case-action@v2
         with:
           string: ${{ matrix.environment }}
 
       - id: get-rds-secrets
-        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds' }}
         name: Export RDS secrets into environment variables
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         with:
@@ -158,7 +158,7 @@ jobs:
           parse-json: true
 
       - id: check-rds-secrets
-        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds'}}
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -172,7 +172,7 @@ jobs:
           fi
 
       - id: setup-rds-roles
-        if: ${{ steps.set-name.outputs.file-name == 'test-rds' && github.ref == 'refs/heads/master' }}
+        if: ${{ steps.set-name.outputs.file-name == 'test-rds'}}
         name: Setup RDS roles for default RDS instances
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
