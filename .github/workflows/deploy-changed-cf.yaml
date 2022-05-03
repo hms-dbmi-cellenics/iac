@@ -51,6 +51,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
+    outputs:
+      deploy-rds: ${{ steps.set-name.outputs.file-name == 'rds' }}
     strategy:
       matrix:
         environment: ['production', 'staging']
@@ -96,6 +98,17 @@ jobs:
         env:
           FILE_NAME: ${{ matrix.template }}
 
+      - id: deploy-template
+        name: Deploy CloudFormation template
+        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
       - id: deploy-irsa-template
         if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
         name: Deploy IRSA CloudFormation template
@@ -107,36 +120,24 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      - id: deploy-template
-        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        name: Deploy CloudFormation template
+  setup-rds-roles:
+    name: Setup RDS roles for default resources
+    runs-on: ubuntu-20.04
+    needs: deploy-templates
+    if: ${{ needs.deploy-templates.outputs.deploy-rds }}
+    strategy:
+      matrix:
+        environment: ['production', 'staging']
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+    steps:
+      - id: set-up-creds
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: ${{ steps.set-name.outputs.stack-name }}
-          template: ${{ matrix.template }}
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
-        # There is no easy way in CF to create dependencies between stacks
-        # Meanwhile we need the RDS agent to up before we can set up the database roles
-        # This step checks for the RDS agent to be up before we proceed. It retries if the rds agent is not up.
-      - id: wait-for-stack
-        name: Wait for CF stack to complete before continuing
-        if: ${{ steps.set-name.outputs.file-name == 'rds' && github.ref == 'refs/heads/master' }}
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 600
-          max_attempts: 20
-          retry_on: error
-          on_retry_command: sleep $(shuf -i 5-15 -n 1)
-          command: |-
-            AGENT_STACK_NAME="biomage-rds-agent-${CLUSTER_ENV}"
-            STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $AGENT_STACK_NAME | jq -c '.Stacks[0].StackStatus' | tr -d '"')
-            if [ "$STACK_STATUS" != "CREATE_COMPLETE" ] && [ "$STACK_STATUS" != "UPDATE_COMPLETE" ]; then
-                echo "Stack is not up, retrying..."
-                exit 1
-            fi
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.
       # This is required because the action that is used in get-rds-secrets store the secret in environment variables,
