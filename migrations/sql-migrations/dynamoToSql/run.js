@@ -251,7 +251,7 @@ const run = async (environment, sandboxId) => {
   ]);
 };
 
-const environment = process.env.MIGRATION_ENV;
+const environment = process.env.TARGET_ENV;
 const sandboxId = process.env.SANDBOX_ID || 'default';
 
 if (!_.isNil(environment)) {
@@ -263,5 +263,5 @@ if (!_.isNil(environment)) {
     }).catch((e) => console.log(e));
 } else {
   console.log('You need to specify what environment to run this on.');
-  console.log('e.g.: MIGRATION_ENV=staging npm run dynamoToSql');
+  console.log('e.g.: TARGET_ENV=staging npm run dynamoToSql');
 }

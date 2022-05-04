@@ -12,4 +12,4 @@ copy-data:
 	@if [ "${REDOWNLOAD}" == "true" ]; then\
 		venv/bin/python3 dynamo_to_json.py --source-env=${SOURCE_ENV};\
 	fi
-	@SOURCE_ENV=${SOURCE_ENV} MIGRATION_ENV=${MIGRATION_ENV} npm run dynamoToSql
+	@SOURCE_ENV=${SOURCE_ENV} TARGET_ENV=${TARGET_ENV} npm run dynamoToSql
