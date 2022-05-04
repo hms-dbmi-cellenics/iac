@@ -1,4 +1,6 @@
 import os
+import sys
+import getopt
 import boto3
 import simplejson as json
 
@@ -37,20 +39,26 @@ def write_to_disk(data, name):
     with open(name, 'w+', encoding='utf-8') as f:
         json.dump(data, f, indent=4, default=json_serial)
 
-def main():
+def main(argv):
 
-    env = os.getenv("ENV") if os.getenv("ENV") else "production"
+    source_env = 'production'
 
-    endpoint_url = DEV_ENDPOINT_URL if env == 'development' else None
+    opts, remainder = getopt.getopt(argv,"e:",["source_env="])
+
+    for opt, arg in opts:
+        if opt in ("-e", "--source_env"):
+            source_env = arg
+
+    endpoint_url = DEV_ENDPOINT_URL if source_env == 'development' else None
     dynamodb = boto3.resource('dynamodb', endpoint_url=endpoint_url)
 
-    print(f'Download {env} dynamoDB tables into JSON.')
+    print(f'Download {source_env} dynamoDB tables into JSON.')
     tables = ['experiments', 'projects', 'samples', 'user-access', 'invite-access', 'plots-tables']
     for table in tables:
-        name = f'{table}-{env}'
+        name = f'{table}-{source_env}'
         print(f'Table {name}')
         experiments = get_all(dynamodb, name)
         write_to_disk(experiments, f'{DATA_FOLDER}/{name}.json')
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
