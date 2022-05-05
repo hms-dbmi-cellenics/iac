@@ -1,19 +1,21 @@
 const _ = require('lodash');
-
 const knexfileLoader = require('../knexfile');
 const knex = require('knex');
 
+const DOWNLOAD_FOLDER = '../downloaded_data'
+
 const Helper = require('./Helper');
 
+const env = process.env.SOURCE_ENV || 'production'
 const { v4: uuidv4 } = require('uuid');
 
 // ----------------------Dynamo dumps----------------------
-const projectsJson = require('../downloaded_data/projects-production.json');
-const experimentsJson = require('../downloaded_data/experiments-production.json');
-const samplesJson = require('../downloaded_data/samples-production.json');
-const userAccessJson = require('../downloaded_data/user-access-production.json');
-const inviteAccessJson = require('../downloaded_data/invite-access-production.json');
-const plotsJson = require('../downloaded_data/plots-tables-production.json');
+const projectsJson = require(`${DOWNLOAD_FOLDER}/projects-${env}.json`);
+const experimentsJson = require(`${DOWNLOAD_FOLDER}/experiments-${env}.json`);
+const samplesJson = require(`${DOWNLOAD_FOLDER}/samples-${env}.json`);
+const userAccessJson = require(`${DOWNLOAD_FOLDER}/user-access-${env}.json`);
+const inviteAccessJson = require(`${DOWNLOAD_FOLDER}/invite-access-${env}.json`);
+const plotsJson = require(`${DOWNLOAD_FOLDER}/plots-tables-${env}.json`);
 // ----------------------Dynamo dumps END------------------
 const createSqlClient = async (activeEnvironment, sandboxId) => {
   const knexfile = await knexfileLoader(activeEnvironment, sandboxId);
@@ -249,7 +251,7 @@ const run = async (environment, sandboxId) => {
   ]);
 };
 
-const environment = process.env.MIGRATION_ENV;
+const environment = process.env.TARGET_ENV;
 const sandboxId = process.env.SANDBOX_ID || 'default';
 
 if (!_.isNil(environment)) {
@@ -261,5 +263,5 @@ if (!_.isNil(environment)) {
     }).catch((e) => console.log(e));
 } else {
   console.log('You need to specify what environment to run this on.');
-  console.log('e.g.: MIGRATION_ENV=staging npm run dynamoToSql');
+  console.log('e.g.: TARGET_ENV=staging npm run dynamoToSql');
 }
