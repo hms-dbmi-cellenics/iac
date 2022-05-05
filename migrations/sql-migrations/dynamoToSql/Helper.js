@@ -99,7 +99,6 @@ class Helper {
     const sqlSampleFile = {
       id: sampleFileUuid,
       sample_file_type: sampleFileTypeEnumKey,
-      valid: file.valid,
       size: fileSize,
       s3_path: s3Path,
       upload_status: file.upload.status,
