@@ -18,7 +18,7 @@ metadata:
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
-    path: charts/nodejs
+    path: charts/nodejsfnkfnrferkjejkek
     ref: refs/heads/test-helm-env-vars
   releaseName: ui
   values:
