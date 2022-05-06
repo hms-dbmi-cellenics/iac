@@ -43,10 +43,10 @@ def main(argv):
 
     source_env = 'production'
 
-    opts, remainder = getopt.getopt(argv,"e:",["source_env="])
+    opts, remainder = getopt.getopt(argv,"e:",["source-env="])
 
     for opt, arg in opts:
-        if opt in ("-e", "--source_env"):
+        if opt in ("-e", "--source-env"):
             source_env = arg
 
     endpoint_url = DEV_ENDPOINT_URL if source_env == 'development' else None
