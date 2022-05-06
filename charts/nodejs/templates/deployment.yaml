@@ -10,6 +10,7 @@ metadata:
     release: {{ .Release.Name }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     heritage: {{ .Release.Service }}
+    ivaWasHere: "true"
 
 spec:
   # This describes how the deployment will find the pods to manage.
