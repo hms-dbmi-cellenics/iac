@@ -14,13 +14,13 @@ metadata:
     sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-pull-698-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-703-merge-*
 spec:
   releaseName: ui
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: STAGING_CHART_REF
+    ref: test-helm-env-vars
   values:
     # disable readiness probes as load balancer performs
     # its own health checks/cordoning
@@ -40,9 +40,12 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-698-merge-7a298d15ce0c1262114a3f905604678acd5b960b
+      tag: refs-pull-703-merge-5c2dd3a742f9dfd59f17bb0268348551b39b78b0
     replicaCount: 1
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
-
-# filled in by CI. do not modify.
+      iamRole: ui-role-staging
+  valuesFrom:
+    - kind: ConfigMap
+      name: cluster-config
+      valuesKey: values
+  # filled in by CI. do not modify.
