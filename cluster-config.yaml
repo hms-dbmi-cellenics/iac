@@ -5,5 +5,5 @@ metadata:
   name: cluster-config
 data:
   values:
-    serviceAccount:
+    myAccount:
       accountId: 242905224710
