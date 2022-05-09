@@ -146,7 +146,7 @@ jobs:
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
-        environment: ['staging', 'production']
+        environment: ['staging']
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -171,6 +171,7 @@ jobs:
       - id: deploy-metrics-server
         name: Deploy k8s metrics server
         run: |-
+          curl -LO https://dl.k8s.io/release/v1.23.6/bin/linux/amd64/kubectl && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
       - id: create-flux-namespace
