@@ -32,3 +32,19 @@ spec:
                 name: response-503
                 port:
                   name: use-annotation
+    - http:
+        paths:
+          - path: /v2/pipelineResults
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
+          - path: /v2/gem2sResults
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
