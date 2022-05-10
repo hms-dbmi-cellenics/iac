@@ -40,13 +40,13 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-703-merge-c5b10315206330c58fbee480e183fe8367d25392
+      tag: refs-pull-703-merge-f02d3d0d819202022e8bccbdc7711af08b9e4afc
     replicaCount: 1
     serviceAccount:
       iamRole: ui-role-staging
   valuesFrom:
     - configMapKeyRef:
-        name: accountid-config
+        name: account-config
         namespace: flux
-        key: cluster-config.yaml
+        key: account-config.yaml
       # filled in by CI. do not modify.
