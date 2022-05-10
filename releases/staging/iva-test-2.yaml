@@ -46,7 +46,7 @@ spec:
       iamRole: ui-role-staging
   valuesFrom:
   - kind: ConfigMap
-    name: cluster-config
+    name: accountid-config
     valuesKey: values
 ---
 apiVersion: v1
