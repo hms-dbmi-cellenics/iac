@@ -20,7 +20,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/test-helm-env-vars
+    ref: FILLED_IN_BY_CI
   values:
     # disable readiness probes as load balancer performs
     # its own health checks/cordoning
@@ -40,7 +40,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-703-merge-aa9c41c99f305e291451917816598c16ffd2bd2a
+      tag: refs-pull-703-merge-c5b10315206330c58fbee480e183fe8367d25392
     replicaCount: 1
     serviceAccount:
       iamRole: ui-role-staging
