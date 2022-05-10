@@ -22,6 +22,7 @@ spec:
     ref: refs/heads/master
   releaseName: ui
   values:
+    iva: wasHere
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: iva-test-2
