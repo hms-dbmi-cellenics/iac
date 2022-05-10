@@ -36,6 +36,7 @@ spec:
     loadBalancerHealthCheck:
       path: /robots.txt
       periodSeconds: 30
+    ivasValue: hereIam
     readinessProbe:
       command:
       - echo
