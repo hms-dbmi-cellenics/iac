@@ -19,7 +19,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/test-helm-env-vars
+    ref: refs/heads/master
   releaseName: ui
   values:
     biomageCi:

@@ -107,6 +107,3 @@ biomageCi:
 
 kubernetes:
   env: production
-
-iacCi:
-  awsAccountId: FILLED_IN_BY_IAC_CI

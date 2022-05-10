@@ -5,13 +5,11 @@ kind: Deployment
 metadata:
   name: {{ template "appname" . }}
   labels:
-    iva: wasHere
     app: {{ template "appname" . }}
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
     release: {{ .Release.Name }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     heritage: {{ .Release.Service }}
-    ivaWasHere: "true"
 
 spec:
   # This describes how the deployment will find the pods to manage.
