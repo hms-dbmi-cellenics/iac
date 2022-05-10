@@ -19,10 +19,10 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/test-helm-env-vars
   releaseName: ui
   values:
-    iva: wasHere
+    iva: wasHere2
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: iva-test-2
