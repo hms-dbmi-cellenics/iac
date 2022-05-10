@@ -28,6 +28,8 @@ jobs:
   setup:
     name: Check secrets and set up matrix
     runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -60,6 +62,7 @@ jobs:
             false
           fi
       - id: set-matrix
+        name: Set up cluster matrix
         run: |-
           if [ ${CLUSTER} = "staging" ]; then
             echo '["staging"]'
@@ -73,8 +76,6 @@ jobs:
           fi
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
 
 
   create-eks-cluster:
@@ -166,7 +167,7 @@ jobs:
   configure-cluster:
     name: Configure Kubernetes resources (Load Balancer Controller, flux, Helm) on the EKS cluster
     runs-on: ubuntu-20.04
-    needs: create-eks-cluster
+    needs: [setup, create-eks-cluster]
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     strategy:
       matrix:
