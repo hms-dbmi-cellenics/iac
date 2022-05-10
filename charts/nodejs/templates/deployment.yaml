@@ -5,6 +5,7 @@ kind: Deployment
 metadata:
   name: {{ template "appname" . }}
   labels:
+    iva: wasHere
     app: {{ template "appname" . }}
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
     release: {{ .Release.Name }}
