@@ -73,3 +73,49 @@ Resources:
       FilterPolicy:
         type:
           - GEM2SResponse
+
+  SNSTopicV2: 
+    Type: AWS::SNS::Topic
+    Properties: 
+      KmsMasterKeyId: "alias/aws/sns"
+      TopicName: !Sub "work-results-${Environment}-${SandboxID}-v2"
+  PipelineResultsSubscriptionV2:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopicV2
+      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/pipelineResults",
+                !If [isDev, "http://host.docker.internal:3000/v2/pipelineResults",
+                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v2/pipelineResults"]]
+      Protocol: "https"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
+      FilterPolicy:
+        type:
+          - PipelineResponse
+  Gem2sResultsSubscriptionV2:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopicV2
+      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/gem2sResults",
+                !If [isDev, "http://host.docker.internal:3000/v2/gem2sResults",
+                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v2/gem2sResults"]]
+      Protocol: "https"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
+      FilterPolicy:
+        type:
+          - GEM2SResponse

@@ -2,33 +2,33 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: iva-test-accountid
-  name: ui-iva-test-accountid
+    sandboxId: martinfosco-api347
+  name: ui-martinfosco-api347
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-703-merge-*
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: iva-test-accountid
+    sandboxId: martinfosco-api347
   name: ui
-  namespace: ui-iva-test-accountid
+  namespace: ui-martinfosco-api347
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: b34b41aa7a502a408e7386c280c89da6962446e3
   releaseName: ui
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: iva-test-accountid
+      sandboxId: martinfosco-api347
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-703-merge-5c2dd3a742f9dfd59f17bb0268348551b39b78b0
+      tag: refs-heads-master-c7c21e17f2adf808305a3110ca8f582985d2776a
     kubernetes:
       env: staging
     livenessProbe:
@@ -43,46 +43,42 @@ spec:
       probeType: exec
     replicaCount: 1
     serviceAccount:
-      iamRole: ui-role-staging
-  valuesFrom:
-  - kind: ConfigMap
-    name: cluster-config
-    valuesKey: values
+      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: iva-test-accountid
-  name: api-iva-test-accountid
+    sandboxId: martinfosco-api347
+  name: api-martinfosco-api347
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'false'
+    filter.fluxcd.io/chart-image: glob:refs-pull-347-merge-*
+    fluxcd.io/automated: 'true'
   labels:
-    sandboxId: iva-test-accountid
+    sandboxId: martinfosco-api347
   name: api
-  namespace: api-iva-test-accountid
+  namespace: api-martinfosco-api347
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: cdfb26c9d1baa5b562561a2cfc2edc50ec6d2196
+    ref: refs/heads/master
   releaseName: api
   values:
     biomageCi:
-      rdsSandboxId: STAGING_RDS_SANDBOX_ID
+      rdsSandboxId: default
       repo: hms-dbmi-cellenics/api
-      sandboxId: iva-test-accountid
+      sandboxId: martinfosco-api347
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-5520d63603a9baecd9dcc3268bf4781e1a1e4695
+      tag: refs-pull-347-merge-4cbd550a619b7de2efc7d65911a77edc903c0eac
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -106,8 +102,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: iva-test-accountid
-  name: worker-iva-test-accountid
+    sandboxId: martinfosco-api347
+  name: worker-martinfosco-api347
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -117,9 +113,9 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: iva-test-accountid
+    sandboxId: martinfosco-api347
   name: worker
-  namespace: worker-iva-test-accountid
+  namespace: worker-martinfosco-api347
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
@@ -135,7 +131,7 @@ spec:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-333ad3e21df3d0bf730ae93a61c41a68e2a554d7-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: iva-test-accountid
+    sandboxId: martinfosco-api347
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -143,8 +139,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: iva-test-accountid
-  name: pipeline-iva-test-accountid
+    sandboxId: martinfosco-api347
+  name: pipeline-martinfosco-api347
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -155,9 +151,9 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: iva-test-accountid
+    sandboxId: martinfosco-api347
   name: pipeline
-  namespace: pipeline-iva-test-accountid
+  namespace: pipeline-martinfosco-api347
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
@@ -172,6 +168,6 @@ spec:
     pipelineRunner:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-09990887c01e75bbd2566264c93c682373940c7a-pipeline-runner
     replicaCount: 0
-    sandboxId: iva-test-accountid
+    sandboxId: martinfosco-api347
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
