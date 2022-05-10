@@ -64,13 +64,14 @@ jobs:
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
-          if [ ${CLUSTER} = "staging" ]; then
+          echo $CLUSTER
+          if [ "${CLUSTER}" = "staging" ]; then
             echo '["staging"]'
             echo '::set-output name=matrix::["staging"]'
-          elif [ ${CLUSTER} = "production" ]; then
+          elif [ "${CLUSTER}" = "production" ]; then
             echo '["production"]'
             echo '::set-output name=matrix::["production"]'
-          elif [ ${CLUSTER} = "staging and production" ]; then
+          elif [ "${CLUSTER}" = "staging and production" ]; then
             echo '["staging", "production"]'
             echo '::set-output name=matrix::["staging", "production"]'
           fi
