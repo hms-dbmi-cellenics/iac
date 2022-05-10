@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-namespace: ui-iva-test-2
-metadata:
-  name: accountid-config
-data:
-  values:
-    myAccount:
-      accountId: 242905224710
