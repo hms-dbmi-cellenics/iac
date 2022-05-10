@@ -46,9 +46,10 @@ spec:
     serviceAccount:
       iamRole: ui-role-staging
   valuesFrom:
-  - kind: ConfigMap
-    name: accountid-config
-    valuesKey: values
+  - configMapKeyRef:
+      name: accountid-config
+      namespace: flux
+      key: values
 ---
 apiVersion: v1
 kind: Namespace
