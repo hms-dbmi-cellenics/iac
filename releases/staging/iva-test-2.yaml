@@ -22,7 +22,7 @@ spec:
     ref: refs/heads/test-helm-env-vars
   releaseName: ui
   values:
-    iva: wasHere2
+    iva: wasHere3
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: iva-test-2
