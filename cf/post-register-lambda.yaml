@@ -87,7 +87,9 @@ Resources:
         ZipFile: |
           const AWS = require('aws-sdk');
 
-          const addUserPermissionV1 = async (event, region) => {
+          const region = process.env.AWS_REGION;
+
+          const addUserPermissionV1 = async (event) => {
             const {
               userEmail,
               userId,
@@ -177,7 +179,15 @@ Resources:
             return null;
           };
 
-          const addUserPermissionV2 = async (event, region) => {
+          const createTemporarySecret = async () => {
+            const smClient = await new AWS.SecretsManager({ region });
+
+            // https://stackoverflow.com/a/8084248/1940886
+            const randomString = (Math.random() + 1).toString(36).substring(2);
+            await smClient.createSecret({ Name: randomString, SecretString: randomString }).promise();
+          };
+
+          const addUserPermissionV2 = async (event) => {
             const permissionTopic = `post-registration-user-access-${process.env.CLUSTER_ENV}-default`;
 
             const {
@@ -191,24 +201,28 @@ Resources:
 
             if (!topicArn) return;
 
+            const authToken = await createTemporarySecret();
+
             const userInfo = {
               type: 'PostUserRegistration',
               userId,
               userEmail,
             };
 
+            const message = {
+              authToken,
+              userInfo,
+            };
+
             await sns.publish({
-              Message: JSON.stringify(userInfo),
+              Message: JSON.stringify(message),
               TopicArn: topicArn,
             }, () => {}).promise();
           };
 
           exports.handler = async (event, context, callback) => {
-            const region = process.env.AWS_REGION;
-
-            // getting projects that the user is invited in
-            await addUserPermissionV1(event, region);
-            await addUserPermissionV2(event, region);
+            await addUserPermissionV1(event);
+            await addUserPermissionV2(event);
 
             callback(null, event);
           };
