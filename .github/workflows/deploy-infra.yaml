@@ -71,7 +71,7 @@ jobs:
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.version_matrix }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
 
 
   create-eks-cluster:
