@@ -26,7 +26,7 @@ concurrency: cluster-update-mutex
 
 jobs:
   setup:
-    name: Check if secrets are defined and sets up matrix
+    name: Check secrets and set up matrix
     runs-on: ubuntu-20.04
     steps:
       - id: check-secrets
@@ -61,11 +61,14 @@ jobs:
           fi
       - id: set-matrix
         run: |-
-          if [ ${CLUSTER} == "staging" ]; then
+          if [ ${CLUSTER} = "staging" ]; then
+            echo '["staging"]'
             echo '::set-output name=matrix::["staging"]'
-          elif [ ${CLUSTER} == "production" ]; then
+          elif [ ${CLUSTER} = "production" ]; then
+            echo '["production"]'
             echo '::set-output name=matrix::["production"]'
-          elif [ ${CLUSTER} == "staging and production" ]
+          elif [ ${CLUSTER} = "staging and production" ]; then
+            echo '["staging", "production"]'
             echo '::set-output name=matrix::["staging", "production"]'
           fi
         env:
