@@ -1,4 +1,183 @@
-tup-aws
+name: Deploy Biomage infrastructure on AWS
+on:
+  workflow_dispatch:
+    inputs:
+      workflow_actions:
+        type: choice
+        description: Select actions to perform
+        options:
+        - deploy and configure
+        - configure
+        default: configure
+      cluster:
+        type: choice
+        description: Select cluster
+        options:
+        - staging
+        - production
+        - staging and production
+        default: staging
+env:
+  region: 'eu-west-1'
+
+# this ensures that only one CI pipeline with the same key
+#  can run at once in order to prevent undefined states
+concurrency: cluster-update-mutex
+
+jobs:
+  setup:
+    name: Check secrets and set up matrix
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
+          then
+            echo GitHub deploy key access token not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete. The secrets can be set/rotated
+            echo by running `rotate-ci` from `biomage-utils`.
+            false
+          fi
+      - id: set-matrix
+        name: Set up cluster matrix
+        run: |-
+          if [ "${CLUSTER}" = "staging" ]; then
+            echo '::set-output name=matrix::["staging"]'
+          elif [ "${CLUSTER}" = "production" ]; then
+            echo '::set-output name=matrix::["production"]'
+          elif [ "${CLUSTER}" = "staging and production" ]; then
+            echo '::set-output name=matrix::["staging", "production"]'
+          fi
+        env:
+          CLUSTER: ${{ github.event.inputs.cluster }}
+
+
+  create-eks-cluster:
+    name: Create EKS cluster
+    runs-on: ubuntu-20.04
+    needs: setup
+    if: github.event.inputs.workflow_actions == 'deploy and configure'
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+
+      - id: install-yq
+        name: Install yq for modifying the eksctl yaml spec.
+        run: |-
+          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+
+      - id: fill-metadata
+        name: Add name and region to the eksctl file.
+        run: |-
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
+          cat /tmp/cluster-$CLUSTER_ENV.yaml
+
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+
+      - id: create-clusters
+        name: Attempt to create clusters from spec.
+        # this job will always pass, irrespective of whether creation was successful or not.
+        # this is because the cluster may already exist. we will check for this condition
+        # on failure in the next step
+        continue-on-error: true
+        run: |-
+          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
+
+          eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
+          echo "::set-output name=outcome::created"
+      - id: check-for-failure
+        name: Check for reason of failure if cluster creation failed.
+        if: steps.create-clusters.outcome == 'failure'
+        run: |-
+          # Check if failure was caused by an already exists exception.
+          # If not, the job should fail.
+          ALREADY_EXISTS=$(grep AlreadyExistsException /tmp/eksctl-$CLUSTER_ENV.log | wc -l | xargs)
+          if [ $ALREADY_EXISTS -ne 1 ]
+          then
+            echo Step failed for reason other than stack already existing.
+            echo Job failing...
+            echo "::set-output name=reason::error"
+            false
+          fi
+
+          echo Cluster already exists.
+          echo "::set-output name=reason::already-exists"
+
+      - id: update-nodegroup
+        name: Attempt to update node groups for existing cluster.
+        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+        run: |-
+          eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+          eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+
+      # note: iam service accounts should really be created from within the helm chart as seen here:
+      # https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
+      - id: update-serviceaccounts
+        name: Attempt to update IAM service accounts for existing cluster.
+        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+        run: |-
+          eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
+          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+          eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+
+  configure-cluster:
+    name: Configure Kubernetes resources (Load Balancer Controller, flux, Helm) on the EKS cluster
+    runs-on: ubuntu-20.04
+    needs: [setup, create-eks-cluster]
+    if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    strategy:
+      matrix:
+        environment:  ${{ fromJson(needs.setup.outputs.matrix) }}
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
