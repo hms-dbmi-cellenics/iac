@@ -1,0 +1,177 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: ui-iva-hopefully-final-test
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-703-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: ui
+  namespace: ui-iva-hopefully-final-test
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: iva-hopefully-final-test
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-703-merge-5c2dd3a742f9dfd59f17bb0268348551b39b78b0
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    serviceAccount:
+      iamRole: ui-role-staging
+  valuesFrom:
+  - kind: ConfigMap
+    name: cluster-config
+    valuesKey: values
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: api-iva-hopefully-final-test
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: api
+  namespace: api-iva-hopefully-final-test
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: d63131637f8cea5cafb6b6301eeeb0085a32c14b
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: STAGING_RDS_SANDBOX_ID
+      repo: hms-dbmi-cellenics/api
+      sandboxId: iva-hopefully-final-test
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-604a36d3e9d701cfae9ae0c343081df53336fa66
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: worker-iva-hopefully-final-test
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: worker
+  namespace: worker-iva-hopefully-final-test
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: fc236f47f4c511c7629bae0bf69eaa0fe284c274
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fc236f47f4c511c7629bae0bf69eaa0fe284c274-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fc236f47f4c511c7629bae0bf69eaa0fe284c274-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: iva-hopefully-final-test
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: pipeline-iva-hopefully-final-test
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
+    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: iva-hopefully-final-test
+  name: pipeline
+  namespace: pipeline-iva-hopefully-final-test
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: 7ff5726e5e35e10a1a1a35c95f8b1e9cc17bd6e6
+  releaseName: pipeline
+  values:
+    awsAccountId: '242905224710'
+    awsRegion: eu-west-1
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-7ff5726e5e35e10a1a1a35c95f8b1e9cc17bd6e6-pipeline-runner
+    replicaCount: 0
+    sandboxId: iva-hopefully-final-test
+    serviceAccount:
+      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
