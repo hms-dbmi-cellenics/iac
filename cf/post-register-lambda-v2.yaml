@@ -14,7 +14,7 @@ Parameters:
 Outputs:
   PostRegistrationLambdaArnV2:
     Description: ARN of PostRegistrationLambda
-    Value: !Ref PostRegistrationLambda
+    Value: !GetAtt PostRegistrationLambda.Arn
     Export:
       Name: !Sub PostRegistrationLambdaArnV2-${Environment}
 
@@ -121,8 +121,8 @@ Resources:
 
           const addUserPermissionV1 = async (event) => {
             const {
-              userEmail,
-              userId,
+              email: userEmail,
+              sub: userId,
             } = event.request.userAttributes;
 
             const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`;
@@ -200,24 +200,24 @@ Resources:
 
           const addUserPermissionV2 = async (event) => {
             const {
-              userEmail,
-              userId,
+              email: userEmail,
+              sub: userId,
             } = event.request.userAttributes;
 
             const sns = new AWS.SNS({ region });
             // const authToken = await createTemporarySecret();
 
-            const userInfo = {
+            const message = {
               userId,
               userEmail,
             };
 
             await sns.publish({
-              Message: JSON.stringify(userInfo),
+              Message: JSON.stringify(message),
               TopicArn: process.env.TOPIC_ARN,
               MessageAttributes: {
                 type: {
-                  DataType: 'String'
+                  DataType: 'String',
                   StringValue: 'PostUserRegistration'
                 }
               }
