@@ -1,0 +1,239 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Setting up a lambda function to handle user invites for non-existing users
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the tables need to be created.
+
+Outputs:
+  PostRegistrationLambdaArnV2:
+    Description: ARN of PostRegistrationLambda
+    Value: !Ref PostRegistrationLambda
+    Export:
+      Name: !Sub PostRegistrationLambdaArnV2-${Environment}
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
+Resources:
+  PostRegistrationLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-access-dynamo-lambda-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+                Resource:
+                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
+                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
+        - PolicyName: !Sub "can-post-to-post-registration-sns-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sns:Publish'
+                Resource:
+                  - Fn::Sub: "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:post-registration-user-access-${Environment}-default"
+
+  PostRegistrationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: "alias/aws/sns"
+      TopicName: !Sub "post-registration-user-access-${Environment}-default"
+
+  PostUserRegistrationSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref PostRegistrationTopic
+      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/access/post-registration",
+                # Change this endpoint before merging !Sub "https://api-default.scp-${Environment}.biomage.net/v2/access/post-registration"]
+                "https://ui-agi-post-register.scp-staging.biomage.net/v2/access/post-registration"]
+      Protocol: "https"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
+      FilterPolicy:
+        type:
+          - PostUserRegistration
+
+  PostRegistrationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs14.x
+      Role: !Ref PostRegistrationLambdaRole
+      Handler: index.handler
+      Environment:
+        Variables:
+          TOPIC_ARN: !Ref PostRegistrationTopic
+          CLUSTER_ENV: !Sub "${Environment}"
+      Code:
+        ZipFile: |
+          const AWS = require('aws-sdk');
+
+          const region = process.env.AWS_REGION;
+
+          const addUserPermissionV1 = async (event) => {
+            const {
+              userEmail,
+              userId,
+            } = event.request.userAttributes;
+
+            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`;
+            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`;
+
+            const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(
+              data, { convertEmptyValues: false },
+            );
+
+            const db = new AWS.DynamoDB({
+              region,
+            });
+
+            const params = {
+              TableName: inviteAccessTableName,
+              FilterExpression: '(userEmail = :userEmail)',
+              ExpressionAttributeValues: {
+                ...convertToDynamoDbRecord({ ':userEmail': userEmail }),
+              },
+            };
+            const response = await db.scan(params).promise();
+            if (!response.Items.length) {
+              return;
+            }
+
+            // add those rows in user-access
+            const experimentIds = [];
+            await Promise.all(response.Items.map((item) => {
+              const projectId = item.projectId.S;
+              const experimentId = item.experimentId.S;
+              experimentIds.push(experimentId);
+              const role = item.role.S;
+
+              const addRoleParams = {
+                TableName: userAccessTableName,
+                Item: {
+                  userId,
+                  experimentId,
+                  projectId,
+                  role,
+                  createdDate: new Date().toISOString(),
+                },
+              };
+
+              const docClient = new AWS.DynamoDB.DocumentClient({
+                region,
+              });
+
+              return docClient.put(addRoleParams).promise();
+            }));
+
+            // remove rows from invite-access
+            await Promise.all(experimentIds.map((id) => {
+              const key = convertToDynamoDbRecord({
+                experimentId: id,
+                userEmail,
+              });
+
+              const dynamoParams = {
+                TableName: inviteAccessTableName,
+                Key: key,
+              };
+
+              return db.deleteItem(dynamoParams).send();
+            }));
+          };
+
+          const createTemporarySecret = async () => {
+            const smClient = await new AWS.SecretsManager({ region });
+
+            // https://stackoverflow.com/a/8084248/1940886
+            const randomString = (Math.random() + 1).toString(36).substring(2);
+            await smClient.createSecret({ Name: randomString, SecretString: randomString }).promise();
+          };
+
+          const addUserPermissionV2 = async (event) => {
+            const {
+              userEmail,
+              userId,
+            } = event.request.userAttributes;
+
+            const sns = new AWS.SNS({ region });
+            // const authToken = await createTemporarySecret();
+
+            const userInfo = {
+              userId,
+              userEmail,
+            };
+
+            await sns.publish({
+              Message: JSON.stringify(userInfo),
+              TopicArn: process.env.TOPIC_ARN,
+              MessageAttributes: {
+                type: {
+                  DataType: 'String'
+                  StringValue: 'PostUserRegistration'
+                }
+              }
+            }, () => {}).promise();
+          };
+
+          exports.handler = async (event, context, callback) => {
+            await addUserPermissionV1(event);
+            await addUserPermissionV2(event);
+
+            callback(null, event);
+          };
+
+  LoggingGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/post-invite-registration-lambda-${Environment}"
+      RetentionInDays: 14
