@@ -14,7 +14,7 @@ Parameters:
 Outputs:
   PostRegistrationLambdaArnV2:
     Description: ARN of PostRegistrationLambda
-    Value: !Ref PostRegistrationLambda
+    Value: !GetAtt PostRegistrationLambda.Arn
     Export:
       Name: !Sub PostRegistrationLambdaArnV2-${Environment}
 
