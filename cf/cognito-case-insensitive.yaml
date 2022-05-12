@@ -200,7 +200,7 @@ Resources:
         CaseSensitive: false
       LambdaConfig:
         PostConfirmation: 
-          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+          Fn::ImportValue: !Sub PostRegistrationLambdaArnV2-${Environment}
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
