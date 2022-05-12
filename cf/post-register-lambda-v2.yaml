@@ -108,7 +108,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Runtime: nodejs14.x
-      Role: !Ref PostRegistrationLambdaRole
+      Role: !GetAtt PostRegistrationLambdaRole.Arn
       Handler: index.handler
       Environment:
         Variables:
