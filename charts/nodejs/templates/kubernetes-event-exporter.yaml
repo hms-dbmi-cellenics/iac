@@ -43,9 +43,9 @@ data:
       - name: "cleanup"
         webhook:
 {{ if eq .Values.kubernetes.env "production" }}
-          endpoint: https://api.scp.biomage.net/v1/kubernetesEvents
+          endpoint: https://api.scp.biomage.net/v2/kubernetesEvents
 {{ else }}
-          endpoint: https://api-{{ .Values.biomageCi.sandboxId }}.scp-staging.biomage.net/v1/kubernetesEvents
+          endpoint: https://api-{{ .Values.biomageCi.sandboxId }}.scp-staging.biomage.net/v2/kubernetesEvents
 {{ end }}
           headers:
             User-Agent: kube-event-exporter 1.0
