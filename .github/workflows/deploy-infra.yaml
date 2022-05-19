@@ -163,10 +163,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      # - id: add-kubeconfig
-      #   name: Add k8s config file for existing cluster.
-      #   run: |-
-      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
               
       # - id: deploy-metrics-server
       #   name: Deploy k8s metrics server
