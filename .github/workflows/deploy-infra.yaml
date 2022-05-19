@@ -163,12 +163,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      - id: create-account-configmap
-        name: Create the AWS account specific details create-account-configmap
-        continue-on-error: false
-        run: |-
-          kubectl create configmap account-config --from-file=account-config.yaml -n flux
-
       # - id: add-kubeconfig
       #   name: Add k8s config file for existing cluster.
       #   run: |-
@@ -180,12 +174,18 @@ jobs:
       #     curl -LO https://dl.k8s.io/release/v1.23.6/bin/linux/amd64/kubectl && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
       #     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-      # - id: create-flux-namespace
-      #   name: Attempt to create flux namespace
-      #   continue-on-error: true
-      #   run: |-
-      #     kubectl create namespace flux
+      - id: create-flux-namespace
+        name: Attempt to create flux namespace
+        continue-on-error: true
+        run: |-
+          kubectl create namespace flux
       
+      - id: create-account-configmap
+        name: Create the AWS account specific details create-account-configmap
+        continue-on-error: false
+        run: |-
+          kubectl create configmap account-config --from-file=account-config.yaml -n flux
+
       # - id: install-fluxctl
       #   name: Install fluxctl
       #   run: |-
