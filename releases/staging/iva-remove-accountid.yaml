@@ -22,6 +22,7 @@ spec:
     ref: refs/heads/test-helm-env-vars
   releaseName: ui
   values:
+    iva: wasHere
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: iva-remove-accountid
