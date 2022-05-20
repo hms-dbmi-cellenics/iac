@@ -190,26 +190,17 @@ Resources:
             }));
           };
 
-          const createTemporarySecret = async () => {
-            const smClient = await new AWS.SecretsManager({ region });
-
-            // https://stackoverflow.com/a/8084248/1940886
-            const randomString = (Math.random() + 1).toString(36).substring(2);
-            await smClient.createSecret({ Name: randomString, SecretString: randomString }).promise();
-          };
-
           const addUserPermissionV2 = async (event) => {
             const {
-              email: userEmail,
-              sub: userId,
+              email,
+              sub,
             } = event.request.userAttributes;
 
             const sns = new AWS.SNS({ region });
-            // const authToken = await createTemporarySecret();
 
             const message = {
-              userId,
-              userEmail,
+              userId: sub,
+              userEmail: email,
             };
 
             await sns.publish({
