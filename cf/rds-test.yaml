@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the cluster needs to be created.
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this cluster is created for.
+  DBInstanceType:
+    Type: String
+    Default: db.t4g.medium
+    Description: The instance type for the database.
+
+# --------------------------------------- Constants ---------------------------------------
+  DBPort:
+    Type: String
+    Default: "5432"
+
+  DBEngineVersion:
+    Type: Number
+    Default: 13.4
+
+  DBSecretPrefix:
+    Description: The prefix of the secret used to store master user and password,
+      the missing suffix is the environment (and both are connected with -).
+    Type: String
+    Default: aurora
+
+Resources:
+  RDSMasterUserSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: RDS master secret
+      Name: !Sub "${DBSecretPrefix}-${Environment}"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "postgres"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: "/@\"'\\"
+
+  RDSMasterUserSecretPolicy:
+    Type: AWS::SecretsManager::ResourcePolicy
+    Properties:
+      SecretId: !Ref RDSMasterUserSecret
+      ResourcePolicy:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Deny
+          Principal: "*"
+          Action: "*"
+          Resource: !Ref RDSMasterUserSecret
+
+  RDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref RDSMasterUserSecret
+      TargetId: !Ref DBInstance1
+      TargetType: AWS::RDS::DBInstance
+
+  RDSSecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: RDSInstanceAttachment
+    Properties:
+      SecretId: !Ref RDSMasterUserSecret
+      HostedRotationLambda:
+        RotationType: PostgreSQLSingleUser
+        RotationLambdaName: !Sub "RDS ${Environment} secrets manager rotation"
+        VpcSubnetIds:
+          Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
+        VpcSecurityGroupIds:
+          Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
+      RotationRules:
+        Duration: 2h
+        ScheduleExpression: 'cron(0 8 1 * ? *)'
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: aurora-postgresql
+      EngineMode: provisioned
+      EngineVersion: !Ref DBEngineVersion
+      DBSubnetGroupName:
+        Fn::ImportValue:
+          !Sub "biomage-${Environment}-rds::DBSubnetGroup"
+      DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment, !Ref SandboxID] ]
+      DatabaseName: "aurora_db"
+      Port: !Ref DBPort
+      # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
+      DeletionProtection: false
+      MasterUsername: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::username}}"
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::password}}"
+      EnableIAMDatabaseAuthentication: true
+      BackupRetentionPeriod: 5
+      SourceRegion: !Sub '${AWS::Region}'
+      # Check if we want to change this
+      StorageEncrypted: false
+      VpcSecurityGroupIds:
+        - Fn::ImportValue:
+            !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
+
+  DBInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !Ref DBInstanceType
+      DBClusterIdentifier: !Ref DBCluster
+      Engine: aurora-postgresql
+      AutoMinorVersionUpgrade: true
+      PubliclyAccessible: false
