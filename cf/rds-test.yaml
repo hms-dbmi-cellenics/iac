@@ -39,7 +39,7 @@ Resources:
     Type: AWS::SecretsManager::Secret
     Properties:
       Description: RDS master secret
-      Name: !Sub "${DBSecretPrefix}-${Environment}"
+      Name: !Sub "${DBSecretPrefix}-${Environment}-test"
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: password
@@ -79,7 +79,7 @@ Resources:
           Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
       RotationRules:
         Duration: 2h
-        ScheduleExpression: 'cron(0 8 1 * ? *)'
+        ScheduleExpression: 'cron(0 * * * ? *)'
 
   DBCluster:
     Type: AWS::RDS::DBCluster
@@ -92,7 +92,7 @@ Resources:
       DBSubnetGroupName:
         Fn::ImportValue:
           !Sub "biomage-${Environment}-rds::DBSubnetGroup"
-      DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment, !Ref SandboxID] ]
+      DBClusterIdentifier: !Join [ "-", ["aurora-cluster-test-", !Ref Environment, !Ref SandboxID] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
       # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
