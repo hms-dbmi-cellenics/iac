@@ -66,9 +66,10 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/test-helm-env-vars
   releaseName: api
   values:
+    iva: wasHere1
     biomageCi:
       rdsSandboxId: STAGING_RDS_SANDBOX_ID
       repo: hms-dbmi-cellenics/api
