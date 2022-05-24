@@ -53,8 +53,8 @@ Resources:
       ResourcePolicy:
         Version: "2012-10-17"
         Statement:
-        - Effect: Deny
-          Principal: "*"
+        - Effect: Allow
+          Principal: !Sub "arn:aws:iam::${AWS::AccountId}:role/admin-access"
           Action: "*"
           Resource: !Ref RDSMasterUserSecret
 
