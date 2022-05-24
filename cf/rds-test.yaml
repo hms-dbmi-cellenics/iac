@@ -92,7 +92,7 @@ Resources:
       DBSubnetGroupName:
         Fn::ImportValue:
           !Sub "biomage-${Environment}-rds::DBSubnetGroup"
-      DBClusterIdentifier: !Join [ "-", ["aurora-cluster-test-", !Ref Environment, !Ref SandboxID] ]
+      DBClusterIdentifier: !Join [ "-", ["aurora-cluster-test", !Ref Environment, !Ref SandboxID] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
       # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
