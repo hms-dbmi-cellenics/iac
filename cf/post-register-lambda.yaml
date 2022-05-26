@@ -120,11 +120,7 @@ Resources:
 
           const region = process.env.AWS_REGION;
 
-          const addUserPermissionV1 = async (event) => {
-            const {
-              email: userEmail,
-              sub: userId,
-            } = event.request.userAttributes;
+          const addUserPermissionV1 = async (userEmail, userId) => {
 
             const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`;
             const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`;
@@ -197,12 +193,7 @@ Resources:
             }));
           };
 
-          const addUserPermissionV2 = async (event) => {
-            const {
-              email: userEmail,
-              sub: userId,
-            } = event.request.userAttributes;
-
+          const addUserPermissionV2 = async (userEmail, userId) => {
             const sns = new AWS.SNS({ region });
 
             const message = {
@@ -233,8 +224,8 @@ Resources:
 
             console.log(`== Handling post-registration for ${userEmail} ==`)
 
-            await addUserPermissionV1(event);
-            await addUserPermissionV2(event);
+            await addUserPermissionV1(userEmail, userId);
+            await addUserPermissionV2(userEmail, userId);
 
             console.log("== Successfully added user ${userEmail} ==")
 
