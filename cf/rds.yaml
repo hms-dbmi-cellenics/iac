@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::SecretsManager-2020-07-23
 Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
 
 Parameters:
@@ -46,18 +47,6 @@ Resources:
         PasswordLength: 32
         ExcludeCharacters: "/@\"'\\"
 
-  RDSMasterUserSecretPolicy:
-    Type: AWS::SecretsManager::ResourcePolicy
-    Properties:
-      SecretId: !Ref RDSMasterUserSecret
-      ResourcePolicy:
-        Version: "2012-10-17"
-        Statement:
-        - Effect: Deny
-          Principal: "*"
-          Action: "*"
-          Resource: !Ref RDSMasterUserSecret
-
   RDSInstanceAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
@@ -72,7 +61,7 @@ Resources:
       SecretId: !Ref RDSMasterUserSecret
       HostedRotationLambda:
         RotationType: PostgreSQLSingleUser
-        RotationLambdaName: !Sub "RDS ${Environment} secrets manager rotation"
+        RotationLambdaName: !Sub "RDSSecretsManagerRotation${Environment}"
         VpcSubnetIds:
           Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
         VpcSecurityGroupIds:
