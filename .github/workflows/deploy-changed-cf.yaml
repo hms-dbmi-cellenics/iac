@@ -157,18 +157,18 @@ jobs:
         name: Export RDS secrets into environment variables
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         with:
-          secrets: aurora-${{ matrix.environment }}
+          secrets: aurora-test-${{ matrix.environment }}
           parse-json: true
 
       - id: check-rds-secrets
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
-          if [ -z $AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME ]; then
+          if [ -z $AURORA_TEST_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME ]; then
             echo "RDS username not provided"
             exit 1
           fi
-          if [ -z $AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD ]; then
+          if [ -z $AURORA_TEST_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD ]; then
             echo "RDS password not provided"
             exit 1
           fi
