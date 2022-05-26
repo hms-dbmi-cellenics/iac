@@ -128,7 +128,7 @@ jobs:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
     needs: deploy-templates
-    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
+    # if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
         environment: ['staging']
@@ -184,7 +184,7 @@ jobs:
             echo "Can not connect to RDS agent: No instances found for $CLUSTER_ENV"
             exit 1
           fi
-          CLUSTER_NAME=aurora-cluster-${CLUSTER_ENV}-default
+          CLUSTER_NAME=aurora-cluster-test-${CLUSTER_ENV}-default
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
             --db-cluster-identifier $CLUSTER_NAME \
