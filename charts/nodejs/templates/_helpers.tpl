@@ -2,6 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
+# go templating language 
 {{- define "name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 24 | trimSuffix "-" -}}
 {{- end -}}
@@ -16,6 +17,10 @@ Expand the name of the chart.
 {{- else -}}
 {{- printf "%s-%s.scp-%s.biomage.net" (split "/" .Values.biomageCi.repo)._1 .Values.biomageCi.sandboxId .Values.kubernetes.env -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "serviceAccountRole" -}}
+{{- printf "arn:aws:iam::%s:role/%s" .Values.myAccount.accountId .Values.serviceAccount.iamRole -}}
 {{- end -}}
 
 {{/*

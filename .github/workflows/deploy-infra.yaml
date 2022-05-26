@@ -200,6 +200,12 @@ jobs:
         continue-on-error: true
         run: |-
           kubectl create namespace flux
+      
+      - id: create-account-information-configmap
+        name: Create a configmap containing AWS account specific details
+        continue-on-error: false
+        run: |-
+          kubectl create configmap account-config --from-file=account-config.yaml -n flux
 
       - id: install-fluxctl
         name: Install fluxctl
@@ -233,7 +239,6 @@ jobs:
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --override-existing-serviceaccounts \
             --approve
-
 
       # we need to retry this due to an active issue with the AWS Load Balancer Controller
       # where there are intermittent failures that are only fixable by retrying
