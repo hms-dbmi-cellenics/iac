@@ -87,7 +87,7 @@ Resources:
       SecretId: !Ref RDSMasterUserSecret
       HostedRotationLambda:
         RotationType: PostgreSQLSingleUser
-        RotationLambdaName: !Sub "RDS ${Environment} secrets manager rotation"
+        RotationLambdaName: !Sub "RDSSecretsManagerRotation${Environment}"
         # VpcSubnetIds:
         #   Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
         VpcSecurityGroupIds:
