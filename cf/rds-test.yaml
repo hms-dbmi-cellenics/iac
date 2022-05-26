@@ -93,7 +93,7 @@ Resources:
         VpcSecurityGroupIds:
           Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
       RotationRules:
-        Duration: 10m
+        Duration: 2h
         ScheduleExpression: 'cron(0 * * * ? *)'
 
   DBCluster:
