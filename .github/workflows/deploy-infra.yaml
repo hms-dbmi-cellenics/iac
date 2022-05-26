@@ -203,7 +203,7 @@ jobs:
       
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
-        continue-on-error: false
+        continue-on-error: true
         run: |-
           kubectl create configmap account-config --from-file=account-config.yaml -n flux
 
