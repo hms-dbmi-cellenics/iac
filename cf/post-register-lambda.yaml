@@ -12,11 +12,11 @@ Parameters:
     Description: The environment for which the tables need to be created.
 
 Outputs:
-  PostRegistrationLambdaArnV2:
+  PostRegistrationLambdaArn:
     Description: ARN of PostRegistrationLambda
     Value: !GetAtt PostRegistrationLambda.Arn
     Export:
-      Name: !Sub PostRegistrationLambdaArnV2-${Environment}
+      Name: !Sub PostRegistrationLambdaArn-${Environment}
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -107,7 +107,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Runtime: nodejs14.x
-      Role: !Ref PostRegistrationLambdaRole
+      Role: !GetAtt PostRegistrationLambdaRole.Arn
       Handler: index.handler
       Environment:
         Variables:
@@ -136,6 +136,8 @@ Resources:
               region,
             });
 
+            console.log(`V1 :: Querying experiments for user ${userEmail} from DynamoDB`)
+
             const params = {
               TableName: inviteAccessTableName,
               FilterExpression: '(userEmail = :userEmail)',
@@ -147,6 +149,8 @@ Resources:
             if (!response.Items.length) {
               return;
             }
+
+            console.log(`V1 ::  Adding access roles to experiments`)
 
             // add those rows in user-access
             const experimentIds = [];
@@ -174,6 +178,8 @@ Resources:
               return docClient.put(addRoleParams).promise();
             }));
 
+            console.log(`V1 :: Removing invitation record`)
+
             // remove rows from invite-access
             await Promise.all(experimentIds.map((id) => {
               const key = convertToDynamoDbRecord({
@@ -192,16 +198,18 @@ Resources:
 
           const addUserPermissionV2 = async (event) => {
             const {
-              email,
-              sub,
+              email: userEmail,
+              sub: userId,
             } = event.request.userAttributes;
 
             const sns = new AWS.SNS({ region });
 
             const message = {
-              userId: sub,
-              userEmail: email,
+              userEmail,
+              userId
             };
+
+            console.log(`V2 :: Sending SNS message for user ${message}`)
 
             await sns.publish({
               Message: JSON.stringify(message),
@@ -216,8 +224,18 @@ Resources:
           };
 
           exports.handler = async (event, context, callback) => {
+
+            const {
+              email: userEmail,
+              sub: userId,
+            } = event.request.userAttributes;
+
+            console.log(`== Handling post-registration for ${userEmail} ==`)
+
             await addUserPermissionV1(event);
             await addUserPermissionV2(event);
+
+            console.log("== Successfully added user ${userEmail} ==")
 
             callback(null, event);
           };
