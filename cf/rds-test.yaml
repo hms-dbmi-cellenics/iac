@@ -88,12 +88,12 @@ Resources:
       HostedRotationLambda:
         RotationType: PostgreSQLSingleUser
         RotationLambdaName: !Sub "RDS ${Environment} secrets manager rotation"
-        VpcSubnetIds:
-          Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
+        # VpcSubnetIds:
+        #   Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
         VpcSecurityGroupIds:
           Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
       RotationRules:
-        Duration: 2h
+        Duration: 10m
         ScheduleExpression: 'cron(0 * * * ? *)'
 
   DBCluster:
