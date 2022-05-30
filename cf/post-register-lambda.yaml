@@ -88,7 +88,7 @@ Resources:
     Properties:
       TopicArn: !Ref PostRegisterTopic
       Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/access/post-registration",
-                !Sub "https://api-default.scp-${Environment}.biomage.net/v2/access/post-registration"]
+                "https://api-agi-post-register.scp-staging.biomage.net/v2/access/post-registration"]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
