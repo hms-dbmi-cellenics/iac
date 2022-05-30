@@ -40,9 +40,13 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-709-merge-a1f367a16ba9f3eee67b697d3c744e203f201788
+      tag: refs-pull-709-merge-8388aac8b9766e1ef1aa6d01b71eda89c3271ded
     replicaCount: 1
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
-
-# filled in by CI. do not modify.
+      iamRole: ui-role-staging
+  valuesFrom:
+    - configMapKeyRef:
+        name: account-config
+        namespace: flux
+        key: account-config.yaml
+      # filled in by CI. do not modify.
