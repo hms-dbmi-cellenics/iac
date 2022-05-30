@@ -110,7 +110,7 @@ Resources:
                 Action:
                   - "lambda:InvokeFunction"
                 Resource:
-                  Fn::ImportValue: !Sub PostRegistrationLambdaArn-${Environment}
+                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
 
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -200,7 +200,7 @@ Resources:
         CaseSensitive: false
       LambdaConfig:
         PostConfirmation:
-          Fn::ImportValue: !Sub PostRegistrationLambdaArn-${Environment}
+          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:

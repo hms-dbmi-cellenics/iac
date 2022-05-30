@@ -12,11 +12,11 @@ Parameters:
     Description: The environment for which the tables need to be created.
 
 Outputs:
-  PostRegistrationLambdaArn:
+  PostRegisterLambdaArn:
     Description: ARN of PostRegistrationLambda
     Value: !GetAtt PostRegistrationLambda.Arn
     Export:
-      Name: !Sub PostRegistrationLambdaArn-${Environment}
+      Name: !Sub PostRegisterLambdaArn-${Environment}
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
