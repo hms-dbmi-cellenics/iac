@@ -68,7 +68,7 @@ Resources:
           Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
       RotationRules:
         Duration: 1h
-        ScheduleExpression: 'rotate(0 13 * * ? *)'
+        ScheduleExpression: 'cron(0 8 * * ? *)'
 
   DBCluster:
     Type: AWS::RDS::DBCluster
