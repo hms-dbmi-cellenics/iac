@@ -30,7 +30,7 @@ Outputs:
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UIRoleArn'
 
-Resources: 
+Resources:
   UIRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -107,10 +107,10 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "lambda:InvokeFunction"
                 Resource:
-                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+                  Fn::ImportValue: !Sub PostRegistrationLambdaArn-${Environment}
 
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -149,17 +149,17 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
-    Properties: 
+    Properties:
       UserPoolName: !Sub "biomage-user-pool-case-insensitive-${Environment}"
-      AccountRecoverySetting: 
-        RecoveryMechanisms: 
+      AccountRecoverySetting:
+        RecoveryMechanisms:
           - Name: verified_email
             Priority: 1
           - Name: verified_phone_number
             Priority: 2
-      AdminCreateUserConfig: 
+      AdminCreateUserConfig:
         AllowAdminCreateUserOnly: false
-        InviteMessageTemplate: 
+        InviteMessageTemplate:
           EmailSubject: 'Your temporary password for Cellenics'
           EmailMessage: 'Thank you for signing up to Cellenics. Your username is {username} and temporary password is {####}.'
           SMSMessage: 'Your Cellenics username is {username} and temporary password is {####}.'
@@ -199,11 +199,10 @@ Resources:
       UsernameConfiguration:
         CaseSensitive: false
       LambdaConfig:
-        PostConfirmation: 
-          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+        PostConfirmation:
+          Fn::ImportValue: !Sub PostRegistrationLambdaArn-${Environment}
   UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain 
+    Type: AWS::Cognito::UserPoolDomain
     Properties:
-      UserPoolId: !Ref UserPool 
+      UserPoolId: !Ref UserPool
       Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
-      
