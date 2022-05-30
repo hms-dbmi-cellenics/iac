@@ -223,3 +223,13 @@ Resources:
                   - "rds:*"
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
+
+        # Remove this line
+        - PolicyName: "tempoerary-allow-delete-lambda-staging-log-group"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-invite-registration-lambda-staging:*"
