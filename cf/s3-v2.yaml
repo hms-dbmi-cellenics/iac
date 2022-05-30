@@ -1,0 +1,226 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up S3 buckets for Cellenics [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the buckets need to be created.
+
+Resources:
+  PlotsTablesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "plots-tables-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      
+
+  CellSetsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "cell-sets-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
+  WorkerResultsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "worker-results-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteDifferentialExpressionResults
+            Status: "Enabled"
+            TagFilters:
+              - Key: requestType
+                Value: DifferentialExpression
+            ExpirationInDays: 2
+          - Id: DeleteOldWorkResults
+            Status: "Enabled"
+            ExpirationInDays: 14
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            ExposedHeaders:
+              - ETag
+              - "x-amz-server-side-encryption"
+              - "x-amz-request-id"
+              - "x-amz-id-2"
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins:
+              - '*'
+            Id: uiHeadersRule
+
+  PipelineResultBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "processed-matrix-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
+  # Stores, for each experiment and timestamp, the log and dump files for errors from the pipeline
+  # Indexed by experimentId and timestamp
+  PipelineDebugBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-pipeline-debug-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+        - Id: DeleteObjectAfter10Days
+          Status: Enabled
+          ExpirationInDays: 10
+
+  # The bucket that contains the count matrix files (in .rds format) used for the experiments.
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-source-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: "Enabled"
+      LifecycleConfiguration:
+        Rules:
+          # Non-current versions of count matrices are stored in normal S3 for
+          # 5 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 5
+
+  # Stores, for each experiment, the cellIds that were preserved after each filter step of the latest qc run
+  # Indexed by experimentId
+  FilteredCellsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-filtered-cells-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+
+  BackupsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-backups-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: "Enabled"
+      LifecycleConfiguration:
+        Rules:
+          # Non-current versions of source files are stored in normal S3 for
+          # 7 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 7
+          - Id: BackupRetentionDays
+            Status: "Enabled"
+            ExpirationInDays: 90
+
+  # The bucket that contains the unfiltered versions of the count matrix files as uploaded by the user.
+  OriginalFilesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-originals-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      VersioningConfiguration:
+        Status: "Enabled"
+      LifecycleConfiguration:
+        Rules:
+          # Non-current versions of source files are stored in normal S3 for
+          # 5 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 5
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            ExposedHeaders:
+              - ETag
+              - "x-amz-server-side-encryption"
+              - "x-amz-request-id"
+              - "x-amz-id-2"
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins:
+              - '*'
+            Id: uiHeadersRule
+
+  PublicDatasetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "biomage-public-datasets-${Environment}-${AWS::AccountId}"
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: True
+          BlockPublicPolicy: True
+          IgnorePublicAcls: True
+          RestrictPublicBuckets: True
+        VersioningConfiguration:
+          Status: "Enabled"
+        LifecycleConfiguration:
+          Rules:
+            # Non-current versions of source files are stored in normal S3 for
+            # 5 days and are then deleted.
+            - Id: PreserveThenDeleteNonCurrentVersion
+              Status: "Enabled"
+              NoncurrentVersionExpirationInDays: 5
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              ExposedHeaders:
+                - ETag
+                - "x-amz-server-side-encryption"
+                - "x-amz-request-id"
+                - "x-amz-id-2"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+              AllowedOrigins:
+                - '*'
+              Id: uiHeadersRule
