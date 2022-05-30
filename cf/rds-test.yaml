@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::SecretsManager-2020-07-23
-Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Test new RDS password
 
 Parameters:
   Environment:
