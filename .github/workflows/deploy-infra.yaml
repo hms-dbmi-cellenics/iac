@@ -217,12 +217,12 @@ jobs:
             DOMAIN_NAME="scp-staging.biomage.net"
           fi
 
-          AWS_REGION='${{ env.region }}'
-          AWS_ACCOUNT_ID='${{ steps.setup-aws.outputs.aws-account-id }}'
+          AWS_REGION="${{ env.region }}"
+          AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
 
           yq w -d0 infra/account-config.yaml awsAccount.domainName '$DOMAIN_NAME' \
-          | yq w -d0 - awsAccount.region "$AWS_REGION" \
-          | yq w -d0 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
+          | yq w -d0 - awsAccount.region '$AWS_REGION' \
+          | yq w -d0 - awsAccount.accountId '$AWS_ACCOUNT_ID' \
           > infra/account-config.yaml
 
           cat infra/account-config.yaml
