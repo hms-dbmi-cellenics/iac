@@ -224,10 +224,11 @@ jobs:
           yq w -d1 account_config_test.yaml awsAccount.domainName "$DOMAIN_NAME" \
           | yq w -d1 - awsAccount.region "$AWS_REGION" \
           | yq w -d1 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
-          > account_config_test.yaml
+          > account_config_populated.yaml
+
+          mv account_config_populated.yaml account_config_test.yaml
 
           cat account_config_test.yaml
-
       # - id: create-account-information-configmap
       #   name: Create a configmap containing AWS account specific details
       #   continue-on-error: true
