@@ -200,8 +200,7 @@ jobs:
         continue-on-error: true
         run: |-
           kubectl create namespace flux
-          
-### 
+
       - id: install-yq
         name: Install yq for modifying the deployment spec.
         run: |-
@@ -221,18 +220,18 @@ jobs:
           AWS_REGION="${{ env.region }}"
           AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
 
-          yq w -d0 account_config_test.yaml awsAccount.domainName "$DOMAIN_NAME" \
+          yq w -d0 infra/account-config.yaml awsAccount.domainName "$DOMAIN_NAME" \
           | yq w -d0 - awsAccount.region "$AWS_REGION" \
           | yq w -d0 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
-          > account_config_test.yaml
+          > account-config.yaml
 
-          cat account_config_test.yaml
+          cat account-config.yaml
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
         continue-on-error: true
         run: |-
-          kubectl create configmap account-config-test --from-file=account_config_test.yaml -n flux
+          kubectl create configmap account-config --from-file=account_config.yaml -n flux
 
       # - id: install-fluxctl
       #   name: Install fluxctl
