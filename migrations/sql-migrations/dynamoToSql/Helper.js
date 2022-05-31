@@ -1,3 +1,43 @@
+const _ = require('lodash');
+
+const garbage = ['api_url', 'auth_JWT'];
+// Removes properties that should't be in the processing config
+const omitGarbage = (obj) => {
+  _.forIn(obj, function(value, key) {
+    if (_.isObject(value)) {
+      omitGarbage(value);
+    } else if (garbage.includes(key)) {
+      delete obj[key];
+    }
+  });
+}
+
+// Camelcases absolute_threshold wherever it finds it
+const recursiveCamelcase = (processingConfig) => (
+  _.transform(processingConfig, (acc, value, key, target) => {
+    let camelKey;
+
+    if (_.isArray(target) || !key.includes('_')) {
+      camelKey = key;
+    } else {
+      console.log(`Camelcasing this key: ${key}`)
+      camelKey = _.camelCase(key);
+    }
+
+    if (_.isObject(value)) {
+      acc[camelKey] = recursiveCamelcase(value);
+    } else {
+      let camelValue = value;
+      if(camelValue === 'absolute_threshold'){
+        camelValue = 'absoluteThreshold';
+      }
+  
+      acc[camelKey] = camelValue;
+    }
+
+  })
+);
+
 class Helper {
   constructor(sqlClient) {
     this.sqlClient = sqlClient;
@@ -30,11 +70,14 @@ class Helper {
   }
   
   sqlInsertExperiment = async (experimentId, projectData, experimentData) => {
+    omitGarbage(experimentData.processingConfig);
+    const camelcasedProcessingConfig = recursiveCamelcase(experimentData.processingConfig)
+
     const sqlExperiment = {
       id: experimentId,
       name: projectData.name,
       description: projectData.description,
-      processing_config: experimentData.processingConfig,
+      processing_config: camelcasedProcessingConfig,
       samples_order: JSON.stringify(experimentData.sampleIds),
       created_at: projectData.createdDate,
       updated_at: projectData.lastModified,
