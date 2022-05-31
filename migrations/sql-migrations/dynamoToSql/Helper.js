@@ -17,6 +17,7 @@ const recursiveCamelcase = (processingConfig) => (
   _.transform(processingConfig, (acc, value, key, target) => {
     let camelKey;
 
+    // The filter of underscore is necessary because we don't want to camelcase sample ids
     if (_.isArray(target) || !key.includes('_')) {
       camelKey = key;
     } else {
