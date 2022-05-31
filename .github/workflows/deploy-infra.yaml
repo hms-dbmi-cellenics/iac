@@ -225,7 +225,7 @@ jobs:
           | yq w -d0 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
           > infra/account-config.yaml
 
-          cat account-config.yaml
+          cat infra/account-config.yaml
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
