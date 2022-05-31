@@ -221,13 +221,10 @@ jobs:
           AWS_REGION="${{ env.region }}"
           AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
 
+          yq w -d1 account-config-test.yaml awsAccount.domainName "$DOMAIN_NAME" \
+          > account-config-test.yaml
+
           cat account-config-test.yaml
-
-      # yq w -d1 account-config-test.yaml awsAccount.domainName "$DOMAIN_NAME" \
-      # | yq w -d1 - awsAccount.region "$AWS_REGION" \
-      # | yq w -d1 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
-      # > account-config-test.yaml
-
 
       # - id: create-account-information-configmap
       #   name: Create a configmap containing AWS account specific details
