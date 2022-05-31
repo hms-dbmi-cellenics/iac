@@ -232,7 +232,7 @@ jobs:
         name: Create a configmap containing AWS account specific details
         continue-on-error: true
         run: |-
-          kubectl create configmap account-config-test --from-file=account_config_test -n flux
+          kubectl create configmap account-config-test --from-file=account_config_test.yaml -n flux
 
       # - id: install-fluxctl
       #   name: Install fluxctl
