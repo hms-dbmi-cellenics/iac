@@ -22,6 +22,7 @@ spec:
     ref: refs/heads/master
   releaseName: ui
   values:
+    test: 'test2'
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: agi-skinny-seal
@@ -74,6 +75,7 @@ spec:
     ref: refs/heads/master
   releaseName: api
   values:
+    test: 'test2'
     biomageCi:
       rdsSandboxId: default
       repo: hms-dbmi-cellenics/api
