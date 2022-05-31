@@ -223,7 +223,7 @@ jobs:
           yq w -d0 infra/account-config.yaml awsAccount.domainName "$DOMAIN_NAME" \
           | yq w -d0 - awsAccount.region "$AWS_REGION" \
           | yq w -d0 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
-          > account-config.yaml
+          > infra/account-config.yaml
 
           cat account-config.yaml
 
@@ -231,7 +231,7 @@ jobs:
         name: Create a configmap containing AWS account specific details
         continue-on-error: true
         run: |-
-          kubectl create configmap account-config --from-file=account_config.yaml -n flux
+          kubectl create configmap account-config --from-file=infra/account_config.yaml -n flux
 
       # - id: install-fluxctl
       #   name: Install fluxctl
