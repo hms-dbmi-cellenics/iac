@@ -222,6 +222,8 @@ jobs:
           AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
 
           yq w -d1 account_config_test.yaml awsAccount.domainName "$DOMAIN_NAME" \
+          | yq w -d1 - awsAccount.region "$AWS_REGION" \
+          | yq w -d1 - awsAccount.accountId "$AWS_ACCOUNT_ID" \
           > account_config_test.yaml
 
           cat account_config_test.yaml
