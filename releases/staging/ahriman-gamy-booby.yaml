@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -176,7 +177,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-239-merge-ca6ffadb28316952fd7ba1cda1188b2393fcb6b8-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-239-merge-d0b3f4bbe40f0f2eff30d3afcb27faa0302de441-pipeline-runner
     replicaCount: 0
     sandboxId: ahriman-gamy-booby
     serviceAccount:
