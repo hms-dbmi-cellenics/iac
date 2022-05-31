@@ -1,4 +1,5 @@
 const Dyno = require('dyno');
+const _ = require('lodash');
 
 let updated = 0;
 
