@@ -234,9 +234,9 @@ Resources:
           IgnorePublicAcls: True
           RestrictPublicBuckets: True
         BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'aws:kms'
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: 'aws:kms'
         VersioningConfiguration:
           Status: "Enabled"
         LifecycleConfiguration:
