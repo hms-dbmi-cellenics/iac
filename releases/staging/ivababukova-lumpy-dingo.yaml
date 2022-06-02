@@ -19,9 +19,10 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/dynamically-create-configmap
   releaseName: ui
   values:
+    iva: wasHere
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: ivababukova-lumpy-dingo
@@ -47,7 +48,7 @@ spec:
   valuesFrom:
   - configMapKeyRef:
       key: account-config.yaml
-      name: account-config
+      name: account-config-new
       namespace: flux
 ---
 apiVersion: v1
