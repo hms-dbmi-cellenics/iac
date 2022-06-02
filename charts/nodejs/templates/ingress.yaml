@@ -54,7 +54,8 @@ spec:
             name: {{ template "appname" . }}
             port:
               number: {{ .Values.service.externalPort }}
-{{- if .Values.service.additionalHosts }}
+# not has to be removed. Added temporary for testing purposes
+{{- if not .Values.service.additionalHosts }}
   - host: {{ .Values.awsAccount.domainName }}
     http:
       <<: *httpRule
