@@ -70,8 +70,8 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::*-${Environment}/*"
                   - !Sub "arn:aws:s3:::*-${Environment}"
-#                   - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}/*"
-#                   - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}"
 
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
