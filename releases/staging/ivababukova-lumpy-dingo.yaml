@@ -22,7 +22,7 @@ spec:
     ref: refs/heads/dynamically-create-configmap
   releaseName: ui
   values:
-    iva: wasHere4
+    iva: wasHere5
     biomageCi:
       repo: hms-dbmi-cellenics/ui
       sandboxId: ivababukova-lumpy-dingo
