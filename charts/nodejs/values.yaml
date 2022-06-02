@@ -25,7 +25,7 @@ service:
   annotations: {}
   name: web
   type: ClusterIP
-  additionalHosts: false
+  additionalHosts: true
   externalPort: 5000
   internalPort: 5000
 
