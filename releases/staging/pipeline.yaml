@@ -22,13 +22,13 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: 75af8f34eb9e71ed05c205bd503cdccb5044cda3
+    ref: eac59fb2d14b64b954e9098c835384ceeff37497
   values:
     clusterEnv: staging
     awsAccountId: "242905224710"
     awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-75af8f34eb9e71ed05c205bd503cdccb5044cda3-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-eac59fb2d14b64b954e9098c835384ceeff37497-pipeline-runner
     sandboxId: default
     memoryRequest: 29Gi
     replicaCount: 1
