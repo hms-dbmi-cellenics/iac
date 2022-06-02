@@ -1,52 +1,58 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ui-STAGING_SANDBOX_ID
+  name: api-STAGING_SANDBOX_ID
   labels:
     sandboxId: STAGING_SANDBOX_ID
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
-  name: ui
-  namespace: ui-STAGING_SANDBOX_ID
+  name: api
+  namespace: api-STAGING_SANDBOX_ID
   labels:
     sandboxId: STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/chart-image: glob:refs-pull-714-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-359-merge-*
 spec:
-  releaseName: ui
+  releaseName: api
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
     ref: STAGING_CHART_REF
   values:
-    # disable readiness probes as load balancer performs
-    # its own health checks/cordoning
+    service:
+      externalPort: 3000
+      internalPort: 3000
     readinessProbe:
-      probeType: exec
-      command: ["echo", "0"]
-    loadBalancerHealthCheck:
-      path: "/robots.txt"
-      periodSeconds: 30
+      path: "/v1/health"
     livenessProbe:
       probeType: tcpSocket
+    resources:
+      requests:
+        cpu: "100m"
+    hpa:
+      enabled: false
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
     kubernetes:
       env: staging
     biomageCi:
-      repo: hms-dbmi-cellenics/ui
+      repo: hms-dbmi-cellenics/api
       sandboxId: STAGING_SANDBOX_ID
+      rdsSandboxId: STAGING_RDS_SANDBOX_ID
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
-      repository: ui
-      tag: refs-pull-714-merge-e78426b172e9c2d23e0d5e76c68aca72a57eb2f4
+      repository: api
+      tag: refs-pull-359-merge-5ea48a00f3f7df1a79007d7b762278d7f21c6148
     replicaCount: 1
     serviceAccount:
-      iamRole: ui-role-staging
+      iamRole: api-role-staging
   valuesFrom:
     - configMapKeyRef:
         name: account-config
         namespace: flux
         key: account-config.yaml
-      # filled in by CI. do not modify.
+  # filled in by CI. do not modify.

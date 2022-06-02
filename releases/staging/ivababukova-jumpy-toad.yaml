@@ -1,21 +1,20 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-wheezy-stoat
-  name: ui-grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
+  name: ui-ivababukova-jumpy-toad
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-710-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-718-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
   name: ui
-  namespace: ui-grasp6-wheezy-stoat
+  namespace: ui-ivababukova-jumpy-toad
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
@@ -25,11 +24,11 @@ spec:
   values:
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: grasp6-wheezy-stoat
+      sandboxId: ivababukova-jumpy-toad
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-710-merge-0e2a10e906c97843c45dc7193ab14ee9e80d4d2c
+      tag: refs-pull-718-merge-5733b590f48a7394eece70ca176b78cb669f142d
     kubernetes:
       env: staging
     livenessProbe:
@@ -44,42 +43,47 @@ spec:
       probeType: exec
     replicaCount: 1
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+      iamRole: ui-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-wheezy-stoat
-  name: api-grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
+  name: api-ivababukova-jumpy-toad
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-357-merge-*
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
   name: api
-  namespace: api-grasp6-wheezy-stoat
+  namespace: api-ivababukova-jumpy-toad
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: 903e2019223af7669dea0b92c10cc26dd047d5ee
   releaseName: api
   values:
     biomageCi:
-      rdsSandboxId: default
+      rdsSandboxId: STAGING_RDS_SANDBOX_ID
       repo: hms-dbmi-cellenics/api
-      sandboxId: grasp6-wheezy-stoat
+      sandboxId: ivababukova-jumpy-toad
     hpa:
       enabled: false
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-357-merge-ab05d3a16bb79117b1a0c650ba5158a12dd507fa
+      tag: refs-heads-master-53b7514c036eb3bfed4fdb3b350d3c3b3e957ad9
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -97,14 +101,19 @@ spec:
       externalPort: 3000
       internalPort: 3000
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+      iamRole: api-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-wheezy-stoat
-  name: worker-grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
+  name: worker-ivababukova-jumpy-toad
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -114,9 +123,9 @@ metadata:
     filter.fluxcd.io/r: glob:refs-heads-master-*-r
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
   name: worker
-  namespace: worker-grasp6-wheezy-stoat
+  namespace: worker-ivababukova-jumpy-toad
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
@@ -132,7 +141,7 @@ spec:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fc236f47f4c511c7629bae0bf69eaa0fe284c274-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -140,8 +149,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: grasp6-wheezy-stoat
-  name: pipeline-grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
+  name: pipeline-ivababukova-jumpy-toad
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
@@ -152,14 +161,14 @@ metadata:
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'false'
   labels:
-    sandboxId: grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
   name: pipeline
-  namespace: pipeline-grasp6-wheezy-stoat
+  namespace: pipeline-ivababukova-jumpy-toad
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: 7ff5726e5e35e10a1a1a35c95f8b1e9cc17bd6e6
+    ref: 75af8f34eb9e71ed05c205bd503cdccb5044cda3
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
@@ -167,8 +176,8 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-7ff5726e5e35e10a1a1a35c95f8b1e9cc17bd6e6-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-75af8f34eb9e71ed05c205bd503cdccb5044cda3-pipeline-runner
     replicaCount: 0
-    sandboxId: grasp6-wheezy-stoat
+    sandboxId: ivababukova-jumpy-toad
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

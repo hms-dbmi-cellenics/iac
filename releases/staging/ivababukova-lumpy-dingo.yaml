@@ -3,33 +3,34 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: replicate-integration-test
-  name: ui-replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
+  name: ui-ivababukova-lumpy-dingo
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/chart-image: glob:refs-pull-604-merge-*
+    filter.fluxcd.io/chart-image: glob:refs-pull-718-merge-*
     fluxcd.io/automated: 'true'
   labels:
-    sandboxId: replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
   name: ui
-  namespace: ui-replicate-integration-test
+  namespace: ui-ivababukova-lumpy-dingo
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/dynamically-create-configmap
   releaseName: ui
   values:
+    iva: wasHere8
     biomageCi:
       repo: hms-dbmi-cellenics/ui
-      sandboxId: replicate-integration-test
+      sandboxId: ivababukova-lumpy-dingo
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-604-merge-7cc41fdba150aa11990f502e8632959ef6e7ce01
+      tag: refs-pull-718-merge-5733b590f48a7394eece70ca176b78cb669f142d
     kubernetes:
       env: staging
     livenessProbe:
@@ -44,35 +45,41 @@ spec:
       probeType: exec
     replicaCount: 1
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/ui-role-staging
+      iamRole: ui-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: replicate-integration-test
-  name: api-replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
+  name: api-ivababukova-lumpy-dingo
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/chart-image: glob:refs-heads-master-*
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
   name: api
-  namespace: api-replicate-integration-test
+  namespace: api-ivababukova-lumpy-dingo
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: c4da5677b07faa7b4730c25a1e65dad48dec4489
   releaseName: api
   values:
     biomageCi:
+      rdsSandboxId: STAGING_RDS_SANDBOX_ID
       repo: hms-dbmi-cellenics/api
-      sandboxId: replicate-integration-test
+      sandboxId: ivababukova-lumpy-dingo
     hpa:
       enabled: false
     image:
@@ -96,42 +103,47 @@ spec:
       externalPort: 3000
       internalPort: 3000
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/api-role-staging
+      iamRole: api-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: replicate-integration-test
-  name: worker-replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
+  name: worker-ivababukova-lumpy-dingo
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/python: glob:refs-pull-237-merge-*-python
-    filter.fluxcd.io/r: glob:refs-pull-237-merge-*-r
-    fluxcd.io/automated: 'true'
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
   name: worker
-  namespace: worker-replicate-integration-test
+  namespace: worker-ivababukova-lumpy-dingo
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: refs/pull/237/head
+    ref: fc236f47f4c511c7629bae0bf69eaa0fe284c274
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-237-merge-fa36c64d482d0a45d1f3b1a3a9978c9a8a0a74be-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fc236f47f4c511c7629bae0bf69eaa0fe284c274-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-237-merge-fa36c64d482d0a45d1f3b1a3a9978c9a8a0a74be-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-fc236f47f4c511c7629bae0bf69eaa0fe284c274-r
       memoryRequest: 4Gi
     replicaCount: 0
-    sandboxId: replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/worker-role-staging
 ---
@@ -139,26 +151,26 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    sandboxId: replicate-integration-test
-  name: pipeline-replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
+  name: pipeline-ivababukova-lumpy-dingo
 ---
 apiVersion: helm.fluxcd.io/v1
 kind: HelmRelease
 metadata:
   annotations:
-    filter.fluxcd.io/pipelineRunner: glob:refs-pull-201-merge-*-pipeline-runner
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
     filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    fluxcd.io/automated: 'true'
+    fluxcd.io/automated: 'false'
   labels:
-    sandboxId: replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
   name: pipeline
-  namespace: pipeline-replicate-integration-test
+  namespace: pipeline-ivababukova-lumpy-dingo
 spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: refs/pull/201/head
+    ref: 1a6cc8006ec454638b949aebc7764a64e164f261
   releaseName: pipeline
   values:
     awsAccountId: '242905224710'
@@ -166,8 +178,8 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-201-merge-cd2c2d45ff61fa71bc20fca8d8edd66020f0ef0e-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-1a6cc8006ec454638b949aebc7764a64e164f261-pipeline-runner
     replicaCount: 0
-    sandboxId: replicate-integration-test
+    sandboxId: ivababukova-lumpy-dingo
     serviceAccount:
       iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging

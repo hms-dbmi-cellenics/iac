@@ -11,6 +11,16 @@ Parameters:
       - production
     Description: The environment for which the tables need to be created.
 
+Outputs:
+  PostRegisterLambdaArn:
+    Description: ARN of PostRegisterLambdaArn
+    Value: !GetAtt PostRegisterLambda.Arn
+    Export:
+      Name: !Sub PostRegisterLambdaArn-${Environment}
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
 Resources:
   PostRegisterLambdaRole:
     Type: "AWS::IAM::Role"
@@ -29,7 +39,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "dynamodb:DeleteItem"
                   - "dynamodb:GetItem"
                   - "dynamodb:PutItem"
@@ -43,7 +53,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "logs:CreateLogGroup"
                 Resource:
                   - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
@@ -52,11 +62,47 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 
+                Action:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource:
                   - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
+        - PolicyName: !Sub "can-post-to-post-registration-sns-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sns:Publish'
+                Resource:
+                  - Fn::Sub: "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:post-registration-user-access-${Environment}-default"
+
+  PostRegisterTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: "alias/aws/sns"
+      TopicName: !Sub "post-registration-user-access-${Environment}-default"
+
+  PostUserRegistrationSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref PostRegisterTopic
+      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/access/post-registration",
+                !Sub "https://api-default.scp-${Environment}.biomage.net/v2/access/post-registration"]
+      Protocol: "https"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
+      FilterPolicy:
+        type:
+          - PostUserRegistration
+
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -65,27 +111,29 @@ Resources:
       Handler: index.handler
       Environment:
         Variables:
+          TOPIC_ARN: !Ref PostRegisterTopic
           CLUSTER_ENV: !Sub "${Environment}"
-      Code: 
+      Code:
         ZipFile: |
           const AWS = require('aws-sdk');
-          exports.handler = async (event, context, callback) => {
+
+          const region = process.env.AWS_REGION;
+
+          const addUserPermissionV1 = async (userEmail, userId) => {
+
+            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`;
+            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`;
+
             const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(
               data, { convertEmptyValues: false },
             );
-            
-            const region = process.env.AWS_REGION
-            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`
-            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`
-            
+
             const db = new AWS.DynamoDB({
               region,
             });
-          
-            // getting projects that the user is invited in
-            const userEmail = event.request.userAttributes.email;
-            const userId = event.request.userAttributes.sub;
-            
+
+            console.log(`V1 :: Querying experiments for user ${userEmail} from DynamoDB`)
+
             const params = {
               TableName: inviteAccessTableName,
               FilterExpression: '(userEmail = :userEmail)',
@@ -94,66 +142,97 @@ Resources:
               },
             };
             const response = await db.scan(params).promise();
-            if(!response.Items.length){
-              callback(null, event);
+            if (!response.Items.length) {
+              return;
             }
-            // add those rows in user-access
 
-            const experimentIds = []
-            await Promise.all(response.Items.map((item)=>{
-              
+            console.log(`V1 ::  Adding access roles to experiments`)
+
+            // add those rows in user-access
+            const experimentIds = [];
+            await Promise.all(response.Items.map((item) => {
               const projectId = item.projectId.S;
               const experimentId = item.experimentId.S;
-              experimentIds.push(experimentId)
+              experimentIds.push(experimentId);
               const role = item.role.S;
-              
+
               const addRoleParams = {
-                  TableName: userAccessTableName,
-                  Item: {
-                    userId,
-                    experimentId,
-                    projectId,
-                    role,
-                    createdDate: new Date().toISOString(),
-                  },
-                };
-            
-                const docClient = new AWS.DynamoDB.DocumentClient({
-                  region,
-                });
-            
-                return docClient.put(addRoleParams).promise();
-                
-            }))
-            
-            //remove rows from invite-access
-            await Promise.all(experimentIds.map((id)=>{
-                
+                TableName: userAccessTableName,
+                Item: {
+                  userId,
+                  experimentId,
+                  projectId,
+                  role,
+                  createdDate: new Date().toISOString(),
+                },
+              };
+
+              const docClient = new AWS.DynamoDB.DocumentClient({
+                region,
+              });
+
+              return docClient.put(addRoleParams).promise();
+            }));
+
+            console.log(`V1 :: Removing invitation record`)
+
+            // remove rows from invite-access
+            await Promise.all(experimentIds.map((id) => {
               const key = convertToDynamoDbRecord({
                 experimentId: id,
                 userEmail,
               });
-              
+
               const dynamoParams = {
                 TableName: inviteAccessTableName,
                 Key: key,
               };
 
               return db.deleteItem(dynamoParams).send();
-            }))
-            
+            }));
+          };
+
+          const addUserPermissionV2 = async (userEmail, userId) => {
+            const sns = new AWS.SNS({ region });
+
+            const message = {
+              userEmail,
+              userId
+            };
+
+            console.log(`V2 :: Sending SNS message for user ${message}`)
+
+            await sns.publish({
+              Message: JSON.stringify(message),
+              TopicArn: process.env.TOPIC_ARN,
+              MessageAttributes: {
+                type: {
+                  DataType: 'String',
+                  StringValue: 'PostUserRegistration'
+                }
+              }
+            }, () => {}).promise();
+          };
+
+          exports.handler = async (event, context, callback) => {
+
+            const {
+              email: userEmail,
+              sub: userId,
+            } = event.request.userAttributes;
+
+            console.log(`== Handling post-registration for ${userEmail} ==`)
+
+            await addUserPermissionV1(userEmail, userId);
+            await addUserPermissionV2(userEmail, userId);
+
+            console.log("== Successfully added user ${userEmail} ==")
+
             callback(null, event);
           };
-  LoggingGroup: 
+
+  LoggingGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: !Sub "/aws/lambda/post-register-invite-lambda-${Environment}"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/post-invite-registration-lambda-${Environment}"
       RetentionInDays: 14
-Outputs:
-  PostRegisterLambdaArn:
-    Description: The ARN of the PostRegisterLambda
-    Value: !GetAtt PostRegisterLambda.Arn
-    Export:
-      Name: !Sub PostRegisterLambdaArn-${Environment}
-      
-      
