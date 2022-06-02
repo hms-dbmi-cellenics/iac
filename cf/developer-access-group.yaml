@@ -234,4 +234,5 @@ Resources:
                 Action:
                   - "support:DescribeServices"
                   - "support:DescribeSeverityLevels"
+                  - "support:SearchForCases"
                 Resource: "*"
