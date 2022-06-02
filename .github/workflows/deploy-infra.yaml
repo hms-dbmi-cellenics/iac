@@ -231,7 +231,9 @@ jobs:
         name: Create a configmap containing AWS account specific details
         continue-on-error: false
         run: |-
-          kubectl create configmap account-config-new --from-file=infra/account-config.yaml -n flux -o yaml --dry-run | kubectl replace -f -
+          kubectl create configmap account-config-new --from-file=infra/account-config.yaml -n flux
+      
+  # kubectl create configmap account-config-new --from-file=infra/account-config.yaml -n flux -o yaml --dry-run | kubectl replace -f -
 
       # - id: install-fluxctl
       #   name: Install fluxctl
