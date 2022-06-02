@@ -48,7 +48,7 @@ spec:
   valuesFrom:
   - configMapKeyRef:
       key: account-config.yaml
-      name: account-config-new
+      name: account-config
       namespace: flux
 ---
 apiVersion: v1
