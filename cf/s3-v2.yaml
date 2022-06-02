@@ -273,3 +273,4 @@ Resources:
               AllowedOrigins:
                 - '*'
               Id: uiHeadersRule
+              
