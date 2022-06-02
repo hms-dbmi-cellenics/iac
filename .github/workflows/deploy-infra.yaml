@@ -200,7 +200,7 @@ jobs:
         continue-on-error: true
         run: |-
           kubectl create namespace flux
-      
+
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
         continue-on-error: true
@@ -312,6 +312,21 @@ jobs:
             --set git.timeout="40s" \
             --namespace flux \
             --install --wait
+
+      - id: install-containIQ
+        name: Deploy containIQ monitoring
+        run: |-
+          helm repo add containiq https://containiq.github.io/charts/
+          helm repo update
+
+          helm install containiq containiq/containiq --namespace=containiq \
+          --create-namespace \
+          --set comm.Key=muWHwDkvvLzKiUH1u2PQAfEfChGmKJ46D8Ddig7TYPrwBXO7dNAA35TsC1xhfK1G/uMVvkUz6APrRXDhgk0tmg== \
+          --set logs.enabled=true --set latency.enabled=true \
+          --set clusterName=biomage-$CLUSTER_ENV
+          # TODO: Add fargate monitoring with
+          # https://docs.containiq.com/installing-containiq#io-sending-fargate-logs-to-containiq
+
 
       - id: get-public-key
         name: Get flux SSH deploy key
