@@ -25,6 +25,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
 
   CellSetsBucket:
     Type: AWS::S3::Bucket
@@ -39,6 +40,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
 
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
@@ -53,6 +55,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
       LifecycleConfiguration:
         Rules:
           - Id: DeleteDifferentialExpressionResults
@@ -95,6 +98,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
 
   # Stores, for each experiment and timestamp, the log and dump files for errors from the pipeline
   # Indexed by experimentId and timestamp
@@ -111,6 +115,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
       LifecycleConfiguration:
         Rules:
         - Id: DeleteObjectAfter10Days
@@ -131,6 +136,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
       VersioningConfiguration:
         Status: "Enabled"
       LifecycleConfiguration:
@@ -156,6 +162,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
 
   BackupsBucket:
     Type: AWS::S3::Bucket
@@ -170,6 +177,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
       VersioningConfiguration:
         Status: "Enabled"
       LifecycleConfiguration:
@@ -197,6 +205,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'aws:kms'
+            BucketKeyEnabled: true
       VersioningConfiguration:
         Status: "Enabled"
       LifecycleConfiguration:
@@ -237,6 +246,7 @@ Resources:
           ServerSideEncryptionConfiguration:
             - ServerSideEncryptionByDefault:
                 SSEAlgorithm: 'aws:kms'
+              BucketKeyEnabled: true
         VersioningConfiguration:
           Status: "Enabled"
         LifecycleConfiguration:
