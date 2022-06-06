@@ -41,7 +41,10 @@ Resources:
   RDSMasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Description: RDS master secret
+      Description: |-
+        RDS master secret. Refrain from using this secret as it breaks the IAM
+        permission model that we have implemented to access the RDS. You should use
+        dev_role to access the RDS - it has the same permissions as the db root user.
       Name: !Sub "${DBSecretPrefix}-${Environment}"
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
