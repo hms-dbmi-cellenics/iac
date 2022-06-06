@@ -96,7 +96,7 @@ Resources:
       EnableIAMDatabaseAuthentication: true
       BackupRetentionPeriod: 5
       SourceRegion: !Sub '${AWS::Region}'
-      StorageEncrypted: false
+      StorageEncrypted: true
       VpcSecurityGroupIds:
         - Fn::ImportValue:
             !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
