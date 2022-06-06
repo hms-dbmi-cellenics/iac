@@ -74,6 +74,13 @@ class Helper {
   };
   
   sqlInsertSample = async (experimentId, sample) => {
+
+    if (Array.isArray(sample)) {
+        console.warn(`[ MALFORMED ] - e: ${experimentId}: This sample doesn't meet the required format:`)
+        console.log(sample)
+        return
+    }
+
     const sqlSample = {
       id: sample.uuid,
       experiment_id: experimentId,
@@ -82,12 +89,13 @@ class Helper {
       created_at: sample.createdDate,
       updated_at: sample.lastModified,
     };
-    
+
     return await this.sqlInsert(sqlSample, 'sample');
   };
   
   sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, fileName, file) => {
-    const sampleFileTypeEnumKey = this.sampleFileTypeDynamoToEnum[fileName];
+
+    const sampleFileTypeEnumKey = this.sampleFileTypeDynamoToEnum[fileName] || 'nil';
 
     const s3Path = `${projectUuid}/${sample.uuid}/${fileName}`;
 
@@ -101,7 +109,7 @@ class Helper {
       sample_file_type: sampleFileTypeEnumKey,
       size: fileSize,
       s3_path: s3Path,
-      upload_status: file.upload.status,
+      upload_status: file.upload?.status || "uploaded",
       updated_at: file.lastModified
     };
 

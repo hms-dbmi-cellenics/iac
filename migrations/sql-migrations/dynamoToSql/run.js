@@ -34,7 +34,7 @@ const migrateProject = async (project, helper) => {
   if (_.isNil(projectData) || _.isNil(experimentData) || _.isNil(sampleData)) {
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
     console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
-    console.log(`[ MALFORMED ] - p: ${projectUuid}, e: ${experimentId} - One of these is nil:`);
+    console.warn(`[ MALFORMED ] - p: ${projectUuid}, e: ${experimentId} - One of these is nil:`);
     console.log('projectData:')
     console.log(projectData)
     console.log('experimentData: $')
@@ -65,23 +65,32 @@ const migrateProject = async (project, helper) => {
   }
 
   // Migrate all samples
-  await Promise.all(
-    samples.map(async (sample) => {
-      await helper.sqlInsertSample(experimentId, sample);
+  const insertSamplePromise = samples.map(async (sample) => {
+    const hasSample = await helper.sqlInsertSample(experimentId, sample);
 
-      const files = Object.entries(_.omit(sample.files, ['lastModified']));
+    if (!hasSample) return;
 
-      await Promise.all(
-        files.map(async ([fileName, file]) => {
-          const sampleFileUuid = uuidv4();
+    const files = Object.entries(_.omit(sample.files, ['lastModified']));
 
-          await helper.sqlInsertSampleFile(sampleFileUuid, projectUuid, sample, fileName, file);
+    await Promise.all(
+      files.map(async ([fileName, file]) => {
+        const sampleFileUuid = uuidv4();
 
-          await helper.sqlInsertSampleToSampleFileMap(sampleFileUuid, sample);
-        })
-      );
-    })
-  );
+        await helper.sqlInsertSampleFile(sampleFileUuid, projectUuid, sample, fileName, file);
+
+        await helper.sqlInsertSampleToSampleFileMap(sampleFileUuid, sample);
+      })
+    );
+  }).filter(p => p);
+
+  if(!insertSamplePromise.length) return;
+
+  await Promise.all(insertSamplePromise);
+  
+  if(!samples[0].metadata) {
+    console.warn(`[ MALFORMED ] - e: ${experimentId}: Samples do not contain metadata`)
+    return;
+  }
 
   // We can pick the metadata tracks from any sample, any of them has a reference to every metadata track
   const metadataTracks = Object.keys(samples[0].metadata);
