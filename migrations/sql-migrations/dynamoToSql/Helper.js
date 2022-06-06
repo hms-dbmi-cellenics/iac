@@ -75,7 +75,12 @@ class Helper {
   
   sqlInsertSample = async (experimentId, sample) => {
 
-    if (Array.isArray(sample)) {
+      if (
+        !sample.uuid
+        || !sample.name
+        || !sample.createdDate
+        || !sample.lastModified
+    ) {
         console.warn(`[ MALFORMED ] - e: ${experimentId}: This sample doesn't meet the required format:`)
         console.log(sample)
         return
@@ -92,7 +97,7 @@ class Helper {
 
     return await this.sqlInsert(sqlSample, 'sample');
   };
-  
+
   sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, fileName, file) => {
 
     const sampleFileTypeEnumKey = this.sampleFileTypeDynamoToEnum[fileName] || 'nil';
