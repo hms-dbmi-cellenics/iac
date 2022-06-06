@@ -1,4 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
+# CF transform required to inject lamba required for secret rotation
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-secretsmanager.html
 Transform: AWS::SecretsManager-2020-07-23
 Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
 
@@ -60,6 +62,9 @@ Resources:
     Properties:
       SecretId: !Ref RDSMasterUserSecret
       HostedRotationLambda:
+        # AWS provided Lambda to rotate single user for PostgreSQL
+        # https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_available-rotation-templates.html#sar-template-postgre-singleuser
+        # This lambda will be injected into the stack. Injection requires AWS transform defined above.
         RotationType: PostgreSQLSingleUser
         RotationLambdaName: !Sub "RDSSecretsManagerRotation${Environment}"
         VpcSubnetIds:
@@ -91,7 +96,6 @@ Resources:
       EnableIAMDatabaseAuthentication: true
       BackupRetentionPeriod: 5
       SourceRegion: !Sub '${AWS::Region}'
-      # Check if we want to change this
       StorageEncrypted: false
       VpcSecurityGroupIds:
         - Fn::ImportValue:
