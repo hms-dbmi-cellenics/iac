@@ -137,9 +137,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-274-merge-a29ec571939a62f88d6b3c23f0542a5c78eb1c32-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-274-merge-bce69d0b992aefa393d6a0b4a74ea77094da5496-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-274-merge-a29ec571939a62f88d6b3c23f0542a5c78eb1c32-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-274-merge-bce69d0b992aefa393d6a0b4a74ea77094da5496-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: alex-worker274-pipeline242
