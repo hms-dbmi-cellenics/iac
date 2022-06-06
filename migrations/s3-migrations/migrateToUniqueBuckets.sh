@@ -1,7 +1,7 @@
 
 old_buckets=("plots-tables" "cell-sets" "worker-results" "processed-matrix" "biomage-pipeline-debug" "biomage-source" "biomage-filtered-cells" "biomage-backups" "biomage-originals" "biomage-public-datasets") 
 environments=("staging" "production")
-accound_id="242905224710"
+accound_id=$(aws sts get-caller-identity --query Account --output text)
 
 for environment in ${environments[@]}; do
   for bucket in ${old_buckets[@]}; do
