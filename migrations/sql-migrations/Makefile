@@ -13,3 +13,11 @@ copy-data:
 		venv/bin/python3 dynamo_to_json.py --source-env=${SOURCE_ENV};\
 	fi
 	@SOURCE_ENV=${SOURCE_ENV} TARGET_ENV=${TARGET_ENV} npm run dynamoToSql
+
+migrate:
+	@echo "Migrating database schema for ${TARGET_ENV}"
+	@NODE_ENV=${TARGET_ENV} knex migrate:latest
+
+migrate-down:
+	@echo "Deleting database schema for ${TARGET_ENV}"
+	@NODE_ENV=${TARGET_ENV} knex migrate:down
