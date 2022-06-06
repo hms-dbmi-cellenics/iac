@@ -32,27 +32,33 @@ module.exports = (record, dyno, callback) => {
     throw new Error('Environment (staging/production) must be specified.');
   }
 
-  const attrValues = {
-    ':pid': record.experimentId,
-    ':p_config': recursiveCamelcase(record.processingConfig)
-  };
+  try {
+    const attrValues = {
+      ':p_config': recursiveCamelcase(record.processingConfig)
+    };
 
-  // If you are running a dry-run, `dyno` will be null
-  if (!dyno) return callback();
+    // If you are running a dry-run, `dyno` will be null
+    if (!dyno) return callback();
 
-  dyno.updateItem({
-    Key: {experimentId: record.experimentId},
-    UpdateExpression: 'SET processingConfig = :p_config',
-    ExpressionAttributeValues: attrValues
-  }, (err) => {
-    if(err) {
-      console.log(`${record.experimentId} failed to update`);
-      throw new Error(err);
-    }
-  });
+    dyno.updateItem({
+      Key: {experimentId: record.experimentId},
+      UpdateExpression: 'SET processingConfig = :p_config',
+      ExpressionAttributeValues: attrValues
+    }, (err) => {
+      if(err) {
+        console.log(`${record.experimentId} failed to update`);
+        throw new Error(err);
+      }
+    });
 
-  updated++;
-  callback();
+    console.log(`Updated experiment ${record.experimentId}`)
+
+    updated++;
+    callback();
+  } catch(e) {
+    console.log('eDebug');
+    console.log(e);
+  }
 }
 
 module.exports.finish = (dyno, callback) => {
