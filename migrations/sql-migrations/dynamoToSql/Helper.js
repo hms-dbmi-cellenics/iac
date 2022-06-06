@@ -1,3 +1,17 @@
+const _ = require('lodash');
+
+const garbage = ['api_url', 'auth_JWT'];
+// Removes properties that should't be in the processing config
+const omitGarbage = (obj) => {
+  _.forIn(obj, function(value, key) {
+    if (_.isObject(value)) {
+      omitGarbage(value);
+    } else if (garbage.includes(key)) {
+      delete obj[key];
+    }
+  });
+}
+
 class Helper {
   constructor(sqlClient) {
     this.sqlClient = sqlClient;
@@ -30,11 +44,13 @@ class Helper {
   }
   
   sqlInsertExperiment = async (experimentId, projectData, experimentData) => {
+    omitGarbage(experimentData.processingConfig);
+
     const sqlExperiment = {
       id: experimentId,
       name: projectData.name,
       description: projectData.description,
-      processing_config: experimentData.processingConfig,
+      processing_config: camelcasedProcessingConfig,
       samples_order: JSON.stringify(experimentData.sampleIds),
       created_at: projectData.createdDate,
       updated_at: projectData.lastModified,
