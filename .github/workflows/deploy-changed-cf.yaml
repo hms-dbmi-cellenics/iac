@@ -111,7 +111,7 @@ jobs:
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
       - id: deploy-irsa-template
         if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
