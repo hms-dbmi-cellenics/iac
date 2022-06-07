@@ -1,4 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
+# CF transform required to inject lamba required for secret rotation
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-secretsmanager.html
+Transform: AWS::SecretsManager-2020-07-23
 Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
 
 Parameters:
@@ -35,6 +38,46 @@ Parameters:
     Default: aurora
 
 Resources:
+  RDSMasterUserSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: |-
+        RDS master secret. Refrain from using this secret as it breaks the IAM
+        permission model that we have implemented to access the RDS. You should use
+        dev_role to access the RDS - it has the same permissions as the db root user.
+      Name: !Sub "${DBSecretPrefix}-${Environment}"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "postgres"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: "/@\"'\\"
+
+  RDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref RDSMasterUserSecret
+      TargetId: !Ref DBInstance1
+      TargetType: AWS::RDS::DBInstance
+
+  RDSSecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: RDSInstanceAttachment
+    Properties:
+      SecretId: !Ref RDSMasterUserSecret
+      HostedRotationLambda:
+        # AWS provided Lambda to rotate single user for PostgreSQL
+        # https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_available-rotation-templates.html#sar-template-postgre-singleuser
+        # This lambda will be injected into the stack. Injection requires AWS transform defined above.
+        RotationType: PostgreSQLSingleUser
+        RotationLambdaName: !Sub "RDSSecretsManagerRotation${Environment}"
+        VpcSubnetIds:
+          Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
+        VpcSecurityGroupIds:
+          Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"
+      RotationRules:
+        Duration: 2h
+        ScheduleExpression: 'cron(0 8 1 * ? *)'
+
   DBCluster:
     Type: AWS::RDS::DBCluster
     DeletionPolicy: Snapshot
@@ -51,13 +94,12 @@ Resources:
       Port: !Ref DBPort
       # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
       DeletionProtection: false
-      MasterUsername: !Join ["", ["{{resolve:secretsmanager:", !Join ['-', [!Ref DBSecretPrefix, !Ref Environment]], ":SecretString:username}}" ]]
-      MasterUserPassword: !Join ["", ["{{resolve:secretsmanager:", !Join ['-', [!Ref DBSecretPrefix, !Ref Environment]], ":SecretString:password}}" ]]
+      MasterUsername: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::username}}"
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::password}}"
       EnableIAMDatabaseAuthentication: true
       BackupRetentionPeriod: 5
       SourceRegion: !Sub '${AWS::Region}'
-      # Check if we want to change this
-      StorageEncrypted: false
+      StorageEncrypted: true
       VpcSecurityGroupIds:
         - Fn::ImportValue:
             !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
