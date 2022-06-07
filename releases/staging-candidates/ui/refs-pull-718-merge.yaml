@@ -33,7 +33,7 @@ spec:
     livenessProbe:
       probeType: tcpSocket
     service:
-      additionalHosts: false
+      additionalHosts: true
     kubernetes:
       env: staging
     biomageCi:
