@@ -50,7 +50,7 @@ class Helper {
       id: experimentId,
       name: projectData.name,
       description: projectData.description,
-      processing_config: camelcasedProcessingConfig,
+      processing_config: experimentData.processingConfig,
       samples_order: JSON.stringify(experimentData.sampleIds),
       created_at: projectData.createdDate,
       updated_at: projectData.lastModified,
