@@ -177,7 +177,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 29Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-239-merge-ef5bad82dec5fa08b7c89763aacf9a131ccd52b4-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-239-merge-cbd3e04b3a30ef09c6e145874bcc30dfc98710f3-pipeline-runner
     replicaCount: 0
     sandboxId: ahriman-gamy-booby
     serviceAccount:
