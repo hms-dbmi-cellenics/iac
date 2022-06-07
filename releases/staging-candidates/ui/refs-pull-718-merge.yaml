@@ -33,7 +33,7 @@ spec:
     livenessProbe:
       probeType: tcpSocket
     service:
-      additionalHosts: true
+      additionalHosts: false
     kubernetes:
       env: staging
     biomageCi:
@@ -42,7 +42,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-718-merge-93929c25975cd468958a8f52dc7a638dc89a8879
+      tag: refs-pull-718-merge-a49dfac9ef9069d7fbc374b292fb79afb0369f5e
     replicaCount: 1
     serviceAccount:
       iamRole: ui-role-staging
