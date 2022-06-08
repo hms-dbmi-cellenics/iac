@@ -55,10 +55,8 @@ spec:
             port:
               number: {{ .Values.service.externalPort }}
 {{- if .Values.service.additionalHosts }}
-{{- range $host := .Values.service.additionalHosts }}
-  - host: {{ $host }}
+  - host: {{ .Values.myAccount.domainName }}
     http:
       <<: *httpRule
-{{- end -}}
 {{- end -}}
 {{- end -}}

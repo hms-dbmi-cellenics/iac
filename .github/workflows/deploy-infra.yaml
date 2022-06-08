@@ -200,12 +200,38 @@ jobs:
         continue-on-error: true
         run: |-
           kubectl create namespace flux
-      
+
+      - id: install-yq
+        name: Install yq for modifying the deployment spec.
+        run: |-
+          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+
+      - id: fill-account-specific-metadata
+        name: Fill in account specific metadata in ConfigMap
+        run: |-
+          if [ "${{ matrix.environment }}" = "production" ]; then
+            DOMAIN_NAME="scp.biomage.net"
+          fi
+
+          if [ "${{ matrix.environment }}" = "staging" ]; then
+            DOMAIN_NAME="scp-staging.biomage.net"
+          fi
+
+          AWS_REGION="${{ env.region }}"
+          AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
+
+          yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
+          | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
+          | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
+          > infra/account-config.yaml
+
+          cat infra/account-config.yaml
+
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
-        continue-on-error: true
+        continue-on-error: false
         run: |-
-          kubectl create configmap account-config --from-file=account-config.yaml -n flux
+          kubectl create configmap account-config --from-file=infra/account-config.yaml -n flux -o yaml --dry-run | kubectl replace -f -
 
       - id: install-fluxctl
         name: Install fluxctl
