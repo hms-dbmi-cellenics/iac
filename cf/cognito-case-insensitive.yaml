@@ -92,7 +92,7 @@ Resources:
                   - "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
-        - PolicyName: !Sub "can-list-obects-in-public-datasets-${Environment}-bucket"
+        - PolicyName: !Sub "can-list-objects-in-public-datasets-${Environment}-bucket"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
