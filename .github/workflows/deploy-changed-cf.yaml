@@ -207,6 +207,7 @@ jobs:
                 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public to api_role;
                 GRANT dev_role TO ${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME};
                 ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO api_role;
+                ALTER DEFAULT PRIVILEGES FOR USER dev_role IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO api_role;
                 REVOKE dev_role FROM ${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME};
                 GRANT rds_iam TO api_role;
                 GRANT rds_iam, ${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME} TO dev_role;
