@@ -32,6 +32,8 @@ spec:
       periodSeconds: 30
     livenessProbe:
       probeType: tcpSocket
+    service:
+      additionalHosts: false
     kubernetes:
       env: staging
     biomageCi:
@@ -40,7 +42,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-8343b846702ce0fb6c719d11ef4fd2b6eafd63bb
+      tag: refs-heads-master-7672eb5911fd788ec6fb6770cc1190d370b9def9
     replicaCount: 1
     serviceAccount:
       iamRole: ui-role-staging
