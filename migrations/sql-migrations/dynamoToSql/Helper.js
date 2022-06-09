@@ -99,7 +99,7 @@ class Helper {
       updated_at: sample.lastModified,
     };
     
-    return await this.sqlInsert(sqlSample, 'sample');
+    return await this.sqlInsert(sqlSample, 'sample', sample);
   };
   
   sqlInsertSampleFile = async (sampleFileUuid, projectUuid, sample, fileName, file) => {

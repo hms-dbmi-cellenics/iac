@@ -58,6 +58,9 @@ const migrateProject = async (project, helper) => {
     await helper.sqlInsertExperimentExecutionQC(experimentId, experimentData);
   }
 
+  // This breaks the Object.values if we don't remove it
+  delete sampleData.samples.ids;
+
   const samples = Object.values(sampleData.samples);
   if (samples.length === 0) {
     console.log(`No samples in the project ${projectUuid}, experiment ${experimentId}, finishing`)
