@@ -64,11 +64,11 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: lint
-        name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
-        with:
-          args: ${{ matrix.template }}
+      # - id: lint
+      #   name: Lint template
+      #   uses: scottbrenner/cfn-lint-action@1.6.1
+      #   with:
+      #     args: ${{ matrix.template }}
 
       - id: set-up-creds
         name: Configure AWS credentials
