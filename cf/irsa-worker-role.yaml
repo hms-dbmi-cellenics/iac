@@ -53,6 +53,13 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}"
                   - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}-${AWS::AccountId}"
+
+
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -65,6 +72,11 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
+
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -75,6 +87,7 @@ Resources:
                   - "s3:PutObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-read-from-worker-queue-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
