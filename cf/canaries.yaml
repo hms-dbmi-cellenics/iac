@@ -74,10 +74,10 @@ Resources:
                 Action:
                   - "sns:Publish"
                 Resource:
-                  - !Sub "arn:aws:sns:eu-west-1:${AWS::AccountId}:cloudwatch-alarms-${Environment}"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms-${Environment}"
                 Condition:
                   ArnLike:
-                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:eu-west-1:${AWS::AccountId}:alarm:*${Environment}*"
+                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*${Environment}*"
 
   UICanary:
     Type: AWS::Synthetics::Canary

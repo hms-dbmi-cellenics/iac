@@ -35,7 +35,7 @@ jobs:
         name: Decrypt credentials from user.
         run: |-
             SECRETS="$(aws kms decrypt \
-              --key-id arn:aws:kms:${REGION}:242905224710:alias/iac-secret-key \
+              --key-id arn:aws:kms:${REGION}:${{ steps.setup-aws.outputs.aws-account-id }}:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
               --output text --query Plaintext)"
 
