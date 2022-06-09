@@ -232,14 +232,4 @@ Resources:
                 Action:
                   - "support:DescribeServices"
                   - "support:DescribeSeverityLevels"
-                  - "support:SearchForCases"
-                Resource: "*"
-
-        - PolicyName: "allow-temporary-access-to-secrets"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "ssm:*"
                 Resource: "*"
