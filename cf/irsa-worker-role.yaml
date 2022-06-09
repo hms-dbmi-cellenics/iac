@@ -52,13 +52,10 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
-                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}-${AWS::AccountId}"
-
 
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
@@ -69,12 +66,10 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::biomage-uploaded-samples-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
