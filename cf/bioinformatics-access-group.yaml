@@ -35,9 +35,9 @@ Resources:
                   - 's3:PutObject'
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS:AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS:AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-list-${Environment}-source"
           PolicyDocument:
@@ -49,9 +49,9 @@ Resources:
                   - 's3:GetBucketLocation'
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS:AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS:AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-update-${Environment}-experiment-data"
           PolicyDocument:
