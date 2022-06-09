@@ -20,7 +20,7 @@ on:
         required: true
         type: string
 env:
-  region: 'eu-west-1'
+  region: ${{ secrets.AWS_REGION }}
 
 jobs:
   deploy-staging:

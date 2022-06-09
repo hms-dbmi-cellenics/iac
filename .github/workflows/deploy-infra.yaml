@@ -18,7 +18,7 @@ on:
         - staging and production
         default: staging
 env:
-  region: 'eu-west-1'
+  region: ${{ secrets.AWS_REGION }}
 
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
