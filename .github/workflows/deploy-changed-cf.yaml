@@ -104,7 +104,7 @@ jobs:
 
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ !contains(matrix.template, 'irsa-')}}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }}"
