@@ -206,19 +206,33 @@ jobs:
         run: |-
           sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
 
-      - id: fill-account-specific-metadata
-        name: Fill in account specific metadata in ConfigMap
+      - id: setup-domain
+        name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
-            DOMAIN_NAME="scp.biomage.net"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
           fi
 
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            DOMAIN_NAME="scp-staging.biomage.net"
+            # The value of secrets.DOMAIN_NAME will be scp.biomage.net
+            # So we have to split and get the base domain name
+
+            #Read the split words into an array based on dot delimiter
+            # Split into ["scp", "biomage", "net"]
+            IFS='.' read -a SPLIT <<< "${{ secrets.DOMAIN_NAME }}"
+
+            DOMAIN_NAME="scp-staging.${SPLIT[1]}.${SPLIT[2]}"
           fi
+
+          echo "::set-output name=domain-name::$DOMAIN_NAME"
+
+      - id: fill-account-specific-metadata
+        name: Fill in account specific metadata in ConfigMap
+        run: |-
 
           AWS_REGION="${{ env.region }}"
           AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
+          DOMAIN_NAME="${{ steps.setup-domain.outputs.domain-name }}"
 
           yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
@@ -310,7 +324,7 @@ jobs:
         name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }}"
+          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
           name: "biomage-alb-route53-${{ matrix.environment }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"

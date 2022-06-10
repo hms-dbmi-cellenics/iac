@@ -23,23 +23,25 @@ Parameters:
     Type: String
     Description: The ID of the hosted zone
 
+Outputs:
+  DomainName:
+    Value: !Ref DomainName
+    Export:
+      Name: !Sub "DomainName-${Environment}"
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-    
-Resources: 
+Resources:
   IngressControllerMapping:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       HostedZoneName: !Ref DomainName
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
-      - Name: !Join ['.', [!If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
+      - Name: !Ref DomainName
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
-      - Name: !Join ['.', ['*', !If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
+      - Name: !Join ['.', ['*', !Ref DomainName]]
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName

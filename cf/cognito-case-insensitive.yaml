@@ -10,6 +10,14 @@ Parameters:
       - staging
       - production
     Description: The environment for which the buckets need to be created.
+  FromEmail:
+    Type: String
+    Default: noreply@biomage.net
+    Description: The email users receive registration message from
+  ReplyToEmail:
+    Type: String
+    Default: hello@biomage.net
+    Description: The email users reply registration message to
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -179,8 +187,8 @@ Resources:
         DeviceOnlyRememberedOnUserPrompt: true
       EmailConfiguration:
         EmailSendingAccount: COGNITO_DEFAULT
-        #From: noreply@biomage.net
-        ReplyToEmailAddress: hello@biomage.net
+        From: !Ref FromEmail
+        ReplyToEmailAddress: !Ref ReplyToEmail
       EnabledMfas:
         - SMS_MFA
         - SOFTWARE_TOKEN_MFA
