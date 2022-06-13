@@ -117,10 +117,7 @@ jobs:
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
       matrix:
-        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
-    env:
-      CLUSTER_ENV: ${{ matrix.environment }}
     steps:
       - id: checkout
         name: Check out source code
@@ -130,7 +127,7 @@ jobs:
         name: Lint template
         uses: scottbrenner/cfn-lint-action@1.6.1
         with:
-          args: ${{ steps.check-number-of-cf-files.outputs.files }}
+          args: ${{ matrix.template }}
 
   deploy-templates:
     name: Deploy changed CloudFormation template
