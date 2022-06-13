@@ -43,7 +43,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: 0.29.3
+      tag: 0.29.4
     replicaCount: 4
     serviceAccount:
       iamRole: ui-role-production
