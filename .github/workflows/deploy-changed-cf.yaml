@@ -1,5 +1,15 @@
 name: Deploy changed CloudFormation templates
 on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        type: choice
+        description: Select environment to deploy to
+        options:
+        - staging
+        - production
+        - staging and production
+        default: staging
   push:
     branches:
       - master
@@ -14,6 +24,54 @@ on:
       - 'cf/**.yml'
 env:
   region: 'eu-west-1'
+
+# this ensures that only one CI pipeline with the same key
+#  can run at once in order to prevent undefined states
+concurrency: cluster-update-mutex
+
+jobs:
+  setup:
+    name: Check secrets and set up matrix
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete. The secrets can be set/rotated
+            echo by running `rotate-ci` from `biomage-utils`.
+            false
+          fi
+      - id: set-matrix
+        name: Set up cluster matrix
+        run: |-
+          if [ "${CLUSTER}" = "staging" ]; then
+            echo '::set-output name=matrix::["staging"]'
+          elif [ "${CLUSTER}" = "production" ]; then
+            echo '::set-output name=matrix::["production"]'
+          elif [ "${CLUSTER}" = "staging and production" ]; then
+            echo '::set-output name=matrix::["staging", "production"]'
+          fi
+        env:
+          CLUSTER: ${{ github.event.inputs.cluster }}
 
 jobs:
   get-modified-templates:
@@ -70,7 +128,7 @@ jobs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
@@ -146,7 +204,7 @@ jobs:
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
