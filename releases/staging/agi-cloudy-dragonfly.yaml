@@ -139,7 +139,7 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-277-merge-43505f9b0797a8a5a18d9b204dc412f84d273c60-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-277-merge-dbfd0005bfe525be0497081da7f734b0dfb1311b-python
     r:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-277-merge-02600a6afcc7abc5ac625f24e5647aa56f8e4afa-r
       memoryRequest: 4Gi
