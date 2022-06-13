@@ -22,15 +22,20 @@ spec:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
     ref: STAGING_CHART_REF
+  valuesFrom:
+    - configMapKeyRef:
+        name: account-config
+        namespace: flux
+        key: account-config.yaml
   values:
     kubernetes:
       env: staging
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+      iamRole: worker-role-staging
     sandboxId: STAGING_SANDBOX_ID
     replicaCount: 0
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-486ea3a78d0889dd41678fa2f29c4ac5aacdd2b6-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-1b20da0b54763159fc7d8300de684ed91726b6c3-r
       memoryRequest: 4Gi
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-486ea3a78d0889dd41678fa2f29c4ac5aacdd2b6-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-1b20da0b54763159fc7d8300de684ed91726b6c3-python
