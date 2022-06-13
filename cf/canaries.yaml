@@ -180,8 +180,8 @@ Resources:
       ExecutionRoleArn: !GetAtt CanaryExecutionRole.Arn
       RunConfig:
         EnvironmentVariables:
-          TEST_URL: !If [
-            isProd, Fn::ImportValue: !Sub "DomainName-${Environment}",
+          TEST_URL: !If [ isProd,
+            !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
             !Sub ["https://ui-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]
       SuccessRetentionPeriod: 2

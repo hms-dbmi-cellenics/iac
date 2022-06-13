@@ -27,9 +27,10 @@ Resources:
       UserPoolId:
         Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolId"
       CallbackURLs:
-        - !Sub ["${BaseUrl}/data-management", BaseUrl: !If [
-            isProd, Fn::ImportValue: !Sub "DomainName-${Environment}",
-            !Sub ["https://ui-${SandboxID}.${DomainName}/data-management", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+        - !Sub ["${BaseUrl}/data-management", BaseUrl:
+            !If [ isProd,
+              !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+              !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]]
       AllowedOAuthFlows:
         - 'code'
@@ -39,14 +40,16 @@ Resources:
         - 'openid'
         - 'aws.cognito.signin.user.admin'
         - 'profile'
-      DefaultRedirectURI: !Sub ["${BaseUrl}/data-management", BaseUrl: !If [
-            isProd, Fn::ImportValue: !Sub "DomainName-${Environment}",
-            !Sub ["https://ui-${SandboxID}.${DomainName}/data-management", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+      DefaultRedirectURI: !Sub ["${BaseUrl}/data-management", BaseUrl:
+            !If [ isProd,
+              !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+              !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]]
       LogoutURLs:
-          - !Sub ["${BaseUrl}/data-management", BaseUrl: !If [
-            isProd, Fn::ImportValue: !Sub "DomainName-${Environment}",
-            !Sub ["https://ui-${SandboxID}.${DomainName}/data-management", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+          - !Sub ["${BaseUrl}/data-management", BaseUrl:
+            !If [ isProd,
+              !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+              !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]]
 
       SupportedIdentityProviders:
