@@ -177,7 +177,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-246-merge-777eaffab43a7f59a1257bb7a68c6e5e84ff3788-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-246-merge-3159e43c53962847e5d087a253ad95ad491f6d6d-pipeline-runner
     replicaCount: 0
     sandboxId: agi-lumpy-monster
     serviceAccount:
