@@ -73,7 +73,6 @@ jobs:
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
 
-jobs:
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
     runs-on: ubuntu-20.04
