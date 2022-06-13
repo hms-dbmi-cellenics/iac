@@ -30,6 +30,54 @@ env:
 concurrency: cf-update-mutex
 
 jobs:
+  setup:
+    name: Check secrets and set up matrix
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete. The secrets can be set/rotated
+            echo by running `rotate-ci` from `biomage-utils`.
+            false
+          fi
+      - id: set-matrix
+        name: Set up cluster matrix
+        run: |-
+          # Github workflow_dispatch inputs do not use use default value if workflow is not
+          # triggered by dispatch. Therefore, we have to manually provide a default value
+          CLUSTER=${CLUSTER:-"staging"}
+
+          if [ "${GITHUB_REF}" == "refs/heads/master" ] || [ "${CLUSTER}" = "staging and production" ]; then
+            echo '::set-output name=matrix::["staging", "production"]'
+          elif [ "${CLUSTER}" = "staging" ]; then
+            echo '::set-output name=matrix::["staging"]'
+          elif [ "${CLUSTER}" = "production" ]; then
+            echo '::set-output name=matrix::["production"]'
+          fi
+        env:
+          CLUSTER: ${{ github.event.inputs.cluster }}
+          GITHUB_REF: ${{ github.ref }}
+
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
     runs-on: ubuntu-20.04
@@ -63,27 +111,26 @@ jobs:
         run: |-
           # Merge all modified and renamed files into one JSON array
           #jq -s add ${HOME}/files_added.json ${HOME}/files_modified.json ${HOME}/files_renamed.json > ${HOME}/files_to_check.json
+
           cat ${HOME}/files.json
           echo
+
           # Select those that are CF templates (path starts with `cf/`)
           jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/cf_files.json
+
           # Set as output the minified JSON.
           echo "::set-output name=files::$(jq -c . < ${HOME}/cf_files.json)"
           echo "$(jq -c . < ${HOME}/cf_files.json)"
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
-  deploy-templates:
-    name: Deploy changed CloudFormation template
+
+  lint-templates:
+    name: Lint template files
     runs-on: ubuntu-20.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
-    outputs:
-      deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
-        environment: ['production', 'staging']
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
-    env:
-      CLUSTER_ENV: ${{ matrix.environment }}
     steps:
       - id: checkout
         name: Check out source code
@@ -95,6 +142,24 @@ jobs:
         with:
           args: ${{ matrix.template }}
 
+  deploy-templates:
+    name: Deploy changed CloudFormation template
+    runs-on: ubuntu-20.04
+    needs: lint-templates
+    if: github.ref == 'refs/heads/master' || github.event.type == 'WorkflowDispatch'
+    outputs:
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
+        template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
+    env:
+      CLUSTER_ENV: ${{ matrix.environment }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -103,29 +168,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      # This is only necessary for IAM Service Account roles.
-      - id: get-oidc
-        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
-        name: Get OIDC provider information for IRSA role
-        run: |-
-          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
-          echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
-      - id: set-name
-        name: Set name of the CloudFormation stack
-        run: |-
-          echo "Ref is $GITHUB_REF"
-          BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
-          STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
-          echo "::set-output name=stack-name::$STACK_NAME"
-          if [ "$BASE_NAME" == 'rds' ]; then
-            echo "::set-output name=deploy-rds::true"
-          fi
-        env:
-          FILE_NAME: ${{ matrix.template }}
-
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ !contains(matrix.template, 'irsa-') }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }}"
@@ -134,8 +179,32 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
+      # This is only necessary for IAM Service Account roles.
+      - id: get-oidc
+        if: ${{ contains(matrix.template, 'irsa-') }}
+        name: Get OIDC provider information for IRSA role
+        run: |-
+          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
+          echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
+
+      - id: set-name
+        name: Set name of the CloudFormation stack
+        run: |-
+          echo "Ref is $GITHUB_REF"
+          BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
+          STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
+
+          echo "::set-output name=stack-name::$STACK_NAME"
+
+          if [ "$BASE_NAME" == 'rds' ]; then
+            echo "::set-output name=deploy-rds::true"
+          fi
+
+        env:
+          FILE_NAME: ${{ matrix.template }}
+
       - id: deploy-irsa-template
-        if: ${{ contains(matrix.template, 'irsa-') && github.ref == 'refs/heads/master' }}
+        if: ${{ contains(matrix.template, 'irsa-') }}
         name: Deploy IRSA CloudFormation template
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -152,7 +221,7 @@ jobs:
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
-        environment: ['production', 'staging']
+        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
@@ -193,6 +262,7 @@ jobs:
             echo "RDS password not provided"
             exit 1
           fi
+
       - id: setup-rds-roles
         name: Setup RDS roles for default RDS instances
         run: |-
