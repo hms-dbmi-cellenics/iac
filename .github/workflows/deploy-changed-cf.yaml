@@ -77,7 +77,6 @@ jobs:
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
     runs-on: ubuntu-20.04
-    needs: setup
     outputs:
       files: ${{ steps.check-number-of-cf-files.outputs.files }}
       num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
@@ -108,7 +107,7 @@ jobs:
   lint-templates:
     name: Lint template files
     runs-on: ubuntu-20.04
-    needs: get-modified-templates
+    needs: [setup, get-modified-templates]
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
       matrix:
@@ -130,7 +129,7 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: lint-templates
+    needs: [lint-templates, setup, get-modified-templates]
     if: github.ref == 'refs/heads/master' || github.event.type == 'WorkflowDispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
@@ -202,7 +201,7 @@ jobs:
   setup-rds-roles:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
-    needs: deploy-templates
+    needs: [setup, deploy-templates]
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       matrix:
