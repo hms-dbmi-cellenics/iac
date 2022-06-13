@@ -141,7 +141,7 @@ spec:
     python:
       image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a9baa71fdb825dd79f69cec69a718c96a711b1fe-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a20eda76cd19578a467e432943bf858b9be1921c-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cff0fecc5c66f09ee62849b0200a5d0936eaf280-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: ahriman-pipeline239
