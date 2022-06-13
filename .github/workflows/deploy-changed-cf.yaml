@@ -63,6 +63,12 @@ jobs:
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
+          echo "old cluster: ${CLUSTER}"
+
+          CLUSTER=${CLUSTER:-"staging"}
+
+          echo "new cluster: ${CLUSTER}"
+
           if [ "${GITHUB_REF}" = "refs/heads/master" ] || [ "${CLUSTER}" = "staging and production" ]; then
             echo '::set-output name=matrix::["staging", "production"]'
           elif [ "${CLUSTER}" = "staging" ]; then
