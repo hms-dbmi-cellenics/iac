@@ -73,7 +73,6 @@ Resources:
       FilterPolicy:
         type:
           - GEM2SResponse
-
   SNSTopicV2: 
     Type: AWS::SNS::Topic
     Properties: 
