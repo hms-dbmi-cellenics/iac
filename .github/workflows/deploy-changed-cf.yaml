@@ -67,11 +67,12 @@ jobs:
             echo '::set-output name=matrix::["staging"]'
           elif [ "${CLUSTER}" = "production" ]; then
             echo '::set-output name=matrix::["production"]'
-          elif [ "${CLUSTER}" = "staging and production" ]; then
+          elif [ "${CLUSTER}" = "staging and production" ] || [ "${GITHUB_REF}" == "refs/heads/master" ]; then
             echo '::set-output name=matrix::["staging", "production"]'
           fi
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
+          GITHUB_REF: ${{ github.ref }}
 
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
@@ -144,7 +145,7 @@ jobs:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: lint-templates
-    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/master' || github.event.type == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
