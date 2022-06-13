@@ -103,6 +103,16 @@ jobs:
           echo "$(jq -c . < ${HOME}/cf_files.json)"
           echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
 
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: lint
+        name: Lint template
+        uses: scottbrenner/cfn-lint-action@1.6.1
+        with:
+          args: ${{ steps.check-number-of-cf-files.outputs.files }}
+
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
@@ -117,16 +127,6 @@ jobs:
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
-      - id: checkout
-        name: Check out source code
-        uses: actions/checkout@v2
-
-      - id: lint
-        name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
-        with:
-          args: ${{ matrix.template }}
-
       - id: set-up-creds
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
