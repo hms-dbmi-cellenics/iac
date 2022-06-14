@@ -100,19 +100,17 @@ jobs:
           # and concatenate into a JSON array
           git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }} | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
 
+          echo "All changed files"
           cat ${HOME}/files.json
 
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
         run: |-
-          # Merge all modified and renamed files into one JSON array
-          #jq -s add ${HOME}/files_added.json ${HOME}/files_modified.json ${HOME}/files_renamed.json > ${HOME}/files_to_check.json
-
-          cat ${HOME}/files.json
-          echo
-
           # Select those that are CF templates (path starts with `cf/`)
           jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/cf_files.json
+
+          echo "Changed CF files"
+          cat ${HOME}/cf_files.json
 
           # Set as output the minified JSON.
           echo "::set-output name=files::$(jq -c . < ${HOME}/cf_files.json)"
