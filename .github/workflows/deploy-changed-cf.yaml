@@ -42,8 +42,9 @@ jobs:
       - id: get-secret-value
         name: Show secrets
         run: |-
-          echo "get-secret-value"
-          echo "${{ secrets.DOMAIN_NAME['staging'] }}"
+          echo "get staging domain name"
+          echo "${{ fromJson(secrets.DOMAIN_NAME) }}" | jq '.staging'
+          echo "${{ fromJson(secrets.DOMAIN_NAME) }}" | jq '.production'
 
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -141,7 +142,7 @@ jobs:
     strategy:
       matrix:
         environment: ${{ fromJson(needs.setup.outputs.matrix) }}
-        template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
+        template: ${{ fromJson(needs.get-modified-templates.outputs.files) }}
     env:
       CLUSTER_ENV: ${{ matrix.environment }}
     steps:
