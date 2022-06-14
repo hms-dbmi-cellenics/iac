@@ -2,7 +2,7 @@ const objectHash = require('object-hash');
 
 const DEFAULT_NA = 'N.A.';
 
-// Generates a params hash that is really order agnostic, instead of the current one we use, which isnt
+// Generates a params hash that is order agnostic
 const generateGem2sParamsHash = (project, samples, experiment) => {
   if (!project || !samples || !experiment) {
     return false;
