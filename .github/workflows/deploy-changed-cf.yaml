@@ -94,11 +94,8 @@ jobs:
       - id: checkout
         name: Check out current branch source code
         uses: actions/checkout@v2
-
-      - id: check-branches
-        name: see available branches
-        run: |
-          git branch -a
+        with:
+          fetch-depth: 0
 
       - id: get-changed-files
         name: Get changed files
