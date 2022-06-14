@@ -13,7 +13,7 @@ on:
       - 'cf/**.yaml'
       - 'cf/**.yml'
 env:
-  region: {{ secrets.AWS_REGION }}
+  region: 'eu-west-1'
 
 jobs:
   get-modified-templates:

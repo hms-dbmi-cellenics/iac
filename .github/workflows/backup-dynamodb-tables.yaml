@@ -7,7 +7,7 @@ on:
         required: false
         default: 'all'
 env:
-  region: ${{ secrets.AWS_REGION }}
+  region: 'eu-west-1'
 
 jobs:
   backup-tables:

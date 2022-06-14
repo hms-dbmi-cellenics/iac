@@ -5,9 +5,6 @@ on:
     - cron:  '20 4 * * *'
   workflow_dispatch:
 
-env:
-  region: ${{ secrets.AWS_REGION }}
-
 jobs:
   run-e2e:
     name: Delete old staging step functions
@@ -19,7 +16,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: eu-west-1
 
       # This will take everything OLDER THAN the last 500 step functions
       # marked as staging and remove them.

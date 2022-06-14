@@ -18,7 +18,7 @@ on:
         - staging and production
         default: staging
 env:
-  region: ${{ secrets.AWS_REGION }}
+  region: 'eu-west-1'
 
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
@@ -210,7 +210,7 @@ jobs:
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            DOMAIN_NAME="scp.biomage.net"
           fi
 
           if [ "${{ matrix.environment }}" = "staging" ]; then
@@ -219,7 +219,7 @@ jobs:
 
             #Read the split words into an array based on dot delimiter
             # Split into ["scp", "biomage", "net"]
-            IFS='.' read -a SPLIT <<< "${{ secrets.DOMAIN_NAME }}"
+            IFS='.' read -a SPLIT <<< "scp.biomage.net"
 
             DOMAIN_NAME="scp-staging.${SPLIT[1]}.${SPLIT[2]}"
           fi
