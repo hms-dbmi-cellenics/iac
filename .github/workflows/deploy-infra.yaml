@@ -210,18 +210,16 @@ jobs:
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
-            DOMAIN_NAME="scp.biomage.net"
+            DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PRODUCTION }}
           fi
 
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            # The value of secrets.DOMAIN_NAME will be scp.biomage.net
-            # So we have to split and get the base domain name
+            DOMAIN_NAME=${{ secrets.DOMAIN_NAME_STAGING }}
+          fi
 
-            #Read the split words into an array based on dot delimiter
-            # Split into ["scp", "biomage", "net"]
-            IFS='.' read -a SPLIT <<< "scp.biomage.net"
-
-            DOMAIN_NAME="scp-staging.${SPLIT[1]}.${SPLIT[2]}"
+          if [ -z "$DOMAIN_NAME" ]; then
+            echo "No domain name provided. Set DOMAIN_NAME_PRODUCTION or DOMAIN_NAME_STAGING in repository secrets."
+            exit 1
           fi
 
           echo "::set-output name=domain-name::$DOMAIN_NAME"
@@ -229,17 +227,16 @@ jobs:
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
-
-          AWS_REGION="${{ env.region }}"
-          AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
-          DOMAIN_NAME="${{ steps.setup-domain.outputs.domain-name }}"
-
           yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
           | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
           > infra/account-config.yaml
 
           cat infra/account-config.yaml
+        env:
+          AWS_REGION: ${{ env.region }}
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
