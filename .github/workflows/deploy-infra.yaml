@@ -54,12 +54,18 @@ jobs:
             ERROR=true
           fi
 
+          if [ -z "${{ secrets.DOMAIN_NAME_STAGING }}" ] && [ -z "${{ secrets.DOMAIN_NAME_PRODUCTION }}" ]
+          then
+            echo Domain name is not defined.
+            ERROR=true
+          fi
+
           if [ ! -z "$ERROR" ]
           then
             echo
             echo This workflow requires some secrets to complete. The secrets can be set/rotated
             echo by running `rotate-ci` from `biomage-utils`.
-            false
+            exit 1
           fi
       - id: set-matrix
         name: Set up cluster matrix
