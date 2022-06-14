@@ -23,6 +23,21 @@ jobs:
       files: ${{ steps.check-number-of-cf-files.outputs.files }}
       num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
     steps:
+      - id: test-secret
+        name: show secrets
+        run: |
+          echo "get secret value"
+          echo "${{ secrets.DOMAIN_NAME }}"
+
+          echo "get aws_region"
+          echo "${{ secrets.AWS_REGION }}"
+
+      - id: get-secret-value
+        name: get secret value
+        run: |
+          echo "get aws_region"
+          echo "${{ secrets.DOMAIN_NAME["staging"] }}"
+
       - id: get-changed-files
         name: Get changed files
         uses: lots0logs/gh-action-get-changed-files@2.1.4
