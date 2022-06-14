@@ -32,19 +32,14 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - id: show-secrets
-        name: Show secrets
-        run: |-
-          echo "show secrets"
-          echo "${{ secrets.DOMAIN_NAME }}"
-          echo "${{ secrets.AWS_REGION }}"
-
       - id: get-secret-value
         name: Show secrets
         run: |-
           echo "get staging domain name"
-          echo "${{ fromJson(secrets.DOMAIN_NAME) }}" | jq '.staging'
-          echo "${{ fromJson(secrets.DOMAIN_NAME) }}" | jq '.production'
+          echo "${{ secrets.DOMAIN_NAME }}" | jq '.staging'
+          echo "${{ secrets.DOMAIN_NAME }}" | jq '.production'
+
+          exit 1
 
       - id: check-secrets
         name: Check if necessary secrets are installed.
