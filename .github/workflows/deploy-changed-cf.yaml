@@ -44,8 +44,16 @@ jobs:
 
           echo "Production domain name"
           echo $PRODUCTION_DOMAIN_NAME
+
+          echo "Domain name staging"
+          echo $PRODUCTION_DOMAIN_NAME
+
+          echo "Domain name production"
+          echo $DOMAIN_NAME_PRODUCTION
         env:
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+          DOMAIN_NAME_STAGING: ${{ secrets.DOMAIN_NAME_STAGING }}
+          DOMAIN_NAME_PRODUCTION: ${{ secrets.DOMAIN_NAME_PRODUCTION }}
 
       - id: check-secrets
         name: Check if necessary secrets are installed.
