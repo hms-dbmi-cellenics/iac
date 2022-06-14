@@ -130,7 +130,7 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: lint-templates
+    needs: [setup, get-modified-templates, lint-templates]
     if: github.ref == 'refs/heads/master' || github.event.type == 'WorkflowDispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
