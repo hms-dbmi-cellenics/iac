@@ -97,11 +97,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: test
-        name: check-diff
-        run: |
-          git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }}
-
       - id: get-changed-files
         name: Get changed files
         run: |
@@ -109,7 +104,7 @@ jobs:
 
           # Get name of changed files
           # and concatenate into a JSON array
-          git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }} | xargs -I 'value' jq --arg "{}" '. |= . + [$value]' empty.json | jq -s 'add' > ${HOME}/files.json
+          git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }} | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
 
           cat ${HOME}/files.json
 
