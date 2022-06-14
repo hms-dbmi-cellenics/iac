@@ -91,15 +91,11 @@ jobs:
       #   with:
       #     token: ${{ secrets.GITHUB_TOKEN }}
 
-      - id: checkout-master
-        name: Check out master source code for diff
-        uses: actions/checkout@v2
-        with:
-          ref: 'master'
-
       - id: checkout
         name: Check out current branch source code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - id: get-changed-files
         name: Get changed files
