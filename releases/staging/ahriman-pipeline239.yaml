@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-f64f54d8115105b0a013341b48c8905fa1574ee2
+      tag: refs-heads-master-986df9ad2b84a7fe3834f04321468435e6a9a772
     kubernetes:
       env: staging
     livenessProbe:
