@@ -97,6 +97,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - id: check-branches
+        name: see available branches
+        run: |
+          git branch -A
+
       - id: get-changed-files
         name: Get changed files
         run: |
