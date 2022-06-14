@@ -25,10 +25,6 @@ on:
 env:
   region: 'eu-west-1'
 
-# this ensures that only one CI pipeline with the same key
-#  can run at once in order to prevent undefined states
-concurrency: cf-update-mutex
-
 jobs:
   setup:
     name: Check secrets and set up matrix
