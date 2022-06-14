@@ -100,7 +100,7 @@ jobs:
       - id: check-branches
         name: see available branches
         run: |
-          git branch -A
+          git branch -a
 
       - id: get-changed-files
         name: Get changed files
