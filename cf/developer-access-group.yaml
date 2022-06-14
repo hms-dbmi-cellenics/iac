@@ -237,3 +237,4 @@ Resources:
                   - "support:DescribeSeverityLevels"
                   - "support:SearchForCases"
                 Resource: "*"
+
