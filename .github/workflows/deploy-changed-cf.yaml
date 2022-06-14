@@ -95,7 +95,7 @@ jobs:
         name: Check out master source code for diff
         uses: actions/checkout@v2
         with:
-          branch: master
+          ref: 'master'
 
       - id: checkout
         name: Check out current branch source code
@@ -108,7 +108,7 @@ jobs:
 
           # Get name of changed files
           # and concatenate into a JSON array
-          git diff --name-only --diff-filter=ACMRT origin/master ${{ github.sha }} | xargs -I 'value' jq --arg "{}" '. |= . + [$value]' empty.json | jq -s 'add' > ${HOME}/files.json
+          git diff --name-only --diff-filter=ACMRT master ${{ github.sha }} | xargs -I 'value' jq --arg "{}" '. |= . + [$value]' empty.json | jq -s 'add' > ${HOME}/files.json
 
           cat ${HOME}/files.json
 
