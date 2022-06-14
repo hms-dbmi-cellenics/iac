@@ -103,7 +103,7 @@ jobs:
 
           # Get name of changed files
           # and concatenate into a JSON array
-          $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }}) | xargs -I 'value' jq --arg "{}" '. |= . + [$value]' empty.json | jq -s 'add' > ${HOME}/files.json
+          $(git diff --name-only --diff-filter=ACMRT 'refs/heads/master' ${{ github.sha }}) | xargs -I 'value' jq --arg "{}" '. |= . + [$value]' empty.json | jq -s 'add' > ${HOME}/files.json
 
           cat ${HOME}/files.json
 
