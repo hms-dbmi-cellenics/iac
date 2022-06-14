@@ -36,10 +36,12 @@ jobs:
         name: Show secrets
         run: |-
           echo "get staging domain name"
-          echo "${{ secrets.DOMAIN_NAME }}" | jq '.staging'
-          echo "${{ secrets.DOMAIN_NAME }}" | jq '.production'
+          echo $DOMAIN_NAME | jq '.staging'
+          echo $DOMAIN_NAME | jq '.production'
 
           exit 1
+        env:
+          DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
 
       - id: check-secrets
         name: Check if necessary secrets are installed.
