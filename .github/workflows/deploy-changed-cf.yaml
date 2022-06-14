@@ -85,11 +85,23 @@ jobs:
       files: ${{ steps.check-number-of-cf-files.outputs.files }}
       num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
     steps:
+      # - id: get-changed-files
+      #   name: Get changed files
+      #   uses: lots0logs/gh-action-get-changed-files@2.1.4
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+
       - id: get-changed-files
         name: Get changed files
-        uses: lots0logs/gh-action-get-changed-files@2.1.4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        # Set outputs using the command.
+        run: |
+          echo "[]" > empty.json
+
+          # Get name of changed files
+          # and concatenate into a JSON array
+          $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }}) | xargs -I 'value' jq --arg "{}" '. |= . + [$value]' empty.json | jq -s 'add' > ${HOME}/files.json
+
+          cat ${HOME}/files.json
 
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
