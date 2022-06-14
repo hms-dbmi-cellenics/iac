@@ -25,10 +25,6 @@ on:
 env:
   region: 'eu-west-1'
 
-# this ensures that only one CI pipeline with the same key
-#  can run at once in order to prevent undefined states
-concurrency: cf-update-mutex
-
 jobs:
   setup:
     name: Check secrets and set up matrix
@@ -41,25 +37,11 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
-          then
-            echo AWS Access Key ID not defined.
-            ERROR=true
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+              echo "This workflow requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY defined in this repository secrets to complete."
+              echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
           fi
 
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key not defined.
-            ERROR=true
-          fi
-
-          if [ ! -z "$ERROR" ]
-          then
-            echo
-            echo This workflow requires some secrets to complete. The secrets can be set/rotated
-            echo by running `rotate-ci` from `biomage-utils`.
-            false
-          fi
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
@@ -85,38 +67,32 @@ jobs:
       files: ${{ steps.check-number-of-cf-files.outputs.files }}
       num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
     steps:
-      - id: test-secret
-        name: show secrets
-        run: |
-          echo "get secret value"
-          echo "${{ secrets.DOMAIN_NAME }}"
-
-          echo "get aws_region"
-          echo "${{ secrets.AWS_REGION }}"
-
-      - id: get-secret-value
-        name: get secret value
-        run: |
-          echo "get aws_region"
-          echo "${{ secrets.DOMAIN_NAME["staging"] }}"
+      - id: checkout
+        name: Check out current branch source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - id: get-changed-files
         name: Get changed files
-        uses: lots0logs/gh-action-get-changed-files@2.1.4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "[]" > empty.json
+
+          # Get name of changed files
+          # and concatenate into a JSON array
+          git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }} | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
+
+          echo "All changed files"
+          cat ${HOME}/files.json
 
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
         run: |-
-          # Merge all modified and renamed files into one JSON array
-          #jq -s add ${HOME}/files_added.json ${HOME}/files_modified.json ${HOME}/files_renamed.json > ${HOME}/files_to_check.json
-
-          cat ${HOME}/files.json
-          echo
-
           # Select those that are CF templates (path starts with `cf/`)
           jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/cf_files.json
+
+          echo "Changed CF files"
+          cat ${HOME}/cf_files.json
 
           # Set as output the minified JSON.
           echo "::set-output name=files::$(jq -c . < ${HOME}/cf_files.json)"
@@ -146,7 +122,7 @@ jobs:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: [setup, get-modified-templates, lint-templates]
-    if: github.ref == 'refs/heads/master' || github.event.type == 'WorkflowDispatch'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
@@ -168,25 +144,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      - id: deploy-template
-        name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') }}
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: ${{ steps.set-name.outputs.stack-name }}
-          template: ${{ matrix.template }}
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
-
-      # This is only necessary for IAM Service Account roles.
-      - id: get-oidc
-        if: ${{ contains(matrix.template, 'irsa-') }}
-        name: Get OIDC provider information for IRSA role
-        run: |-
-          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
-          echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
-
       - id: set-name
         name: Set name of the CloudFormation stack
         run: |-
@@ -202,6 +159,25 @@ jobs:
 
         env:
           FILE_NAME: ${{ matrix.template }}
+
+      - id: deploy-template
+        name: Deploy CloudFormation template
+        if: ${{ !contains(matrix.template, 'irsa-') }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      # The following steps are only necessary for IAM Service Account roles.
+      - id: get-oidc
+        if: ${{ contains(matrix.template, 'irsa-') }}
+        name: Get OIDC provider information for IRSA role
+        run: |-
+          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
+          echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
 
       - id: deploy-irsa-template
         if: ${{ contains(matrix.template, 'irsa-') }}
