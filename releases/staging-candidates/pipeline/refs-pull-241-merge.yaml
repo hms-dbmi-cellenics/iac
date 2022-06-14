@@ -12,8 +12,6 @@ metadata:
   namespace: pipeline-STAGING_SANDBOX_ID
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/pipelineRunner: glob:refs-pull-241-merge-*-pipeline-runner
   labels:
     sandboxId: STAGING_SANDBOX_ID
@@ -23,14 +21,17 @@ spec:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
     ref: STAGING_CHART_REF
+  valuesFrom:
+    - configMapKeyRef:
+        name: account-config
+        namespace: flux
+        key: account-config.yaml
   values:
     clusterEnv: staging
-    awsAccountId: "242905224710"
-    awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-241-merge-bd4e826f00831b210435c183e1cb332ec6858534-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-241-merge-51ba8e6edc7e8635943ca8805a85f46f50477c80-pipeline-runner
     sandboxId: STAGING_SANDBOX_ID
     memoryRequest: 4Gi
     replicaCount: 0
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
+      iamRole: pipeline-role-staging
