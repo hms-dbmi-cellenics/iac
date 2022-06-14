@@ -36,20 +36,14 @@ jobs:
         name: Show secrets
         run: |-
           echo "get staging domain name"
-          STAGING_DOMAIN_NAME = $(echo $DOMAIN_NAME | jq '.staging')
-          PRODUCTION_DOMAIN_NAME = $(echo $DOMAIN_NAME | jq '.production')
+          STAGING_DOMAIN_NAME=$(echo $DOMAIN_NAME | jq '.staging')
+          PRODUCTION_DOMAIN_NAME=$(echo $DOMAIN_NAME | jq '.production')
 
           echo "Staging domain name"
           echo $STAGING_DOMAIN_NAME
 
           echo "Production domain name"
           echo $PRODUCTION_DOMAIN_NAME
-
-          echo "DOMAIN_NAME_STAGING"
-          echo $DOMAIN_NAME_STAGING
-
-          echo "DOMAIN_NAME_PRODUCTION"
-          echo $DOMAIN_NAME_PRODUCTION
         env:
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
 
@@ -142,8 +136,8 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: [setup, get-modified-templates, lint-templates]
-    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    needs: [setup, lint-templates]
+    if: (needs.setup.result == 'success' && needs.lint-templates.result == 'success') && ( github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' )
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
