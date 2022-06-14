@@ -35,21 +35,13 @@ jobs:
       - id: get-secret-value
         name: Show secrets
         run: |-
-          echo "get staging domain name"
-          STAGING_DOMAIN_NAME=$(echo $DOMAIN_NAME | jq '.staging')
-          PRODUCTION_DOMAIN_NAME=$(echo $DOMAIN_NAME | jq '.production')
-
-          echo "Staging domain name"
-          echo $STAGING_DOMAIN_NAME
-
-          echo "Production domain name"
-          echo $PRODUCTION_DOMAIN_NAME
-
           echo "Domain name staging"
-          echo $PRODUCTION_DOMAIN_NAME
+          echo $DOMAIN_NAME_STAGING
 
           echo "Domain name production"
           echo $DOMAIN_NAME_PRODUCTION
+
+          exit 1
         env:
           DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
           DOMAIN_NAME_STAGING: ${{ secrets.DOMAIN_NAME_STAGING }}
