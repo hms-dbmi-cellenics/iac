@@ -91,6 +91,10 @@ jobs:
       #   with:
       #     token: ${{ secrets.GITHUB_TOKEN }}
 
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
       - id: get-changed-files
         name: Get changed files
         # Set outputs using the command.
