@@ -41,25 +41,11 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
-          then
-            echo AWS Access Key ID not defined.
-            ERROR=true
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+              echo "This workflow requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY defined in this repository secrets to complete."
+              echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
           fi
 
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key not defined.
-            ERROR=true
-          fi
-
-          if [ ! -z "$ERROR" ]
-          then
-            echo
-            echo This workflow requires some secrets to complete. The secrets can be set/rotated
-            echo by running `rotate-ci` from `biomage-utils`.
-            false
-          fi
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
