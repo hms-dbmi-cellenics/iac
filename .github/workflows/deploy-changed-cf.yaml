@@ -132,15 +132,6 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: check-event-name
-        name: Check event name
-        run: |
-          echo "Github event.type"
-          echo "${{ github.event.type }}"
-
-          echo "Github event_name"
-          echo "${{ github.event_name }}"
-
       # - id: lint
       #   name: Lint template
       #   uses: scottbrenner/cfn-lint-action@1.6.1
@@ -151,7 +142,7 @@ jobs:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: [setup, get-modified-templates, lint-templates]
-    if: github.ref == 'refs/heads/master' || github.event.type == 'WorkflowDispatch'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
