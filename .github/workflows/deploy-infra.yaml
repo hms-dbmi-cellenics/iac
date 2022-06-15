@@ -306,14 +306,14 @@ jobs:
       #         --set clusterEnv=$CLUSTER_ENV \
       #         --install --wait
 
-      # - id: deploy-env-loadbalancer
-      #   name: Deploy AWS Application Load Balancer for environment
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment }}"
-      #     name: "biomage-k8s-alb-${{ matrix.environment }}"
-      #     template: 'infra/cf-loadbalancer.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-env-loadbalancer
+        name: Deploy AWS Application Load Balancer for environment
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment }}"
+          name: "biomage-k8s-alb-test-${{ matrix.environment }}"
+          template: 'infra/cf-loadbalancer.yaml'
+          no-fail-on-empty-changeset: "1"
 
       - id: deploy-route53
         name: Deploy Route 53 DNS records to ELB

@@ -38,14 +38,14 @@ Outputs:
     Description: The ID of the Amazon Route 53 hosted zone associated with the load balancer.
     Value: !GetAtt LoadBalancer.CanonicalHostedZoneID
     Export:
-      Name: !Sub 'k8s-${Environment}::CanonicalHostedZoneID'
+      Name: !Sub 'k8s-test-${Environment}::CanonicalHostedZoneID'
   DNSName:
-    Description: The DNS name for the load balancer. 
+    Description: The DNS name for the load balancer.
     Value: !GetAtt LoadBalancer.DNSName
     Export:
-      Name: !Sub 'k8s-${Environment}::DNSName'
+      Name: !Sub 'k8s-test-${Environment}::DNSName'
   LoadBalancerFullName:
     Description: The full name of the load balancer.
     Value: !GetAtt LoadBalancer.LoadBalancerFullName
     Export:
-      Name: !Sub 'k8s-${Environment}::LoadBalancerFullName'
+      Name: !Sub 'k8s-test-${Environment}::LoadBalancerFullName'
