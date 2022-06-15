@@ -42,7 +42,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-737-merge-7c967ad374c34800c75b3ed2c5725533dad6cded
+      tag: refs-pull-737-merge-5126c6f69f2e483116143a58afca62bf419624ae
     replicaCount: 1
     serviceAccount:
       iamRole: ui-role-staging
