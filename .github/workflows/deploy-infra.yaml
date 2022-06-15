@@ -210,10 +210,10 @@ jobs:
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
-            DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PRODUCTION }}
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_PRODUCTION }}."
           fi
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}."
           fi
           if [ -z "$DOMAIN_NAME" ]; then
             echo "No domain name provided. Set DOMAIN_NAME_PRODUCTION or DOMAIN_NAME_STAGING in repository secrets."
