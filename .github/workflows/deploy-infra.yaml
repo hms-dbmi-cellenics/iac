@@ -213,7 +213,7 @@ jobs:
             DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PRODUCTION }}
           fi
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            DOMAIN_NAME="test.${{ secrets.DOMAIN_NAME_STAGING }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
           fi
           if [ -z "$DOMAIN_NAME" ]; then
             echo "No domain name provided. Set DOMAIN_NAME_PRODUCTION or DOMAIN_NAME_STAGING in repository secrets."
@@ -311,7 +311,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-k8s-alb-test-${{ matrix.environment }}"
+          name: "biomage-k8s-alb-${{ matrix.environment }}"
           template: 'infra/cf-loadbalancer.yaml'
           no-fail-on-empty-changeset: "1"
 
@@ -320,7 +320,7 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-          name: "biomage-alb-route53-test-${{ matrix.environment }}"
+          name: "biomage-alb-route53-${{ matrix.environment }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
 
