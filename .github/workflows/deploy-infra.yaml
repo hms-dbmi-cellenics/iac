@@ -54,11 +54,16 @@ jobs:
             ERROR=true
           fi
 
+          if [ -z "$DOMAIN_NAME" ] || [ -z "$APP_SUBDOMAIN" ]; then
+            echo "No domain name provided. Set DOMAIN_NAME and APP_SUBDOMAIN in repository secrets."
+            exit 1
+          fi
+
           if [ ! -z "$ERROR" ]
           then
             echo
-            echo This workflow requires some secrets to complete. The secrets can be set/rotated
-            echo by running `rotate-ci` from `biomage-utils`.
+            echo This workflow requires some secrets to complete.
+            echo Refer to the Readme on the required secrets.
             false
           fi
       - id: set-matrix
@@ -201,25 +206,21 @@ jobs:
       #   run: |-
       #     kubectl create namespace flux
 
-      - id: install-yq
-        name: Install yq for modifying the deployment spec.
-        run: |-
-          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+      # - id: install-yq
+      #   name: Install yq for modifying the deployment spec.
+      #   run: |-
+      #     sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
 
       - id: setup-domain
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
-            DOMAIN_NAME=$(yq '.myAccount.domainName' infra/account-config.yaml)
-            APP_SUBDOMAIN=$(yq '.myAccount.appSubdomain' infra/account-config.yaml)
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            APP_SUBDOMAIN="${{ secrets.APP_SUBDOMAIN }}"
           fi
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            DOMAIN_NAME=$(yq '.myAccount.domainName' infra/account-config.yaml)
-            APP_SUBDOMAIN=$(yq '.myAccount.stagingAppSubdomain' infra/account-config.yaml)
-          fi
-          if [ -z "$DOMAIN_NAME" ] || [ -z "$APP_SUBDOMAIN" ]; then
-            echo "No domain name provided. Set DOMAIN_NAME_PRODUCTION or DOMAIN_NAME_STAGING in repository secrets."
-            exit 1
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            APP_SUBDOMAIN="${{ secrets.APP_SUBDOMAIN_STAGING }}"
           fi
 
           echo "::set-output name=domain-name::$DOMAIN_NAME"
@@ -233,7 +234,8 @@ jobs:
       #     AWS_ACCOUNT_ID="${{ steps.setup-aws.outputs.aws-account-id }}"
       #     DOMAIN_NAME="${{ steps.setup-domain.outputs.domain-name }}"
 
-      #     yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
+      #     yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
+      #     | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
       #     | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
       #     > infra/account-config.yaml
 
