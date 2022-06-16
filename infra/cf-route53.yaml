@@ -29,7 +29,7 @@ Parameters:
 
 Outputs:
   DomainName:
-    Value: !Ref DomainName
+    Value: !Ref AppSubdomain
     Export:
       Name: !Sub "DomainName-${Environment}"
 
