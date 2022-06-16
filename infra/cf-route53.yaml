@@ -23,6 +23,10 @@ Parameters:
     Type: String
     Description: The ID of the hosted zone
 
+  AppSubdomain:
+    Type: String
+    Description: Name of the hosted zone
+
 Outputs:
   DomainName:
     Value: !Ref DomainName
@@ -36,12 +40,12 @@ Resources:
       HostedZoneName: !Ref DomainName
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
-      - Name: !Ref DomainName
+      - Name: !Ref AppSubdomain
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
-      - Name: !Join ['.', ['*', !Ref DomainName]]
+      - Name: !Join ['.', ['*', !Ref AppSubdomain]]
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName

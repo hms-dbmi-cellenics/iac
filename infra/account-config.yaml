@@ -1,6 +1,8 @@
 apiVersion: v1
 myAccount:
-  domainName: FILLED_IN_BY_CI
+  domainName: biomage.net
+  appSubdomain: scp.biomage.net
+  stagingAppSubdomain: scp-staging.biomage.net
   region: FILLED_IN_BY_CI
   accountId: FILLED_IN_BY_CI
   #FILLED IN BY IAC CI
