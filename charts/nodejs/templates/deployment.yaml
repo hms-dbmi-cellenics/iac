@@ -70,6 +70,9 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        
+        - name: DOMAIN_NAME
+          value: {{ .Values.myAccount.domainName | quote }}
 
         ports:
         - name: "{{ .Values.service.name }}"
