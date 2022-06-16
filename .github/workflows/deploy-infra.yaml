@@ -54,7 +54,7 @@ jobs:
             ERROR=true
           fi
 
-          if [ -z "$DOMAIN_NAME" ] || [ -z "$APP_SUBDOMAIN" ]; then
+          if [ -z "${{ secrets.DOMAIN_NAME }}" ] || [ -z "${{ secrets.APP_SUBDOMAIN }}" ]; then
             echo "No domain name provided. Set DOMAIN_NAME and APP_SUBDOMAIN in repository secrets."
             exit 1
           fi
