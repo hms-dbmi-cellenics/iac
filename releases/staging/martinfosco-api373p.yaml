@@ -73,7 +73,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/1932-remove-account-specific-hardcodings
   releaseName: api
   values:
     biomageCi:
