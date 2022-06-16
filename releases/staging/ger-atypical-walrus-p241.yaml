@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: ui-ger-atypical-walrus-p241
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: ui
+  namespace: ui-ger-atypical-walrus-p241
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: 1e98d976b248a1208328e4ed5f2deb5b6b84fc6b
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: ger-atypical-walrus-p241
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-47f7569a3b5e18326edc3f0e084bb27e8bd126af
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    service:
+      additionalHosts: false
+    serviceAccount:
+      iamRole: ui-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: api-ger-atypical-walrus-p241
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: api
+  namespace: api-ger-atypical-walrus-p241
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: 1e98d976b248a1208328e4ed5f2deb5b6b84fc6b
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: default
+      repo: hms-dbmi-cellenics/api
+      sandboxId: ger-atypical-walrus-p241
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-e2da4d6c2488fd39e819c2e1eb1c0d317d5f70b8
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: api-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: worker-ger-atypical-walrus-p241
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: worker
+  namespace: worker-ger-atypical-walrus-p241
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: cff0fecc5c66f09ee62849b0200a5d0936eaf280
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cff0fecc5c66f09ee62849b0200a5d0936eaf280-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cff0fecc5c66f09ee62849b0200a5d0936eaf280-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: ger-atypical-walrus-p241
+    serviceAccount:
+      iamRole: worker-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: pipeline-ger-atypical-walrus-p241
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-pull-241-merge-*-pipeline-runner
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: ger-atypical-walrus-p241
+  name: pipeline
+  namespace: pipeline-ger-atypical-walrus-p241
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: refs/pull/241/head
+  releaseName: pipeline
+  values:
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-241-merge-e4a6275c17cfe8b1aecde499fc3deaa88289a96c-pipeline-runner
+    replicaCount: 0
+    sandboxId: ger-atypical-walrus-p241
+    serviceAccount:
+      iamRole: pipeline-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
