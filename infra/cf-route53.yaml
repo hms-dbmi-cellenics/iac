@@ -23,9 +23,13 @@ Parameters:
     Type: String
     Description: The ID of the hosted zone
 
+  AppSubdomain:
+    Type: String
+    Description: Name of the hosted zone
+
 Outputs:
   DomainName:
-    Value: !Ref DomainName
+    Value: !Ref AppSubdomain
     Export:
       Name: !Sub "DomainName-${Environment}"
 
@@ -33,15 +37,17 @@ Resources:
   IngressControllerMapping:
     Type: AWS::Route53::RecordSetGroup
     Properties:
-      HostedZoneName: !Ref DomainName
+      # Hosted zone name requires a trailing dot. See:
+      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html#cfn-route53-recordsetgroup-hostedzonename
+      HostedZoneName: !Sub "${DomainName}."
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
-      - Name: !Ref DomainName
+      - Name: !Ref AppSubdomain
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
-      - Name: !Join ['.', ['*', !Ref DomainName]]
+      - Name: !Join ['.', ['*', !Ref AppSubdomain]]
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName

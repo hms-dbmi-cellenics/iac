@@ -54,10 +54,10 @@ jobs:
             ERROR=true
           fi
 
-          if [ -z "${{ secrets.DOMAIN_NAME_STAGING }}" ] && [ -z "${{ secrets.DOMAIN_NAME_PRODUCTION }}" ]
+          if [ -z "${{ secrets.DOMAIN_NAME }}" ] || [ -z "${{ secrets.APP_SUBDOMAIN }}" ]
           then
-            echo Domain name is not defined.
-            ERROR=true
+            echo "No domain name provided. Set DOMAIN_NAME and APP_SUBDOMAIN in repository secrets."
+            exit 1
           fi
 
           if [ ! -z "$ERROR" ]
@@ -207,28 +207,24 @@ jobs:
         run: |-
           kubectl create namespace flux
 
-      - id: install-yq
-        name: Install yq for modifying the deployment spec.
-        run: |-
-          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
-
       - id: setup-domain
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
-            DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PRODUCTION }}
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            APP_SUBDOMAIN="${{ secrets.APP_SUBDOMAIN }}"
           fi
-
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            DOMAIN_NAME=${{ secrets.DOMAIN_NAME_STAGING }}
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            APP_SUBDOMAIN="${{ secrets.APP_SUBDOMAIN_STAGING }}"
           fi
-
-          if [ -z "$DOMAIN_NAME" ]; then
-            echo "No domain name provided. Set DOMAIN_NAME_PRODUCTION or DOMAIN_NAME_STAGING in repository secrets."
-            exit 1
-          fi
-
           echo "::set-output name=domain-name::$DOMAIN_NAME"
+          echo "::set-output name=app-subdomain::$APP_SUBDOMAIN"
+
+      - id: install-yq
+        name: Install yq for modifying the deployment spec.
+        run: |-
+          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
 
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
@@ -327,7 +323,7 @@ jobs:
         name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }},AppSubdomain=${{ steps.setup-domain.outputs.app-subdomain }}"
           name: "biomage-alb-route53-${{ matrix.environment }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
