@@ -92,8 +92,7 @@ Resources:
       DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment, !Ref SandboxID] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
-      # Can't be deleted before first setting this to false, should be true when we are done with the basic setup of db
-      DeletionProtection: false
+      DeletionProtection: true
       MasterUsername: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::username}}"
       MasterUserPassword: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::password}}"
       EnableIAMDatabaseAuthentication: true
