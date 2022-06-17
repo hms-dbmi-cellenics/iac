@@ -14,22 +14,21 @@ Parameters:
     Type: String
     Description: The URL of the load balancer to deploy.
 
+  PrimaryDomainName:
+    Type: String
+    Description: Name of the domain to add A records to, as defined in the hosted zone
+
   DomainName:
     Type: String
-    Default: biomage.net.
     Description: The URL of the domain to apply the change to.
 
   HostedZoneId:
     Type: String
     Description: The ID of the hosted zone
 
-  AppSubdomain:
-    Type: String
-    Description: Name of the hosted zone
-
 Outputs:
   DomainName:
-    Value: !Ref AppSubdomain
+    Value: !Ref DomainName
     Export:
       Name: !Sub "DomainName-${Environment}"
 
@@ -39,15 +38,15 @@ Resources:
     Properties:
       # Hosted zone name requires a trailing dot. See:
       # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html
-      HostedZoneName: !Sub "${DomainName}."
+      HostedZoneName: !Sub "${PrimaryDomainName}."
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
-      - Name: !Ref AppSubdomain
+      - Name: !Ref DomainName
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
-      - Name: !Join ['.', ['*', !Ref AppSubdomain]]
+      - Name: !Join ['.', ['*', !Ref DomainName]]
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName

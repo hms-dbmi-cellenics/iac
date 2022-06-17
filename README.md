@@ -15,7 +15,7 @@ The configuration for these infraustructure components are under `infra/`.
 Some secrets are required to deploy infrastructure into AWS and configure the infrastructure and deployment:
 
 - AWS_ACCESS_KEY_ID
-  
+
   The access key ID of the IAM user that the IAC repo will assume.
 
 - AWS_SECRET_ACCESS_KEY
@@ -28,13 +28,13 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
 - DOMAIN_NAME
 
-  The domain to deploy Cellenics to (e.g. biomage.net)
+  The domain name that Cellenics will be deployed under (e.g. scp.biomage.net)
 
-- APP_SUBDOMAIN
+- PRIMARY_DOMAIN_NAME
 
-  The subdomain that Cellenics will be deployed to (e.g. scp.biomage.net)
+  The primary domain where Cellenics is deployed to (e.g. biomage.net)
 
-- APP_SUBDOMAIN_STAGING (optional, for Biomage use only)
+- DOMAIN_NAME_STAGING (optional, for Biomage use only)
 
   The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
 

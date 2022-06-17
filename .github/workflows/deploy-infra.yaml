@@ -54,9 +54,9 @@ jobs:
             ERROR=true
           fi
 
-          if [ -z "${{ secrets.DOMAIN_NAME }}" ] || [ -z "${{ secrets.APP_SUBDOMAIN }}" ]
+          if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ] || [ -z "${{ secrets.DOMAIN_NAME }}" ]
           then
-            echo "No domain name provided. Set DOMAIN_NAME and APP_SUBDOMAIN in repository secrets."
+            echo "No domain name provided. Set PRIMARY_DOMAIN_NAME and DOMAIN_NAME in repository secrets."
             exit 1
           fi
 
@@ -211,15 +211,15 @@ jobs:
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment }}" = "production" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-            APP_SUBDOMAIN="${{ secrets.APP_SUBDOMAIN }}"
           fi
           if [ "${{ matrix.environment }}" = "staging" ]; then
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-            APP_SUBDOMAIN="${{ secrets.APP_SUBDOMAIN_STAGING }}"
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
           fi
+          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
-          echo "::set-output name=app-subdomain::$APP_SUBDOMAIN"
 
       - id: install-yq
         name: Install yq for modifying the deployment spec.
@@ -238,7 +238,7 @@ jobs:
         env:
           AWS_REGION: ${{ env.region }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          DOMAIN_NAME: ${{ steps.setup-domain.outputs.app-subdomain }}
+          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
@@ -323,7 +323,7 @@ jobs:
         name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }},AppSubdomain=${{ steps.setup-domain.outputs.app-subdomain }}"
+          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
           name: "biomage-alb-route53-${{ matrix.environment }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
