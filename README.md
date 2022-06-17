@@ -32,7 +32,8 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
 - PRIMARY_DOMAIN_NAME
 
-  The primary domain where Cellenics is deployed to (e.g. biomage.net)
+  The primary domain name where Cellenics will be deployed under (e.g. biomage.net). This is the name of the domain
+  in the hosted zone.
 
 - DOMAIN_NAME_STAGING (optional, for Biomage use only)
 
