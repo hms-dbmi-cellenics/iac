@@ -229,7 +229,7 @@ jobs:
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
-          yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
+          yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$APP_SUBDOMAIN" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
           | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
           > infra/account-config.yaml
