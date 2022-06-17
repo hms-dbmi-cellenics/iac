@@ -38,7 +38,7 @@ Resources:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       # Hosted zone name requires a trailing dot. See:
-      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html#cfn-route53-recordsetgroup-hostedzonename
+      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html
       HostedZoneName: !Sub "${DomainName}."
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
