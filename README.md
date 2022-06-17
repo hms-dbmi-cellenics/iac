@@ -14,27 +14,27 @@ The configuration for these infraustructure components are under `infra/`.
 #### Required secrets to deploy infrastructure
 Some secrets are required to deploy infrastructure into AWS and configure the infrastructure and deployment:
 
-- **AWS_ACCESS_KEY_ID (required):**
-
+- AWS_ACCESS_KEY_ID
+  
   The access key ID of the IAM user that the IAC repo will assume.
 
-- **AWS_SECRET_ACCESS_KEY (required)**
+- AWS_SECRET_ACCESS_KEY
 
   Secret access key of the access key ID.
 
-- **API_TOKEN_GITHUB (required)**
+- API_TOKEN_GITHUB
 
   API token from the Github account that will be used by Flux to access and manage this repository.
 
-- **DOMAIN_NAME (required)**
+- DOMAIN_NAME
 
   The domain to deploy Cellenics to (e.g. biomage.net)
 
-- **APP_SUBDOMAIN (required)**
+- APP_SUBDOMAIN
 
   The subdomain that Cellenics will be deployed to (e.g. scp.biomage.net)
 
-- **APP_SUBDOMAIN_STAGING (optional, for Biomage use only)**
+- APP_SUBDOMAIN_STAGING (optional, for Biomage use only)
 
   The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
 
