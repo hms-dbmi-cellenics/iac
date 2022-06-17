@@ -10,10 +10,6 @@ Parameters:
       - staging
       - production
     Description: The environment for which the buckets need to be created.
-  FromEmail:
-    Type: String
-    Default: noreply@biomage.net
-    Description: The email users receive registration message from
   ReplyToEmail:
     Type: String
     Default: hello@biomage.net
@@ -186,8 +182,10 @@ Resources:
         ChallengeRequiredOnNewDevice: true
         DeviceOnlyRememberedOnUserPrompt: true
       EmailConfiguration:
+        # AWS automatically sets the From field to no-reply@verificationemail.com if we use COGNITO_DEFAULT
+        # To customize the From field, we have to provide the ARN of an SES account
+        # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-emailconfiguration.html
         EmailSendingAccount: COGNITO_DEFAULT
-        From: !Ref FromEmail
         ReplyToEmailAddress: !Ref ReplyToEmail
       EnabledMfas:
         - SMS_MFA
