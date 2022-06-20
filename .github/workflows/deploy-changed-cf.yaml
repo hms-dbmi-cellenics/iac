@@ -73,8 +73,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: get-changed-files
-        name: Get changed files
+      - id: validate-workflow-dispatch
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+        name: Validate workflow dispatch
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          echo Deploying the master branch via workflow_dispatch is not supported.
+          echo To deploy master, raise and a merge a PR with changes to the
+          echo CF files that needs to be deployed.
+          exit 1
+
+      - id: get-changed-files-on-merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        name: Get changed files on PR merge
+        uses: lots0logs/gh-action-get-changed-files@2.1.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: get-changed-files-on-manual-trigger
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+        name: Get changed files for manual dispatch
         run: |
           echo "[]" > empty.json
 
