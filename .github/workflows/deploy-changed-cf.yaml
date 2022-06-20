@@ -90,14 +90,21 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: get-changed-files-on-manual-trigger
-        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/master'
         name: Get changed files for manual dispatch
         run: |
           echo "[]" > empty.json
 
           # Get name of changed files
-          # and concatenate into a JSON array
-          git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }} | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
+          CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRT remotes/origin/master ${{ github.sha }})
+
+          # If there are no changed files, create an empty array
+          # else concatenate into an array
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "[]" > ${HOME}/files.json
+          else
+            echo "$CHANGED_FILES" | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
+          fi
 
           echo "All changed files"
           cat ${HOME}/files.json
