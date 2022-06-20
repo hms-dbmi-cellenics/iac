@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-pull-725-merge-dd65308c2f487cff6f4da3966f1dd0e642e404f1
+      tag: refs-pull-725-merge-14233724f1de6b8c09dec1978c2fd495475c5047
     kubernetes:
       env: staging
     livenessProbe:
@@ -86,7 +86,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-pull-363-merge-48b97e1410debe7c36223195ab80bb4f75a517fc
+      tag: refs-pull-363-merge-6c79d85cac02a71ce8386a3d41b64bcdffa79db8
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -139,9 +139,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-1b20da0b54763159fc7d8300de684ed91726b6c3-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-112c83084b6cbde98114bf65433cf678966b455f-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-1b20da0b54763159fc7d8300de684ed91726b6c3-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-278-merge-112c83084b6cbde98114bf65433cf678966b455f-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: grasp6-new-s3
@@ -184,7 +184,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-247-merge-8a23cf933b426eeee8a86a94f789394960ca6f78-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-247-merge-8fb00658d4fa9343c03e419e5cf8b75a20ca8391-pipeline-runner
     replicaCount: 0
     sandboxId: grasp6-new-s3
     serviceAccount:
