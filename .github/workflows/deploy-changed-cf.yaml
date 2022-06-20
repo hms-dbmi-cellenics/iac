@@ -76,8 +76,6 @@ jobs:
       - id: validate-workflow-dispatch
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
         name: Validate workflow dispatch
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
         run: |-
           echo Deploying the master branch via workflow_dispatch is not supported.
           echo To deploy master, raise and a merge a PR with changes to the
