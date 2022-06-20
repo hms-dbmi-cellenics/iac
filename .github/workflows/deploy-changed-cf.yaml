@@ -75,13 +75,14 @@ jobs:
 
       - id: get-changed-files-on-merge
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        name: Get changed files on PR merge
         uses: lots0logs/gh-action-get-changed-files@2.1.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: get-changed-files-on-manual-trigger
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
-        name: Get changed files
+        name: Get changed files for manual dispatch
         run: |
           echo "[]" > empty.json
 
