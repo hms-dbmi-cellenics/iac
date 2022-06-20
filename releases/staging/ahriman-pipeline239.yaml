@@ -139,9 +139,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a9baa71fdb825dd79f69cec69a718c96a711b1fe-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9eb9f9823e0c194384a207c56ffcc487873a481a-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cff0fecc5c66f09ee62849b0200a5d0936eaf280-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9eb9f9823e0c194384a207c56ffcc487873a481a-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: ahriman-pipeline239
