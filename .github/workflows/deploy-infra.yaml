@@ -54,10 +54,16 @@ jobs:
             ERROR=true
           fi
 
-          if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ] || [ -z "${{ secrets.DOMAIN_NAME }}" ]
+          if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ]
           then
-            echo "No domain name provided. Set PRIMARY_DOMAIN_NAME and DOMAIN_NAME in repository secrets."
-            exit 1
+            echo Secret PRIMARY_DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
+
+          if [ -z "${{ secrets.DOMAIN_NAME }}" ]
+          then
+            echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
           fi
 
           if [ ! -z "$ERROR" ]
