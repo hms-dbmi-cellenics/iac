@@ -10,6 +10,10 @@ Parameters:
       - staging
       - production
     Description: The environment for which the tables need to be created.
+  Email:
+    Type: String
+    Default: engineering@biomage.net
+    Description: Email to send platform status notifications to
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -74,10 +78,10 @@ Resources:
                 Action:
                   - "sns:Publish"
                 Resource:
-                  - !Sub "arn:aws:sns:eu-west-1:${AWS::AccountId}:cloudwatch-alarms-${Environment}"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms-${Environment}"
                 Condition:
                   ArnLike:
-                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:eu-west-1:${AWS::AccountId}:alarm:*${Environment}*"
+                    "aws:SourceArn": !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*${Environment}*"
 
   UICanary:
     Type: AWS::Synthetics::Canary
@@ -160,7 +164,7 @@ Resources:
                     throw new Error(logNoResponseString);
                 }
               });
-              
+
               // Wait for 15 seconds to let page load fully before taking screenshot.
               if (domcontentloaded && takeScreenshot) {
                   await page.waitFor(15000);
@@ -168,7 +172,7 @@ Resources:
                   await resetPage(page);
               }
           };
-                    
+
           exports.handler = async () => {
             return await runCanary();
           };
@@ -176,8 +180,10 @@ Resources:
       ExecutionRoleArn: !GetAtt CanaryExecutionRole.Arn
       RunConfig:
         EnvironmentVariables:
-          TEST_URL: !If [ isProd, "https://scp.biomage.net/",
-                         !Sub "https://ui-default.scp-${Environment}.biomage.net/"]
+          TEST_URL: !If [ isProd,
+            !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+            !Sub ["https://ui-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+          ]
       SuccessRetentionPeriod: 2
       RuntimeVersion: syn-nodejs-puppeteer-3.3
       Schedule:
@@ -225,7 +231,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: engineering@biomage.net
+      Endpoint: !Ref Email
       Protocol: "email"
 
   CanariesAlarm:
@@ -247,9 +253,3 @@ Resources:
       AlarmActions:
         - !Ref CanarySNSTopic
       TreatMissingData: missing
-
-  # XrayGroupAPI500:
-  #   Type: AWS::XRay::Group
-  #   Properties: 
-  #     FilterExpression: (http.url BEGINSWITH "http://api.scp.biomage.net") AND (http.status >= 500)
-  #     GroupName: !Sub "${Environment}-api-5xx-error"

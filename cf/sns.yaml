@@ -22,24 +22,26 @@ Conditions:
 Resources:
   SQSQueue:
     Type: AWS::SQS::Queue
-    Properties: 
+    Properties:
       ContentBasedDeduplication: true
       DeduplicationScope: "messageGroup"
       FifoQueue: true
       QueueName: !If [isDev, "development-queue.fifo", !Sub "queue-job-${SandboxID}-${Environment}.fifo"]
       FifoThroughputLimit: "perMessageGroupId"
-  SNSTopic: 
+  SNSTopic:
     Type: AWS::SNS::Topic
-    Properties: 
+    Properties:
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "work-results-${Environment}-${SandboxID}"
   PipelineResultsSubscription:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref SNSTopic
-      Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/pipelineResults",
-                !If [isDev, "http://host.docker.internal:3000/v1/pipelineResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/pipelineResults"]]
+      Endpoint: !Sub [ "${BaseUrl}/v1/pipelineResults", BaseUrl: !If [
+                        isDev, "http://host.docker.internal:3000", !If [
+                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                      ]]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
@@ -57,9 +59,11 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref SNSTopic
-      Endpoint: !If [isProd, "https://api.scp.biomage.net/v1/gem2sResults",
-                !If [isDev, "http://host.docker.internal:3000/v1/gem2sResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v1/gem2sResults"]]
+      Endpoint: !Sub [ "${BaseUrl}/v1/gem2sResults", BaseUrl: !If [
+                        isDev, "http://host.docker.internal:3000", !If [
+                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                      ]]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
@@ -74,18 +78,20 @@ Resources:
         type:
           - GEM2SResponse
 
-  SNSTopicV2: 
+  SNSTopicV2:
     Type: AWS::SNS::Topic
-    Properties: 
+    Properties:
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "work-results-${Environment}-${SandboxID}-v2"
   PipelineResultsSubscriptionV2:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref SNSTopicV2
-      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/pipelineResults",
-                !If [isDev, "http://host.docker.internal:3000/v2/pipelineResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v2/pipelineResults"]]
+      Endpoint: !Sub [ "${BaseUrl}/v2/pipelineResults", BaseUrl: !If [
+                        isDev, "http://host.docker.internal:3000", !If [
+                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                      ]]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:
@@ -103,9 +109,11 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref SNSTopicV2
-      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/gem2sResults",
-                !If [isDev, "http://host.docker.internal:3000/v2/gem2sResults",
-                !Sub "https://api-${SandboxID}.scp-${Environment}.biomage.net/v2/gem2sResults"]]
+      Endpoint: !Sub [ "${BaseUrl}/v2/gem2sResults", BaseUrl: !If [
+                        isDev, "http://host.docker.internal:3000", !If [
+                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                      ]]]
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:

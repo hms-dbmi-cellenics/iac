@@ -14,32 +14,39 @@ Parameters:
     Type: String
     Description: The URL of the load balancer to deploy.
 
+  PrimaryDomainName:
+    Type: String
+    Description: Name of the domain to add A records to, as defined in the hosted zone
+
   DomainName:
     Type: String
-    Default: biomage.net.
     Description: The URL of the domain to apply the change to.
 
   HostedZoneId:
     Type: String
     Description: The ID of the hosted zone
 
+Outputs:
+  DomainName:
+    Value: !Ref DomainName
+    Export:
+      Name: !Sub "DomainName-${Environment}"
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-    
-Resources: 
+Resources:
   IngressControllerMapping:
     Type: AWS::Route53::RecordSetGroup
     Properties:
-      HostedZoneName: !Ref DomainName
+      # Hosted zone name requires a trailing dot. See:
+      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html
+      HostedZoneName: !Sub "${PrimaryDomainName}."
       Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
       RecordSets:
-      - Name: !Join ['.', [!If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
+      - Name: !Ref DomainName
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
-      - Name: !Join ['.', ['*', !If [isProd, "scp", !Sub "scp-${Environment}"], !Ref DomainName]]
+      - Name: !Join ['.', ['*', !Ref DomainName]]
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
