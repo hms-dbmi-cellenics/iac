@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -46,13 +47,13 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-1ac8311386a20f6e297ff5a47a0de5cc67279383
+      tag: refs-heads-master-ca85234c1a7a99fb2a0e45155ebcb81c6dec90d7
     replicaCount: 4
     serviceAccount:
       iamRole: api-role-staging
   valuesFrom:
-    - configMapKeyRef:
-        name: account-config
-        namespace: flux
-        key: account-config.yaml
+  - configMapKeyRef:
+      name: account-config
+      namespace: flux
+      key: account-config.yaml
   # filled in by CI. do not modify.
