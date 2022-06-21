@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: kristian-ui746
+  name: ui-kristian-ui746
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-746-merge-*
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: kristian-ui746
+  name: ui
+  namespace: ui-kristian-ui746
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: refs/heads/master
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: kristian-ui746
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-746-merge-7838899a84d44f48a8473fc9c9a5dff9680456f5
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    service:
+      additionalHosts: false
+    serviceAccount:
+      iamRole: ui-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: kristian-ui746
+  name: api-kristian-ui746
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: kristian-ui746
+  name: api
+  namespace: api-kristian-ui746
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: 4b6afcd0786a81e02d98d3e459439dd1badb4491
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: default
+      repo: hms-dbmi-cellenics/api
+      sandboxId: kristian-ui746
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-b8c85f7f0006cb2cc08151033d797d90ea8608b4
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: api-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: kristian-ui746
+  name: worker-kristian-ui746
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-heads-master-*-python
+    filter.fluxcd.io/r: glob:refs-heads-master-*-r
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: kristian-ui746
+  name: worker
+  namespace: worker-kristian-ui746
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: 9eb9f9823e0c194384a207c56ffcc487873a481a
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9eb9f9823e0c194384a207c56ffcc487873a481a-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9eb9f9823e0c194384a207c56ffcc487873a481a-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: kristian-ui746
+    serviceAccount:
+      iamRole: worker-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: kristian-ui746
+  name: pipeline-kristian-ui746
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: kristian-ui746
+  name: pipeline
+  namespace: pipeline-kristian-ui746
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: be5c36f3f6c30bf8344c2cf3a38f2b6959c777cb
+  releaseName: pipeline
+  values:
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-be5c36f3f6c30bf8344c2cf3a38f2b6959c777cb-pipeline-runner
+    replicaCount: 0
+    sandboxId: kristian-ui746
+    serviceAccount:
+      iamRole: pipeline-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
