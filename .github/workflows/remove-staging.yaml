@@ -125,12 +125,22 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: add-manifest-to-repo
-        name: Add manifest file to repository.
+      - id: remove-manifest-from-repo
+        name: Remove manifest file from repository.
         run: |-
           rm ./releases/staging/$SANDBOX_ID.yaml
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
+      - name: Remove manifest files from releases
+        uses: kafkasl/remove_from_another_repo_action@0.0.1
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          path: ./staging/$SANDBOX_ID.yaml
+          destination_repo: ${{ github.repository_owner }}/releases
+          user_email: ci@biomage.net
+          user_name: 'Biomage CI/CD'
 
       - id: set-name
         name: Set name of the CloudFormation stack for SNS topic and Cognito pool
