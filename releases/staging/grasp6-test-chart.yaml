@@ -17,9 +17,9 @@ metadata:
   namespace: ui-grasp6-test-chart
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac:442
+    git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: ec9125ae2704ccf1b072d83b792049813e2214e8
+    ref: event-exporter-test
   releaseName: ui
   values:
     biomageCi:
@@ -71,9 +71,9 @@ metadata:
   namespace: api-grasp6-test-chart
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac:442
+    git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: ec9125ae2704ccf1b072d83b792049813e2214e8
+    ref: event-exporter-test
   releaseName: api
   values:
     biomageCi:
