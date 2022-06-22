@@ -1,5 +1,7 @@
 const _ = require('lodash');
 
+const generateGem2sParamsHash = require('./generateGem2sParamsHash');
+
 const garbage = ['api_url', 'auth_JWT'];
 // Removes properties that should't be in the processing config
 const omitGarbage = (obj) => {
@@ -60,13 +62,23 @@ class Helper {
     return await this.sqlInsert(sqlExperiment, 'experiment', { experimentId, projectData });
   }
   
-  sqlInsertExperimentExecutionGem2s = async (experimentId, experimentData) => {
+  sqlInsertExperimentExecutionGem2s = async (experimentId, projectData, sampleData, experimentData) => {
     const { paramsHash, stateMachineArn, executionArn } = experimentData.meta.gem2s;
-  
+    
+    const newParamsHash = generateGem2sParamsHash(projectData, sampleData, experimentData)
+
+
+    if (paramsHash !== newParamsHash) {
+      console.log(`[EXPERIMENT_EXECUTION] Mismatching gem2s paramsHash for experiment ${experimentId}`);
+      console.log(`old paramsHash: ${paramsHash}, newParamsHash: ${newParamsHash}`);
+      console.log(`# of metadataTracks: ${projectData.metadataKeys.length}`);
+      console.log(`[EXPERIMENT_EXECUTION] END ${experimentId}`);
+    }
+
     const sqlExperimentExecution = {
       experiment_id: experimentId,
       pipeline_type: 'gem2s',
-      params_hash: paramsHash,
+      params_hash: newParamsHash,
       state_machine_arn: stateMachineArn,
       execution_arn: executionArn,
     };

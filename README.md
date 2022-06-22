@@ -11,6 +11,34 @@ infrastructure is deployed *manually* by launching the action *Deploy Biomage in
 from the [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
 The configuration for these infraustructure components are under `infra/`.
 
+#### Required secrets to deploy infrastructure
+Some secrets are required to deploy infrastructure into AWS and configure the infrastructure and deployment:
+
+- AWS_ACCESS_KEY_ID
+
+  The access key ID of the IAM user that the IAC repo will assume.
+
+- AWS_SECRET_ACCESS_KEY
+
+  Secret access key of the access key ID.
+
+- API_TOKEN_GITHUB
+
+  API token from the Github account that will be used by Flux to access and manage this repository.
+
+- DOMAIN_NAME
+
+  The domain name that Cellenics will be deployed under (e.g. scp.biomage.net)
+
+- PRIMARY_DOMAIN_NAME
+
+  The primary domain name where Cellenics will be deployed under (e.g. biomage.net). This is the name of the domain
+  in the hosted zone.
+
+- DOMAIN_NAME_STAGING (optional, used only if the deployment is not on a production environment)
+
+  The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
+
 #### Changing base infrastructure
 The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/hms-dbmi-cellenics/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
 1. Go to the *Deploy Biomage infrastructure*

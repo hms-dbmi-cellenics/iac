@@ -29,7 +29,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-8d76c5261505fc53e10189febf47442284c47e9b
+      tag: refs-heads-master-353a0dbc6fbb40e5cebb6d9da80285862bad11dd
     kubernetes:
       env: staging
     livenessProbe:
@@ -86,7 +86,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-52c5b3f3f585aa2a88dc525f88bbc5c9be35a429
+      tag: refs-heads-master-53c1a5b5dff8e7dbcdc193bf488f4cae58887a48
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -139,9 +139,9 @@ spec:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-7156a09bba3c2e096f2a2ff561d25fb189094a90-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9eb9f9823e0c194384a207c56ffcc487873a481a-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-a20eda76cd19578a467e432943bf858b9be1921c-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-9eb9f9823e0c194384a207c56ffcc487873a481a-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: ahriman-pipeline239
@@ -179,7 +179,7 @@ spec:
     clusterEnv: staging
     memoryRequest: 29Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-239-merge-0da02be385a184f64fd23c3dbd7d3a5779324bb3-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-239-merge-2576504359088d416d80533a11497a58b0a56b83-pipeline-runner
     replicaCount: 0
     sandboxId: ahriman-pipeline239
     serviceAccount:

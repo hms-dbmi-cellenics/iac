@@ -87,8 +87,11 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref PostRegisterTopic
-      Endpoint: !If [isProd, "https://api.scp.biomage.net/v2/access/post-registration",
-                !Sub "https://api-default.scp-${Environment}.biomage.net/v2/access/post-registration"]
+      Endpoint: !Sub [ "${BaseUrl}/v2/access/post-registration", BaseUrl: !If [
+                  isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                  !Sub ["https://api-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                ]]
+
       Protocol: "https"
       DeliveryPolicy:
         healthyRetryPolicy:

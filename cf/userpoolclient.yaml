@@ -27,8 +27,11 @@ Resources:
       UserPoolId:
         Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolId"
       CallbackURLs:
-        - !If [isProd, "https://scp.biomage.net/data-management",
-          !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
+        - !Sub ["${BaseUrl}/data-management", BaseUrl:
+            !If [ isProd,
+              !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+              !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+          ]]
       AllowedOAuthFlows:
         - 'code'
       AllowedOAuthScopes:
@@ -37,11 +40,18 @@ Resources:
         - 'openid'
         - 'aws.cognito.signin.user.admin'
         - 'profile'
-      DefaultRedirectURI: !If [isProd, "https://scp.biomage.net/data-management",
-        !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
+      DefaultRedirectURI: !Sub ["${BaseUrl}/data-management", BaseUrl:
+            !If [ isProd,
+              !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+              !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+          ]]
       LogoutURLs:
-        - !If [isProd, "https://scp.biomage.net/data-management",
-        !Sub "https://ui-${SandboxID}.scp-${Environment}.biomage.net/data-management"]
+          - !Sub ["${BaseUrl}/data-management", BaseUrl:
+            !If [ isProd,
+              !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+              !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+          ]]
+
       SupportedIdentityProviders:
         - COGNITO
 
@@ -50,7 +60,7 @@ Resources:
     Properties:
       IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}-${SandboxID}"
       AllowUnauthenticatedIdentities: false
-      CognitoIdentityProviders:          
+      CognitoIdentityProviders:
         - ClientId: !Ref UserPoolClientCluster
           ProviderName:
             Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName"

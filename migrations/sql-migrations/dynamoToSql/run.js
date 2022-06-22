@@ -51,7 +51,7 @@ const migrateProject = async (project, helper) => {
 
   // Create experiment executions if we need to
   if (!_.isNil(experimentData.meta.gem2s)) {
-    await helper.sqlInsertExperimentExecutionGem2s(experimentId, experimentData);
+    await helper.sqlInsertExperimentExecutionGem2s(experimentId, projectData, sampleData.samples, experimentData);
   }
 
   if (!_.isNil(experimentData.meta.pipeline)) {

@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -13,8 +12,6 @@ metadata:
   namespace: pipeline-default
   annotations:
     fluxcd.io/automated: "true"
-    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
-    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
     filter.fluxcd.io/pipelineRunner: glob:refs-heads-master-*-pipeline-runner
   labels:
     sandboxId: default
@@ -23,15 +20,18 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/pipeline
     path: chart-infra/
-    ref: c55a2bee6eb2a536883b19c2ff4edaf2a8e6c291
+    ref: be5c36f3f6c30bf8344c2cf3a38f2b6959c777cb
+  valuesFrom:
+    - configMapKeyRef:
+        name: account-config
+        namespace: flux
+        key: account-config.yaml
   values:
     clusterEnv: staging
-    awsAccountId: "242905224710"
-    awsRegion: eu-west-1
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-4e8558522dcdb6bdc7430bf20733bea2a9fd2973-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-heads-master-be5c36f3f6c30bf8344c2cf3a38f2b6959c777cb-pipeline-runner
     sandboxId: default
     memoryRequest: 29Gi
     replicaCount: 1
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
+      iamRole: pipeline-role-staging

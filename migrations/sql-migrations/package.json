@@ -9,7 +9,9 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1087.0",
+    "crypto-js": "^4.1.1",
     "knex": "^1.0.3",
+    "object-hash": "^2.0.3",
     "pg": "^8.7.3",
     "uuidv4": "^6.2.12"
   }

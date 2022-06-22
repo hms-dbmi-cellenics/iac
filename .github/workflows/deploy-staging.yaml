@@ -171,6 +171,18 @@ jobs:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
+      - name: Push staging deployment template to releases
+        if: (github.event_name == 'pull_request' || github.event_name == 'push') && matrix.environment == 'staging'
+        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: ./releases/staging/$SANDBOX_ID.yaml
+          destination_repo: ${{ github.repository_owner }}/releases
+          destination_folder: staging/$SANDBOX_ID.yaml
+          user_email: ci@biomage.net
+          user_name: 'Biomage CI/CD'
+
       - id: deploy-template-rds
         if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
         name: Deploy CloudFormation stack for RDS

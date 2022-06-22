@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -20,7 +19,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: 4260c5f2649c85cdbeee32a704bc24f9d13e7a65
+    ref: 900eb08819d6e024835ac64251484e3ba7d6965f
   releaseName: ui
   values:
     biomageCi:
@@ -29,7 +28,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: ui
-      tag: refs-heads-master-0ee32c05c7fb7c381b434b6b2ddaf2a07dc7a688
+      tag: refs-heads-master-f6ec940a0e1aed8235a2347bfd862cf353467a12
     kubernetes:
       env: staging
     livenessProbe:
@@ -43,6 +42,8 @@ spec:
       - '0'
       probeType: exec
     replicaCount: 1
+    service:
+      additionalHosts: false
     serviceAccount:
       iamRole: ui-role-staging
   valuesFrom:
@@ -72,7 +73,7 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: 4260c5f2649c85cdbeee32a704bc24f9d13e7a65
+    ref: 900eb08819d6e024835ac64251484e3ba7d6965f
   releaseName: api
   values:
     biomageCi:
@@ -84,7 +85,7 @@ spec:
     image:
       registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
       repository: api
-      tag: refs-heads-master-f3d0f867f2c35fc84f558b650b7036f0a11fd1b8
+      tag: refs-heads-master-ca85234c1a7a99fb2a0e45155ebcb81c6dec90d7
     ingress:
       annotations:
         alb.ingress.kubernetes.io/healthcheck-path: /v1/health
@@ -131,20 +132,25 @@ spec:
   chart:
     git: git@github.com:hms-dbmi-cellenics/worker
     path: chart-infra/
-    ref: 7156a09bba3c2e096f2a2ff561d25fb189094a90
+    ref: cff0fecc5c66f09ee62849b0200a5d0936eaf280
   releaseName: worker
   values:
     kubernetes:
       env: staging
     python:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-7156a09bba3c2e096f2a2ff561d25fb189094a90-python
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cff0fecc5c66f09ee62849b0200a5d0936eaf280-python
     r:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-7156a09bba3c2e096f2a2ff561d25fb189094a90-r
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-heads-master-cff0fecc5c66f09ee62849b0200a5d0936eaf280-r
       memoryRequest: 4Gi
     replicaCount: 0
     sandboxId: german-pipeline245
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/worker-role-staging
+      iamRole: worker-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
 ---
 apiVersion: v1
 kind: Namespace
@@ -158,8 +164,6 @@ kind: HelmRelease
 metadata:
   annotations:
     filter.fluxcd.io/pipelineRunner: glob:refs-pull-245-merge-*-pipeline-runner
-    filter.fluxcd.io/remoter-client: FILLED_IN_BY_CI
-    filter.fluxcd.io/remoter-server: FILLED_IN_BY_CI
     fluxcd.io/automated: 'true'
   labels:
     sandboxId: german-pipeline245
@@ -172,13 +176,16 @@ spec:
     ref: refs/pull/245/head
   releaseName: pipeline
   values:
-    awsAccountId: '242905224710'
-    awsRegion: eu-west-1
     clusterEnv: staging
     memoryRequest: 4Gi
     pipelineRunner:
-      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-245-merge-049720cb14c5288bf64510d3821155838a1f1d47-pipeline-runner
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-245-merge-25f02c19fc0043441ef031bcab6665764cb3126f-pipeline-runner
     replicaCount: 0
     sandboxId: german-pipeline245
     serviceAccount:
-      iamRole: arn:aws:iam::242905224710:role/pipeline-role-staging
+      iamRole: pipeline-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
