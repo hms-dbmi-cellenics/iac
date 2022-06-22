@@ -302,11 +302,10 @@ jobs:
         uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
         with:
-          source_file: ./releases/staging/$SANDBOX_ID.yaml
+          source_file: ./releases/staging/${{ github.event.inputs.sandbox-id }}.yaml
           destination_repo: ${{ github.repository_owner }}/releases
-          destination_folder: staging/$SANDBOX_ID.yaml
+          destination_folder: staging/${{ github.event.inputs.sandbox-id }}.yaml
           user_email: ci@biomage.net
           user_name: 'Biomage CI/CD'
 
