@@ -43,8 +43,6 @@ data:
       - name: "cleanup"
         webhook:
           endpoint: https://{{ template "hostname" .}}/v2/kubernetesEvents
-
-{{ end }}
           headers:
             User-Agent: kube-event-exporter 1.0
 ---
