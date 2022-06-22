@@ -137,7 +137,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          path: ./staging/$SANDBOX_ID.yaml
+          path: ./staging/${{ github.event.inputs.sandbox-id }}.yaml
           destination_repo: ${{ github.repository_owner }}/releases
           user_email: ci@biomage.net
           user_name: 'Biomage CI/CD'
