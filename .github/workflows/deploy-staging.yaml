@@ -297,10 +297,12 @@ jobs:
           enforce_admins: true
           retries: 8
 
+
       - name: Push staging deployment template to releases
         uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
         with:
           source_file: ./releases/staging/$SANDBOX_ID.yaml
           destination_repo: ${{ github.repository_owner }}/releases
