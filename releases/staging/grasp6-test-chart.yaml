@@ -17,7 +17,7 @@ metadata:
   namespace: ui-grasp6-test-chart
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: git@github.com:hms-dbmi-cellenics/iac:442
     path: charts/nodejs
     ref: ec9125ae2704ccf1b072d83b792049813e2214e8
   releaseName: ui
@@ -71,7 +71,7 @@ metadata:
   namespace: api-grasp6-test-chart
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: git@github.com:hms-dbmi-cellenics/iac:442
     path: charts/nodejs
     ref: ec9125ae2704ccf1b072d83b792049813e2214e8
   releaseName: api
