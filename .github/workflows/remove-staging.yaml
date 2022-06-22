@@ -133,7 +133,7 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - name: Remove manifest files from releases
-        uses: kafkasl/remove_from_another_repo_action@0.0.1
+        uses: kafkasl/delete_from_another_repo@0.0.1
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
