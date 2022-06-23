@@ -72,6 +72,7 @@ Resources:
                   - "s3:ListBucketMultipartUploads"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-get-from-work-response-bucket-${Environment}"
           PolicyDocument:
@@ -83,6 +84,7 @@ Resources:
                   - "s3:GetObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
+                  - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                 Condition:
                   StringEquals:
                     "s3:ExistingObjectTag/public": "true"
@@ -96,6 +98,8 @@ Resources:
                   - "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
+
         - PolicyName: !Sub "can-list-objects-in-public-datasets-${Environment}-bucket"
           PolicyDocument:
             Version: "2012-10-17"
@@ -105,6 +109,8 @@ Resources:
                   - "s3:ListBucket"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}-${AWS::AccountId}"
+
         - PolicyName: !Sub "can-get-public-datasets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -115,6 +121,8 @@ Resources:
                   - "s3:GetObjectTagging"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}-${AWS::AccountId}/*"
+
         - PolicyName: !Sub "can-execute-lambda-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
