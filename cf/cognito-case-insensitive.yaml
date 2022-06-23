@@ -72,7 +72,7 @@ Resources:
                   - "s3:ListBucketMultipartUploads"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:""arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-get-from-work-response-bucket-${Environment}"
           PolicyDocument:
