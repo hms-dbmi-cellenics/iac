@@ -233,7 +233,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - "support:DescribeServices"
-                  - "support:DescribeSeverityLevels"
+                  - "support:CreateCase"
+                  - "support:DescribeCases"
                   - "support:SearchForCases"
+                  - "support:AddAttachmentsToSet"
+                  - "support:DescribeAttachment"
+                  - "support:AddCommunicationToCase"
+                  - "support:DescribeCommunications"
+                  - "support:DescribeServices"
+                  - "support:DescribeSupportLevel"
+                  - "support:DescribeSeverityLevels"
+                  - "support:ResolveCase"
+                  - "support:RateCaseCommunication"
                 Resource: "*"
