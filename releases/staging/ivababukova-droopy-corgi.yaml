@@ -17,7 +17,7 @@ metadata:
   namespace: ui-ivababukova-droopy-corgi
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: https://github.com/hms-dbmi-cellenics/iac
     path: charts/nodejs
     ref: 74811469a6f92b8eaf12e324020a0aa24aab293d
   releaseName: ui
@@ -71,7 +71,7 @@ metadata:
   namespace: api-ivababukova-droopy-corgi
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/iac
+    git: https://github.com/hms-dbmi-cellenics/iac
     path: charts/nodejs
     ref: 74811469a6f92b8eaf12e324020a0aa24aab293d
   releaseName: api
@@ -130,7 +130,7 @@ metadata:
   namespace: worker-ivababukova-droopy-corgi
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/worker
+    git: https://github.com/hms-dbmi-cellenics/worker
     path: chart-infra/
     ref: 9eb9f9823e0c194384a207c56ffcc487873a481a
   releaseName: worker
@@ -171,7 +171,7 @@ metadata:
   namespace: pipeline-ivababukova-droopy-corgi
 spec:
   chart:
-    git: git@github.com:hms-dbmi-cellenics/pipeline
+    git: https://github.com/hms-dbmi-cellenics/pipeline
     path: chart-infra/
     ref: be5c36f3f6c30bf8344c2cf3a38f2b6959c777cb
   releaseName: pipeline
