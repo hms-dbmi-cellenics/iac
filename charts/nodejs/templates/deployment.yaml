@@ -54,6 +54,9 @@ spec:
         {{- end }}
 
         env:
+        - name: IVA
+          value: testifeverythingisok
+
         - name: K8S_ENV
           value: {{ .Values.kubernetes.env | quote }}
 
