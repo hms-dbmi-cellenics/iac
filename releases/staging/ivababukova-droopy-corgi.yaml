@@ -19,7 +19,7 @@ spec:
   chart:
     git: https://github.com/hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/test-git-endpoint
   releaseName: ui
   values:
     biomageCi:
@@ -73,7 +73,7 @@ spec:
   chart:
     git: https://github.com/hms-dbmi-cellenics/iac
     path: charts/nodejs
-    ref: refs/heads/master
+    ref: refs/heads/test-git-endpoint
   releaseName: api
   values:
     biomageCi:
