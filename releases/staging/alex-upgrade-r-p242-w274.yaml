@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: ui-alex-upgrade-r-p242-w274
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: ui
+  namespace: ui-alex-upgrade-r-p242-w274
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: c7e1360e0a912e36f4ba16aec18af4dfcc8ac45f
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: hms-dbmi-cellenics/ui
+      sandboxId: alex-upgrade-r-p242-w274
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-heads-master-353a0dbc6fbb40e5cebb6d9da80285862bad11dd
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    service:
+      additionalHosts: false
+    serviceAccount:
+      iamRole: ui-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: api-alex-upgrade-r-p242-w274
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-heads-master-*
+    fluxcd.io/automated: 'false'
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: api
+  namespace: api-alex-upgrade-r-p242-w274
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/iac
+    path: charts/nodejs
+    ref: c7e1360e0a912e36f4ba16aec18af4dfcc8ac45f
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: default
+      repo: hms-dbmi-cellenics/api
+      sandboxId: alex-upgrade-r-p242-w274
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-heads-master-2a77a3f5eaa7d2ad6fa29ea240125186b00b0b04
+    ingress:
+      annotations:
+        alb.ingress.kubernetes.io/healthcheck-path: /v1/health
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    readinessProbe:
+      path: /v1/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: api-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: worker-alex-upgrade-r-p242-w274
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-pull-274-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-274-merge-*-r
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: worker
+  namespace: worker-alex-upgrade-r-p242-w274
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/worker
+    path: chart-infra/
+    ref: refs/pull/274/head
+  releaseName: worker
+  values:
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-274-merge-b87be5020f050d5b000a6ba731fb39fb4382a025-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-274-merge-b87be5020f050d5b000a6ba731fb39fb4382a025-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: alex-upgrade-r-p242-w274
+    serviceAccount:
+      iamRole: worker-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: pipeline-alex-upgrade-r-p242-w274
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-pull-242-merge-*-pipeline-runner
+    fluxcd.io/automated: 'true'
+  labels:
+    sandboxId: alex-upgrade-r-p242-w274
+  name: pipeline
+  namespace: pipeline-alex-upgrade-r-p242-w274
+spec:
+  chart:
+    git: git@github.com:hms-dbmi-cellenics/pipeline
+    path: chart-infra/
+    ref: refs/pull/242/head
+  releaseName: pipeline
+  values:
+    clusterEnv: staging
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-242-merge-cf8b4827e14e898f4c2b53af4d7a4f4523d2fe46-pipeline-runner
+    replicaCount: 0
+    sandboxId: alex-upgrade-r-p242-w274
+    serviceAccount:
+      iamRole: pipeline-role-staging
+  valuesFrom:
+  - configMapKeyRef:
+      key: account-config.yaml
+      name: account-config
+      namespace: flux
