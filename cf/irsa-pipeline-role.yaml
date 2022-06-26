@@ -20,7 +20,6 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Sub "pipeline-role-${Environment}"
-      MaxSessionDuration: 10800
       AssumeRolePolicyDocument:
         Fn::Sub: |-
           {
