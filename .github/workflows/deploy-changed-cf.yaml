@@ -308,11 +308,13 @@ jobs:
         env:
           REGION: ${{ env.region }}
 
-  job: report-if-failed
-  needs: [setup, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
-  if: failure()
-  steps:
-    - id: test
-      name: Test if job will run on failure
-      run: |
-        echo "Failure"
+  report-if-failed:
+    name: Report if workflow failed
+    runs-on: ubuntu-20.04
+    needs: [setup, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
+    if: failure()
+    steps:
+      - id: test
+        name: Test if job will run on failure
+        run: |
+          echo "Failure"
