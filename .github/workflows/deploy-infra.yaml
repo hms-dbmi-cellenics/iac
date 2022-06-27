@@ -83,8 +83,8 @@ jobs:
           if [ ! -z "$ERROR" ]
           then
             echo
-            echo This workflow requires some secrets to complete. The secrets can be set/rotated
-            echo by running `rotate-ci` from `biomage-utils`.
+            echo This workflow requires some secrets to complete. The secrets can be set or rotated
+            echo by running "rotate-ci" from "biomage-utils".
             exit 1
           fi
       - id: set-matrix
