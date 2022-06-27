@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - env-name: Biomage
+          - env-name: blablabalbal
             type: staging
           - env-name: Biomage
             type: production
