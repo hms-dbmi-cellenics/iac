@@ -30,17 +30,14 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        fruit: [apple, pear]
-        animal: [cat, dog]
         include:
-          - color: green
-          - color: pink
-            animal: cat
-          - fruit: apple
-            shape: circle
-          - fruit: banana
-          - fruit: banana
-            animal: cat
+          - env-name: Biomage
+            type: staging
+          - env-name: Biomage
+            type: production
+    environment: ${{ matrix.env-name }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -87,6 +84,8 @@ jobs:
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
+          echo "${{ matrix.env-name }}"
+          echo "${{ matrix.type }}"
           if [ "${CLUSTER}" = "staging" ]; then
             echo '::set-output name=matrix::["staging"]'
           elif [ "${CLUSTER}" = "production" ]; then
