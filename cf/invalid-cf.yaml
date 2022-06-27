@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Some invalid CF [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+    Description: The environment for which the access group is created.
+
+Resources:
+  InvalidCF:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      NonExistent: Key
