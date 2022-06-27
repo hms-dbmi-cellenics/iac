@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - env-name: blablabalbal
+          - env-name: Biomage
             type: staging
           - env-name: Biomage
             type: production
@@ -43,6 +43,12 @@ jobs:
         name: Check if necessary secrets are installed.
         run: |-
           echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
+          then
+            echo AWS certificate ARN is not defined.
+            ERROR=true
+          fi
 
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
