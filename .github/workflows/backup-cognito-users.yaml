@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 env:
   region: 'eu-west-1'
-  backups-bucket: 'biomage-backups-production'
+  backups-bucket: 'biomage-backups-production-242905224710'
   pool-name: 'biomage-user-pool-case-insensitive-production'
 
 jobs:
