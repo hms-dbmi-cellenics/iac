@@ -108,6 +108,9 @@ jobs:
         # env-type: ${{ needs.setup.outputs.matrix }}
         env-type: [staging, production]
         env-name: [Biomage]
+        include:
+          - env-name: HMS
+            env-type: production
     # env:
     #   CLUSTER_ENV: ${{ matrix.env-type }}
     steps:
