@@ -42,12 +42,6 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
-          then
-            echo AWS certificate ARN is not defined.
-            ERROR=true
-          fi
-
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
             echo AWS Access Key ID not defined.
