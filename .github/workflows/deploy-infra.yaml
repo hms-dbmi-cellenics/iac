@@ -102,17 +102,19 @@ jobs:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
     needs: setup
-    # if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
         env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        # env-type: [staging, production]
         env-name: [Biomage]
+        should-run:
+          - ${{ contains(needs.setup.outputs.matrix, "production")}}
         include:
           - env-name: HMS
             env-type: production
-    # env:
-    #   CLUSTER_ENV: ${{ matrix.env-type }}
+            should-run: false
+    if: github.event.inputs.workflow_actions == 'deploy and configure' && ${{ matrix.should-run }}
+    env:
+      CLUSTER_ENV: ${{ matrix.env-type }}
     steps:
       - id: print-stuff
         name: print to test how this works
