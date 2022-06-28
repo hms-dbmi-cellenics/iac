@@ -31,10 +31,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - env-name: blabslablaslsla
-            type: staging
           - env-name: Biomage
-            type: production
+          - env-name: HMS
     environment: ${{ matrix.env-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -91,7 +89,6 @@ jobs:
         name: Set up cluster matrix
         run: |-
           echo "${{ matrix.env-name }}"
-          echo "${{ matrix.type }}"
           if [ "${CLUSTER}" = "staging" ]; then
             echo '::set-output name=matrix::["staging"]'
           elif [ "${CLUSTER}" = "production" ]; then
@@ -101,8 +98,22 @@ jobs:
           fi
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
-
-
+  setup2:
+    name: test how this will run exactly
+    runs-on: ubuntu-20.04
+    needs: setup
+    strategy:
+      matrix:
+        include:
+          - env-name: Biomage
+          - env-name: HMS
+    environment: ${{ matrix.env-name }}
+    steps:
+      - id: print-things
+        name: Print because why not
+        run: |-
+          echo "Hello, world!"
+        
   # create-eks-cluster:
   #   name: Create EKS cluster
   #   runs-on: ubuntu-20.04
