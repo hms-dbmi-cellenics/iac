@@ -246,4 +246,3 @@ Resources:
                   - "support:ResolveCase"
                   - "support:RateCaseCommunication"
                 Resource: "*"
-
