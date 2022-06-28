@@ -32,7 +32,6 @@ jobs:
       matrix:
         include:
           - env-name: Biomage
-          - env-name: HMS
     environment: ${{ matrix.env-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -41,6 +40,12 @@ jobs:
         name: Check if necessary secrets are installed.
         run: |-
           echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
+          then
+            echo AWS certificate ARN is not defined.
+            ERROR=true
+          fi
 
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
@@ -92,33 +97,29 @@ jobs:
           fi
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
-  setup2:
-    name: test how this will run exactly
+
+  create-eks-cluster:
+    name: Create EKS cluster
     runs-on: ubuntu-20.04
     needs: setup
+    # if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
         include:
           - env-name: Biomage
-          - env-name: HMS
-    environment: ${{ matrix.env-name }}
+            env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
+    env:
+      CLUSTER_ENV: ${{ matrix.env-type }}
     steps:
-      - id: print-things
-        name: Print because why not
+      - id: print-stuff
+        name: print to test how this works
         run: |-
-          echo "Hello, world!"
-        
-  # create-eks-cluster:
-  #   name: Create EKS cluster
-  #   runs-on: ubuntu-20.04
-  #   needs: setup
-  #   if: github.event.inputs.workflow_actions == 'deploy and configure'
-  #   strategy:
-  #     matrix:
-  #       environment: ${{ fromJson(needs.setup.outputs.matrix) }}
-  #   env:
-  #     CLUSTER_ENV: ${{ matrix.environment }}
-  #   steps:
+          echo "${{ matrix.env-name }}"
+          echo "${{ matrix.env-type }}"
+
   #     - id: checkout
   #       name: Check out source code
   #       uses: actions/checkout@v2
