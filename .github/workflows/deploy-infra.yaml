@@ -105,8 +105,8 @@ jobs:
     # if: github.event.inputs.workflow_actions == 'deploy and configure'
     strategy:
       matrix:
-        # env-type: ${{ needs.setup.outputs.matrix }}
-        env-type: [staging, production]
+        env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        # env-type: [staging, production]
         env-name: [Biomage]
         include:
           - env-name: HMS
