@@ -108,8 +108,8 @@ jobs:
         include:
           - env-name: Biomage
             env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-    env:
-      CLUSTER_ENV: ${{ matrix.env-type }}
+    # env:
+    #   CLUSTER_ENV: ${{ matrix.env-type }}
     steps:
       - id: print-stuff
         name: print to test how this works
