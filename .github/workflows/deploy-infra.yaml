@@ -502,7 +502,7 @@ jobs:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
     needs: [setup, create-eks-cluster, configure-cluster]
-    if: failure()
+    if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
         name: Send failure notification to Slack on failure
