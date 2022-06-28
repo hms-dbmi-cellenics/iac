@@ -107,7 +107,7 @@ jobs:
         env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         env-name: [Biomage]
         should-run:
-          - ${{ contains(matrix.env-type, production) }}
+          - ${{ "${CLUSTER}" = "staging" }}
         include:
           - env-name: HMS
             env-type: production
