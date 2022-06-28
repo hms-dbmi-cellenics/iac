@@ -314,7 +314,12 @@ jobs:
     needs: [setup, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
     if: failure()
     steps:
-      - id: test
-        name: Test if job will run on failure
-        run: |
-          echo "Failure"
+      - id: send-to-slack
+        name: Send failure notification to Slack on failure
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pipelines
+          status: FAILED
+          color: danger
