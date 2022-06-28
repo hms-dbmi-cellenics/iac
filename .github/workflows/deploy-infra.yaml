@@ -18,7 +18,8 @@ on:
         - staging and production
         default: staging
 env:
-  region: 'eu-west-1'
+  REGION: 'eu-west-1'
+  RELEASES_REPOSITORY: hms-dbmi-cellenics/releases
 
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
@@ -108,7 +109,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ env.REGION }}
 
       - id: install-yq
         name: Install yq for modifying the eksctl yaml spec.
@@ -118,7 +119,7 @@ jobs:
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.REGION }} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
 
       - id: install-eksctl
@@ -195,7 +196,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ env.REGION }}
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
@@ -243,7 +244,7 @@ jobs:
 
           cat infra/account-config.yaml
         env:
-          AWS_REGION: ${{ env.region }}
+          AWS_REGION: ${{ env.REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
 
@@ -342,8 +343,8 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
           helm upgrade flux fluxcd/flux \
-            --set git.url=git@github.com:$GITHUB_REPOSITORY \
-            --set git.path="releases/$CLUSTER_ENV" \
+            --set git.url=git@github.com:${{ env.RELEASES_REPOSITORY }} \
+            --set git.path="$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \
             --set git.timeout="40s" \
@@ -370,7 +371,7 @@ jobs:
           # find existing key IDs. save them to a file
           curl \
             -H"Authorization: token $API_TOKEN_GITHUB"\
-            https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
+            https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys 2>/dev/null\
             | jq '.[] | select(.title | contains(env.CLUSTER_ENV)) | .id' > /tmp/key_ids
 
           # iterate through them and delete all existing deploy keys
@@ -380,7 +381,7 @@ jobs:
               curl \
                 -X "DELETE"\
                 -H"Authorization: token $API_TOKEN_GITHUB"\
-                https://api.github.com/repos/$GITHUB_REPOSITORY/keys/$_id 2>/dev/null
+                https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys/$_id 2>/dev/null
             done
 
           # add the keyfile to github
@@ -391,7 +392,7 @@ jobs:
             curl \
               -i\
               -H"Authorization: token $API_TOKEN_GITHUB"\
-              --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
+              --data @- https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys << EOF
             {
               "title" : "Flux CI -- $CLUSTER_ENV -- $(date)",
               "key" : "$(cat ~/flux.pub)",
