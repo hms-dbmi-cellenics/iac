@@ -371,7 +371,7 @@ jobs:
           # find existing key IDs. save them to a file
           curl \
             -H"Authorization: token $API_TOKEN_GITHUB"\
-            https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys 2>/dev/null\
+            https://api.github.com/repos/$GITHUB_REPOSITORY/keys 2>/dev/null\
             | jq '.[] | select(.title | contains(env.CLUSTER_ENV)) | .id' > /tmp/key_ids
 
           # iterate through them and delete all existing deploy keys
@@ -381,7 +381,7 @@ jobs:
               curl \
                 -X "DELETE"\
                 -H"Authorization: token $API_TOKEN_GITHUB"\
-                https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys/$_id 2>/dev/null
+                https://api.github.com/repos/$GITHUB_REPOSITORY/keys/$_id 2>/dev/null
             done
 
           # add the keyfile to github
