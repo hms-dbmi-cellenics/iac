@@ -160,7 +160,7 @@ jobs:
       - id: create-manifest-file
         name: Create manifest file to repository.
         run: |-
-          echo "$MANIFEST" | base64 -d > ./releases/staging/$SANDBOX_ID.yaml
+          echo "$MANIFEST" | base64 -d > $SANDBOX_ID.yaml
         env:
           MANIFEST: ${{ github.event.inputs.manifest }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
@@ -254,7 +254,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source_file: ./releases/staging/${{ github.event.inputs.sandbox-id }}.yaml
+          source_file: ${{ github.event.inputs.sandbox-id }}.yaml
           destination_repo: ${{ github.repository_owner }}/releases
           destination_folder: staging
           user_email: ci@biomage.net
