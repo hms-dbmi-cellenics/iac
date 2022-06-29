@@ -18,7 +18,7 @@ Resources:
       GroupName: !Sub "engineer-${Environment}-access"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess
-        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSStepFunctionsConsoleFullAccess
         - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
         - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
@@ -52,16 +52,7 @@ Resources:
                   - "sns:List*"
                 Resource: "*"
 
-        - PolicyName: "can-access-s3-aws-console"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:ListAllMyBuckets'
-                Resource:
-                  - "arn:aws:s3:::*"
-
-        - PolicyName: !Sub "can-manage-${Environment}-s3"
+        - PolicyName: !Sub "can-manage-old-${Environment}-s3"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -69,9 +60,7 @@ Resources:
                 Action: 's3:*'
                 Resource:
                   - !Sub "arn:aws:s3:::*-${Environment}/*"
-                  - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::*-${Environment}"
-                  - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}"
                   - "arn:aws:s3:::cf-templates-*"
 
         - PolicyName: "can-create-xray-groups"
