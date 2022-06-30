@@ -30,8 +30,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        include:
-          - env-name: Biomage
+        env-name: [Biomage]
     environment: ${{ matrix.env-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -107,10 +106,7 @@ jobs:
     strategy:
       matrix:
         env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        env-name: [Biomage, HMS]
-        exclude:
-          - env-name: HMS
-            env-type: staging
+        env-name: [Biomage]
     # if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: print-stuff
