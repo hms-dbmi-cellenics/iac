@@ -163,14 +163,6 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: add-manifest-to-repo
-        name: Add manifest file to repository.
-        run: |-
-          echo "$MANIFEST" | base64 -d > ./releases/staging/$SANDBOX_ID.yaml
-        env:
-          MANIFEST: ${{ github.event.inputs.manifest }}
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-
       - id: deploy-template-rds
         if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
         name: Deploy CloudFormation stack for RDS
@@ -235,7 +227,6 @@ jobs:
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.sns-name }}
@@ -246,7 +237,6 @@ jobs:
       - id: deploy-template-cognito
         name: Deploy CloudFormation stack for Cognito pool clients
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.cognito-name }}
@@ -254,56 +244,21 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      - id: disable-admin-enforcement
-        name: Temporarily disable admin enforcement
-        uses: benjefferies/branch-protection-bot@1.0.7
-        with:
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ${{ github.repository_owner }}
-          repo: iac
-          enforce_admins: false
-          retries: 8
-
-      - id: pull
-        name: Pull and allow unrelated histories.
+      - id: create-manifest-file
+        name: Create manifest file to repository.
         run: |-
-          git pull --allow-unrelated-histories
+          echo "$MANIFEST" | base64 -d > $SANDBOX_ID.yaml
+        env:
+          MANIFEST: ${{ github.event.inputs.manifest }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: push-deployment
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
-
-      - id: on-failure-retry
-        if: failure()
-        name: Retry in case push failed.
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 30
-          max_attempts: 5
-          retry_on: error
-          command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
-          # Add jitter to break up correlated events.
-          on_retry_command: sleep $((5 + RANDOM % 10))
-
-      - id: enable-admin-enforcement
-        name: Re-enable admin enforcement
-        uses: benjefferies/branch-protection-bot@1.0.7
-        if: always()
-        with:
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ${{ github.repository_owner }}
-          repo: iac
-          enforce_admins: true
-          retries: 8
-
-
-      - name: Push staging deployment template to releases
+      - id: push-deployment-to-releases
+        name: Push staging deployment template to releases
         uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source_file: ./releases/staging/${{ github.event.inputs.sandbox-id }}.yaml
+          source_file: ${{ github.event.inputs.sandbox-id }}.yaml
           destination_repo: ${{ github.repository_owner }}/releases
           destination_folder: staging
           user_email: ci@biomage.net
