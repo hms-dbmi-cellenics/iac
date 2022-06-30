@@ -124,16 +124,7 @@ jobs:
       - id: test-fail-staging
         name: test step that fails staging and checks if prod will still run
         run: |-
-          if ["$CLUSTER_ENV" = "staging"]; then
-             echo 'this is staging, I am gonna fail'
-             ERROR=true
-          fi
-          if [ ! -z "$ERROR" ]
-          then
-            echo
-            echo ERRORORRRRRR
-            exit 1
-          fi
+          exit 1
 
       # - id: install-yq
       #   name: Install yq for modifying the eksctl yaml spec.
