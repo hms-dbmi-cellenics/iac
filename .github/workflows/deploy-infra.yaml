@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        env-name: [Biomage]
+        environment-name: [Biomage]
     environment: ${{ matrix.env-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -86,7 +86,6 @@ jobs:
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
-          echo "${{ matrix.env-name }}"
           if [ "${CLUSTER}" = "staging" ]; then
             echo '::set-output name=matrix::["staging"]'
           elif [ "${CLUSTER}" = "production" ]; then
@@ -105,38 +104,33 @@ jobs:
       CLUSTER_ENV: ${{ matrix.env-type }}
     strategy:
       matrix:
-        env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        env-name: [Biomage]
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
     # if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
-      - id: print-stuff
-        name: print to test how this works
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+
+      - id: install-yq
+        name: Install yq for modifying the eksctl yaml spec.
         run: |-
-          echo "${{ matrix.env-name }}"
-          echo "${{ matrix.env-type }}"
+          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
 
-  #     - id: checkout
-  #       name: Check out source code
-  #       uses: actions/checkout@v2
-
-  #     - id: setup-aws
-  #       name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ env.region }}
-
-  #     - id: install-yq
-  #       name: Install yq for modifying the eksctl yaml spec.
-  #       run: |-
-  #         sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-
-  #     - id: fill-metadata
-  #       name: Add name and region to the eksctl file.
-  #       run: |-
-  #         yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
-  #         cat /tmp/cluster-$CLUSTER_ENV.yaml
+      - id: fill-metadata
+        name: Add name and region to the eksctl file.
+        run: |-
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
+          cat /tmp/cluster-$CLUSTER_ENV.yaml
+          echo /tmp/cluster-$CLUSTER_ENV.yaml
 
   #     - id: install-eksctl
   #       name: Install eksctl
