@@ -113,7 +113,7 @@ jobs:
         exclude:
           - env-name: HMS
             env-type: production
-            should-run: false
+            should-run: true
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: print-stuff
