@@ -29,6 +29,10 @@ jobs:
   setup:
     name: Check secrets and set up matrix
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -149,12 +153,15 @@ jobs:
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
-    strategy:
-      matrix:
-        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
-        template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
+
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
+        template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     steps:
       - id: checkout
         name: Check out source code
@@ -189,7 +196,7 @@ jobs:
         if: ${{ !contains(matrix.template, 'irsa-') }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
@@ -208,7 +215,7 @@ jobs:
         name: Deploy IRSA CloudFormation template
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
@@ -223,7 +230,7 @@ jobs:
       matrix:
         environment: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
     steps:
       - id: set-up-creds
         name: Configure AWS credentials
@@ -241,13 +248,13 @@ jobs:
         name: Uppercase environment name
         uses: ASzc/change-string-case-action@v2
         with:
-          string: ${{ matrix.environment }}
+          string: ${{ matrix.environment-type }}
 
       - id: get-rds-secrets
         name: Export RDS secrets into environment variables
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         with:
-          secrets: aurora-${{ matrix.environment }}
+          secrets: aurora-${{ matrix.environment-type }}
           parse-json: true
 
       - id: check-rds-secrets

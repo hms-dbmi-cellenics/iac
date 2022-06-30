@@ -9,6 +9,7 @@ jobs:
   run-e2e:
     name: Delete old staging step functions
     runs-on: ubuntu-20.04
+    environment: Biomage
     steps:
       - id: setup-aws
         name: Configure AWS credentials
