@@ -109,7 +109,7 @@ jobs:
         env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         env-name: [Biomage]
         should-run:
-          - ${{ contains(fromJson(needs.setup.outputs.matrix), production) }}
+          - ${{ contains(github.ref, 'use-environment-secrets') }}
         include:
           - env-name: HMS
             env-type: production
