@@ -52,17 +52,6 @@ Resources:
                   - "sns:List*"
                 Resource: "*"
 
-        - PolicyName: !Sub "can-manage-old-${Environment}-s3"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:*'
-                Resource:
-                  - !Sub "arn:aws:s3:::*-${Environment}/*"
-                  - !Sub "arn:aws:s3:::*-${Environment}"
-                  - "arn:aws:s3:::cf-templates-*"
-
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
             Version: "2012-10-17"

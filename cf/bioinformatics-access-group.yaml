@@ -11,21 +11,14 @@ Parameters:
       - production
     Description: The environment for which the access group is created.
 
-Resources: 
-  BioinformaticsAccessGroup: 
+Resources:
+  BioinformaticsAccessGroup:
     Type: AWS::IAM::Group
-    Properties: 
+    Properties:
       GroupName: !Sub "bioinformatics-data-ingest-${Environment}-access"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
       Policies:
-        - PolicyName: "can-access-s3-aws-console"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:ListAllMyBuckets'
-                Resource:
-                  - "arn:aws:s3:::*"
-        
         - PolicyName: !Sub "can-upload-${Environment}-source"
           PolicyDocument:
             Version: "2012-10-17"
@@ -34,24 +27,8 @@ Resources:
                 Action:
                   - 's3:PutObject'
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
-
-        - PolicyName: !Sub "can-list-${Environment}-source"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 's3:ListBucket'
-                  - 's3:GetBucketLocation'
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-update-${Environment}-experiment-data"
           PolicyDocument:
