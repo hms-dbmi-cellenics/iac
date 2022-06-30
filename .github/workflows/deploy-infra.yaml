@@ -19,7 +19,7 @@ on:
         default: staging
 env:
   REGION: 'eu-west-1'
-  RELEASES_REPOSITORY: hms-dbmi-cellenics/releases
+  RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
