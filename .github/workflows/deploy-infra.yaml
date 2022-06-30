@@ -392,7 +392,7 @@ jobs:
             curl \
               -i\
               -H"Authorization: token $API_TOKEN_GITHUB"\
-              --data @- https://api.github.com/repos/$GITHUB_REPOSITORY/keys << EOF
+              --data @- https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys << EOF
             {
               "title" : "Flux CI -- $CLUSTER_ENV -- $(date)",
               "key" : "$(cat ~/flux.pub)",
