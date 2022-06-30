@@ -123,7 +123,7 @@ jobs:
 
       - id: test-fail-staging
         name: test step that fails staging and checks if prod will still run
-        run |-
+        run: |-
           if [matrix.environment-type = 'staging']; then
              echo 'this is staging, I am gonna fail'
              ERROR=true
