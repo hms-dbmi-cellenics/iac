@@ -138,7 +138,7 @@ jobs:
 
       - id: lint
         name: Lint template
-        uses: scottbrenner/cfn-lint-action@1.6.1
+        uses: scottbrenner/cfn-lint-action@v2.2.4
         with:
           args: ${{ matrix.template }}
 
