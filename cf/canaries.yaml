@@ -19,7 +19,7 @@ Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
 Resources:
-  CanariesOldBucket:
+  CanariesBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "biomage-canaries-${Environment}"
@@ -28,7 +28,7 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
-  CanariesBucket:
+  CanariesBucketV2:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}"
