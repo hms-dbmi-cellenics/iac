@@ -103,10 +103,10 @@ jobs:
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
+      max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [Biomage]
-        max-parallel: 1
     # if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: checkout
