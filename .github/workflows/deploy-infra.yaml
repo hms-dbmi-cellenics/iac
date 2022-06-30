@@ -110,7 +110,7 @@ jobs:
         env-name: [Biomage, HMS]
         exclude:
           - env-name: HMS
-            env-type: production
+            env-type: staging
     # if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: print-stuff
