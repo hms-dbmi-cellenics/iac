@@ -19,15 +19,6 @@ Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
 Resources:
-  CanariesBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "biomage-canaries-${Environment}"
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: True
-        BlockPublicPolicy: True
-        IgnorePublicAcls: True
-        RestrictPublicBuckets: True
   CanariesBucketV2:
     Type: AWS::S3::Bucket
     Properties:
@@ -97,7 +88,7 @@ Resources:
     Properties:
       Name: !Sub "is-ui-up-${Environment}"
       ArtifactS3Location:
-        !Join [ "/", ['s3:/', !Ref CanariesBucket, !Sub "is-ui-up-${Environment}"]]
+        !Join [ "/", ['s3:/', !Ref CanariesBucketV2, !Sub "is-ui-up-${Environment}"]]
       Code:
         Handler: lambda_function.handler
         Script: |
