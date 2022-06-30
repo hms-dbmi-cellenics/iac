@@ -110,11 +110,11 @@ jobs:
         env-name: [Biomage]
         should-run:
           - ${{ contains(github.ref, 'refs/heads/use-environment-secrets') }}
-        include:
+        exclude:
           - env-name: HMS
             env-type: production
             should-run: false
-    if: github.event.inputs.workflow_actions == 'deploy and configure' && matrix.should-run
+    if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: print-stuff
         name: print to test how this works
