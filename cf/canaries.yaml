@@ -19,10 +19,19 @@ Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
 Resources:
-  CanariesBucket:
+  CanariesOldBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "biomage-canaries-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+  CanariesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -48,7 +57,7 @@ Resources:
                 Action:
                   - "s3:PutObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-canaries-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-canaries-${Environment}-${AWS::AccountId}/*"
               - Effect: Allow
                 Action:
                   - "s3:GetBucketLocation"
@@ -89,7 +98,7 @@ Resources:
       Name: !Sub "is-ui-up-${Environment}"
       ArtifactS3Location:
         !Join [ "/", ['s3:/', !Ref CanariesBucket, !Sub "is-ui-up-${Environment}"]]
-      Code: 
+      Code:
         Handler: lambda_function.handler
         Script: |
           const { URL } = require('url');
@@ -97,9 +106,9 @@ Resources:
           const log = require('SyntheticsLogger');
           const syntheticsConfiguration = synthetics.getConfiguration();
           const syntheticsLogHelper = require('SyntheticsLogHelper');
-          
+
           const runCanary = async function () {
-            const urls = [process.env.TEST_URL];  
+            const urls = [process.env.TEST_URL];
             const takeScreenshot = true;
 
             syntheticsConfiguration.disableStepScreenshots();
@@ -110,7 +119,7 @@ Resources:
               restrictedHeaders: [], // Value of these headers will be redacted from logs and reports
               restrictedUrlParameters: [] // Values of these url parameters will be redacted from logs and reports
             });
-              
+
             let page = await synthetics.getPage();
 
             for (const url of urls) {
@@ -125,11 +134,11 @@ Resources:
               synthetics.addExecutionError('Unable to open a blank page ', ex);
             }
           };
-          
+
           const loadUrl = async function (page, url, takeScreenshot) {
             let stepName = null;
             let domcontentloaded = false;
-          
+
             try {
               stepName = new URL(url).hostname;
             } catch (error) {
@@ -137,21 +146,21 @@ Resources:
               log.error(errorString);
               throw error;
             }
-              
+
             await synthetics.executeStep(stepName, async function () {
               const sanitizedUrl = syntheticsLogHelper.getSanitizedUrl(url);
-                  
+
               /* You can customize the wait condition here. For instance, using 'networkidle2' or 'networkidle0' to load page completely.
                 networkidle0: Navigation is successful when the page has had no network requests for half a second. This might never happen if page is constantly loading multiple resources.
                 networkidle2: Navigation is successful when the page has no more then 2 network requests for half a second.
-                domcontentloaded: It's fired as soon as the page DOM has been loaded, without waiting for resources to finish loading. Can be used and then add explicit await page.waitFor(timeInMs) 
+                domcontentloaded: It's fired as soon as the page DOM has been loaded, without waiting for resources to finish loading. Can be used and then add explicit await page.waitFor(timeInMs)
               */
               const response = await page.goto(url, { waitUntil: ['networkidle2'], timeout: 30000});
                 if (response) {
                     domcontentloaded = true;
                     const status = response.status();
                     const statusText = response.statusText();
-        
+
                     logResponseString = `Response from url: ${sanitizedUrl}  Status: ${status}  Status Text: ${statusText}`;
 
                     //If the response status code is not a 2xx success code
