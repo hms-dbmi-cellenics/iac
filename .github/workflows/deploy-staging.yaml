@@ -77,6 +77,12 @@ jobs:
           aws-secret-access-key: ${{ steps.decrypt-secrets.outputs.aws-secret-access-key }}
           aws-region: ${{ env.region }}
 
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+
       - id: setup-aws-privileged
         name: Configure AWS privileged credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -229,7 +235,6 @@ jobs:
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.sns-name }}
@@ -240,7 +245,6 @@ jobs:
       - id: deploy-template-cognito
         name: Deploy CloudFormation stack for Cognito pool clients
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.cognito-name }}
