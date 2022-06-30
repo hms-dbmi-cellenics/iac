@@ -107,13 +107,10 @@ jobs:
     strategy:
       matrix:
         env-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        env-name: [Biomage]
-        should-run:
-          - ${{ contains(github.ref, 'refs/heads/use-environment-secretssssss') }}
+        env-name: [Biomage, HMS]
         exclude:
           - env-name: HMS
-            env-type: production
-            should-run: false
+            env-type: staging
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: print-stuff
