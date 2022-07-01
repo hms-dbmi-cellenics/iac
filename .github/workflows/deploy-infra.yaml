@@ -25,16 +25,16 @@ env:
 concurrency: cluster-update-mutex
 
 jobs:
-  # setup:
-  #   name: Check secrets and set up matrix
-  #   runs-on: ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       environment-name: [Biomage]
-  #   environment: ${{ matrix.environment-name }}
-  #   outputs:
-  #     matrix: ${{ steps.set-matrix.outputs.matrix }}
-  #   steps:
+  setup:
+    name: Check secrets and set up matrix
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
   #     - id: check-secrets
   #       name: Check if necessary secrets are installed.
   #       run: |-
@@ -85,18 +85,18 @@ jobs:
   #           echo Any other missing secrets have to be added manually.
   #           exit 1
   #         fi
-  #     - id: set-matrix
-  #       name: Set up cluster matrix
-  #       run: |-
-  #         if [ "${CLUSTER}" = "staging" ]; then
-  #           echo '::set-output name=matrix::["staging"]'
-  #         elif [ "${CLUSTER}" = "production" ]; then
-  #           echo '::set-output name=matrix::["production"]'
-  #         elif [ "${CLUSTER}" = "staging and production" ]; then
-  #           echo '::set-output name=matrix::["staging", "production"]'
-  #         fi
-  #       env:
-  #         CLUSTER: ${{ github.event.inputs.cluster }}
+      - id: set-matrix
+        name: Set up cluster matrix
+        run: |-
+          if [ "${CLUSTER}" = "staging" ]; then
+            echo '::set-output name=matrix::["staging"]'
+          elif [ "${CLUSTER}" = "production" ]; then
+            echo '::set-output name=matrix::["production"]'
+          elif [ "${CLUSTER}" = "staging and production" ]; then
+            echo '::set-output name=matrix::["staging", "production"]'
+          fi
+        env:
+          CLUSTER: ${{ github.event.inputs.cluster }}
 
   create-eks-cluster:
     name: Create EKS cluster
@@ -190,8 +190,8 @@ jobs:
   configure-cluster:
     name: Configure Kubernetes resources (Load Balancer Controller, flux, Helm) on the EKS cluster
     runs-on: ubuntu-20.04
-    # needs: [setup, create-eks-cluster]
-    # if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    needs: [setup, create-eks-cluster]
+    if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
