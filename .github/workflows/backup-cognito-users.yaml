@@ -56,8 +56,4 @@ jobs:
           channel: pipelines
           status: FAILED
           color: danger
-
-
-          #           ACCOUNT_ID=${{steps.setup-aws.outputs.aws-account-id}}
-
-          
+ 
