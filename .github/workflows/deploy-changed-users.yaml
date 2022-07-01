@@ -61,7 +61,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ['production', 'staging']
+        environment-type: ['staging', 'production']
         environment-name: [Biomage]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
