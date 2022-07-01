@@ -30,61 +30,61 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage]
+        environment-name: Biomage
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-  #     - id: check-secrets
-  #       name: Check if necessary secrets are installed.
-  #       run: |-
-  #         echo Checking if secrets are defined in the repository.
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
 
-  #         if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
-  #         then
-  #           echo AWS certificate ARN is not defined.
-  #           ERROR=true
-  #         fi
+          if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
+          then
+            echo AWS certificate ARN is not defined.
+            ERROR=true
+          fi
 
-  #         if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
-  #         then
-  #           echo AWS Access Key ID not defined.
-  #           ERROR=true
-  #         fi
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
 
-  #         if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-  #         then
-  #           echo AWS Secret Access Key not defined.
-  #           ERROR=true
-  #         fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key not defined.
+            ERROR=true
+          fi
 
-  #         if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
-  #         then
-  #           echo GitHub deploy key access token not defined.
-  #           ERROR=true
-  #         fi
+          if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
+          then
+            echo GitHub deploy key access token not defined.
+            ERROR=true
+          fi
 
-  #         if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ]
-  #         then
-  #           echo Secret PRIMARY_DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
-  #           ERROR=true
-  #         fi
+          if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ]
+          then
+            echo Secret PRIMARY_DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
 
-  #         if [ -z "${{ secrets.DOMAIN_NAME }}" ]
-  #         then
-  #           echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
-  #           ERROR=true
-  #         fi
+          if [ -z "${{ secrets.DOMAIN_NAME }}" ]
+          then
+            echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
 
-  #         if [ ! -z "$ERROR" ]
-  #         then
-  #           echo
-  #           echo This workflow requires some secrets to complete. If the missing secrets are any of: 
-  #           echo API_TOKEN_GITHUB, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID,
-  #           echo then you should set/rotate them by running "rotate-ci" from "biomage-utils".
-  #           echo Any other missing secrets have to be added manually.
-  #           exit 1
-  #         fi
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete. If the missing secrets are any of: 
+            echo API_TOKEN_GITHUB, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID,
+            echo then you should set/rotate them by running "rotate-ci" from "biomage-utils".
+            echo Any other missing secrets have to be added manually.
+            exit 1
+          fi
       - id: set-matrix
         name: Set up cluster matrix
         run: |-
