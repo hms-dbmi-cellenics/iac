@@ -191,7 +191,7 @@ jobs:
     name: Configure Kubernetes resources (Load Balancer Controller, flux, Helm) on the EKS cluster
     runs-on: ubuntu-20.04
     # needs: [setup, create-eks-cluster]
-    if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    # if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -199,7 +199,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: Biomage
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
