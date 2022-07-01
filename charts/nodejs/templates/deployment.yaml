@@ -54,6 +54,9 @@ spec:
         {{- end }}
 
         env:
+        - name: AWS_ACCOUNT_ID
+          value: "{{ .Values.myAccount.accountId }}"
+
         - name: K8S_ENV
           value: {{ .Values.kubernetes.env | quote }}
 
@@ -70,7 +73,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        
+
         - name: DOMAIN_NAME
           value: {{ .Values.myAccount.domainName | quote }}
 
