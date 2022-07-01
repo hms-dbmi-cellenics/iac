@@ -41,7 +41,7 @@ jobs:
       - id: save-to-s3
         name: save backup json to s3
         run: |-
-          ACCOUNT_ID=${{steps.setup-aws.outputs.aws-account-id}}
+          ACCOUNT_ID="242905224710"
           BUCKET_NAME="biomage-backups-production:$ACCOUNT_ID"
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
@@ -57,4 +57,8 @@ jobs:
           channel: pipelines
           status: FAILED
           color: danger
+
+
+          #           ACCOUNT_ID=${{steps.setup-aws.outputs.aws-account-id}}
+
           
