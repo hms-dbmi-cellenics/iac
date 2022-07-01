@@ -32,7 +32,6 @@ jobs:
     strategy:
       matrix:
         environment-name: [Biomage]
-    environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -161,7 +160,6 @@ jobs:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [Biomage]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
-    environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
         name: Check out source code
@@ -227,8 +225,10 @@ jobs:
     needs: deploy-templates
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
+      max-parallel: 1
       matrix:
-        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     steps:
