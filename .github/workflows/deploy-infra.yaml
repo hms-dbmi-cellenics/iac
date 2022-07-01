@@ -200,6 +200,7 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
         name: Check out source code
