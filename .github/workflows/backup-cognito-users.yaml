@@ -25,7 +25,7 @@ jobs:
           npm install -g cognito-backup-restore
           sudo apt install -y jq
 
-      - id: set-up-creds
+      - id: setup-aws
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -42,6 +42,7 @@ jobs:
       - id: save-to-s3
         name: save backup json to s3
         run: |-
+          echo ${{setup-aws.outputs.aws-account-id}}
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
           aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
