@@ -42,10 +42,11 @@ jobs:
       - id: save-to-s3
         name: save backup json to s3
         run: |-
-          echo ${{steps.setup-aws.outputs.aws-account-id}}
+          ACCOUNT_ID=${{steps.setup-aws.outputs.aws-account-id}}
+          BUCKET_NAME="biomage-backups-production:$ACCOUNT_ID"
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
-          aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
+          aws s3api put-object --bucket $BUCKET_NAME --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
      
       - id: send-to-slack
         name: Send failure notification to Slack
