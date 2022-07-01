@@ -101,7 +101,7 @@ jobs:
   create-eks-cluster:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
-    needs: setup
+    # needs: setup
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
