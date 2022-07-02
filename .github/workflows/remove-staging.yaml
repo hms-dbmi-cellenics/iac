@@ -87,7 +87,6 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-
       - id: wait-pending-removals
         name: Wait for previous removal jobs before proceeding
         uses: softprops/turnstyle@v1
@@ -126,23 +125,6 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: remove-manifest-from-repo
-        name: Remove manifest file from repository.
-        run: |-
-          rm ./releases/staging/$SANDBOX_ID.yaml
-        env:
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-
-      - name: Remove manifest files from releases
-        uses: kafkasl/delete_from_another_repo@0.0.1
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          path: ./staging/${{ github.event.inputs.sandbox-id }}.yaml
-          destination_repo: ${{ github.repository_owner }}/releases
-          user_email: ci@biomage.net
-          user_name: 'Biomage CI/CD'
-
       - id: set-name
         name: Set name of the CloudFormation stack for SNS topic and Cognito pool
         run: |-
@@ -178,45 +160,13 @@ jobs:
         env:
           STACK_NAME: ${{ steps.set-name.outputs.cognito-name }}
 
-      - id: disable-admin-enforcement
-        name: Temporarily disable admin enforcement
-        uses: benjefferies/branch-protection-bot@1.0.7
+      - id: delete-staging-manifest
+        name: Remove manifest files from releases
+        uses: kafkasl/delete_from_another_repo@0.0.1
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ${{ github.repository_owner }}
-          repo: iac
-          enforce_admins: false
-          retries: 8
-
-      - id: pull
-        name: Pull and allow unrelated histories.
-        run: |-
-          git pull --allow-unrelated-histories
-
-      - id: push-deployment
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Remove staging environment ${{ github.event.inputs.sandbox-id }}
-
-      - id: on-failure-retry
-        if: failure()
-        name: Retry in case push failed.
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 30
-          max_attempts: 5
-          retry_on: error
-          command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
-          # Add jitter to break up correlated events.
-          on_retry_command: sleep $[($RANDOM % 10) + 5]s
-
-      - id: enable-admin-enforcement
-        name: Re-enable admin enforcement
-        uses: benjefferies/branch-protection-bot@1.0.7
-        if: always()
-        with:
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ${{ github.repository_owner }}
-          repo: iac
-          enforce_admins: true
-          retries: 8
+          path: ./staging/${{ github.event.inputs.sandbox-id }}.yaml
+          destination_repo: ${{ github.repository_owner }}/releases
+          user_email: ci@biomage.net
+          user_name: 'Biomage CI/CD'
