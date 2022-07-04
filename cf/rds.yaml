@@ -37,6 +37,13 @@ Parameters:
     Type: String
     Default: aurora
 
+# --------------------------------------- Conditions ---------------------------------------
+
+Conditions: 
+  SandboxIdIsDefault: !Equals
+    - !Ref SandboxID
+    - default
+
 Resources:
   RDSMasterUserSecret:
     Type: AWS::SecretsManager::Secret
@@ -45,7 +52,10 @@ Resources:
         RDS master secret. Refrain from using this secret as it breaks the IAM
         permission model that we have implemented to access the RDS. You should use
         dev_role to access the RDS - it has the same permissions as the db root user.
-      Name: !Sub "${DBSecretPrefix}-${Environment}"
+      Name: !If [SandboxIdIsDefault, 
+        !Sub "${DBSecretPrefix}-${Environment}", 
+        !Sub "${DBSecretPrefix}-${Environment}-${SandboxID}"
+      ]
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: password
