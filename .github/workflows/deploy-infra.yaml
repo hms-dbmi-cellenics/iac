@@ -80,10 +80,8 @@ jobs:
           if [ ! -z "$ERROR" ]
           then
             echo
-            echo This workflow requires some secrets to complete. If the missing secrets are any of: 
-            echo API_TOKEN_GITHUB, AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID,
-            echo then you should set/rotate them by running "rotate-ci" from "biomage-utils".
-            echo Any other missing secrets have to be added manually.
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
             exit 1
           fi
       - id: set-matrix
@@ -108,7 +106,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }} ["staging", "production"]
         environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
