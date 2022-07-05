@@ -1,8 +1,8 @@
 name: Update infrastructure users on AWS
 on:
   push:
-    branches:
-      - use-environment-secrets
+    # branches:
+    #   - use-environment-secrets
     paths:
       - 'infra/cluster_admins_*'
       - 'infra/cluster_users'
