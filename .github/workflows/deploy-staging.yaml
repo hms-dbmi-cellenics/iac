@@ -200,7 +200,7 @@ jobs:
           fi
 
           SETUP_ROLES_CMD="
-            PGPASSWORD='${AURORA_STAGING_PASSWORD}' psql \
+            PGPASSWORD=\'${AURORA_STAGING_PASSWORD}\' psql \
               --host=${RDSHOST} \
               --port=5432 \
               --username=${AURORA_STAGING_USERNAME} \
