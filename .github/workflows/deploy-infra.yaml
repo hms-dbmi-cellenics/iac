@@ -29,6 +29,10 @@ jobs:
   setup:
     name: Check secrets and set up matrix
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -36,6 +40,12 @@ jobs:
         name: Check if necessary secrets are installed.
         run: |-
           echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
+          then
+            echo AWS certificate ARN is not defined.
+            ERROR=true
+          fi
 
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
@@ -70,8 +80,8 @@ jobs:
           if [ ! -z "$ERROR" ]
           then
             echo
-            echo This workflow requires some secrets to complete. The secrets can be set/rotated
-            echo by running `rotate-ci` from `biomage-utils`.
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
             exit 1
           fi
       - id: set-matrix
@@ -87,17 +97,19 @@ jobs:
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
 
-
   create-eks-cluster:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
     needs: setup
-    if: github.event.inputs.workflow_actions == 'deploy and configure'
-    strategy:
-      matrix:
-        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }} ["staging", "production"]
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
+    if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: checkout
         name: Check out source code
@@ -175,16 +187,19 @@ jobs:
           eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
   configure-cluster:
-    name: Configure Kubernetes resources (Load Balancer Controller, flux, Helm) on the EKS cluster
+    name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
     needs: [setup, create-eks-cluster]
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
-    strategy:
-      matrix:
-        environment:  ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
         name: Check out source code
@@ -217,11 +232,11 @@ jobs:
       - id: setup-domain
         name: Compile environment-specific domain name
         run: |-
-          if [ "${{ matrix.environment }}" = "production" ]; then
+          if [ "${{ matrix.environment-type }}" = "production" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
           fi
-          if [ "${{ matrix.environment }}" = "staging" ]; then
+          if [ "${{ matrix.environment-type }}" = "staging" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
           fi
@@ -322,8 +337,8 @@ jobs:
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-k8s-alb-${{ matrix.environment }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: "biomage-k8s-alb-${{ matrix.environment-type }}"
           template: 'infra/cf-loadbalancer.yaml'
           no-fail-on-empty-changeset: "1"
 
@@ -331,8 +346,8 @@ jobs:
         name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-          name: "biomage-alb-route53-${{ matrix.environment }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          name: "biomage-alb-route53-${{ matrix.environment-type }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
 
@@ -440,8 +455,8 @@ jobs:
         name: Deploy AWS Step Function (state machine) roles
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-state-machine-role-${{ matrix.environment }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: "biomage-state-machine-role-${{ matrix.environment-type }}"
           template: 'infra/cf-state-machine-role.yaml'
           capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
           no-fail-on-empty-changeset: "1"
