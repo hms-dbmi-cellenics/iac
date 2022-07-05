@@ -23,6 +23,7 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -63,6 +64,7 @@ jobs:
       matrix:
         environment-type: ['staging', 'production']
         environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
