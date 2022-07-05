@@ -153,8 +153,6 @@ jobs:
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
-    env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
       max-parallel: 1
       matrix:
@@ -162,6 +160,8 @@ jobs:
         environment-name: [Biomage]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     environment: ${{ matrix.environment-name }}
+    env:
+      CLUSTER_ENV: ${{ matrix.environment-type }}
     steps:
       - id: checkout
         name: Check out source code

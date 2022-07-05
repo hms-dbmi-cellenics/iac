@@ -135,7 +135,6 @@ jobs:
         run: |-
           yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.REGION }} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
-          echo /tmp/cluster-$CLUSTER_ENV.yaml
 
       - id: install-eksctl
         name: Install eksctl
