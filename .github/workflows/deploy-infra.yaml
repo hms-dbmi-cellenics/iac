@@ -110,6 +110,7 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
       - id: checkout
@@ -201,6 +202,7 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
         name: Check out source code
