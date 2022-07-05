@@ -1,13 +1,13 @@
 name: Update infrastructure users on AWS
 on:
   push:
-    # branches:
-    #   - use-environment-secrets
-    # paths:
-    #   - 'infra/cluster_admins_*'
-    #   - 'infra/cluster_users'
-    #   - 'infra/biomage-read-only-group/**'
-    #   - 'infra/cf-state-machine-role.yaml'
+    branches:
+      - master
+    paths:
+      - 'infra/cluster_admins_*'
+      - 'infra/cluster_users'
+      - 'infra/biomage-read-only-group/**'
+      - 'infra/cf-state-machine-role.yaml'
 env:
   region: 'eu-west-1'
 
