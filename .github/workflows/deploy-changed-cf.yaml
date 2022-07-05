@@ -63,6 +63,18 @@ jobs:
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
           GITHUB_REF: ${{ github.ref }}
+          # REMOVE THIS IT IS JUST A TEST
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: set-up-creds
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
 
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
