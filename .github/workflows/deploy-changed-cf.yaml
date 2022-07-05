@@ -222,7 +222,7 @@ jobs:
   setup-rds-roles:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
-    needs: deploy-templates
+    needs: [setup, deploy-templates]
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       max-parallel: 1
