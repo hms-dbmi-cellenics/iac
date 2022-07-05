@@ -16,6 +16,7 @@ jobs:
   remove-staging:
     name: Remove staging environment
     runs-on: ubuntu-20.04
+    environment: Biomage
     steps:
       - id: setup-aws
         name: Configure AWS credentials

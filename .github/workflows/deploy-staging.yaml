@@ -26,6 +26,7 @@ jobs:
   deploy-staging:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
+    environment: Biomage
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -200,7 +201,7 @@ jobs:
           fi
 
           SETUP_ROLES_CMD="
-            PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
+            PGPASSWORD=\'${AURORA_STAGING_PASSWORD}\' psql \
               --host=${RDSHOST} \
               --port=5432 \
               --username=${AURORA_STAGING_USERNAME} \
