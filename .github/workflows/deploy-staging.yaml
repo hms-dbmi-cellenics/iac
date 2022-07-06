@@ -92,27 +92,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      - id: get-rds-secrets
-        if: ${{ github.event.inputs.with-rds == 'True' }}
-        uses: abhilash1in/aws-secrets-manager-action@v2.0.0
-        name: Export RDS secrets into environment variables
-        with:
-          secrets: aurora-staging-${{ github.event.inputs.sandbox-id }}
-          parse-json: true
-
-      - id: check-rds-secrets
-        if: ${{ github.event.inputs.with-rds == 'True' }}
-        name: Check RDS secrets are fetched
-        run: |-
-          # These checks if the RDS username and passwords are set
-          if [ -z $AURORA_STAGING_USERNAME ]; then
-            echo "RDS username not provided"
-            exit 1
-          fi
-          if [ -z $AURORA_STAGING_PASSWORD ]; then
-            echo "RDS password not provided"
-            exit 1
-          fi
       - id: install-eksctl
         name: Install eksctl
         run: |-
@@ -174,6 +153,28 @@ jobs:
           template: cf/rds.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: get-rds-secrets
+        if: ${{ github.event.inputs.with-rds == 'True' }}
+        uses: abhilash1in/aws-secrets-manager-action@v2.0.0
+        name: Export RDS secrets into environment variables
+        with:
+          secrets: aurora-staging-${{ github.event.inputs.sandbox-id }}
+          parse-json: true
+
+      - id: check-rds-secrets
+        if: ${{ github.event.inputs.with-rds == 'True' }}
+        name: Check RDS secrets are fetched
+        run: |-
+          # These checks if the RDS username and passwords are set
+          if [ -z $AURORA_STAGING_USERNAME ]; then
+            echo "RDS username not provided"
+            exit 1
+          fi
+          if [ -z $AURORA_STAGING_PASSWORD ]; then
+            echo "RDS password not provided"
+            exit 1
+          fi
 
       - id: setup-rds-roles
         if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
