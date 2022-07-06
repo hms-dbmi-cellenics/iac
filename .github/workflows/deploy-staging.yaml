@@ -97,7 +97,7 @@ jobs:
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
         with:
-          secrets: aurora-staging
+          secrets: aurora-staging-${{ github.event.inputs.sandbox-id }}
           parse-json: true
 
       - id: check-rds-secrets
