@@ -156,6 +156,7 @@ jobs:
 
       - id: get-rds-secrets
         if: ${{ github.event.inputs.with-rds == 'True' }}
+        needs: deploy-template-rds
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         name: Export RDS secrets into environment variables
         with:
@@ -164,6 +165,7 @@ jobs:
 
       - id: check-rds-secrets
         if: ${{ github.event.inputs.with-rds == 'True' }}
+        needs: get-rds-secrets
         name: Check RDS secrets are fetched
         run: |-
           # These checks if the RDS username and passwords are set
@@ -178,6 +180,7 @@ jobs:
 
       - id: setup-rds-roles
         if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        needs: get-rds-secrets
         name: Setup RDS roles
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
