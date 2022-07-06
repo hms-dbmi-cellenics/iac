@@ -357,12 +357,15 @@ jobs:
           helm repo add fluxcd https://charts.fluxcd.io
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
+          [[ $ENVIRONMENT_NAME = "Biomage" ]] && FLUX_GIT_READ_ONLY=false || FLUX_GIT_READ_ONLY=true
+
           helm upgrade flux fluxcd/flux \
             --set git.url=git@github.com:${{ env.RELEASES_REPOSITORY }} \
             --set git.path="$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \
             --set git.timeout="40s" \
+            --set git.readonly=$FLUX_GIT_READ_ONLY \
             --set syncGarbageCollection.enabled=true \
             --namespace flux \
             --install --wait
@@ -374,14 +377,18 @@ jobs:
             --set git.timeout="40s" \
             --namespace flux \
             --install --wait
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
       - id: get-public-key
         name: Get flux SSH deploy key
+        if: matrix.environment-name == 'Biomage'
         run: |-
           fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
 
       - id: add-key-to-github
         name: Add Flux deploy key to GitHub repository
+        if: matrix.environment-name == 'Biomage'
         run: |-
           # find existing key IDs. save them to a file
           curl \
