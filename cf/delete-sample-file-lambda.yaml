@@ -63,7 +63,7 @@ Resources:
   DeleteSampleFileLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub delete-sample-labda-${Environment}
+      FunctionName: !Sub delete-sample-file-lambda-${Environment}
       Runtime: nodejs14.x
       Role: !GetAtt DeleteSampleFileLambdaRole.Arn
       Handler: index.handler
