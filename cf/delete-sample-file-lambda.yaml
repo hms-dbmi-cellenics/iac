@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Setting up a lambda function to handle user invites for non-existing users
+Description: Lambda to delete files in S3 when sample is deleted
 
 Parameters:
   Environment:
@@ -9,7 +9,7 @@ Parameters:
       - development
       - staging
       - production
-    Description: The environment for which the tables need to be created.
+    Description: The environment for which the lambda is created
 
 Outputs:
   DeleteSampleFileLambdaArn:
