@@ -119,7 +119,8 @@ Resources:
     UpdateReplacePolicy: Snapshot
     Properties:
       AssociatedRoles:
-        - RoleArn: !GetAtt RDSInvokeLambdaRole.Arn
+        - FeatureName: Lambda
+          RoleArn: !GetAtt RDSInvokeLambdaRole.Arn
       Engine: aurora-postgresql
       EngineMode: provisioned
       EngineVersion: !Ref DBEngineVersion
