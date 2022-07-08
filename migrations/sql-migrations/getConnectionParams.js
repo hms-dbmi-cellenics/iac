@@ -25,7 +25,7 @@ const getRDSEndpoint = async (rdsClient, environment, sandboxId) => {
   return endpoints[0].Endpoint;
 };
 
-const getConnectionParams = async (environment, sandboxId) => {
+const getConnectionParams = async (environment, sandboxId, region) => {
   if (environment === 'development') {
     return {
       host: 'localhost',
@@ -36,13 +36,13 @@ const getConnectionParams = async (environment, sandboxId) => {
     };
   }
 
-  const rdsClient = new AWS.RDS({ region: 'eu-west-1' });
+  const rdsClient = new AWS.RDS({ region });
   const endpoint = await getRDSEndpoint(rdsClient, environment, sandboxId);
   const username = 'dev_role';
 
   const signer = new AWS.RDS.Signer({
     hostname: endpoint,
-    region: 'eu-west-1',
+    region,
     port: 5432,
     username,
   });

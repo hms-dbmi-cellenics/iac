@@ -18,7 +18,7 @@ on:
         - staging and production
         default: staging
 env:
-  REGION: 'eu-west-1'
+  REGION: {{ secrets.AWS_REGION }}
   RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
 # this ensures that only one CI pipeline with the same key
@@ -254,7 +254,7 @@ jobs:
           yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
           | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
-          | yq w -d0 - myAccount.acmCertificate --style=double "arn:aws:acm:eu-west-1:242905224710:certificate/de2efba9-8964-49d2-8525-242e7e43ca4c" \
+          | yq w -d0 - myAccount.acmCertificate --style=double "arn:aws:acm:${AWS_REGION}:${AWS_ACCOUNT_ID}:certificate/de2efba9-8964-49d2-8525-242e7e43ca4c" \
           > infra/account-config.yaml
 
           cat infra/account-config.yaml
