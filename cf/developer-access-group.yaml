@@ -186,12 +186,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - "rds-db:connect"
+                  - rds-db:connect
                 Resource:
                   - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
               - Effect: Allow
                 Action:
-                  - "rds:DescribeDBClusterEndpoints"
+                  - rds:DescribeGlobalClusters
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:global-cluster:*"
+              - Effect: Allow
+                Action:
+                  - rds:DescribeClusters
+                  - rds:DescribeDBClusterEndpoints
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
