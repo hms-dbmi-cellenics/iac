@@ -105,7 +105,7 @@ Resources:
       DBClusterIdentifier: !Join [ "-", ["aurora-cluster", !Ref Environment, !Ref SandboxID] ]
       DatabaseName: "aurora_db"
       Port: !Ref DBPort
-      DeletionProtection: true
+      DeletionProtection: !If [SandboxIdIsDefault, true, false]
       MasterUsername: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::username}}"
       MasterUserPassword: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::password}}"
       EnableIAMDatabaseAuthentication: true
