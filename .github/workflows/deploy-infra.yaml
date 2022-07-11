@@ -18,7 +18,6 @@ on:
         - staging and production
         default: staging
 env:
-  region: {{ secrets.AWS_REGION }}
   RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
 # this ensures that only one CI pipeline with the same key
@@ -121,7 +120,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - id: install-yq
         name: Install yq for modifying the eksctl yaml spec.
@@ -131,7 +130,7 @@ jobs:
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ env.region }} > /tmp/cluster-$CLUSTER_ENV.yaml
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ secrets.AWS_REGION }} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
 
       - id: install-eksctl
@@ -211,7 +210,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
@@ -259,7 +258,7 @@ jobs:
 
           cat infra/account-config.yaml
         env:
-          AWS_REGION: ${{ env.region }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
 
