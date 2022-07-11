@@ -4,7 +4,7 @@ on:
     - cron: '0 1 * * 0'
   workflow_dispatch:
 env:
-  region: 'eu-west-1'
+  region: {{ secrets.AWS_REGION }}
   pool-name: 'biomage-user-pool-case-insensitive-production'
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
-          
+
       - id: backup-users
         name: create backup json of cognito users
         run: |-

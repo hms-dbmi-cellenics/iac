@@ -23,7 +23,7 @@ on:
       - 'cf/**.yaml'
       - 'cf/**.yml'
 env:
-  region: 'eu-west-1'
+  region: {{ secrets.AWS_REGION }}
 
 jobs:
   setup:
