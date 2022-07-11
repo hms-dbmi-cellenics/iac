@@ -10,7 +10,7 @@ on:
         required: true
 
 env:
-  region: {{ secrets.AWS_REGION }}
+  region: 'eu-west-1'
 
 jobs:
   remove-staging:
@@ -36,7 +36,7 @@ jobs:
         name: Decrypt credentials from user.
         run: |-
             SECRETS="$(aws kms decrypt \
-              --key-id arn:aws:kms:${REGION}:${AWS_ACCOUNT_ID}:alias/iac-secret-key \
+              --key-id arn:aws:kms:${REGION}:242905224710:alias/iac-secret-key \
               --ciphertext-blob fileb://<(echo $CIPHERTEXT | base64 --decode) \
               --output text --query Plaintext)"
 
@@ -58,7 +58,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           CIPHERTEXT: ${{ github.event.inputs.secrets }}
           REGION: ${{ env.region }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
 
       - id: setup-aws-submitted
         name: Configure AWS credentials with submitted details
