@@ -108,3 +108,35 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/delete-sample-file-lambda-${Environment}"
       RetentionInDays: 7
+
+
+  DeleteSampleFileLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow RDS to connect to lambda
+      VpcId:
+        Fn::ImportValue:
+          !Sub 'eksctl-biomage-${Environment}-cluster::VPC'
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+
+  DeleteSampleFileLambdaEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.lambda"
+      VpcId:
+        Fn::ImportValue:
+          !Sub "eksctl-biomage-${Environment}-cluster::VPC"
+      SubnetIds:
+        Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+      SecurityGroupIds:
+        - !GetAtt DeleteSampleFileLambdaSecurityGroup.GroupId
