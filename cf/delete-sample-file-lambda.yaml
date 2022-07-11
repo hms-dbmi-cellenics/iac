@@ -86,13 +86,16 @@ Resources:
             });
 
             s3.deleteObject(params, (err) => {
-              if (err) console.log(err, err.stack) return
+              if (err) {
+                console.log(err, err.stack);
+                return;
+              }
               console.log(`== Successfully deleted ${s3_path} ==`);
             });
           };
 
           exports.handler = async (event, context, callback) => {
-            const { s3_path } = event.request.body;
+            const { s3_path } = event;
 
             const bucketName = `biomage-originals-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
 
@@ -107,7 +110,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/delete-sample-file-lambda-${Environment}"
-      RetentionInDays: 7
+      RetentionInDays: 1
 
 
   DeleteSampleFileLambdaSecurityGroup:
@@ -118,10 +121,6 @@ Resources:
         Fn::ImportValue:
           !Sub 'eksctl-biomage-${Environment}-cluster::VPC'
       SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
