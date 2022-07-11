@@ -330,6 +330,7 @@ jobs:
             helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
               --namespace default \
               --set clusterEnv=$CLUSTER_ENV \
+              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
               --install --wait
 
       - id: deploy-env-loadbalancer
