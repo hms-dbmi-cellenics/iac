@@ -4,8 +4,8 @@ metadata:
   namespace: default
   name: 503-for-pending-subscriptions
   annotations:
-    alb.ingress.kubernetes.io/certificate-arn: >- 
-      {{ .Values.myAccount.acmCertificate }}
+    alb.ingress.kubernetes.io/certificate-arn: >-
+      arn:aws:acm:eu-west-1:242905224710:certificate/de2efba9-8964-49d2-8525-242e7e43ca4c
     alb.ingress.kubernetes.io/group.name: "{{ .Values.clusterEnv }}"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
     alb.ingress.kubernetes.io/target-type: ip
