@@ -5,7 +5,7 @@ on:
     - cron:  '20 4 * * *'
   workflow_dispatch:
 env:
-  region: {{ secrets.AWS_REGION }}
+  region: ${{ secrets.AWS_REGION }}
 
 jobs:
   run-e2e:
