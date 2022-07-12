@@ -165,4 +165,4 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
+      Domain: !Sub "biomage-auth-${Environment}-${AWS::AccountId}"
