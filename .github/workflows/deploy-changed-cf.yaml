@@ -22,8 +22,6 @@ on:
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
-env:
-  region: {{ secrets.AWS_REGION }}
 
 jobs:
   setup:
@@ -173,7 +171,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - id: set-name
         name: Set name of the CloudFormation stack
@@ -241,7 +239,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.
       # This is required because the action that is used in get-rds-secrets store the secret in environment variables,
@@ -316,7 +314,7 @@ jobs:
             --document-name AWS-RunShellScript \
             --parameters "commands='$SETUP_ROLES_CMD'"
         env:
-          REGION: ${{ env.region }}
+          REGION: ${{ secrets.AWS_REGION }}
 
   report-if-failed:
     name: Report if workflow failed
