@@ -10,7 +10,7 @@ on:
         required: true
 
 env:
-  region: {{ secrets.AWS_REGION }}
+  region: ${{ secrets.AWS_REGION }}
 
 jobs:
   remove-staging:
