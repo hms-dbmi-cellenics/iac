@@ -39,7 +39,7 @@ Parameters:
 
 # --------------------------------------- Conditions ---------------------------------------
 
-Conditions: 
+Conditions:
   SandboxIdIsDefault: !Equals
     - !Ref SandboxID
     - default
@@ -52,8 +52,8 @@ Resources:
         RDS master secret. Refrain from using this secret as it breaks the IAM
         permission model that we have implemented to access the RDS. You should use
         dev_role to access the RDS - it has the same permissions as the db root user.
-      Name: !If [SandboxIdIsDefault, 
-        !Sub "${DBSecretPrefix}-${Environment}", 
+      Name: !If [SandboxIdIsDefault,
+        !Sub "${DBSecretPrefix}-${Environment}",
         !Sub "${DBSecretPrefix}-${Environment}-${SandboxID}"
       ]
       GenerateSecretString:
@@ -61,6 +61,28 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 32
         ExcludeCharacters: "/@\"'\\"
+
+  RDSInvokeLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "rds-can-invoke-lambda-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-sample-file-lambda-${Environment}"
 
   RDSInstanceAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
@@ -79,8 +101,8 @@ Resources:
         # https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_available-rotation-templates.html#sar-template-postgre-singleuser
         # This lambda will be injected into the stack. Injection requires AWS transform defined above.
         RotationType: PostgreSQLSingleUser
-        RotationLambdaName: !If [SandboxIdIsDefault, 
-          !Sub "RDSSecretsManagerRotation${Environment}", 
+        RotationLambdaName: !If [SandboxIdIsDefault,
+          !Sub "RDSSecretsManagerRotation${Environment}",
           !Sub "RDSSecretsManagerRotation${Environment}-${SandboxID}"
         ]
         VpcSubnetIds:
@@ -96,6 +118,9 @@ Resources:
     DeletionPolicy: Snapshot
     UpdateReplacePolicy: Snapshot
     Properties:
+      AssociatedRoles:
+        - FeatureName: Lambda
+          RoleArn: !GetAtt RDSInvokeLambdaRole.Arn
       Engine: aurora-postgresql
       EngineMode: provisioned
       EngineVersion: !Ref DBEngineVersion
