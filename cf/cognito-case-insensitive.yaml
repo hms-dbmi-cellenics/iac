@@ -152,6 +152,16 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+          # Agreed to privacy policy (soft required)
+        - Name: agreed_terms
+          Required: false
+          Mutable: true
+          AttributeDataType: String
+          # Agreed to receiving emails (Not required, default is false)
+        - Name: agreed_emails
+          Required: false
+          Mutable: true
+          AttributeDataType: String
       SmsAuthenticationMessage: 'Your authentication code for Cellenics is {####}.'
       SmsVerificationMessage: 'Your verification code for Cellenics is {####}.'
       UsernameAttributes:
