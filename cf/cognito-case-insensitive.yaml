@@ -10,10 +10,6 @@ Parameters:
       - staging
       - production
     Description: The environment for which the buckets need to be created.
-  ReplyToEmail:
-    Type: String
-    Default: hello@biomage.net
-    Description: The email users reply registration message to
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
