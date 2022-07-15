@@ -19,7 +19,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: {{ env.region }}
+          aws-region: ${{ env.region }}
 
       # This will take everything OLDER THAN the last 500 step functions
       # marked as staging and remove them.
