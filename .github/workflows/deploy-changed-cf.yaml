@@ -300,7 +300,7 @@ jobs:
             exit 1
           fi
           SETUP_ROLES_CMD="
-            PGPASSWORD='${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD}' psql \
+            PGPASSWORD=${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD} psql \
               --host=${RDSHOST} \
               --port=5432 \
               --username=${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME} \

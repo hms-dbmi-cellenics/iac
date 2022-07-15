@@ -15,7 +15,6 @@ Parameters:
     Type: String
     Description: The OIDC provider
 
-
 Resources:
   PipelineRole:
     Type: "AWS::IAM::Role"

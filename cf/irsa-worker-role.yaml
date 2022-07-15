@@ -15,7 +15,6 @@ Parameters:
     Type: String
     Description: The OIDC provider
 
-
 Resources:
   WorkerRole:
     Type: "AWS::IAM::Role"
