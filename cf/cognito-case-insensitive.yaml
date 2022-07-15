@@ -18,7 +18,6 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
-
 Outputs:
   UserPoolId:
     Value: !Ref UserPool
