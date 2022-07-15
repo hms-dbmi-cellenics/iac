@@ -21,6 +21,7 @@ Outputs:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
+
 Resources:
   PostRegisterLambdaRole:
     Type: "AWS::IAM::Role"

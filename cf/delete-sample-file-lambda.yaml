@@ -11,6 +11,7 @@ Parameters:
       - production
     Description: The environment for which the lambda is created
 
+
 Resources:
   DeleteSampleFileLambdaRole:
     Type: "AWS::IAM::Role"

@@ -39,7 +39,6 @@ Parameters:
 
 # --------------------------------------- Conditions ---------------------------------------
 
-
 Conditions:
   SandboxIdIsDefault: !Equals
     - !Ref SandboxID

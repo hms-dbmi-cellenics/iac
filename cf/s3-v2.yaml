@@ -11,6 +11,7 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
+
 Resources:
   PlotsTablesBucket:
     Type: AWS::S3::Bucket

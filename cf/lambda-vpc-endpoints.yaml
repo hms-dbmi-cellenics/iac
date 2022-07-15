@@ -25,7 +25,6 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0
 
-
   LambdaVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
