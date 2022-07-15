@@ -10,13 +10,10 @@ Parameters:
       - staging
       - production
     Description: The environment for which the tables need to be created.
-  Email:
-    Type: String
-    Default: engineering@biomage.net
-    Description: Email to send platform status notifications to
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
+  isHMSAccount: !Equals [!Sub ${AWS::AccountId}, "160782110667"]
 
 Resources:
   CanariesBucketV2:
@@ -231,7 +228,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: !Ref Email
+      Endpoint: !If [isHMSAccount, "alex_pickering@hms.harvard.edu", "engineering@biomage.net"]
       Protocol: "email"
 
   CanariesAlarm:
