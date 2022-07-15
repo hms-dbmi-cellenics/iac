@@ -13,7 +13,7 @@ Parameters:
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
-  isHMSAccount: !Equals [!Sub ${AWS::AccountId}, "160782110667"]
+  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Resources:
   CanariesBucketV2:
