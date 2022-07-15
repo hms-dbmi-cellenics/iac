@@ -150,7 +150,7 @@ jobs:
     needs: [setup, get-modified-templates, lint-templates]
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
-      deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
+      deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
     strategy:
       max-parallel: 1
       matrix:
