@@ -22,7 +22,6 @@ Parameters:
     Default: db.t4g.medium
     Description: The instance type for the database.
 
-
 # --------------------------------------- Constants ---------------------------------------
   DBPort:
     Type: String

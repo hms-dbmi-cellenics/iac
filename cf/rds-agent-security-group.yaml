@@ -32,7 +32,6 @@ Resources:
           IpProtocol: tcp
           CidrIp: 0.0.0.0/0
 
-
 Outputs:
   SecurityGroupId:
     Value: !Ref RDSAgentSecurityGroup
