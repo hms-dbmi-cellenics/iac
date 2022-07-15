@@ -360,7 +360,7 @@ jobs:
           [[ $ENVIRONMENT_NAME = "Biomage" ]] && FLUX_GIT_READ_ONLY=false || FLUX_GIT_READ_ONLY=true
 
           helm upgrade flux fluxcd/flux \
-            --set git.url=git@github.com:${{ env.RELEASES_REPOSITORY }} \
+            --set git.url="https://github.com/${{ env.RELEASES_REPOSITORY }}" \
             --set git.path="$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \
