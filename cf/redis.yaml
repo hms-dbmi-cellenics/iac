@@ -14,7 +14,6 @@ Parameters:
     Default: '6379'
     Type: String
 
-
 Outputs:
   ElastiCachePrimaryEndpointAddress:
     Description: Address to use to connect to Primary Cluster endpoint
