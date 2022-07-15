@@ -18,6 +18,7 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
 
+
 Resources:
   UserPoolClientCluster:
     Type: AWS::Cognito::UserPoolClient
