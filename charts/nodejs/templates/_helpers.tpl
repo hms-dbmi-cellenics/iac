@@ -13,12 +13,11 @@ Expand the name of the chart.
 
 {{- define "hostname" -}}
 {{- if (eq .Values.kubernetes.env "production") -}}
-{{- printf "%s.scp.biomage.net" (split "/" .Values.biomageCi.repo)._1 -}}
+{{- printf "%s.%s" (split "/" .Values.biomageCi.repo)._1 .Values.myAccount.domainName -}}
 {{- else -}}
-{{- printf "%s-%s.scp-%s.biomage.net" (split "/" .Values.biomageCi.repo)._1 .Values.biomageCi.sandboxId .Values.kubernetes.env -}}
+{{- printf "%s-%s.%s" (split "/" .Values.biomageCi.repo)._1 .Values.biomageCi.sandboxId .Values.myAccount.domainName -}}
 {{- end -}}
 {{- end -}}
-
 {{- define "serviceAccountRole" -}}
 {{- printf "arn:aws:iam::%s:role/%s" .Values.myAccount.accountId .Values.serviceAccount.iamRole -}}
 {{- end -}}

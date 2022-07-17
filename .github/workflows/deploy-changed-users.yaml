@@ -9,7 +9,7 @@ on:
       - 'infra/biomage-read-only-group/**'
       - 'infra/cf-state-machine-role.yaml'
 env:
-  region: 'eu-west-1'
+  region: ${{ secrets.AWS_REGION }}
 
 # this ensures that only one CI pipeline with the same key
 # can run at once in order to prevent undefined states
@@ -19,6 +19,11 @@ jobs:
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -55,10 +60,13 @@ jobs:
     name: Updates Kubernetes user-related resources on the EKS cluster
     runs-on: ubuntu-20.04
     strategy:
+      max-parallel: 1
       matrix:
-        environment: ['production', 'staging']
+        environment-type: ['staging', 'production']
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     steps:
       - id: checkout
@@ -99,8 +107,8 @@ jobs:
         name: Deploy AWS Step Function (state machine) roles
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
-          name: "biomage-state-machine-role-${{ matrix.environment }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: "biomage-state-machine-role-${{ matrix.environment-type }}"
           template: 'infra/cf-state-machine-role.yaml'
           capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
           no-fail-on-empty-changeset: "1"

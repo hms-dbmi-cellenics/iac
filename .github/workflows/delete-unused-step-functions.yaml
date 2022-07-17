@@ -4,11 +4,14 @@ on:
   schedule:
     - cron:  '20 4 * * *'
   workflow_dispatch:
+env:
+  region: ${{ secrets.AWS_REGION }}
 
 jobs:
   run-e2e:
     name: Delete old staging step functions
     runs-on: ubuntu-20.04
+    environment: Biomage
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -16,7 +19,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
+          aws-region: ${{ env.region }}
 
       # This will take everything OLDER THAN the last 500 step functions
       # marked as staging and remove them.
@@ -45,7 +48,7 @@ jobs:
 
       - id: send-to-slack
         name: Send failure notification to Slack
-        if: failure()
+        if: failure() && github.ref == 'refs/heads/master'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1

@@ -18,7 +18,7 @@ Resources:
       GroupName: !Sub "engineer-${Environment}-access"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess
-        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
         - arn:aws:iam::aws:policy/AWSStepFunctionsConsoleFullAccess
         - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
         - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
@@ -51,28 +51,6 @@ Resources:
                   - "sns:Get*"
                   - "sns:List*"
                 Resource: "*"
-
-        - PolicyName: "can-access-s3-aws-console"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:ListAllMyBuckets'
-                Resource:
-                  - "arn:aws:s3:::*"
-
-        - PolicyName: !Sub "can-manage-${Environment}-s3"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:*'
-                Resource:
-                  - !Sub "arn:aws:s3:::*-${Environment}/*"
-                  - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::*-${Environment}"
-                  - !Sub "arn:aws:s3:::*-${Environment}-${AWS::AccountId}"
-                  - "arn:aws:s3:::cf-templates-*"
 
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
@@ -208,12 +186,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - "rds-db:connect"
+                  - rds-db:connect
                 Resource:
                   - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
               - Effect: Allow
                 Action:
-                  - "rds:DescribeDBClusterEndpoints"
+                  - rds:DescribeGlobalClusters
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:global-cluster:*"
+              - Effect: Allow
+                Action:
+                  - rds:DescribeClusters
+                  - rds:DescribeDBClusterEndpoints
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
@@ -227,13 +211,32 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
 
+        - PolicyName: "can-upload-cf-templates"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                Resource:
+                  - "arn:aws:s3:::cf-templates-*"
+
         - PolicyName: "can-raise-support-questions"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "support:DescribeServices"
-                  - "support:DescribeSeverityLevels"
+                  - "support:CreateCase"
+                  - "support:DescribeCases"
                   - "support:SearchForCases"
+                  - "support:AddAttachmentsToSet"
+                  - "support:DescribeAttachment"
+                  - "support:AddCommunicationToCase"
+                  - "support:DescribeCommunications"
+                  - "support:DescribeServices"
+                  - "support:DescribeSupportLevel"
+                  - "support:DescribeSeverityLevels"
+                  - "support:ResolveCase"
+                  - "support:RateCaseCommunication"
                 Resource: "*"

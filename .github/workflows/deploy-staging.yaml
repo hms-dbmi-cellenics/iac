@@ -20,12 +20,13 @@ on:
         required: true
         type: string
 env:
-  region: 'eu-west-1'
+  region: ${{ secrets.AWS_REGION }}
 
 jobs:
   deploy-staging:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
+    environment: Biomage
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -91,27 +92,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      - id: get-rds-secrets
-        if: ${{ github.event.inputs.with-rds == 'True' }}
-        uses: abhilash1in/aws-secrets-manager-action@v2.0.0
-        name: Export RDS secrets into environment variables
-        with:
-          secrets: aurora-staging
-          parse-json: true
-
-      - id: check-rds-secrets
-        if: ${{ github.event.inputs.with-rds == 'True' }}
-        name: Check RDS secrets are fetched
-        run: |-
-          # These checks if the RDS username and passwords are set
-          if [ -z $AURORA_STAGING_USERNAME ]; then
-            echo "RDS username not provided"
-            exit 1
-          fi
-          if [ -z $AURORA_STAGING_PASSWORD ]; then
-            echo "RDS password not provided"
-            exit 1
-          fi
       - id: install-eksctl
         name: Install eksctl
         run: |-
@@ -163,26 +143,6 @@ jobs:
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: add-manifest-to-repo
-        name: Add manifest file to repository.
-        run: |-
-          echo "$MANIFEST" | base64 -d > ./releases/staging/$SANDBOX_ID.yaml
-        env:
-          MANIFEST: ${{ github.event.inputs.manifest }}
-          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
-
-      - name: Push staging deployment template to releases
-        if: (github.event_name == 'pull_request' || github.event_name == 'push') && matrix.environment == 'staging'
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: ./releases/staging/$SANDBOX_ID.yaml
-          destination_repo: ${{ github.repository_owner }}/releases
-          destination_folder: staging/$SANDBOX_ID.yaml
-          user_email: ci@biomage.net
-          user_name: 'Biomage CI/CD'
-
       - id: deploy-template-rds
         if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
         name: Deploy CloudFormation stack for RDS
@@ -192,7 +152,17 @@ jobs:
           name: ${{ steps.set-stack-name.outputs.rds-name }}
           template: cf/rds.yaml
           no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: rds-secrets
+        if: ${{ github.event.inputs.with-rds == 'True' }}
+        uses: t-botz/aws-secrets-manager-read-action@v2
+        name: Outputs RDS secrets to get into the db
+        with:
+          secret-id: aurora-staging-${{ github.event.inputs.sandbox-id }}
+          mask-value: true
+          mask-json-values: true
+          keys-as-outputs: true
 
       - id: setup-rds-roles
         if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
@@ -220,7 +190,7 @@ jobs:
           fi
 
           SETUP_ROLES_CMD="
-            PGPASSWORD=${AURORA_STAGING_PASSWORD} psql \
+            PGPASSWORD=\'${AURORA_STAGING_PASSWORD}\' psql \
               --host=${RDSHOST} \
               --port=5432 \
               --username=${AURORA_STAGING_USERNAME} \
@@ -243,11 +213,12 @@ jobs:
         env:
           REGION: ${{ env.region }}
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+          AURORA_STAGING_USERNAME: ${{ steps.rds-secrets.outputs.username }}
+          AURORA_STAGING_PASSWORD: ${{ steps.rds-secrets.outputs.password }}
 
       - id: deploy-template-sns
         name: Deploy CloudFormation stack for SNS topic
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.sns-name }}
@@ -258,7 +229,6 @@ jobs:
       - id: deploy-template-cognito
         name: Deploy CloudFormation stack for Cognito pool clients
         uses: aws-actions/aws-cloudformation-github-deploy@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.cognito-name }}
@@ -266,48 +236,25 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      - id: disable-admin-enforcement
-        name: Temporarily disable admin enforcement
-        uses: benjefferies/branch-protection-bot@1.0.7
-        with:
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ${{ github.repository_owner }}
-          repo: iac
-          enforce_admins: false
-          retries: 8
-
-      - id: pull
-        name: Pull and allow unrelated histories.
+      - id: create-manifest-file
+        name: Create manifest file to repository.
         run: |-
-          git pull --allow-unrelated-histories
+          echo "$MANIFEST" | base64 -d > $SANDBOX_ID.yaml
+        env:
+          MANIFEST: ${{ github.event.inputs.manifest }}
+          SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
-      - id: push-deployment
-        uses: stefanzweifel/git-auto-commit-action@v4
+      - id: push-deployment-to-releases
+        name: Push staging deployment template to releases
+        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          commit_message: Deploy staging environment ${{ github.event.inputs.sandbox-id }}
-
-      - id: on-failure-retry
-        if: failure()
-        name: Retry in case push failed.
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 30
-          max_attempts: 5
-          retry_on: error
-          command: git config user.name "GitHub Actions" && git pull --allow-unrelated-histories --no-edit && git push origin master
-          # Add jitter to break up correlated events.
-          on_retry_command: sleep $((5 + RANDOM % 10))
-
-      - id: enable-admin-enforcement
-        name: Re-enable admin enforcement
-        uses: benjefferies/branch-protection-bot@1.0.7
-        if: always()
-        with:
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-          owner: ${{ github.repository_owner }}
-          repo: iac
-          enforce_admins: true
-          retries: 8
+          source_file: ${{ github.event.inputs.sandbox-id }}.yaml
+          destination_repo: ${{ github.repository_owner }}/releases
+          destination_folder: staging
+          user_email: ci@biomage.net
+          user_name: 'Biomage CI/CD'
 
       - id: install-fluxctl
         name: Install fluxctl
