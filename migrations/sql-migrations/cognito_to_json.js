@@ -1,5 +1,6 @@
+// node cognito_to_json.js --userPoolId=eu-west-1_abcd1234 --region eu-west-1
 var AWS = require('aws-sdk');
-var { backupUsers, restoreUsers } = require('cognito-backup-restore');
+var { backupUsers } = require('cognito-backup-restore');
 var parseArgs = require('minimist');
 
 // set defaults arguments so that backup production
@@ -11,7 +12,7 @@ var { userPoolId, region } = argv;
 
 if (!userPoolId) {
     console.log('You need to specify the user pool id to backup.');
-    console.log('e.g.: node run cognito_to_json.js --userPoolId eu-west-1_abcd1234');
+    console.log('e.g.: node cognito_to_json.js --userPoolId eu-west-1_abcd1234');
 } else {
     // set region
     AWS.config.update({ region });

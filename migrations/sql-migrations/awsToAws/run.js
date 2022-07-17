@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const knexfileLoader = require('../knexfile');
 const knex = require('knex');
-var parseArgs = require('minimist');
+const parseArgs = require('minimist');
 
 const DOWNLOAD_FOLDER = '../downloaded_data/aws_to_aws'
 
@@ -25,7 +25,8 @@ var {
   targetRegion,
   sourceLocalPort,
   targetLocalPort,
-  sourceCognitoUserPoolId
+  sourceCognitoUserPoolId,
+  targetCognitoUserPoolId
 } = argv;
 
 
@@ -78,25 +79,45 @@ const migrateExperiment = async (experiment, sourceSqlClient, targetSqlClient) =
 
 };
 
-const run = async (sourceCognitoUsers, emailsToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort) => {
+const getUsersToMigrate = (sourceCognitoUsers, targetCognitoUsers, createdUserEmails) => {
+
+  // only migrate source users that have email in createdUserEmails
+  const usersToMigrate = sourceCognitoUsers
+  .filter(user => {
+    const emailAttribute = user.Attributes.filter(attr => attr.Name == "email");
+    return createdUserEmails.includes(emailAttribute[0].Value);
+  })
+  // only keep attributes: has all needed values and is flat
+  .map(user => {
+    const flatAttributes = {};
+    user.Attributes.forEach(attr => flatAttributes[attr.Name] = attr.Value);
+    return flatAttributes;
+  });
+
+  // get map from user_id to email for targetCognitoUsers
+  const targetCognitoUsersMap = {};
+
+  targetCognitoUsers
+  .forEach(user => {
+    const flatAttributes = {};
+    user.Attributes.forEach(attr => flatAttributes[attr.Name] = attr.Value);
+    targetCognitoUsersMap[flatAttributes.email] = user.Username;
+  });
+
+  // add target user_id to usersToMigrate
+  usersToMigrate.forEach((user, index) => {
+    usersToMigrate[index].targetUserId = targetCognitoUsersMap[user.email]
+  });
+
+  return usersToMigrate;
+};
+
+const run = async (usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort) => {
   // where users will be migrated from
   const sourceSqlClient = await createSqlClient(environment, sandboxId, sourceRegion, sourceLocalPort);
 
   // where users will be migrated to
   const targetSqlClient = await createSqlClient(environment, sandboxId, targetRegion, targetLocalPort);
-
-  // subset source users to users that will migrate
-  const usersToMigrate = sourceCognitoUsers
-    .filter(user => {
-      const emailAttribute = user.Attributes.filter(attr => attr.Name == "email");
-      return emailsToMigrate.includes(emailAttribute[0].Value);
-    })
-    // only keep attributes: has all needed values and is flat
-    .map(user => {
-      const flatAttributes = {};
-      user.Attributes.forEach(attr => flatAttributes[attr.Name] = attr.Value);
-      return flatAttributes;
-    })
 
   // migrate each user
   for (var i = 0; i < usersToMigrate.length; i++) {
@@ -108,6 +129,10 @@ const run = async (sourceCognitoUsers, emailsToMigrate, environment, sandboxId, 
 if (!sourceCognitoUserPoolId) {
   console.log('You need to specify the sourceCognitoUserPoolId.');
   console.log('e.g.: npm run awsToAws -- --sourceCognitoUserPoolId=eu-west-1_abcd1234');
+  
+} else if (!sourceCognitoUserPoolId) {
+  console.log('You need to specify the targetCognitoUserPoolId.');
+  console.log('e.g.: npm run awsToAws -- --targetCognitoUserPoolId=us-east-1_abcd1234');
 
 } else if (!environment) {
   console.log('You need to specify what environment to run this on.');
@@ -116,15 +141,20 @@ if (!sourceCognitoUserPoolId) {
 } else {
   // ----------------------Dynamo dumps----------------------
   const sourceCognitoUsers = require(`${DOWNLOAD_FOLDER}/${sourceCognitoUserPoolId}.json`);
-
-  // TODO: load this from target cognito user pool
-  const emailsToMigrate = ['alex@biomage.net'];
+  const targetCognitoUsers = require(`${DOWNLOAD_FOLDER}/${targetCognitoUserPoolId}.json`);
+  const createdUserEmails = require(`${DOWNLOAD_FOLDER}/test_user.json`).map(user => user.email);
   // ----------------------Dynamo dumps----------------------
+  
+  const usersToMigrate = getUsersToMigrate(sourceCognitoUsers, targetCognitoUsers, createdUserEmails)
 
-  run(sourceCognitoUsers, emailsToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort)
-    .then(() => {
-      console.log('>>>>--------------------------------------------------------->>>>');
-      console.log('                     finished');
-      console.log('>>>>--------------------------------------------------------->>>>');
-    }).catch((e) => console.log(e));
+  console.log(usersToMigrate)
+  // run(usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort)
+  // .then(() => {
+  //   console.log('>>>>--------------------------------------------------------->>>>');
+  //   console.log('                     finished');
+  //   console.log('>>>>--------------------------------------------------------->>>>');
+  // }).catch((e) => console.log(e));
+
+
+  
 }
