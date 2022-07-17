@@ -25,11 +25,12 @@ const getRDSEndpoint = async (rdsClient, environment, sandboxId) => {
   return endpoints[0].Endpoint;
 };
 
-const getConnectionParams = async (environment, sandboxId, region) => {
+const getConnectionParams = async (environment, sandboxId, region, localPort) => {
   if (environment === 'development') {
+    
     return {
       host: 'localhost',
-      port: 5431,
+      port: localPort,
       user: 'dev_role',
       password: 'postgres', // pragma: allowlist secret
       database: 'aurora_db',
@@ -54,7 +55,7 @@ const getConnectionParams = async (environment, sandboxId, region) => {
 
   return {
     host: 'localhost',
-    port: 5432,
+    port: localPort,
     user: username,
     password: token, // pragma: allowlist secret
     database: 'aurora_db',
