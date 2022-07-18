@@ -26,40 +26,45 @@ var {
   sourceLocalPort,
   targetLocalPort,
   sourceCognitoUserPoolId,
-  targetCognitoUserPoolId
+  targetCognitoUserPoolId,
+  sourceProfile,
+  targetProfile
 } = argv;
 
 
 // TODO:
 // this is for Biomage deployment
 // adapt getConnectionParams.js so that can also get two deployments
-const createSqlClient = async (activeEnvironment, sandboxId, region, localPort) => {
-  const knexfile = await knexfileLoader(activeEnvironment, sandboxId, region, localPort);
+const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, profile) => {
+  const knexfile = await knexfileLoader(activeEnvironment, sandboxId, region, localPort, profile);
   return knex.default(knexfile[activeEnvironment]);
 };
 
 const migrateUser = async (user, sourceSqlClient, targetSqlClient) => {
-  const { sub: userId, email } = user;
+  const { sourceUserId, email } = user;
 
   console.log(`Migrating User:`)
   console.log(JSON.stringify(user));
 
   // get all experiment_id's for user
   const userAccessEntries = await sourceSqlClient('user_access')
-    .where('user_id', userId);
+    .where('user_id', sourceUserId);
+
+  console.log(`userAccessEntries:`)
+  console.log(JSON.stringify(userAccessEntries))
 
   // ----
-  // TODO: update user_id to be for destination deployment
   // TODO: insert entries into user_acess table
+  // TODO: update user_id to be for destination deployment
   // ----
 
   // console.log('userAccessEntries:')
   // console.log(userAccessEntries)
 
   // migrate each experiment
-  for (var i = 0; i < userAccessEntries.length; i++) {
-    await migrateExperiment(userAccessEntries[i], sqlClient, sourceSqlClient, targetSqlClient);
-  }
+  // for (var i = 0; i < userAccessEntries.length; i++) {
+  //   await migrateExperiment(userAccessEntries[i], sqlClient, sourceSqlClient, targetSqlClient);
+  // }
 };
 
 const migrateExperiment = async (experiment, sourceSqlClient, targetSqlClient) => {
@@ -104,25 +109,48 @@ const getUsersToMigrate = (sourceCognitoUsers, targetCognitoUsers, createdUserEm
     targetCognitoUsersMap[flatAttributes.email] = user.Username;
   });
 
-  // add target user_id to usersToMigrate
+  // add targetUserId to usersToMigrate
+  // also change "sub" to sourceUserId
   usersToMigrate.forEach((user, index) => {
-    usersToMigrate[index].targetUserId = targetCognitoUsersMap[user.email]
+    usersToMigrate[index]['targetUserId'] = targetCognitoUsersMap[user.email];
+    usersToMigrate[index]['sourceUserId'] = usersToMigrate[index]['sub'];
+    delete usersToMigrate[index]['sub'];
   });
 
   return usersToMigrate;
 };
 
-const run = async (usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort) => {
-  // where users will be migrated from
-  const sourceSqlClient = await createSqlClient(environment, sandboxId, sourceRegion, sourceLocalPort);
+const sqlInsert = async (sqlClient, sqlObject, tableName, extraLoggingData = {}) => {
+  try {
+    return await sqlClient(tableName).insert(sqlObject).returning('*');
+  } catch (e) {
+    throw new Error(
+      `
+      ----------------------
+      -------------------
+      Error inserting this object in ${tableName}:
+      sqlObject: ${JSON.stringify(sqlObject)}
+      -------------------
+      Original Error: ${e}
+      -------------------
+      ----------------------
+      extraLoggingData: ${JSON.stringify(extraLoggingData)}
+      `
+    );
+  }
+}
 
+const run = async (usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile) => {
+  // where users will be migrated from
+  const sourceSqlClient = await createSqlClient(environment, sandboxId, sourceRegion, sourceLocalPort, sourceProfile);
+  
   // where users will be migrated to
-  const targetSqlClient = await createSqlClient(environment, sandboxId, targetRegion, targetLocalPort);
+  const targetSqlClient = await createSqlClient(environment, sandboxId, targetRegion, targetLocalPort, targetProfile);
 
   // migrate each user
-  for (var i = 0; i < usersToMigrate.length; i++) {
-    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient);
-  };
+  // for (var i = 0; i < usersToMigrate.length; i++) {
+  //   await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient);
+  // };
 
 };
 
@@ -138,6 +166,14 @@ if (!sourceCognitoUserPoolId) {
   console.log('You need to specify what environment to run this on.');
   console.log('e.g.: npm run awsToAws -- --environment=staging');
 
+} else if (!sourceProfile) {
+  console.log('You need to specify the aws profile to use for the source account.');
+  console.log('e.g.: npm run awsToAws -- --sourceProfile=default');
+
+} else if (!targetProfile) {
+  console.log('You need to specify the aws profile to use for the target account.');
+  console.log('e.g.: npm run awsToAws -- --targetProfile=hms');
+
 } else {
   // ----------------------Dynamo dumps----------------------
   const sourceCognitoUsers = require(`${DOWNLOAD_FOLDER}/${sourceCognitoUserPoolId}.json`);
@@ -147,13 +183,12 @@ if (!sourceCognitoUserPoolId) {
   
   const usersToMigrate = getUsersToMigrate(sourceCognitoUsers, targetCognitoUsers, createdUserEmails)
 
-  console.log(usersToMigrate)
-  // run(usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort)
-  // .then(() => {
-  //   console.log('>>>>--------------------------------------------------------->>>>');
-  //   console.log('                     finished');
-  //   console.log('>>>>--------------------------------------------------------->>>>');
-  // }).catch((e) => console.log(e));
+  run(usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile)
+  .then(() => {
+    console.log('>>>>--------------------------------------------------------->>>>');
+    console.log('                     finished');
+    console.log('>>>>--------------------------------------------------------->>>>');
+  }).catch((e) => console.log(e));
 
 
   

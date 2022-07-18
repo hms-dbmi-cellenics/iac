@@ -1,10 +1,10 @@
 const getConnectionParams = require('./getConnectionParams');
 
 // This is one of the shapes the knexfile can take https://knexjs.org/#knexfile
-const fetchConfiguration = async (environment, sandboxId, region, localPort) => {
+const fetchConfiguration = async (environment, sandboxId, region, localPort, profile) => {
   const maxConnections = environment === 'development' ? 10 : 100;
 
-  const params = await getConnectionParams(environment, sandboxId, region, localPort);
+  const params = await getConnectionParams(environment, sandboxId, region, localPort, profile);
 
   return {
     [environment]: {
@@ -19,7 +19,7 @@ const fetchConfiguration = async (environment, sandboxId, region, localPort) => 
   };
 };
 
-module.exports = async (env, inputSandboxId, inputRegion, inputLocalPort) => {
+module.exports = async (env, inputSandboxId, inputRegion, inputLocalPort, profile) => {
   const environment = env || process.env.NODE_ENV;
   const sandboxId = inputSandboxId || process.env.SANDBOX_ID;
   const region = inputRegion || process.env.REGION || 'eu-west-1';
@@ -30,7 +30,7 @@ module.exports = async (env, inputSandboxId, inputRegion, inputLocalPort) => {
   }
 
 
-  const configuration = await fetchConfiguration(environment, sandboxId, region, localPort);
+  const configuration = await fetchConfiguration(environment, sandboxId, region, localPort, profile);
   return {
     ...configuration,
   };
