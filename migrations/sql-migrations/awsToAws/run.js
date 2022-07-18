@@ -39,9 +39,6 @@ var {
 } = argv;
 
 
-// TODO:
-// this is for Biomage deployment
-// adapt getConnectionParams.js so that can also get two deployments
 const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, profile) => {
   const knexfile = await knexfileLoader(activeEnvironment, sandboxId, region, localPort, profile);
   return knex.default(knexfile[activeEnvironment]);
@@ -74,13 +71,13 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     console.log('\t- table(s): experiment_execution [✓]')
 
     // migrate sample, sample_file, and sample_to_sample_file_map tables
-    const sourceSampleFileS3Paths = await migrateSamples(experimentId, sourceSqlClient, targetSqlClient);
+    const { sourceSampleFileS3Paths, sourceSampleIds } = await migrateSamples(experimentId, sourceSqlClient, targetSqlClient);
     console.log('\t- table(s): sample, sample_file, sample_to_sample_file_map [✓]')
 
     // migrate sample s3 files
     if (experimentId === 'e0ced9dfd189cc7a83be7e1fe071db3a') {
       await migrateS3Files(sourceSampleFileS3Paths, sourceS3Client, targetS3Client, sourceBucketNames.SAMPLE_FILES, targetBucketNames.SAMPLE_FILES);
-      console.log('\t- s3 path(s): sample_file [✓]')
+      console.log('\t- s3 path(s) in table: sample_file [✓]')
     }
 
     // migrate metadata_track and sample_in_metadata_track_map tables
@@ -95,7 +92,20 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     // for testing
     if (experimentId === 'e0ced9dfd189cc7a83be7e1fe071db3a') {
       await migrateS3Files(sourceS3DataKeys, sourceS3Client, targetS3Client, sourceBucketNames.PLOTS, targetBucketNames.PLOTS);
-      console.log('\t- s3 path(s): plot [✓]')
+      console.log('\t- s3 path(s) in table: plot [✓]')
+    }
+
+    // migrate processed data files
+    if (experimentId === 'e0ced9dfd189cc7a83be7e1fe071db3a') {
+      const processedFileS3Params = await getProcessedFileS3Params(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
+
+      for (var j = 0; j < targetUserAccessEntries.length; j++) {
+        const params = processedFileS3Params[j];
+        const { Key, sourceBucket, targetBucket } = params;
+        await migrateS3Files([Key], sourceS3Client, targetS3Client, sourceBucket, targetBucket);
+      }
+      
+      console.log('\t- s3 file(s) from buckets: cell-sets, processed-matrix, source, filtered-cells [✓]')
     }
 
   }
@@ -109,6 +119,39 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
 
 
 };
+
+const getProcessedFileS3Params = async (experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client) => {
+
+  const candidateProcessedS3DataFileParams = [
+    { sourceBucket: sourceBucketNames.CELL_SETS, targetBucket: targetBucketNames.CELL_SETS, Key: experimentId },
+    { sourceBucket: sourceBucketNames.PROCESSED_MATRIX, targetBucket: targetBucketNames.PROCESSED_MATRIX, Key: `${experimentId}/r.rds` },
+    { sourceBucket: sourceBucketNames.RAW_SEURAT, targetBucket: targetBucketNames.RAW_SEURAT, Key: `${experimentId}/r.rds` },
+  ]
+
+  // add filtered cells objects for each QC pipeline step
+  const filteredFolderNames = ['cellSizeDistribution', 'dataIntegration', 'doubletScores', 'mitochondrialContent', 'numGenesVsNumUmis']
+  sourceSampleIds.forEach(sampleId => {
+    filteredFolderNames.forEach(folderName => {
+
+      candidateProcessedS3DataFileParams.push({
+        sourceBucket: sourceBucketNames.FILTERED_CELLS,
+        targetBucket: targetBucketNames.FILTERED_CELLS,
+        Key: `${experimentId}/${folderName}/${sampleId}.rds`
+      });
+
+    });
+  });
+
+  // remove objects that don't exist in source: aka data processing hasn't been run
+  const doesS3FileExist = await Promise.all(
+    candidateProcessedS3DataFileParams.map(({ Key, sourceBucket }) => {
+      return checkIfS3FileExists(Key, sourceBucket, sourceS3Client);
+    })
+  );
+
+  const processedS3DataFileParams = candidateProcessedS3DataFileParams.filter((_, i) => doesS3FileExist[i])
+  return processedS3DataFileParams;
+}
 
 const migratePlots = async (experimentId, sourceSqlClient, targetSqlClient) => {
 
@@ -158,28 +201,45 @@ const migrateSamples = async (experimentId, sourceSqlClient, targetSqlClient) =>
 
   // paths to migrate sample_file s3 objects
   const sourceSampleFileS3Paths = sourceSampleFileEntries.map(entry => entry.s3_path);
-  return sourceSampleFileS3Paths;
+
+  return {
+    sourceSampleFileS3Paths,
+    sourceSampleIds
+  };
 };
+
+const checkIfS3FileExists = async (Key, Bucket, s3Client) => {
+  if (Key == null) return true;
+
+  // check if destination already has object
+  let s3FileExists;
+  try {
+    await s3Client.headObject({ Bucket, Key }).promise();
+    s3FileExists = true;
+
+  } catch (error) {
+    if (error.name === 'NotFound') {
+      s3FileExists = false;
+
+    } else {
+      throw error;
+    }
+  }
+
+  return s3FileExists;
+}
 
 const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBucket, targetBucket) => {
 
   for (var i = 0; i < s3Paths.length; i++) {
     const Key = s3Paths[i];
-    if (Key == null) continue
 
-    // check if destination already has object
-    try {
-      await targetS3Client.headObject({Bucket: targetBucket, Key}).promise();
-      console.log(`Object ${Key} already exists. Skipping.`);
-      continue
-    } catch (error) {
-      if (error.name === 'NotFound') {
-        // Handle no object on cloud here...
-      } else {
-        throw error;
-      }
+    const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
+    if (s3FileExists) {
+      console.log(`Object ${Key} already exists in target. Skipping.`);
+      continue;
     }
-    
+
     const sourceParams = {
       Bucket: sourceBucket,
       Key
@@ -198,6 +258,7 @@ const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBuc
 
   };
 };
+
 
 const migrateExperiment = async (experimentId, sourceSqlClient, targetSqlClient) => {
 
