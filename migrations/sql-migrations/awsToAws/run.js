@@ -11,16 +11,20 @@ var opts = {
     sandboxId: 'default',
     sourceRegion: 'eu-west-1',
     targetRegion: 'us-east-1',
-    sourceLocalPort: 5432,
-    targetLocalPort: 5433
+    targetEnvironment: 'development',
+    sourceLocalPort: 5432
   }
 }
+// 5431 for inframock
+// 5433 for production target
+opts.default.targetLocalPort = opts.default.targetEnvironment === 'development' ? 5431 : 5433;
 
 // destructure command line args
 var argv = parseArgs(process.argv.slice(2), opts);
 var {
-  environment,
   sandboxId,
+  sourceEnvironment,
+  targetEnvironment,
   sourceRegion,
   targetRegion,
   sourceLocalPort,
@@ -41,46 +45,48 @@ const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, 
 };
 
 const migrateUser = async (user, sourceSqlClient, targetSqlClient) => {
-  const { sourceUserId, email } = user;
+  const { sourceUserId, targetUserId, email } = user;
 
   console.log(`Migrating User:`)
   console.log(JSON.stringify(user));
 
   // get all experiment_id's for user
-  const userAccessEntries = await sourceSqlClient('user_access')
-    .where('user_id', sourceUserId);
+  const sourceUserAccessEntries = await sourceSqlClient('user_access')
+  .where('user_id', sourceUserId);
+  
+  // change user_id to target
+  const targetUserAccessEntries = sourceUserAccessEntries.map(entry => ({...entry, user_id: targetUserId}))
 
-  console.log(`userAccessEntries:`)
-  console.log(JSON.stringify(userAccessEntries))
+  // migrate each experiment 
+  // needs to happen before user_access
+  for (var i = 0; i < targetUserAccessEntries.length; i++) {
+    await migrateExperiment(targetUserAccessEntries[i], sourceSqlClient, targetSqlClient);
+  }
+  
+  // insert entries into user_acess table on target
+  sqlInsert(targetSqlClient, targetUserAccessEntries, 'user_access')
 
-  // ----
-  // TODO: insert entries into user_acess table
-  // TODO: update user_id to be for destination deployment
-  // ----
-
-  // console.log('userAccessEntries:')
-  // console.log(userAccessEntries)
-
-  // migrate each experiment
-  // for (var i = 0; i < userAccessEntries.length; i++) {
-  //   await migrateExperiment(userAccessEntries[i], sqlClient, sourceSqlClient, targetSqlClient);
-  // }
 };
 
-const migrateExperiment = async (experiment, sourceSqlClient, targetSqlClient) => {
+const migrateExperiment = async (userAccessEntry, sourceSqlClient, targetSqlClient) => {
 
   // get entries from experiment table
-  const { experiment_id: experimentId } = experiment;
+  const { experiment_id: experimentId } = userAccessEntry;
 
-  console.log(`Migrating experiment:`)
-  console.log(JSON.stringify(experiment));
-
-  const experimentTableEntries = await sourceSqlClient('experiment')
+  const sourceExperimentTableEntries = await sourceSqlClient('experiment')
     .where('id', experimentId);
 
+  // stringify necessary values
+  const targetExperimentTableEntries = sourceExperimentTableEntries.map(entry => {
+    return {
+      ...entry,
+      processing_config: JSON.stringify(entry.processing_config),
+      samples_order: JSON.stringify(entry.processing_config)
+    }
+  })
 
-  console.log('experimentTableEntries:')
-  console.log(experimentTableEntries)
+  // insert
+  await sqlInsert(targetSqlClient, targetExperimentTableEntries, 'experiment');
 
 };
 
@@ -140,17 +146,17 @@ const sqlInsert = async (sqlClient, sqlObject, tableName, extraLoggingData = {})
   }
 }
 
-const run = async (usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile) => {
+const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile) => {
   // where users will be migrated from
-  const sourceSqlClient = await createSqlClient(environment, sandboxId, sourceRegion, sourceLocalPort, sourceProfile);
+  const sourceSqlClient = await createSqlClient(sourceEnvironment, sandboxId, sourceRegion, sourceLocalPort, sourceProfile);
   
   // where users will be migrated to
-  const targetSqlClient = await createSqlClient(environment, sandboxId, targetRegion, targetLocalPort, targetProfile);
+  const targetSqlClient = await createSqlClient(targetEnvironment, sandboxId, targetRegion, targetLocalPort, targetProfile);
 
   // migrate each user
-  // for (var i = 0; i < usersToMigrate.length; i++) {
-  //   await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient);
-  // };
+  for (var i = 0; i < usersToMigrate.length; i++) {
+    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient);
+  };
 
 };
 
@@ -162,9 +168,9 @@ if (!sourceCognitoUserPoolId) {
   console.log('You need to specify the targetCognitoUserPoolId.');
   console.log('e.g.: npm run awsToAws -- --targetCognitoUserPoolId=us-east-1_abcd1234');
 
-} else if (!environment) {
-  console.log('You need to specify what environment to run this on.');
-  console.log('e.g.: npm run awsToAws -- --environment=staging');
+} else if (!sourceEnvironment) {
+  console.log('You need to specify what source environment to migrate from.');
+  console.log('e.g.: npm run awsToAws -- --sourceEnvironment=staging');
 
 } else if (!sourceProfile) {
   console.log('You need to specify the aws profile to use for the source account.');
@@ -183,7 +189,7 @@ if (!sourceCognitoUserPoolId) {
   
   const usersToMigrate = getUsersToMigrate(sourceCognitoUsers, targetCognitoUsers, createdUserEmails)
 
-  run(usersToMigrate, environment, sandboxId, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile)
+  run(usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile)
   .then(() => {
     console.log('>>>>--------------------------------------------------------->>>>');
     console.log('                     finished');
