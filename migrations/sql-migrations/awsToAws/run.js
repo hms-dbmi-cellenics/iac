@@ -25,10 +25,7 @@ var argv = parseArgs(process.argv.slice(2), opts);
 // set target local port
 // 5431 for inframock
 // 5433 for production target
-argv.targetLocalPort = argv.targetLocalPort || argv.targetEnvironment === 'development' ? 5431 : 5433;
-
-// for local clone, source and target cognito ids are the same so use the same pool backups
-argv.targetCognitoUserPoolId = argv.targetCognitoUserPoolId || argv.targetEnvironment === 'development' ? argv.sourceCognitoUserPoolId : null;
+argv.targetLocalPort = argv.targetLocalPort || (argv.targetEnvironment === 'development' ? 5431 : 5433);
 
 console.log(`Command line arguments:\n=====`)
 console.log(JSON.stringify(argv, null, 2))
