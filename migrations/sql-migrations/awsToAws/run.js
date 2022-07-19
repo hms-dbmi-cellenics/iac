@@ -27,6 +27,9 @@ var argv = parseArgs(process.argv.slice(2), opts);
 // 5433 for production target
 argv.targetLocalPort = argv.targetLocalPort || argv.targetEnvironment === 'development' ? 5431 : 5433;
 
+// for local clone, source and target cognito ids are the same so use the same pool backups
+argv.targetCognitoUserPoolId = argv.targetCognitoUserPoolId || argv.targetEnvironment === 'development' ? argv.sourceCognitoUserPoolId : null;
+
 console.log(`Command line arguments:\n=====`)
 console.log(JSON.stringify(argv, null, 2))
 console.log(`=====\n\n`)
@@ -444,7 +447,7 @@ if (!sourceCognitoUserPoolId) {
   console.log('You need to specify the aws profile to use for the source account.');
   console.log('e.g.: npm run awsToAws -- --sourceProfile default');
 
-} else if (!targetProfile) {
+} else if (!targetProfile && !targetEnvironment === 'development') {
   console.log('You need to specify the aws profile to use for the target account.');
   console.log('e.g.: npm run awsToAws -- --targetProfile hms');
 
