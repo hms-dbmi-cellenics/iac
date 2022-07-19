@@ -8,7 +8,7 @@ const getBucketNames = require('./getBucketNames')
 
 const DOWNLOAD_FOLDER = '../downloaded_data/aws_to_aws'
 
-// set defaults arguments so that backup production
+// set defaults command line arguments
 var opts = {
   default: {
     sandboxId: 'default',
@@ -18,12 +18,20 @@ var opts = {
     sourceLocalPort: 5432
   }
 }
+
+// get command line arguments
+var argv = parseArgs(process.argv.slice(2), opts);
+
+// set target local port
 // 5431 for inframock
 // 5433 for production target
-opts.default.targetLocalPort = opts.default.targetEnvironment === 'development' ? 5431 : 5433;
+argv.targetLocalPort = argv.targetLocalPort || argv.targetEnvironment === 'development' ? 5431 : 5433;
+
+console.log(`Command line arguments:\n=====`)
+console.log(JSON.stringify(argv, null, 2))
+console.log(`=====\n\n`)
 
 // destructure command line args
-var argv = parseArgs(process.argv.slice(2), opts);
 var {
   sandboxId,
   sourceEnvironment,
@@ -271,7 +279,7 @@ const migrateExperiment = async (experimentId, sourceSqlClient, targetSqlClient)
     }
   })
 
-  // delete it if there
+  // delete it if already on target
   await sqlDelete(targetSqlClient, 'id', experimentId, 'experiment');
 
   // insert
