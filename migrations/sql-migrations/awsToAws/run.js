@@ -35,7 +35,9 @@ var {
   sourceCognitoUserPoolId,
   targetCognitoUserPoolId,
   sourceProfile,
-  targetProfile
+  targetProfile,
+  usersToMigrateFile,
+  experimentsToMigrate
 } = argv;
 
 
@@ -44,7 +46,7 @@ const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, 
   return knex.default(knexfile[activeEnvironment]);
 };
 
-const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames) => {
+const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate) => {
   const { sourceUserId, targetUserId, email } = user;
 
   console.log(`\n==========\nMigrating User: ${email}\n`,)
@@ -53,12 +55,15 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
   const sourceUserAccessEntries = await sourceSqlClient('user_access')
     .where('user_id', sourceUserId);
 
-  // change user_id to target
-  const targetUserAccessEntries = sourceUserAccessEntries.map(entry => ({ ...entry, user_id: targetUserId }))
+  // change user_id to target 
+  // and proceed only with experiments requested
+  const targetUserAccessEntries = sourceUserAccessEntries
+    .map(entry => ({ ...entry, user_id: targetUserId }))
+    .filter(entry => experimentsToMigrate === 'all' || entry.experiment_id === experimentsToMigrate )
+
 
   for (var i = 0; i < targetUserAccessEntries.length; i++) {
     const { experiment_id: experimentId } = targetUserAccessEntries[i];
-
 
     console.log(`Migrating experimentId: ${experimentId}`)
 
@@ -75,10 +80,8 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     console.log('\t- table(s): sample, sample_file, sample_to_sample_file_map [✓]')
 
     // migrate sample s3 files
-    if (experimentId === 'e0ced9dfd189cc7a83be7e1fe071db3a') {
-      await migrateS3Files(sourceSampleFileS3Paths, sourceS3Client, targetS3Client, sourceBucketNames.SAMPLE_FILES, targetBucketNames.SAMPLE_FILES);
-      console.log('\t- s3 path(s) in table: sample_file [✓]')
-    }
+    await migrateS3Files(sourceSampleFileS3Paths, sourceS3Client, targetS3Client, sourceBucketNames.SAMPLE_FILES, targetBucketNames.SAMPLE_FILES);
+    console.log('\t- s3 path(s) in table: sample_file [✓]')
 
     // migrate metadata_track and sample_in_metadata_track_map tables
     await migrateMetadata(experimentId, sourceSqlClient, targetSqlClient);
@@ -90,39 +93,33 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
 
     // migrate plot s3 files
     // for testing
-    if (experimentId === 'e0ced9dfd189cc7a83be7e1fe071db3a') {
-      await migrateS3Files(sourceS3DataKeys, sourceS3Client, targetS3Client, sourceBucketNames.PLOTS, targetBucketNames.PLOTS);
-      console.log('\t- s3 path(s) in table: plot [✓]')
-    }
+    await migrateS3Files(sourceS3DataKeys, sourceS3Client, targetS3Client, sourceBucketNames.PLOTS, targetBucketNames.PLOTS);
+    console.log('\t- s3 path(s) in table: plot [✓]')
 
     // migrate processed data files
-    if (experimentId === 'e0ced9dfd189cc7a83be7e1fe071db3a') {
-      const processedFileS3Params = await getProcessedFileS3Params(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
+    const processedS3FilesParams = await getProcessedS3FilesParams(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
 
-      for (var j = 0; j < targetUserAccessEntries.length; j++) {
-        const params = processedFileS3Params[j];
-        const { Key, sourceBucket, targetBucket } = params;
-        await migrateS3Files([Key], sourceS3Client, targetS3Client, sourceBucket, targetBucket);
-      }
-      
-      console.log('\t- s3 file(s) from buckets: cell-sets, processed-matrix, source, filtered-cells [✓]')
+    for (var j = 0; j < processedS3FilesParams.length; j++) {
+      const params = processedS3FilesParams[j];
+      const { Key, sourceBucket, targetBucket } = params;
+      await migrateS3Files([Key], sourceS3Client, targetS3Client, sourceBucket, targetBucket);
     }
 
+    console.log('\t- s3 file(s) from buckets: cell-sets, processed-matrix, source, filtered-cells [✓]')
+
+    // insert entries into user_acess table on target
+    // experiment table entries (migrateExperiment above) need to be present before user_access
+    // TODO: also insert admin role
+    sqlInsert(targetSqlClient, targetUserAccessEntries[i], 'user_access')
+    console.log('\t- table(s): user_access [✓]')
   }
 
-  // insert entries into user_acess table on target
-  // experiment table entries (migrateExperiment above) need to be present before user_access
-  // TODO: also insert admin role
-  sqlInsert(targetSqlClient, targetUserAccessEntries, 'user_access')
-
   console.log(`Finished Migrating User: ${email} \n==========\n`)
-
-
 };
 
-const getProcessedFileS3Params = async (experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client) => {
+const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client) => {
 
-  const candidateProcessedS3DataFileParams = [
+  const candidateProcessedS3FilesParams = [
     { sourceBucket: sourceBucketNames.CELL_SETS, targetBucket: targetBucketNames.CELL_SETS, Key: experimentId },
     { sourceBucket: sourceBucketNames.PROCESSED_MATRIX, targetBucket: targetBucketNames.PROCESSED_MATRIX, Key: `${experimentId}/r.rds` },
     { sourceBucket: sourceBucketNames.RAW_SEURAT, targetBucket: targetBucketNames.RAW_SEURAT, Key: `${experimentId}/r.rds` },
@@ -133,7 +130,7 @@ const getProcessedFileS3Params = async (experimentId, sourceBucketNames, targetB
   sourceSampleIds.forEach(sampleId => {
     filteredFolderNames.forEach(folderName => {
 
-      candidateProcessedS3DataFileParams.push({
+      candidateProcessedS3FilesParams.push({
         sourceBucket: sourceBucketNames.FILTERED_CELLS,
         targetBucket: targetBucketNames.FILTERED_CELLS,
         Key: `${experimentId}/${folderName}/${sampleId}.rds`
@@ -144,13 +141,13 @@ const getProcessedFileS3Params = async (experimentId, sourceBucketNames, targetB
 
   // remove objects that don't exist in source: aka data processing hasn't been run
   const doesS3FileExist = await Promise.all(
-    candidateProcessedS3DataFileParams.map(({ Key, sourceBucket }) => {
+    candidateProcessedS3FilesParams.map(({ Key, sourceBucket }) => {
       return checkIfS3FileExists(Key, sourceBucket, sourceS3Client);
     })
   );
 
-  const processedS3DataFileParams = candidateProcessedS3DataFileParams.filter((_, i) => doesS3FileExist[i])
-  return processedS3DataFileParams;
+  const processedS3FilesParams = candidateProcessedS3FilesParams.filter((_, i) => doesS3FileExist[i])
+  return processedS3FilesParams;
 }
 
 const migratePlots = async (experimentId, sourceSqlClient, targetSqlClient) => {
@@ -236,7 +233,7 @@ const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBuc
 
     const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
     if (s3FileExists) {
-      console.log(`Object ${Key} already exists in target. Skipping.`);
+      console.log(`\tObject ${Key} already exists in target. Skipping.`);
       continue;
     }
 
@@ -244,7 +241,7 @@ const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBuc
       Bucket: sourceBucket,
       Key
     }
-    console.log(`Getting ${Key} from sourceBucket: ${sourceBucket}.`)
+    console.log(`\tGetting ${Key} from sourceBucket: ${sourceBucket}.`)
     const response = await sourceS3Client.getObject(sourceParams).promise();
 
     const targetParams = {
@@ -253,7 +250,7 @@ const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBuc
       Body: response.Body
     }
 
-    console.log(`Putting ${Key} into targetBucket: ${targetBucket}.`)
+    console.log(`\tPutting ${Key} into targetBucket: ${targetBucket}.`)
     await targetS3Client.putObject(targetParams).promise();
 
   };
@@ -405,7 +402,7 @@ const sqlDelete = async (sqlClient, queryColumn, queryValue, tableName, extraLog
   }
 };
 
-const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile) => {
+const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate) => {
   // where users will be migrated from
   const sourceSqlClient = await createSqlClient(sourceEnvironment, sandboxId, sourceRegion, sourceLocalPort, sourceProfile);
   const sourceS3Client = getS3Client(sourceProfile, sourceRegion, sourceEnvironment);
@@ -418,18 +415,18 @@ const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironme
 
   // migrate each user
   for (var i = 0; i < usersToMigrate.length; i++) {
-    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames);
+    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate);
   };
 
 };
 
 if (!sourceCognitoUserPoolId) {
   console.log('You need to specify the sourceCognitoUserPoolId.');
-  console.log('e.g.: npm run awsToAws -- --sourceCognitoUserPoolId=eu-west-1_abcd1234');
+  console.log('e.g.: npm run awsToAws -- --sourceCognitoUserPoolId eu-west-1_abcd1234');
 
-} else if (!sourceCognitoUserPoolId) {
+} else if (!targetCognitoUserPoolId) {
   console.log('You need to specify the targetCognitoUserPoolId.');
-  console.log('e.g.: npm run awsToAws -- --targetCognitoUserPoolId=us-east-1_abcd1234');
+  console.log('e.g.: npm run awsToAws -- --targetCognitoUserPoolId us-east-1_abcd1234');
 
 } else if (!sourceEnvironment) {
   console.log('You need to specify what source environment to migrate from.');
@@ -437,28 +434,40 @@ if (!sourceCognitoUserPoolId) {
 
 } else if (!sourceProfile) {
   console.log('You need to specify the aws profile to use for the source account.');
-  console.log('e.g.: npm run awsToAws -- --sourceProfile=default');
+  console.log('e.g.: npm run awsToAws -- --sourceProfile default');
 
 } else if (!targetProfile) {
   console.log('You need to specify the aws profile to use for the target account.');
-  console.log('e.g.: npm run awsToAws -- --targetProfile=hms');
+  console.log('e.g.: npm run awsToAws -- --targetProfile hms');
+
+} else if (!usersToMigrateFile) {
+  console.log(`You need to specify a filename in ${DOWNLOAD_FOLDER} with emails to migrate.`);
+  console.log('Example file format (json): [{"email":"blah@blah.com"}, {...}]');
+  console.log('e.g.: npm run awsToAws -- --usersToMigrateFile users_to_migrate.json');
+
+} else if (!experimentsToMigrate) {
+  console.log('You need to specify experimentsToMigrate (options: "all" or a single experiment id).');
+  console.log('e.g.: npm run awsToAws -- --experimentsToMigrate abc1234defgh');
 
 } else {
-  // ----------------------Dynamo dumps----------------------
-  const sourceCognitoUsers = require(`${DOWNLOAD_FOLDER}/${sourceCognitoUserPoolId}.json`);
-  const targetCognitoUsers = require(`${DOWNLOAD_FOLDER}/${targetCognitoUserPoolId}.json`);
-  const createdUserEmails = require(`${DOWNLOAD_FOLDER}/test_user.json`).map(user => user.email);
-  // ----------------------Dynamo dumps----------------------
+  // ----------------------Cognito dumps----------------------
+  try {
+    var sourceCognitoUsers = require(`${DOWNLOAD_FOLDER}/${sourceCognitoUserPoolId}.json`);
+    var targetCognitoUsers = require(`${DOWNLOAD_FOLDER}/${targetCognitoUserPoolId}.json`);
+  } catch (error) {
+    throw new Error('Need to run cognito_to_json.js for both source and target user pools.')
+  }
+
+  const createdUserEmails = require(`${DOWNLOAD_FOLDER}/${usersToMigrateFile}`).map(user => user.email);
+  // ----------------------Cognito dumps----------------------
 
   const usersToMigrate = getUsersToMigrate(sourceCognitoUsers, targetCognitoUsers, createdUserEmails);
 
-  run(usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile)
+  run(usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate)
     .then(() => {
       console.log('>>>>--------------------------------------------------------->>>>');
       console.log('                     finished');
       console.log('>>>>--------------------------------------------------------->>>>');
     }).catch((e) => console.log(e));
-
-
 
 }
