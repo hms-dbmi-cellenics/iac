@@ -19,6 +19,7 @@ Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
 
+
 Resources:
   SQSQueue:
     Type: AWS::SQS::Queue
