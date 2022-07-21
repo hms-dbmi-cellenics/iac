@@ -77,6 +77,7 @@ Resources:
                 Resource:
                   - Fn::Sub: "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:post-registration-user-access-${Environment}-default"
 
+
   PostRegisterTopic:
     Type: AWS::SNS::Topic
     Properties:
