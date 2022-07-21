@@ -92,6 +92,7 @@ Resources:
         type:
           - PostUserRegistration
 
+
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
