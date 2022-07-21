@@ -10,7 +10,7 @@ on:
         description: 'The sandbox ID to deploy under'
         required: true
         type: string
-      with-rds:
+      with-rds:test
         description: 'Stage a new RDS instance'
         required: false
         default: 'False'

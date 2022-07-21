@@ -224,3 +224,14 @@ Resources:
                   - "support:ResolveCase"
                   - "support:RateCaseCommunication"
                 Resource: "*"
+
+        - PolicyName: !Sub "can-upload-${Environment}-source"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"

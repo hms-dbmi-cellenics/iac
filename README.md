@@ -43,10 +43,10 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/hms-dbmi-cellenics/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
 1. Go to the *Deploy Biomage infrastructure*
 [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
-2. Click on `Run workflow` dropdown on the right side of the top workflow result. With this dropdown, you will configure the inputs with which the workflow will be run. 
+2. Click on `Run workflow` dropdown on the right side of the top workflow result. With this dropdown, you will configure the inputs with which the workflow will be run.
 3. `Use worklow from` defines which changes the build will be run wuth. Make sure it is set to `master` to avoid situations when infrastructure changes from other branch are deployed and we have unknown state.
 4. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:
-    
+
     - `deploy and configure`: If you've made changes that require re-creation of the cluster. For example: changing the EC2 node type.
     - `configure`: The default option. If you've made changes that only require update of the configuratio of the existing cluster. Most of the time, you will need to use option `configure`.
 
@@ -71,7 +71,7 @@ user for the GitHub repo. The file `infra/cluster_admins` contains a list of IAM
 rights will be granted. The file `infra/cluster_users` contains a list of IAM users that have only user rights
 granted.
 
-#### 1. Make sure you have the correct aws credentials set in your `~/.aws/credentials` file. 
+#### 1. Make sure you have the correct aws credentials set in your `~/.aws/credentials` file.
 
 To check if your credentials are correct, try running step 2. If step 2 fails with an error saying `error: You must be logged in to the server (Unauthorized)` this means that your current credentials are wrong. In that case, talk to Iva to give you correct ones.
 
@@ -111,7 +111,7 @@ Ingress resources need to specify the following in their annotations for them to
 
     kubernetes.io/ingress.class: alb
 
-This is automatically configured for the charts in this repository.    
+This is automatically configured for the charts in this repository.
 
 **Important**: When the cluster is (re)deployed, there may be a delay in the DNS changes propagating to all hosts on
 the internet. If redeploying the infrastructure to another region, **make sure the old deployment still exists**.
@@ -162,7 +162,7 @@ AWS resources
 -------------
 
 AWS resources refer to things not described above that can be managed and configured using
-CloudFormation e.g. DynamoDB tables, ElastiCache Redis clusters, S3 buckets, etc. These are
+CloudFormation e.g. SQL DB, ElastiCache Redis clusters, S3 buckets, etc. These are
 managed *automatically* by a GitHub action, and they are available under `cf/`.
 
 ### General resources

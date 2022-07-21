@@ -34,20 +34,6 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
-        - PolicyName: !Sub "can-access-dynamo-lambda-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:Scan"
-                  - "dynamodb:UpdateItem"
-                Resource:
-                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/user-access-${Environment}*"
-                  - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/invite-access-${Environment}*"
         - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -122,80 +108,7 @@ Resources:
 
           const region = process.env.AWS_REGION;
 
-          const addUserPermissionV1 = async (userEmail, userId) => {
-
-            const userAccessTableName = `user-access-${process.env.CLUSTER_ENV}`;
-            const inviteAccessTableName = `invite-access-${process.env.CLUSTER_ENV}`;
-
-            const convertToDynamoDbRecord = (data) => AWS.DynamoDB.Converter.marshall(
-              data, { convertEmptyValues: false },
-            );
-
-            const db = new AWS.DynamoDB({
-              region,
-            });
-
-            console.log(`V1 :: Querying experiments for user ${userEmail} from DynamoDB`)
-
-            const params = {
-              TableName: inviteAccessTableName,
-              FilterExpression: '(userEmail = :userEmail)',
-              ExpressionAttributeValues: {
-                ...convertToDynamoDbRecord({ ':userEmail': userEmail }),
-              },
-            };
-            const response = await db.scan(params).promise();
-            if (!response.Items.length) {
-              return;
-            }
-
-            console.log(`V1 ::  Adding access roles to experiments`)
-
-            // add those rows in user-access
-            const experimentIds = [];
-            await Promise.all(response.Items.map((item) => {
-              const projectId = item.projectId.S;
-              const experimentId = item.experimentId.S;
-              experimentIds.push(experimentId);
-              const role = item.role.S;
-
-              const addRoleParams = {
-                TableName: userAccessTableName,
-                Item: {
-                  userId,
-                  experimentId,
-                  projectId,
-                  role,
-                  createdDate: new Date().toISOString(),
-                },
-              };
-
-              const docClient = new AWS.DynamoDB.DocumentClient({
-                region,
-              });
-
-              return docClient.put(addRoleParams).promise();
-            }));
-
-            console.log(`V1 :: Removing invitation record`)
-
-            // remove rows from invite-access
-            await Promise.all(experimentIds.map((id) => {
-              const key = convertToDynamoDbRecord({
-                experimentId: id,
-                userEmail,
-              });
-
-              const dynamoParams = {
-                TableName: inviteAccessTableName,
-                Key: key,
-              };
-
-              return db.deleteItem(dynamoParams).send();
-            }));
-          };
-
-          const addUserPermissionV2 = async (userEmail, userId) => {
+          const addUserPermission = async (userEmail, userId) => {
             const sns = new AWS.SNS({ region });
 
             const message = {
@@ -203,7 +116,7 @@ Resources:
               userId
             };
 
-            console.log(`V2 :: Sending SNS message for user ${message}`)
+            console.log(`Sending SNS message for user ${message}`)
 
             await sns.publish({
               Message: JSON.stringify(message),
@@ -226,8 +139,7 @@ Resources:
 
             console.log(`== Handling post-registration for ${userEmail} ==`)
 
-            await addUserPermissionV1(userEmail, userId);
-            await addUserPermissionV2(userEmail, userId);
+            await addUserPermission(userEmail, userId);
 
             console.log("== Successfully added user ${userEmail} ==")
 
