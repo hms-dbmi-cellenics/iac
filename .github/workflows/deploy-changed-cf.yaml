@@ -22,13 +22,15 @@ on:
     paths:
       - 'cf/**.yaml'
       - 'cf/**.yml'
-env:
-  region: 'eu-west-1'
 
 jobs:
   setup:
     name: Check secrets and set up matrix
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -150,11 +152,14 @@ jobs:
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds && github.ref == 'refs/heads/master' }}
     strategy:
+      max-parallel: 1
       matrix:
-        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
+    environment: ${{ matrix.environment-name }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
     steps:
       - id: checkout
         name: Check out source code
@@ -166,7 +171,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - id: set-name
         name: Set name of the CloudFormation stack
@@ -189,7 +194,7 @@ jobs:
         if: ${{ !contains(matrix.template, 'irsa-') }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
@@ -208,7 +213,7 @@ jobs:
         name: Deploy IRSA CloudFormation template
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }},OIDCProvider=${{ steps.get-oidc.outputs.oidc-provider }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
@@ -217,13 +222,16 @@ jobs:
   setup-rds-roles:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
-    needs: deploy-templates
+    needs: [setup, deploy-templates]
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
+      max-parallel: 1
       matrix:
-        environment: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment }}
+      CLUSTER_ENV: ${{ matrix.environment-type }}
     steps:
       - id: set-up-creds
         name: Configure AWS credentials
@@ -231,7 +239,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.
       # This is required because the action that is used in get-rds-secrets store the secret in environment variables,
@@ -241,13 +249,13 @@ jobs:
         name: Uppercase environment name
         uses: ASzc/change-string-case-action@v2
         with:
-          string: ${{ matrix.environment }}
+          string: ${{ matrix.environment-type }}
 
       - id: get-rds-secrets
         name: Export RDS secrets into environment variables
         uses: abhilash1in/aws-secrets-manager-action@v2.0.0
         with:
-          secrets: aurora-${{ matrix.environment }}
+          secrets: aurora-${{ matrix.environment-type }}
           parse-json: true
 
       - id: check-rds-secrets
@@ -286,7 +294,7 @@ jobs:
             exit 1
           fi
           SETUP_ROLES_CMD="
-            PGPASSWORD=${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD} psql \
+            PGPASSWORD=\'${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD}\' psql \
               --host=${RDSHOST} \
               --port=5432 \
               --username=${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME} \
@@ -302,11 +310,12 @@ jobs:
                 GRANT rds_iam TO api_role;
                 GRANT rds_iam, ${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_USERNAME} TO dev_role;
               EOF"
+
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --parameters "commands='$SETUP_ROLES_CMD'"
         env:
-          REGION: ${{ env.region }}
+          REGION: ${{ secrets.AWS_REGION }}
 
   report-if-failed:
     name: Report if workflow failed

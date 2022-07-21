@@ -10,13 +10,10 @@ Parameters:
       - staging
       - production
     Description: The environment for which the buckets need to be created.
-  ReplyToEmail:
-    Type: String
-    Default: hello@biomage.net
-    Description: The email users reply registration message to
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
+  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Outputs:
   UserPoolId:
@@ -60,69 +57,6 @@ Resources:
         }
       Path: /
       Policies:
-        - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:PutObject"
-                  - "s3:ListMultipartUploadParts"
-                  - "s3:AbortMultipartUpload"
-                  - "s3:ListBucketMultipartUploads"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
-
-        - PolicyName: !Sub "can-get-from-work-response-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:GetObjectTagging"
-                Resource:
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
-                Condition:
-                  StringEquals:
-                    "s3:ExistingObjectTag/public": "true"
-
-        - PolicyName: !Sub "can-list-objects-in-bucket-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:ListBucket"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
-
-        - PolicyName: !Sub "can-list-objects-in-public-datasets-${Environment}-bucket"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:ListBucket"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}-${AWS::AccountId}"
-
-        - PolicyName: !Sub "can-get-public-datasets-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:GetObject"
-                  - "s3:GetObjectTagging"
-                Resource:
-                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-public-datasets-${Environment}-${AWS::AccountId}/*"
-
         - PolicyName: !Sub "can-execute-lambda-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -194,7 +128,7 @@ Resources:
         # To customize the From field, we have to provide the ARN of an SES account
         # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-emailconfiguration.html
         EmailSendingAccount: COGNITO_DEFAULT
-        ReplyToEmailAddress: !Ref ReplyToEmail
+        ReplyToEmailAddress: !If [isHMSAccount, "alex_pickering@hms.harvard.edu", "hello@biomage.net"]
       EnabledMfas:
         - SMS_MFA
         - SOFTWARE_TOKEN_MFA
@@ -215,6 +149,16 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
+          # Agreed to privacy policy (soft required)
+        - Name: agreed_terms
+          Required: false
+          Mutable: true
+          AttributeDataType: String
+          # Agreed to receiving emails (Not required, default is false)
+        - Name: agreed_emails
+          Required: false
+          Mutable: true
+          AttributeDataType: String
       SmsAuthenticationMessage: 'Your authentication code for Cellenics is {####}.'
       SmsVerificationMessage: 'Your verification code for Cellenics is {####}.'
       UsernameAttributes:
@@ -228,4 +172,4 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: !If [isProd, "biomage-auth",!Sub "biomage-auth-${Environment}"]
+      Domain: !Sub "biomage-auth-${Environment}-${AWS::AccountId}"

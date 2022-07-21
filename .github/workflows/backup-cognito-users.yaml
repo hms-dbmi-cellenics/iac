@@ -4,14 +4,14 @@ on:
     - cron: '0 1 * * 0'
   workflow_dispatch:
 env:
-  region: 'eu-west-1'
-  backups-bucket: 'biomage-backups-production-242905224710'
+  region: ${{ secrets.AWS_REGION }}
   pool-name: 'biomage-user-pool-case-insensitive-production'
 
 jobs:
   backup-users:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
+    environment: Biomage
     steps:
       - id: setup-node
         uses: actions/setup-node@v2
@@ -24,14 +24,14 @@ jobs:
           npm install -g cognito-backup-restore
           sudo apt install -y jq
 
-      - id: set-up-creds
+      - id: setup-aws
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
-          
+
       - id: backup-users
         name: create backup json of cognito users
         run: |-
@@ -41,13 +41,14 @@ jobs:
       - id: save-to-s3
         name: save backup json to s3
         run: |-
+          BUCKET_NAME="biomage-backups-production-${{steps.setup-aws.outputs.aws-account-id}}"
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
-          aws s3api put-object --bucket ${{env.backups-bucket}} --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
+          aws s3api put-object --bucket $BUCKET_NAME --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
      
       - id: send-to-slack
         name: Send failure notification to Slack
-        if: failure()
+        if: failure() && github.ref == 'refs/heads/master'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
@@ -55,4 +56,4 @@ jobs:
           channel: pipelines
           status: FAILED
           color: danger
-          
+ 
