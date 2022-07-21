@@ -55,6 +55,7 @@ Resources:
       SupportedIdentityProviders:
         - COGNITO
 
+        
   FileUploadIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
