@@ -28,55 +28,6 @@ Resources:
       FifoQueue: true
       QueueName: !If [isDev, "development-queue.fifo", !Sub "queue-job-${SandboxID}-${Environment}.fifo"]
       FifoThroughputLimit: "perMessageGroupId"
-  SNSTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      KmsMasterKeyId: "alias/aws/sns"
-      TopicName: !Sub "work-results-${Environment}-${SandboxID}"
-  PipelineResultsSubscription:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref SNSTopic
-      Endpoint: !Sub [ "${BaseUrl}/v1/pipelineResults", BaseUrl: !If [
-                        isDev, "http://host.docker.internal:3000", !If [
-                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - PipelineResponse
-  Gem2sResultsSubscription:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref SNSTopic
-      Endpoint: !Sub [ "${BaseUrl}/v1/gem2sResults", BaseUrl: !If [
-                        isDev, "http://host.docker.internal:3000", !If [
-                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - GEM2SResponse
 
   SNSTopicV2:
     Type: AWS::SNS::Topic

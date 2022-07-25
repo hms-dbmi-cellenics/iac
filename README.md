@@ -127,7 +127,7 @@ both `ui` and `api` in their HelmRelease configurations.
 ### AWS resources
 
 AWS resources refer to things not described above that can be managed and configured using
-CloudFormation e.g. DynamoDB tables, ElastiCache Redis clusters, S3 buckets, etc. These are
+CloudFormation e.g. SQL DB, ElastiCache Redis clusters, S3 buckets, etc. These are
 managed *automatically* by a GitHub action, and they are available under `cf/`.
 
 ### General resources

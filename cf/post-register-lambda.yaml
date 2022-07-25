@@ -108,7 +108,7 @@ Resources:
 
           const region = process.env.AWS_REGION;
 
-          const addUserPermissionV2 = async (userEmail, userId) => {
+          const addUserPermission = async (userEmail, userId) => {
             const sns = new AWS.SNS({ region });
 
             const message = {
@@ -116,7 +116,7 @@ Resources:
               userId
             };
 
-            console.log(`V2 :: Sending SNS message for user ${message}`)
+            console.log(`Sending SNS message for user ${message}`)
 
             await sns.publish({
               Message: JSON.stringify(message),
@@ -139,7 +139,7 @@ Resources:
 
             console.log(`== Handling post-registration for ${userEmail} ==`)
 
-            await addUserPermissionV2(userEmail, userId);
+            await addUserPermission(userEmail, userId);
 
             console.log("== Successfully added user ${userEmail} ==")
 
