@@ -196,7 +196,6 @@ jobs:
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-    
     strategy:
       max-parallel: 1
       matrix:
@@ -280,83 +279,83 @@ jobs:
         run: |-
           sudo snap install fluxctl --classic
 
-      - id: install-helm
-        name: Install Helm
-        run: |-
-          sudo snap install helm --classic
+      # - id: install-helm
+      #   name: Install Helm
+      #   run: |-
+      #     sudo snap install helm --classic
 
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
+      # - id: install-eksctl
+      #   name: Install eksctl
+      #   run: |-
+      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #     sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: deploy-load-balancer-role
-        name: Deploy permissions for AWS load balancer controller
-        run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+      # - id: deploy-load-balancer-role
+      #   name: Deploy permissions for AWS load balancer controller
+      #   run: |-
+      #     curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
-          aws iam create-policy \
-            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --policy-document file://iam-policy.json || true
+      #     aws iam create-policy \
+      #       --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+      #       --policy-document file://iam-policy.json || true
 
-          eksctl create iamserviceaccount \
-            --cluster=biomage-$CLUSTER_ENV \
-            --namespace=kube-system \
-            --name=aws-load-balancer-controller \
-            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --override-existing-serviceaccounts \
-            --approve
+      #     eksctl create iamserviceaccount \
+      #       --cluster=biomage-$CLUSTER_ENV \
+      #       --namespace=kube-system \
+      #       --name=aws-load-balancer-controller \
+      #       --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+      #       --override-existing-serviceaccounts \
+      #       --approve
 
-      # we need to retry this due to an active issue with the AWS Load Balancer Controller
-      # where there are intermittent failures that are only fixable by retrying
-      # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
-      - id: install-lbc
-        name: Deploy AWS Load Balancer Controller
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 600
-          max_attempts: 20
-          retry_on: error
-          on_retry_command: sleep $(shuf -i 5-15 -n 1)
-          command: |-
-            helm repo add eks https://aws.github.io/eks-charts
-            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+      # # we need to retry this due to an active issue with the AWS Load Balancer Controller
+      # # where there are intermittent failures that are only fixable by retrying
+      # # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
+      # - id: install-lbc
+      #   name: Deploy AWS Load Balancer Controller
+      #   uses: nick-invision/retry@v2
+      #   with:
+      #     timeout_seconds: 600
+      #     max_attempts: 20
+      #     retry_on: error
+      #     on_retry_command: sleep $(shuf -i 5-15 -n 1)
+      #     command: |-
+      #       helm repo add eks https://aws.github.io/eks-charts
+      #       kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
-            helm repo update
+      #       helm repo update
 
-            helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
-              --namespace kube-system \
-              --set serviceAccount.create=false \
-              --set serviceAccount.name=aws-load-balancer-controller \
-              --set clusterName=biomage-$CLUSTER_ENV \
-              --install --wait
+      #       helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+      #         --namespace kube-system \
+      #         --set serviceAccount.create=false \
+      #         --set serviceAccount.name=aws-load-balancer-controller \
+      #         --set clusterName=biomage-$CLUSTER_ENV \
+      #         --install --wait
 
-            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-            # API staging environments because their endpoints are not yet available.
-            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-              --namespace default \
-              --set clusterEnv=$CLUSTER_ENV \
-              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
-              --install --wait
+      #       # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+      #       # API staging environments because their endpoints are not yet available.
+      #       helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+      #         --namespace default \
+      #         --set clusterEnv=$CLUSTER_ENV \
+      #         --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
+      #         --install --wait
 
-      - id: deploy-env-loadbalancer
-        name: Deploy AWS Application Load Balancer for environment
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "biomage-k8s-alb-${{ matrix.environment-type }}"
-          template: 'infra/cf-loadbalancer.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-env-loadbalancer
+      #   name: Deploy AWS Application Load Balancer for environment
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }}"
+      #     name: "biomage-k8s-alb-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-loadbalancer.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-          name: "biomage-alb-route53-${{ matrix.environment-type }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-route53
+      #   name: Deploy Route 53 DNS records to ELB
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-route53.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: install-flux
         name: Deploy flux
@@ -364,10 +363,19 @@ jobs:
           helm repo add fluxcd https://charts.fluxcd.io
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
-          [[ $ENVIRONMENT_NAME = "Biomage" ]] && FLUX_GIT_READ_ONLY=false || FLUX_GIT_READ_ONLY=true
+          FLUX_GIT_READ_ONLY=false
+          GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
+
+          if [[ $ENVIRONMENT_NAME = "HMS" ]]
+          then
+            FLUX_GIT_READ_ONLY=true
+            GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
+          fi
+
+          echo $GIT_URL
 
           helm upgrade flux fluxcd/flux \
-            --set git.url=https://github.com/${{ env.RELEASES_REPOSITORY }} \
+            --set git.url=$GIT_URL \
             --set git.path="$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \

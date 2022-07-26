@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [HMS]
+        environment-name: [Biomage, HMS]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -155,7 +155,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [HMS]
+        environment-name: [Biomage, HMS]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
         exclude:
           - environment-name: HMS
@@ -231,7 +231,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [HMS]
+        environment-name: [Biomage, HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging
