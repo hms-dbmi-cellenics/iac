@@ -279,16 +279,16 @@ jobs:
         run: |-
           sudo snap install fluxctl --classic
 
-      # - id: install-helm
-      #   name: Install Helm
-      #   run: |-
-      #     sudo snap install helm --classic
+      - id: install-helm
+        name: Install Helm
+        run: |-
+          sudo snap install helm --classic
 
-      # - id: install-eksctl
-      #   name: Install eksctl
-      #   run: |-
-      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-      #     sudo mv /tmp/eksctl /usr/local/bin
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
 
       # - id: deploy-load-balancer-role
       #   name: Deploy permissions for AWS load balancer controller
@@ -507,14 +507,6 @@ jobs:
             --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
             --group state-machine-runner-group \
             --username state-machine-runner
-
-      # # see https://eksctl.io/usage/iam-identity-mappings/
-      # - id: a-test
-      #   name: test this now
-      #   run: |-
-      #       echo "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
-      #       cat "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
-
 
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping-admin
