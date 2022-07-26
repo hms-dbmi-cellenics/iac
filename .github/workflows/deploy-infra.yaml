@@ -128,9 +128,9 @@ jobs:
       - id: test-if-based-on-environment-name
         name: Test to see if we can make if basedon environment name
         run: |-
-          if [ ${{ matrix.environment-name = "HMS" }}]; then
+          if [ ${{ matrix.environment-name}} = "HMS"  ]; then
             echo "this is HMS"
-          elif [ ${{ matrix.environment-name = "Biomage" }}]; then
+          elif [ ${{ matrix.environment-name }} = "Biomage" ]; then
             echo "this is Biomage"
           fi
 
