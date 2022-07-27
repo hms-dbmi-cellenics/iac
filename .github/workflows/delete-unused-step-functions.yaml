@@ -11,8 +11,9 @@ jobs:
   run-e2e:
     name: Delete old staging step functions
     runs-on: ubuntu-20.04
-    matrix:
-      environment-name: [Biomage, HMS]
+    strategy:
+      matrix:
+        environment-name: [Biomage, HMS]
     environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-aws
