@@ -187,7 +187,6 @@ Resources:
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
 
-
   CanarySNSTopicCMK:
     Type: AWS::KMS::Key
     Properties:
