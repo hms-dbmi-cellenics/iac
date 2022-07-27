@@ -155,7 +155,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [HMS]
+        environment-name: [Biomage, HMS]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
         exclude:
           - environment-name: HMS
