@@ -372,7 +372,8 @@ jobs:
             GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
           fi
 
-          echo "Github URL: $GIT_URL"
+          echo "Github URL: "
+          echo $GIT_URL
 
           helm upgrade flux fluxcd/flux \
             --set git.url=$GIT_URL \
