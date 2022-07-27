@@ -15,6 +15,7 @@ Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
+
 Outputs:
   UserPoolId:
     Value: !Ref UserPool

@@ -11,6 +11,7 @@ Parameters:
       - production
     Description: The environment for which the access group is created.
 
+
 Resources:
   DeveloperAccessGroup:
     Type: AWS::IAM::Group
