@@ -200,7 +200,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging
