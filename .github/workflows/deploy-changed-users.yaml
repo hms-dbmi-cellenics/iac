@@ -22,7 +22,10 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment: [Biomage, HMS]
+        exclude:
+          - environment-name: HMS
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -60,10 +63,12 @@ jobs:
     name: Updates Kubernetes user-related resources on the EKS cluster
     runs-on: ubuntu-20.04
     strategy:
-      max-parallel: 1
       matrix:
-        environment-type: ['staging', 'production']
-        environment-name: [Biomage]
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment: [Biomage, HMS]
+        exclude:
+          - environment-name: HMS
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -142,7 +147,8 @@ jobs:
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          for user in $(cat "infra/cluster_admins_$CLUSTER_ENV")
+          echo "Reading cluster rights from file: infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
+          for user in $(cat "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV")
           do
             echo "Adding cluster admin rights to $user"
             eksctl create iamidentitymapping \
@@ -150,18 +156,4 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username ${user##*/}
-          done
-
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: update-identitymapping
-        name: Add cluster read-only rights to everyone on the user list.
-        run: |-
-          for user in $(cat "infra/cluster_users")
-          do
-            echo "Adding cluster read-only rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group read-only \
-              --username $user
           done

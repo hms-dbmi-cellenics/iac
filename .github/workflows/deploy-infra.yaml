@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage]
+        environment-name: [Biomage, HMS]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -106,7 +106,10 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment-name: [Biomage, HMS]
+        exclude:
+          - environment-name: HMS
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
@@ -197,7 +200,10 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment-name: [Biomage, HMS]
+        exclude:
+          - environment-name: HMS
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -357,10 +363,20 @@ jobs:
           helm repo add fluxcd https://charts.fluxcd.io
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
-          [[ $ENVIRONMENT_NAME = "Biomage" ]] && FLUX_GIT_READ_ONLY=false || FLUX_GIT_READ_ONLY=true
+          FLUX_GIT_READ_ONLY=true
+          GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
+
+          if [[ $ENVIRONMENT_NAME = "Biomage" ]]
+          then
+            FLUX_GIT_READ_ONLY=false
+            GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
+          fi
+
+          echo "Github URL: "
+          echo $GIT_URL
 
           helm upgrade flux fluxcd/flux \
-            --set git.url=git@github.com:${{ env.RELEASES_REPOSITORY }} \
+            --set git.url=$GIT_URL \
             --set git.path="$CLUSTER_ENV" \
             --set git.label="flux-sync-$CLUSTER_ENV" \
             --set git.pollInterval="2m" \
@@ -497,6 +513,7 @@ jobs:
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
+          echo "Reading cluster rights from file: infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
           while IFS= read -r user
           do
             echo "Adding cluster admin rights to $user"
@@ -505,21 +522,7 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/cluster_admins_$CLUSTER_ENV"
-
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: update-identitymapping
-        name: Add cluster read-only rights to everyone on the user list.
-        run: |-
-          while IFS= read -r user
-          do
-            echo "Adding cluster read-only rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group read-only \
-              --username $user
-          done < "infra/cluster_users"
+          done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
   report-if-failed:
     name: Report if workflow failed
