@@ -11,7 +11,7 @@ jobs:
   backup-users:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
-    environment: Biomage
+    environment: [Biomage, HMS]
     steps:
       - id: setup-node
         uses: actions/setup-node@v2
