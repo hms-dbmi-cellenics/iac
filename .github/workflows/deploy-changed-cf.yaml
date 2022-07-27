@@ -160,6 +160,8 @@ jobs:
         exclude:
           - environment-name: HMS
             environment-type: staging
+          - environment-name: Biomage
+            environment-type: production
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
