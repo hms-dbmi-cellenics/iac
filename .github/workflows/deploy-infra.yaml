@@ -363,13 +363,13 @@ jobs:
           helm repo add fluxcd https://charts.fluxcd.io
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
-          FLUX_GIT_READ_ONLY=false
-          GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
+          FLUX_GIT_READ_ONLY=true
+          GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
 
-          if [[ $ENVIRONMENT_NAME = "HMS" ]]
+          if [[ $ENVIRONMENT_NAME = "Biomage" ]]
           then
-            FLUX_GIT_READ_ONLY=true
-            GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
+            FLUX_GIT_READ_ONLY=false
+            GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
           fi
 
           echo "Github URL: "
