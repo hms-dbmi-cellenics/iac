@@ -172,4 +172,4 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: !Sub "biomage-auth-${Environment}-${AWS::AccountId}"
+      Domain: !If [isHMSAccount, !Sub "hms-auth-${Environment}-${AWS::AccountId}", !Sub "biomage-auth-${Environment}-${AWS::AccountId}"]

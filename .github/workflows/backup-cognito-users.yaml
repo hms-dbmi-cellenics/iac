@@ -11,7 +11,10 @@ jobs:
   backup-users:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
-    environment: [Biomage, HMS]
+    strategy:
+      matrix:
+        environment-name: [Biomage, HMS]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-node
         uses: actions/setup-node@v2
