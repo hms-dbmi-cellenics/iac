@@ -1,0 +1,23 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: biomage-staging
+  region: eu-west-1
+managedNodeGroups:
+  - name: nodegroup-xl
+    instanceType: r6i.2xlarge
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 4
+    volumeSize: 200
+    iam:
+      withAddonPolicies:
+        ebs: true
+        autoScaler: true
+    taints:
+      - key: size
+        value: xl
+        effect: NoExecute
+    labels:
+      - size: xl
+    tags: {"k8s.io/cluster-autoscaler/biomage-staging": "owned", "k8s.io/cluster-autoscaler/enabled": "true"}
