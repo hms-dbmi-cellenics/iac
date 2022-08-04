@@ -3,11 +3,11 @@ import boto3
 s3 = boto3.resource('s3')
 s3_client = boto3.client('s3')
 
-from_worker_results_name = "worker-results-staging-242905224710"
-to_worker_results_name = "worker-results-test-staging-242905224710"
+from_worker_results = "worker-results-staging-242905224710"
+to_worker_results = "worker-results-test-staging-242905224710"
 
 # Set to False to make the migration actually run
-dry_run = True
+dry_run = False
 
 def experiment_id_with_dashes(old_experiment_id):
   dash_positions = [0,8,12,16,20, None]
@@ -32,7 +32,7 @@ def copy_object(from_bucket, from_key, to_bucket, to_key):
     'Key': from_key
   }
   
-  s3.meta.client.copy_object(copy_source, to_bucket, to_key)
+  s3.meta.client.copy_object(CopySource=copy_source, Bucket=to_bucket, Key=to_key)
 
 def copy_and_rename_objects():
   # Update keys that depend on the experiment id
@@ -50,22 +50,56 @@ def copy_and_rename_objects():
     "processed-matrix-test-staging-242905224710"
   ]
 
+  copy_object(
+    "biomage-source-staging-242905224710",
+    "0bb84caabed6a096865fbf34783bd76a/r.rds",
+    "biomage-source-test-staging-242905224710", 
+    "0bb84caa-bed6-a096-865f-bf34783bd76a/r.rds"
+  )
+
+  # for from_bucket_name, to_bucket_name in zip(from_bucket_names, to_bucket_names):
+  #   current_bucket = s3.Bucket(from_bucket_name)
+    
+  #   for current_object in current_bucket.objects.all():
+  #     new_key = get_new_key(current_object.key)
+  #     if (new_key == None):
+  #       print(f"[MALFORMED] Skipping {current_object.key}")
+  #       continue
+  
+  #     print(f"Setting copy with new name for bucket: {from_bucket_name}, key: {current_object.key}")
+  #     if (not dry_run):
+  #       copy_object(from_bucket_name, current_object.key, to_bucket_name, new_key)
+
+def copy_objects():
+  from_bucket_names = [
+    "biomage-originals-test-staging-242905224710",
+    "plots-tables-test-staging-242905224710",  
+  ]
+  
+  to_bucket_names = [
+    "biomage-originals-staging-242905224710",
+    "plots-tables-staging-242905224710",  
+  ]
+
   for from_bucket_name, to_bucket_name in zip(from_bucket_names, to_bucket_names):
     current_bucket = s3.Bucket(from_bucket_name)
     
     for current_object in current_bucket.objects.all():
-      new_key = get_new_key(current_object.key)
-      if (new_key == None):
-        print(f"[MALFORMED] Skipping {current_object.key}")
-        continue
-  
       print(f"Setting copy with new name for bucket: {from_bucket_name}, key: {current_object.key}")
       if (not dry_run):
-        copy_object(from_bucket_name, current_object.key, to_bucket_name, new_key)
+        copy_object(from_bucket_name, current_object.key, to_bucket_name, current_object.key)
+  
+  # "biomage-originals-test"
+  # "biomage-source-test"
+  # "processed-matrix-test"
+  # "worker-results-test"
+  # "biomage-filtered-cells-test"
+  # "plots-tables-test"
+  # "cell-sets-test"
 
 def generate_new_tagging(object):
   # Managing tags is not supported by boto3 resource yet, so use client
-  tagging = s3_client.get_object_tagging(Bucket=from_worker_results_name, Key=object.key)
+  tagging = s3_client.get_object_tagging(Bucket=from_worker_results, Key=object.key)
   old_tag_set = tagging["TagSet"]
 
   old_experiment_id_tag = next((tag for tag in old_tag_set if tag["Key"] == "experimentId"), None)
@@ -79,12 +113,12 @@ def generate_new_tagging(object):
 
 def copy_and_update_tags_worker_results():
   # Update worker-results Etag
-  worker_results_bucket = s3.Bucket(from_worker_results_name) # Etag: {experimentId}
+  worker_results_bucket = s3.Bucket(from_worker_results) # Etag: {experimentId}
   
   for object in worker_results_bucket.objects.all():
     if (not dry_run):
       print(f"Setting copy with same name for bucket: worker_results, key: {object.key}")
-      copy_object(from_worker_results_name, object.key, to_worker_results_name, object.key)
+      copy_object(from_worker_results, object.key, to_worker_results, object.key)
     
     new_tagging = generate_new_tagging(object)
 
@@ -95,7 +129,7 @@ def copy_and_update_tags_worker_results():
     print(f"Updating tags for work result {object.key}")
     if (not dry_run):
       put_tags_response = s3_client.put_object_tagging(
-        Bucket=to_worker_results_name,
+        Bucket=to_worker_results,
         Key=object.key,
         Tagging=new_tagging
       )
@@ -104,4 +138,4 @@ def copy_and_update_tags_worker_results():
       print(put_tags_response)
 
 copy_and_rename_objects()
-copy_and_update_tags_worker_results()
+# copy_and_update_tags_worker_results()

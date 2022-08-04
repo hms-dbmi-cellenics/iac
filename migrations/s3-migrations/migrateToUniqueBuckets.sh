@@ -1,5 +1,6 @@
 
-old_buckets=("plots-tables" "cell-sets" "worker-results" "processed-matrix" "biomage-pipeline-debug" "biomage-source" "biomage-filtered-cells" "biomage-backups" "biomage-originals") 
+# old_buckets=("plots-tables" "cell-sets" "worker-results" "processed-matrix" "biomage-pipeline-debug" "biomage-source" "biomage-filtered-cells" "biomage-backups" "biomage-originals") 
+old_buckets=("biomage-source-staging-242905224710")
 environments=("staging" "production")
 accound_id=$(aws sts get-caller-identity --query Account --output text)
 
