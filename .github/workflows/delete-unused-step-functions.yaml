@@ -34,6 +34,8 @@ jobs:
           maximum=$((10000 - $threshold))
           count=$(echo $state_machines_list | wc -l)
 
+          echo $count
+
           if (($count > $maximum))
           then
             echo "$count higher than the maximum, so deleting $threshold state machines"
@@ -56,6 +58,8 @@ jobs:
           threshold=500
           maximum=$((10000 - $threshold))
           count=$(echo $activities_list | wc -l)
+
+          echo $count
 
           if (($count > $maximum))
           then
