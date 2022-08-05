@@ -37,11 +37,16 @@ jobs:
 
           if test $too_close_to_theshold
           then
+            echo "$count higher than the threshold, so deleting $threshold state machines"
             echo $state_machines_list \
               | sort -k2 \
               | head -n -$threshold \
               | awk '{print $4}' \
-              | xargs -I {} aws stepfunctions delete-state-machine --activity-arn {}
+              | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+            
+          echo "Finished deleting state machines"
+          else
+            echo "No state machines deleted"
           fi
 
       # If the activities list is too close to its limit,
@@ -57,11 +62,16 @@ jobs:
 
           if test $too_close_to_theshold
           then
+            echo "$count higher than the threshold, so deleting $threshold activities"
             echo $activities_list \
               | sort -k2 \
               | head -n -$threshold \
               | awk '{print $2}' \
               | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+            
+            echo "Finished deleting activities"
+          else
+            echo "No activities deleted"
           fi
 
       - id: send-to-slack
