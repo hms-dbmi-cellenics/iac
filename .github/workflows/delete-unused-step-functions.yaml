@@ -24,30 +24,45 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      # This will take everything OLDER THAN the last 500 step functions
-      # marked as staging and remove them.
+      # If the step functions list is too close to its limit,
+      # this will remove the 500 older step functions.
       - id: remove-old-state-machines
         name: Remove old step functions from staging
         run: |-
-          aws stepfunctions list-state-machines --output text \
-            | grep staging \
-            | sort -k2 \
-            | head -n -500 \
-            | awk '{print $4}' \
-            | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+          threshold=500
 
-      # This will take everything OLDER THAN the last 500 activities
-      # marked as staging and remove them.
+          state_machines_list=$(aws stepfunctions list-state-machines --output text)
+          count=$(echo $state_machines_list | wc -l)
+          too_close_to_theshold=$(($count > 10000 - $threshold))
+
+          if test $too_close_to_theshold
+          then
+            echo $state_machines_list \
+              | sort -k2 \
+              | head -n -$threshold \
+              | awk '{print $4}'
+              | xargs -I {} aws stepfunctions delete-state-machine --activity-arn {}
+          fi
+
+      # If the activities list is too close to its limit,
+      # this will remove the 500 older activities.
       - id: remove-old-activities
         name: Remove old activities from staging
         run: |-
-          aws stepfunctions list-activities --output text \
-            | grep staging \
-            | sort -k2 \
-            | head -n -500 \
-            | awk '{print $2}' \
-            | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+          threshold=500
 
+          activities_list=$(aws stepfunctions list-activities --output text)
+          count=$(echo $activities_list | wc -l)
+          too_close_to_theshold=$(($count > 10000 - $threshold))
+
+          if test $too_close_to_theshold
+          then
+            echo $activities_list \
+              | sort -k2 \
+              | head -n -$threshold \
+              | awk '{print $2}'
+              | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+          fi
 
       - id: send-to-slack
         name: Send failure notification to Slack
