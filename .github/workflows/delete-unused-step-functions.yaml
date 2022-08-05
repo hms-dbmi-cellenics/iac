@@ -1,4 +1,4 @@
-name: Delete old staging step functions
+name: Delete old step functions
 
 on:
   schedule:
@@ -9,7 +9,7 @@ env:
 
 jobs:
   run-e2e:
-    name: Delete old staging step functions
+    name: Delete old step functions
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -27,7 +27,7 @@ jobs:
       # If the step functions list is too close to its limit,
       # this will remove the 500 older step functions.
       - id: remove-old-state-machines
-        name: Remove old step functions from staging
+        name: Remove old step functions
         run: |-
           threshold=500
 
@@ -40,14 +40,14 @@ jobs:
             echo $state_machines_list \
               | sort -k2 \
               | head -n -$threshold \
-              | awk '{print $4}'
+              | awk '{print $4}' \
               | xargs -I {} aws stepfunctions delete-state-machine --activity-arn {}
           fi
 
       # If the activities list is too close to its limit,
       # this will remove the 500 older activities.
       - id: remove-old-activities
-        name: Remove old activities from staging
+        name: Remove old activities
         run: |-
           threshold=500
 
@@ -60,7 +60,7 @@ jobs:
             echo $activities_list \
               | sort -k2 \
               | head -n -$threshold \
-              | awk '{print $2}'
+              | awk '{print $2}' \
               | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
           fi
 
