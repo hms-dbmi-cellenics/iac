@@ -42,7 +42,7 @@ jobs:
             echo $state_machines_list \
               | sed 's/STATEMACHINES/\n STATEMACHINES/g' \
               | sort -k2 \
-              | head -n -$threshold \
+              | head -$threshold \
               | awk '{print $4}' \
               | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
             echo "Finished deleting state machines"
@@ -68,7 +68,7 @@ jobs:
             echo $activities_list \
               | sed 's/ACTIVITIES/\n ACTIVITIES/g' \
               | sort -k2 \
-              | head -n -$threshold \
+              | head -$threshold \
               | awk '{print $2}' \
               | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
             echo "Finished deleting activities"
