@@ -49,12 +49,26 @@ var {
 } = argv;
 
 
+const getAWSAccountId = async (profile) => {
+  const AWS = require('aws-sdk');
+
+  // set profile
+  var credentials = new AWS.SharedIniFileCredentials({profile});
+  AWS.config.credentials = credentials;
+
+
+  var sts = new AWS.STS();
+  var { Account: accountId } = await sts.getCallerIdentity({}).promise();
+  return accountId;
+};
+
+
 const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, profile) => {
   const knexfile = await knexfileLoader(activeEnvironment, sandboxId, region, localPort, profile);
   return knex.default(knexfile[activeEnvironment]);
 };
 
-const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate) => {
+const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig) => {
   const { sourceUserId, targetUserId, email } = user;
 
   console.log(`\n==========\nMigrating User: ${email}\n`,)
@@ -80,7 +94,7 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     console.log('\t- table(s): experiment [✓]')
 
     // migrate experiment_execution table
-    await migrateExperimentExecution(experimentId, sourceSqlClient, targetSqlClient);
+    await migrateExperimentExecution(experimentId, sourceSqlClient, targetSqlClient, experimentExecutionConfig);
     console.log('\t- table(s): experiment_execution [✓]')
 
     // migrate sample, sample_file, and sample_to_sample_file_map tables
@@ -117,9 +131,10 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
 
     // insert entries into user_acess table on target
     // experiment table entries (migrateExperiment above) need to be present before user_access
-    // TODO: also insert admin role
     sqlInsert(targetSqlClient, targetUserAccessEntries[i], 'user_access')
     console.log('\t- table(s): user_access [✓]')
+
+    // TODO: also insert admin role
   }
 
   console.log(`Finished Migrating User: ${email} \n==========\n`)
@@ -287,18 +302,40 @@ const migrateExperiment = async (experimentId, sourceSqlClient, targetSqlClient)
 
 };
 
-const migrateExperimentExecution = async (experimentId, sourceSqlClient, targetSqlClient) => {
+const migrateExperimentExecution = async (experimentId, sourceSqlClient, targetSqlClient, experimentExecutionConfig) => {
 
   const sourceExperimentExecutionTableEntries = await sourceSqlClient('experiment_execution')
     .where('experiment_id', experimentId);
 
+  const {sourceAccountId, targetAccountId, sourceRegion, targetRegion} = experimentExecutionConfig;
+
   // stringify necessary values
-  const targetExperimentExecutionTableEntries = sourceExperimentExecutionTableEntries.map(entry => {
+  const targetExperimentExecutionTableEntries = sourceExperimentExecutionTableEntries
+  .map(entry => {
     return {
       ...entry,
       last_status_response: JSON.stringify(entry.last_status_response)
     }
   })
+  // replace source region/account id with target values
+  .map(entry => {
+    const stateMachineArn = entry
+    .state_machine_arn
+    .replace(sourceAccountId, targetAccountId)
+    .replace(sourceRegion, targetRegion);
+
+    const executionArn = entry
+    .execution_arn
+    .replace(sourceAccountId, targetAccountId)
+    .replace(sourceRegion, targetRegion);
+
+    return {
+      ...entry,
+      state_machine_arn: stateMachineArn,
+      execution_arn: executionArn
+    }
+  })
+
 
   // insert
   await sqlInsert(targetSqlClient, targetExperimentExecutionTableEntries, 'experiment_execution');
@@ -411,6 +448,17 @@ const sqlDelete = async (sqlClient, queryColumn, queryValue, tableName, extraLog
 };
 
 const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate) => {
+  
+  // need for experiment_execution migration
+  const sourceAccountId = await getAWSAccountId(sourceProfile);
+  const targetAccountId = await getAWSAccountId(targetProfile);
+
+
+  const experimentExecutionConfig = {
+    sourceRegion, targetRegion, sourceAccountId, targetAccountId
+  }
+  
+  
   // where users will be migrated from
   const sourceSqlClient = await createSqlClient(sourceEnvironment, sandboxId, sourceRegion, sourceLocalPort, sourceProfile);
   const sourceS3Client = getS3Client(sourceProfile, sourceRegion, sourceEnvironment);
@@ -423,7 +471,7 @@ const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironme
 
   // migrate each user
   for (var i = 0; i < usersToMigrate.length; i++) {
-    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate);
+    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig);
   };
 
 };
@@ -470,6 +518,7 @@ if (!sourceCognitoUserPoolId) {
   // ----------------------Cognito dumps----------------------
 
   const usersToMigrate = getUsersToMigrate(sourceCognitoUsers, targetCognitoUsers, createdUserEmails);
+
 
   run(usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate)
     .then(() => {
