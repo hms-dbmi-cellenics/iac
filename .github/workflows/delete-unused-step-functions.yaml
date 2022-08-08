@@ -32,7 +32,7 @@ jobs:
           state_machines_list=$(aws stepfunctions list-state-machines --output text)
           threshold=500
           maximum=$((10000 - $threshold))
-          count=$(echo $state_machines_list | wc -l)
+          count=$(echo $state_machines_list | grep -o 'arn:aws:states:' | wc -l)
 
           echo $count
 
@@ -57,7 +57,7 @@ jobs:
           activities_list=$(aws stepfunctions list-activities --output text)
           threshold=500
           maximum=$((10000 - $threshold))
-          count=$(echo $activities_list | wc -l)
+          count=$(echo $activities_list | grep -o 'arn:aws:states:' | wc -l)
 
           echo $count
 
