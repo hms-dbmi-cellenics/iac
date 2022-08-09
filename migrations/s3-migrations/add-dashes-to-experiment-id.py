@@ -1,13 +1,20 @@
 import boto3
 
-s3 = boto3.resource('s3')
-s3_client = boto3.client('s3')
+from threading import Thread
+from time import perf_counter
 
-from_worker_results = "worker-results-staging-242905224710"
-to_worker_results = "worker-results-test-staging-242905224710"
+import asyncio
+import concurrent.futures
+
+from timeit import default_timer as timer
 
 # Set to False to make the migration actually run
 dry_run = True
+
+s3 = boto3.resource('s3')
+s3_client = boto3.client('s3')
+
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=5000)  
 
 def experiment_id_with_dashes(old_experiment_id):
   dash_positions = [0,8,12,16,20, None]
@@ -32,7 +39,40 @@ def copy_object(from_bucket, from_key, to_bucket, to_key):
     'Key': from_key
   }
   
-  s3.meta.client.copy(CopySource=copy_source, Bucket=to_bucket, Key=to_key)
+  try:
+    s3.meta.client.copy(CopySource=copy_source, Bucket=to_bucket, Key=to_key)
+  except Exception as e:
+    print(f"[ERROR] {e}")
+
+  print(f"[FINISHED] bucket: {to_bucket}, key: {to_key}")
+
+async def copy_and_rename_in_bucket(from_bucket_name, to_bucket_name):
+  current_bucket = s3.Bucket(from_bucket_name)
+  
+  blocking_tasks = []
+
+  executor = concurrent.futures.ThreadPoolExecutor(
+    max_workers=10,
+  )
+
+  loop = asyncio.get_event_loop()
+
+  for current_object in current_bucket.objects.all():
+    new_key = get_new_key(current_object.key)
+    if (new_key == None):
+      print(f"[MALFORMED] Skipping {current_object.key}")
+      continue
+
+    print(f"Setting copy with new name for bucket: {from_bucket_name}, key: {current_object.key}")
+    if (not dry_run):
+      blocking_tasks.append(loop.run_in_executor(executor, copy_object, from_bucket_name, current_object.key, to_bucket_name, new_key))
+
+  completed, pending = await asyncio.wait(blocking_tasks)
+  results = [t.result() for t in completed]
+
+  print(f"[BATCH_FINISHED], copied {len(results)} objects")
+
+  return results
 
 def copy_and_rename_objects():
   # Update keys that depend on the experiment id
@@ -50,54 +90,24 @@ def copy_and_rename_objects():
     "processed-matrix-test-staging-242905224710"
   ]
 
-  # copy_object(
-  #   "biomage-source-test-staging-242905224710",
-  #   "0bb84caabed6a096865fbf34783bd76a/r.rds",
-  #   "biomage-source-test-staging-242905224710", 
-  #   "0bb84caa-bed6-a096-865f-bf34783bd76a/r.rds"
-  # )
+  executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+  event_loop = asyncio.get_event_loop()
 
+  all_start = timer()
   for from_bucket_name, to_bucket_name in zip(from_bucket_names, to_bucket_names):
-    current_bucket = s3.Bucket(from_bucket_name)
-    
-    for current_object in current_bucket.objects.all():
-      new_key = get_new_key(current_object.key)
-      if (new_key == None):
-        print(f"[MALFORMED] Skipping {current_object.key}")
-        continue
-  
-      print(f"Setting copy with new name for bucket: {from_bucket_name}, key: {current_object.key}")
-      if (not dry_run):
-        copy_object(from_bucket_name, current_object.key, to_bucket_name, new_key)
+    start = timer()
+    non_blocking_results = event_loop.run_until_complete(copy_and_rename_in_bucket(from_bucket_name, to_bucket_name))
+    elapsed = (timer() - start)
+    print(f"{from_bucket_name}. Time: {elapsed} elapsed. #objects copied: {len(non_blocking_results)}")
 
-def copy_objects():
-  from_bucket_names = [
-    "biomage-originals-test-staging-242905224710",
-    "plots-tables-test-staging-242905224710",  
-  ]
+  all_elapsed = (timer() - all_start)
+  print(f"[DONE]. Time: {all_elapsed}")
   
-  to_bucket_names = [
-    "biomage-originals-staging-242905224710",
-    "plots-tables-staging-242905224710",  
-  ]
-
-  for from_bucket_name, to_bucket_name in zip(from_bucket_names, to_bucket_names):
-    current_bucket = s3.Bucket(from_bucket_name)
-    
-    for current_object in current_bucket.objects.all():
-      print(f"Setting copy with new name for bucket: {from_bucket_name}, key: {current_object.key}")
-      if (not dry_run):
-        copy_object(from_bucket_name, current_object.key, to_bucket_name, current_object.key)
-  
-  # "biomage-originals-test"
-  # "biomage-source-test"
-  # "processed-matrix-test"
-  # "worker-results-test"
-  # "biomage-filtered-cells-test"
-  # "plots-tables-test"
-  # "cell-sets-test"
+from_worker_results = "worker-results-staging-242905224710"
+to_worker_results = "worker-results-test-staging-242905224710"
 
 def generate_new_tagging(object):
+  
   # Managing tags is not supported by boto3 resource yet, so use client
   tagging = s3_client.get_object_tagging(Bucket=from_worker_results, Key=object.key)
   old_tag_set = tagging["TagSet"]
@@ -111,15 +121,24 @@ def generate_new_tagging(object):
 
   return tagging
 
-def copy_and_update_tags_worker_results():
+async def copy_and_update_tags_worker_results():
   # Update worker-results Etag
   worker_results_bucket = s3.Bucket(from_worker_results) # Etag: {experimentId}
   
+  executor = concurrent.futures.ThreadPoolExecutor()
+  loop = asyncio.get_event_loop()
+  blocking_tasks = []
+
   for object in worker_results_bucket.objects.all():
     if (not dry_run):
       print(f"Setting copy with same name for bucket: worker_results, key: {object.key}")
-      copy_object(from_worker_results, object.key, to_worker_results, object.key)
-    
+      blocking_tasks.append(loop.run_in_executor(executor, copy_object, from_worker_results, object.key, to_worker_results, object.key))
+
+      # copy_object(from_worker_results, object.key, to_worker_results, object.key)
+      print(f"[FINISHED] {worker_results_bucket}, key: {object.key}")
+
+
+  for object in worker_results_bucket.objects.all():
     new_tagging = generate_new_tagging(object)
 
     # If there's nothing to update continue
@@ -134,8 +153,8 @@ def copy_and_update_tags_worker_results():
         Tagging=new_tagging
       )
 
-      print("put_tags_responseDebug")
-      print(put_tags_response)
 
 copy_and_rename_objects()
-copy_and_update_tags_worker_results()
+
+event_loop = asyncio.get_event_loop()
+event_loop.run_until_complete(copy_and_update_tags_worker_results())
