@@ -1,8 +1,8 @@
-var AWS = require('aws-sdk');
+const AWS = require('aws-sdk');
 
 const getBucketNames = async (profile, environment) => {
     // set profile
-    var credentials = new AWS.SharedIniFileCredentials({profile});
+    let credentials = new AWS.SharedIniFileCredentials({profile});
     AWS.config.credentials = credentials;
 
     let account;
@@ -11,11 +11,11 @@ const getBucketNames = async (profile, environment) => {
         account = '000000000000';
     } else {
         // set profile
-        var credentials = new AWS.SharedIniFileCredentials({ profile });
+        credentials = new AWS.SharedIniFileCredentials({ profile });
         AWS.config.credentials = credentials;
         
         // get account id
-        var sts = new AWS.STS();
+        const sts = new AWS.STS();
         const callerIdentity = await sts.getCallerIdentity({}).promise();
         account = callerIdentity.Account;
     }

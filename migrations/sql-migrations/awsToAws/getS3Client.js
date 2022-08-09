@@ -18,7 +18,7 @@ const getS3Client = (profile, region, environment) => {
         S3Config.s3ForcePathStyle = true
     } else {
         // set profile
-        var credentials = new AWS.SharedIniFileCredentials({ profile });
+        const credentials = new AWS.SharedIniFileCredentials({ profile });
         AWS.config.credentials = credentials;
 
     }

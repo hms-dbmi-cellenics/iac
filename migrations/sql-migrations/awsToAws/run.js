@@ -9,7 +9,7 @@ const getBucketNames = require('./getBucketNames')
 const DOWNLOAD_FOLDER = '../downloaded_data/aws_to_aws'
 
 // set defaults command line arguments
-var opts = {
+const opts = {
   default: {
     sandboxId: 'default',
     sourceRegion: 'eu-west-1',
@@ -20,7 +20,7 @@ var opts = {
 }
 
 // get command line arguments
-var argv = parseArgs(process.argv.slice(2), opts);
+const argv = parseArgs(process.argv.slice(2), opts);
 
 // set target local port
 // 5431 for inframock
@@ -32,7 +32,7 @@ console.log(JSON.stringify(argv, null, 2))
 console.log(`=====\n\n`)
 
 // destructure command line args
-var {
+const {
   sandboxId,
   sourceEnvironment,
   targetEnvironment,
@@ -53,12 +53,12 @@ const getAWSAccountId = async (profile) => {
   const AWS = require('aws-sdk');
 
   // set profile
-  var credentials = new AWS.SharedIniFileCredentials({profile});
+  const credentials = new AWS.SharedIniFileCredentials({profile});
   AWS.config.credentials = credentials;
 
 
-  var sts = new AWS.STS();
-  var { Account: accountId } = await sts.getCallerIdentity({}).promise();
+  const sts = new AWS.STS();
+  const { Account: accountId } = await sts.getCallerIdentity({}).promise();
   return accountId;
 };
 
@@ -84,7 +84,7 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     .filter(entry => experimentsToMigrate === 'all' || entry.experiment_id === experimentsToMigrate )
 
 
-  for (var i = 0; i < targetUserAccessEntries.length; i++) {
+  for (let i = 0; i < targetUserAccessEntries.length; i++) {
     const { experiment_id: experimentId } = targetUserAccessEntries[i];
 
     console.log(`Migrating experimentId: ${experimentId}`)
@@ -121,7 +121,7 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     // migrate processed data files
     const processedS3FilesParams = await getProcessedS3FilesParams(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
 
-    for (var j = 0; j < processedS3FilesParams.length; j++) {
+    for (let j = 0; j < processedS3FilesParams.length; j++) {
       const params = processedS3FilesParams[j];
       const { Key, sourceBucket, targetBucket } = params;
       await migrateS3Files([Key], sourceS3Client, targetS3Client, sourceBucket, targetBucket);
@@ -251,7 +251,7 @@ const checkIfS3FileExists = async (Key, Bucket, s3Client) => {
 
 const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBucket, targetBucket) => {
 
-  for (var i = 0; i < s3Paths.length; i++) {
+  for (let i = 0; i < s3Paths.length; i++) {
     const Key = s3Paths[i];
 
     const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
@@ -358,7 +358,7 @@ const migrateMetadata = async (experimentId, sourceSqlClient, targetSqlClient) =
   // ----
   const sourceMetadataTrackIds = sourceMetadataTrackEntries.map(entry => entry.id);
 
-  for (var i = 0; i < sourceMetadataTrackIds.length; i++) {
+  for (let i = 0; i < sourceMetadataTrackIds.length; i++) {
 
     const metadataTrackId = sourceMetadataTrackIds[i];
 
@@ -470,7 +470,7 @@ const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironme
   const targetBucketNames = await getBucketNames(targetProfile, targetEnvironment);
 
   // migrate each user
-  for (var i = 0; i < usersToMigrate.length; i++) {
+  for (let i = 0; i < usersToMigrate.length; i++) {
     await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig);
   };
 
@@ -507,9 +507,10 @@ if (!sourceCognitoUserPoolId) {
 
 } else {
   // ----------------------Cognito dumps----------------------
+  let sourceCognitoUsers, targetCognitoUsers;
   try {
-    var sourceCognitoUsers = require(`${DOWNLOAD_FOLDER}/${sourceCognitoUserPoolId}.json`);
-    var targetCognitoUsers = require(`${DOWNLOAD_FOLDER}/${targetCognitoUserPoolId}.json`);
+    sourceCognitoUsers = require(`${DOWNLOAD_FOLDER}/${sourceCognitoUserPoolId}.json`);
+    targetCognitoUsers = require(`${DOWNLOAD_FOLDER}/${targetCognitoUserPoolId}.json`);
   } catch (error) {
     throw new Error('Need to run cognito_to_json.js for both source and target user pools.')
   }
