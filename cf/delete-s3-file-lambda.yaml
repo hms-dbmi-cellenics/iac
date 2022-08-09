@@ -37,6 +37,7 @@ Resources:
                   - Fn::Sub: "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - Fn::Sub: "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - Fn::Sub: "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
+                  - Fn::Sub: "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
           PolicyDocument:
