@@ -43,3 +43,5 @@ fargateProfiles:
   - name: pipeline-default
     selectors:
       - namespace: pipeline-default
+        labels:
+          size: default

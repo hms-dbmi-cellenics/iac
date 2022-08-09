@@ -18,6 +18,5 @@ managedNodeGroups:
       - key: size
         value: xl
         effect: NoExecute
-    labels:
-      - size: xl
+    labels: {"size": "xl"}
     tags: {"k8s.io/cluster-autoscaler/biomage-staging": "owned", "k8s.io/cluster-autoscaler/enabled": "true"}

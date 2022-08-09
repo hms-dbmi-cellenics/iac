@@ -155,7 +155,7 @@ jobs:
           max_attempts: 30
           retry_on: error
           command: |
-            output=$(eksctl create fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} --labels type=pipeline --namespace pipeline-${SANDBOX_ID} 2>&1)
+            output=$(eksctl create fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} --labels type=pipeline,size=default --namespace pipeline-${SANDBOX_ID} 2>&1)
             echo $output
             echo $output | grep "created Fargate profile"
           # Add jitter to break up correlated events.
