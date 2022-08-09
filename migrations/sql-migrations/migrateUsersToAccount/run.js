@@ -121,11 +121,10 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     // migrate processed data files
     const processedS3FilesParams = await getProcessedS3FilesParams(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
 
-    for (let j = 0; j < processedS3FilesParams.length; j++) {
-      const params = processedS3FilesParams[j];
+    processedS3FilesParams.forEach((params) => {
       const { Key, sourceBucket, targetBucket } = params;
       await migrateS3Files([Key], sourceS3Client, targetS3Client, sourceBucket, targetBucket);
-    }
+    });
 
     console.log('\t- s3 file(s) from buckets: cell-sets, processed-matrix, source, filtered-cells [✓]')
 
@@ -251,13 +250,12 @@ const checkIfS3FileExists = async (Key, Bucket, s3Client) => {
 
 const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBucket, targetBucket) => {
 
-  for (let i = 0; i < s3Paths.length; i++) {
-    const Key = s3Paths[i];
+  s3Paths.forEach((Key) => {
 
     const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
     if (s3FileExists) {
       console.log(`\tObject ${Key} already exists in target. Skipping.`);
-      continue;
+      return;
     }
 
     const sourceParams = {
@@ -276,7 +274,7 @@ const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBuc
     console.log(`\tPutting ${Key} into targetBucket: ${targetBucket}.`)
     await targetS3Client.putObject(targetParams).promise();
 
-  };
+  });
 };
 
 
@@ -358,16 +356,14 @@ const migrateMetadata = async (experimentId, sourceSqlClient, targetSqlClient) =
   // ----
   const sourceMetadataTrackIds = sourceMetadataTrackEntries.map(entry => entry.id);
 
-  for (let i = 0; i < sourceMetadataTrackIds.length; i++) {
-
-    const metadataTrackId = sourceMetadataTrackIds[i];
+  sourceMetadataTrackIds.forEach((metadataTrackId) => {
 
     const sourceSampleInMetadataTrackMapEntries = await sourceSqlClient('sample_in_metadata_track_map')
       .where('metadata_track_id', metadataTrackId);
 
     // insert into target
     await sqlInsert(targetSqlClient, sourceSampleInMetadataTrackMapEntries, 'sample_in_metadata_track_map');
-  };
+  });
 };
 
 const getUsersToMigrate = (sourceCognitoUsers, targetCognitoUsers, createdUserEmails) => {
@@ -470,9 +466,9 @@ const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironme
   const targetBucketNames = await getBucketNames(targetProfile, targetEnvironment);
 
   // migrate each user
-  for (let i = 0; i < usersToMigrate.length; i++) {
-    await migrateUser(usersToMigrate[i], sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig);
-  };
+  usersToMigrate.forEach((userToMigrate) => {
+    await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig);
+  });
 
 };
 
