@@ -84,8 +84,8 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     .filter(entry => experimentsToMigrate === 'all' || entry.experiment_id === experimentsToMigrate )
 
 
-  for (let i = 0; i < targetUserAccessEntries.length; i++) {
-    const { experiment_id: experimentId } = targetUserAccessEntries[i];
+  targetUserAccessEntries.forEach((currentUserAccessEntry) => {
+    const { experiment_id: experimentId } = currentUserAccessEntry;
 
     console.log(`Migrating experimentId: ${experimentId}`)
 
@@ -131,11 +131,11 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
 
     // insert entries into user_acess table on target
     // experiment table entries (migrateExperiment above) need to be present before user_access
-    sqlInsert(targetSqlClient, targetUserAccessEntries[i], 'user_access')
+    sqlInsert(targetSqlClient, currentUserAccessEntry, 'user_access')
     console.log('\t- table(s): user_access [✓]')
 
     // TODO: also insert admin role
-  }
+  })
 
   console.log(`Finished Migrating User: ${email} \n==========\n`)
 };
