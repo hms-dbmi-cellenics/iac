@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dynamoToSql": "node dynamoToSql/run",
-    "awsToAws": "node awsToAws/run"
+    "migrateUsersToAccount": "node migrateUsersToAccount/run"
   },
   "author": "",
   "license": "ISC",

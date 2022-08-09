@@ -478,32 +478,32 @@ const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironme
 
 if (!sourceCognitoUserPoolId) {
   console.log('You need to specify the sourceCognitoUserPoolId.');
-  console.log('e.g.: npm run awsToAws -- --sourceCognitoUserPoolId eu-west-1_abcd1234');
+  console.log('e.g.: npm run migrateUsersToAccount -- --sourceCognitoUserPoolId eu-west-1_abcd1234');
 
 } else if (!targetCognitoUserPoolId) {
   console.log('You need to specify the targetCognitoUserPoolId.');
-  console.log('e.g.: npm run awsToAws -- --targetCognitoUserPoolId us-east-1_abcd1234');
+  console.log('e.g.: npm run migrateUsersToAccount -- --targetCognitoUserPoolId us-east-1_abcd1234');
 
 } else if (!sourceEnvironment) {
   console.log('You need to specify what source environment to migrate from.');
-  console.log('e.g.: npm run awsToAws -- --sourceEnvironment=staging');
+  console.log('e.g.: npm run migrateUsersToAccount -- --sourceEnvironment=staging');
 
 } else if (!sourceProfile) {
   console.log('You need to specify the aws profile to use for the source account.');
-  console.log('e.g.: npm run awsToAws -- --sourceProfile default');
+  console.log('e.g.: npm run migrateUsersToAccount -- --sourceProfile default');
 
 } else if (!targetProfile && !targetEnvironment === 'development') {
   console.log('You need to specify the aws profile to use for the target account.');
-  console.log('e.g.: npm run awsToAws -- --targetProfile hms');
+  console.log('e.g.: npm run migrateUsersToAccount -- --targetProfile hms');
 
 } else if (!usersToMigrateFile) {
   console.log(`You need to specify a filename in ${DOWNLOAD_FOLDER} with emails to migrate.`);
   console.log('Example file format (json): [{"email":"blah@blah.com"}, {...}]');
-  console.log('e.g.: npm run awsToAws -- --usersToMigrateFile users_to_migrate.json');
+  console.log('e.g.: npm run migrateUsersToAccount -- --usersToMigrateFile users_to_migrate.json');
 
 } else if (!experimentsToMigrate) {
   console.log('You need to specify experimentsToMigrate (options: "all" or a single experiment id).');
-  console.log('e.g.: npm run awsToAws -- --experimentsToMigrate abc1234defgh');
+  console.log('e.g.: npm run migrateUsersToAccount -- --experimentsToMigrate abc1234defgh');
 
 } else {
   // ----------------------Cognito dumps----------------------
