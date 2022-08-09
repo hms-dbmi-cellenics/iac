@@ -29,19 +29,25 @@ jobs:
       - id: remove-old-state-machines
         name: Remove old step functions
         run: |-
-          threshold=500
-
           state_machines_list=$(aws stepfunctions list-state-machines --output text)
-          count=$(echo $state_machines_list | wc -l)
-          too_close_to_theshold=$(($count > 10000 - $threshold))
+          threshold=500
+          maximum=$((10000 - $threshold))
+          count=$(echo $state_machines_list | grep -o 'arn:aws:states:' | wc -l)
 
-          if test $too_close_to_theshold
+          echo $count
+
+          if (($count > $maximum))
           then
+            echo "$count higher than the maximum, so deleting $threshold state machines"
             echo $state_machines_list \
+              | sed 's/STATEMACHINES/\n STATEMACHINES/g' \
               | sort -k2 \
-              | head -n -$threshold \
+              | head -$threshold \
               | awk '{print $4}' \
-              | xargs -I {} aws stepfunctions delete-state-machine --activity-arn {}
+              | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+            echo "Finished deleting state machines"
+          else
+            echo "No state machines deleted"
           fi
 
       # If the activities list is too close to its limit,
@@ -49,19 +55,25 @@ jobs:
       - id: remove-old-activities
         name: Remove old activities
         run: |-
-          threshold=500
-
           activities_list=$(aws stepfunctions list-activities --output text)
-          count=$(echo $activities_list | wc -l)
-          too_close_to_theshold=$(($count > 10000 - $threshold))
+          threshold=500
+          maximum=$((10000 - $threshold))
+          count=$(echo $activities_list | grep -o 'arn:aws:states:' | wc -l)
 
-          if test $too_close_to_theshold
+          echo $count
+
+          if (($count > $maximum))
           then
+            echo "$count higher than the maximum, so deleting $threshold activities"
             echo $activities_list \
+              | sed 's/ACTIVITIES/\n ACTIVITIES/g' \
               | sort -k2 \
-              | head -n -$threshold \
+              | head -$threshold \
               | awk '{print $2}' \
               | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+            echo "Finished deleting activities"
+          else
+            echo "No activities deleted"
           fi
 
       - id: send-to-slack
