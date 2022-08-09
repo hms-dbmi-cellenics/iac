@@ -56,6 +56,14 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
@@ -73,6 +81,15 @@ Resources:
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-test-${Environment}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
@@ -85,6 +102,8 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}/*"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-read-from-worker-queue-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
