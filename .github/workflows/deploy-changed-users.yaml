@@ -62,10 +62,7 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage, HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
+        environment: [Biomage]
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
