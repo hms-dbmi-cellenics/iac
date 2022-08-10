@@ -52,6 +52,12 @@ sed -i -e '1i"name","email",password"' users_to_migrate.csv.out
 csvtojson users_to_migrate.csv.out > users_to_migrate.json
 ```
 
+If migrating to local inframock you can manually mock this file:
+
+```json
+[{"email":"your@email.net"}]
+```
+
 move `users_to_migrate.json` to `migrations/sql-migrations/downloaded_data/aws_to_aws/`.
 
 ## Obtain cognito backups for source and target accounts
