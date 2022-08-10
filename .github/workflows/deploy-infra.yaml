@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage, HMS]
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -106,10 +106,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
@@ -200,10 +197,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
