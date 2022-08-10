@@ -101,7 +101,7 @@ networkPolicy:
 # SHOULD BE FILLED IN BY THE CI SYSTEM
 biomageCi:
   ref: refs-heads-master
-  repo: hms-dbmi-cellenics/ui
+  repo: biomage-org/ui
   sandboxId: default
   rdsSandboxId: default
 

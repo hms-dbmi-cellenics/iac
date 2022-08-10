@@ -8,7 +8,7 @@ Our infrastructure as code.
 Base infrastructure means infrastructure required for Cellenics to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
 infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
-from the [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
+from the [actions](https://github.com/biomage-org/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
 The configuration for these infraustructure components are under `infra/`.
 
 #### Required secrets to deploy infrastructure
@@ -40,9 +40,9 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
   The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
 
 #### Changing base infrastructure
-The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/hms-dbmi-cellenics/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
+The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/biomage-org/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
 1. Go to the *Deploy Biomage infrastructure*
-[actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
+[actions](https://github.com/biomage-org/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
 2. Click on `Run workflow` dropdown on the right side of the top workflow result. With this dropdown, you will configure the inputs with which the workflow will be run.
 3. `Use worklow from` defines which changes the build will be run wuth. Make sure it is set to `master` to avoid situations when infrastructure changes from other branch are deployed and we have unknown state.
 4. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:
