@@ -83,6 +83,7 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-sample-file-lambda-${Environment}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-s3-file-lambda-${Environment}"
 
   RDSInstanceAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
