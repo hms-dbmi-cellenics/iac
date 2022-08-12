@@ -13,10 +13,8 @@ on:
         type: choice
         description: Select cluster
         options:
-        - staging
         - production
-        - staging and production
-        default: staging
+        default: production
 env:
   RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
@@ -30,7 +28,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -106,7 +104,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging
@@ -200,7 +198,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging

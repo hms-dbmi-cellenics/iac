@@ -6,10 +6,8 @@ on:
         type: choice
         description: Select environment to deploy to
         options:
-        - staging
         - production
-        - staging and production
-        default: staging
+        default: production
   push:
     branches:
       - master
@@ -29,7 +27,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -155,7 +153,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
         exclude:
           - environment-name: HMS
@@ -231,7 +229,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, HMS]
+        environment-name: [HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging
