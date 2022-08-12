@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage, HMS]
+        environment: [HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging
@@ -65,7 +65,7 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage, HMS]
+        environment: [HMS]
         exclude:
           - environment-name: HMS
             environment-type: staging
