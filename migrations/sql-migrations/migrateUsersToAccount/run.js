@@ -42,6 +42,7 @@ const {
   targetLocalPort,
   sourceCognitoUserPoolId,
   targetCognitoUserPoolId,
+  targetAdminUserId,
   sourceProfile,
   targetProfile,
   usersToMigrateFile,
@@ -68,7 +69,7 @@ const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, 
   return knex.default(knexfile[activeEnvironment]);
 };
 
-const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig) => {
+const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId) => {
   const { sourceUserId, targetUserId, email } = user;
   
   console.log(`\n==========\nMigrating User: ${email}\n`,)
@@ -131,9 +132,12 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     // insert entries into user_acess table on target
     // experiment table entries (migrateExperiment above) need to be present before user_access
     sqlInsert(targetSqlClient, currentUserAccessEntry, 'user_access')
-    console.log('\t- table(s): user_access [✓]')
+    console.log('\t- table(s): user_access owner [✓]')
     
-    // TODO: also insert admin role
+    // insert admin role
+    const currentAdminAccessEntry = { ...currentUserAccessEntry, user_id: targetAdminUserId, access_role: 'admin' };
+    sqlInsert(targetSqlClient, currentAdminAccessEntry, 'user_access')
+    console.log('\t- table(s): user_access admin [✓]')
   }
   
   console.log(`Finished Migrating User: ${email} \n==========\n`)
@@ -255,7 +259,7 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
       const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
       if (s3FileExists) {
         console.log(`\tObject ${Key} already exists in target. Skipping.`);
-        return;
+        continue;
       }
       
       const sourceParams = {
@@ -443,7 +447,7 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
         }
       };
       
-      const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate) => {
+      const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate, targetAdminUserId) => {
         
         // need for experiment_execution migration
         const sourceAccountId = await getAWSAccountId(sourceProfile);
@@ -467,7 +471,7 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
         
         // migrate each user
         for (const userToMigrate of usersToMigrate) {
-          await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig);
+          await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId);
         };
         
       };
@@ -501,6 +505,10 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
         console.log('You need to specify experimentsToMigrate (options: "all" or a single experiment id).');
         console.log('e.g.: npm run migrateUsersToAccount -- --experimentsToMigrate abc1234defgh');
         
+      } else if (!targetAdminUserId) {
+        console.log('You need to specify targetAdminUserId.');
+        console.log('e.g.: npm run migrateUsersToAccount -- --targetAdminUserId abcd-01ef-234567ghi');
+        
       } else {
         // ----------------------Cognito dumps----------------------
         let sourceCognitoUsers, targetCognitoUsers;
@@ -517,7 +525,7 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
         const usersToMigrate = getUsersToMigrate(sourceCognitoUsers, targetCognitoUsers, createdUserEmails);
         
         
-        run(usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate)
+        run(usersToMigrate, sandboxId, sourceEnvironment, targetEnvironment, sourceRegion, targetRegion, sourceLocalPort, targetLocalPort, sourceProfile, targetProfile, experimentsToMigrate, targetAdminUserId)
         .then(() => {
           console.log('>>>>--------------------------------------------------------->>>>');
           console.log('                     finished');
