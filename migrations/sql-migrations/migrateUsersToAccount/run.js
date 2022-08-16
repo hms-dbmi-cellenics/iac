@@ -321,7 +321,9 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     const targetExperimentExecutionTableEntries = sourceExperimentExecutionTableEntries
     // exclude entries that failed (will prompt to "Process project")
     .filter(entry => {
-      const key =  Object.keys(entry.last_status_response)[0];
+      if (entry.last_status_response == null) return true;
+
+      const key = Object.keys(entry.last_status_response)[0];
       const result = entry.last_status_response[key].status !== 'FAILED';
       return result;
     })
@@ -352,12 +354,8 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
       }
     })
     
-
-    console.log('targetExperimentExecutionTableEntries:')
-    console.log(targetExperimentExecutionTableEntries)
-    
     // insert
-    // await sqlInsert(targetSqlClient, targetExperimentExecutionTableEntries, 'experiment_execution');
+    await sqlInsert(targetSqlClient, targetExperimentExecutionTableEntries, 'experiment_execution');
   };
   
   const migrateMetadata = async (experimentId, sourceSqlClient, targetSqlClient) => {
