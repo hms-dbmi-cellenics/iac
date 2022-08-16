@@ -69,10 +69,10 @@ const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, 
   return knex.default(knexfile[activeEnvironment]);
 };
 
-const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId) => {
+const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId, indexString) => {
   const { sourceUserId, targetUserId, email } = user;
   
-  console.log(`\n==========\nMigrating User: ${email}\n`,)
+  console.log(`\n==========\nMigrating User: ${email} ${indexString}\n`,)
   
   // get all experiment_id's for user
   const sourceUserAccessEntries = await sourceSqlClient('user_access')
@@ -121,22 +121,18 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     
     // migrate processed data files
     const processedS3FilesParams = await getProcessedS3FilesParams(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
-    
-    for (const params of processedS3FilesParams) {
-      const { Key, sourceBucket, targetBucket } = params;
-      await migrateS3Files([Key], sourceS3Client, targetS3Client, sourceBucket, targetBucket);
-    };
-    
+    await migrateS3FilesFromParams(processedS3FilesParams, sourceS3Client, targetS3Client);
     console.log('\t- s3 file(s) from buckets: cell-sets, processed-matrix, source, filtered-cells [✓]')
     
     // insert entries into user_acess table on target
     // experiment table entries (migrateExperiment above) need to be present before user_access
-    sqlInsert(targetSqlClient, currentUserAccessEntry, 'user_access')
+
+    sqlInsert(targetSqlClient, [currentUserAccessEntry], 'user_access')
     console.log('\t- table(s): user_access owner [✓]')
     
     // insert admin role
     const currentAdminAccessEntry = { ...currentUserAccessEntry, user_id: targetAdminUserId, access_role: 'admin' };
-    sqlInsert(targetSqlClient, currentAdminAccessEntry, 'user_access')
+    sqlInsert(targetSqlClient, [currentAdminAccessEntry], 'user_access')
     console.log('\t- table(s): user_access admin [✓]')
   }
   
@@ -183,6 +179,7 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     // get source entries
     const sourcePlotEntries = await sourceSqlClient('plot')
     .where('experiment_id', experimentId);
+
     
     // insert into target
     await sqlInsert(targetSqlClient, sourcePlotEntries, 'plot');
@@ -253,33 +250,43 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
   }
   
   const migrateS3Files = async (s3Paths, sourceS3Client, targetS3Client, sourceBucket, targetBucket) => {
+    if (!s3Paths.length) return;
     
-    for (const Key of s3Paths) {
-      
-      const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
-      if (s3FileExists) {
-        console.log(`\tObject ${Key} already exists in target. Skipping.`);
-        continue;
-      }
-      
-      const sourceParams = {
-        Bucket: sourceBucket,
-        Key
-      }
-      console.log(`\tGetting ${Key} from sourceBucket: ${sourceBucket}.`)
-      const response = await sourceS3Client.getObject(sourceParams).promise();
-      
-      const targetParams = {
-        Bucket: targetBucket,
-        Key,
-        Body: response.Body
-      }
-      
-      console.log(`\tPutting ${Key} into targetBucket: ${targetBucket}.`)
-      await targetS3Client.putObject(targetParams).promise();
-      
-    };
+    await Promise.all(
+      s3Paths.map(Key => migrateS3File(Key, sourceS3Client, targetS3Client, sourceBucket, targetBucket))
+    ) 
   };
+
+  const migrateS3FilesFromParams = async (S3FilesParams, sourceS3Client, targetS3Client) => {
+
+    await Promise.all(
+      S3FilesParams.map(({Key, sourceBucket, targetBucket}) => migrateS3File(Key, sourceS3Client, targetS3Client, sourceBucket, targetBucket))
+    ) 
+  };
+
+  const migrateS3File = async (Key, sourceS3Client, targetS3Client, sourceBucket, targetBucket) => {
+    const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
+    if (s3FileExists) {
+      console.log(`\tObject ${Key} already exists in target. Skipping.`);
+      return;
+    }
+    
+    const sourceParams = {
+      Bucket: sourceBucket,
+      Key
+    }
+    console.log(`\tGetting ${Key} from sourceBucket: ${sourceBucket}.`)
+    const response = await sourceS3Client.getObject(sourceParams).promise();
+    
+    const targetParams = {
+      Bucket: targetBucket,
+      Key,
+      Body: response.Body
+    }
+    
+    console.log(`\tPutting ${Key} into targetBucket: ${targetBucket}.`)
+    await targetS3Client.putObject(targetParams).promise();
+  }
   
   
   const migrateExperiment = async (experimentId, sourceSqlClient, targetSqlClient) => {
@@ -301,7 +308,7 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     
     // insert
     await sqlInsert(targetSqlClient, targetExperimentTableEntries, 'experiment');
-    
+
   };
   
   const migrateExperimentExecution = async (experimentId, sourceSqlClient, targetSqlClient, experimentExecutionConfig) => {
@@ -311,9 +318,16 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     
     const {sourceAccountId, targetAccountId, sourceRegion, targetRegion} = experimentExecutionConfig;
     
-    // stringify necessary values
     const targetExperimentExecutionTableEntries = sourceExperimentExecutionTableEntries
+    // exclude entries that failed (will prompt to "Process project")
+    .filter(entry => {
+      const key =  Object.keys(entry.last_status_response)[0];
+      const result = entry.last_status_response[key].status !== 'FAILED';
+      return result;
+    })
+    // stringify necessary values
     .map(entry => {
+
       return {
         ...entry,
         last_status_response: JSON.stringify(entry.last_status_response)
@@ -338,9 +352,12 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
       }
     })
     
+
+    console.log('targetExperimentExecutionTableEntries:')
+    console.log(targetExperimentExecutionTableEntries)
     
     // insert
-    await sqlInsert(targetSqlClient, targetExperimentExecutionTableEntries, 'experiment_execution');
+    // await sqlInsert(targetSqlClient, targetExperimentExecutionTableEntries, 'experiment_execution');
   };
   
   const migrateMetadata = async (experimentId, sourceSqlClient, targetSqlClient) => {
@@ -351,7 +368,6 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     const sourceMetadataTrackEntries = await sourceSqlClient('metadata_track')
     .where('experiment_id', experimentId);
     
-    if (!sourceMetadataTrackEntries.length) return;
     
     // insert into target
     await sqlInsert(targetSqlClient, sourceMetadataTrackEntries, 'metadata_track');
@@ -407,6 +423,12 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
   };
   
   const sqlInsert = async (sqlClient, sqlObject, tableName, extraLoggingData = {}) => {
+
+    if (!sqlObject.length) {
+      // console.log(`nothing to insert: ${sqlObject}`);
+      return;
+    } 
+
     try {
       return await sqlClient(tableName).insert(sqlObject).returning('*');
     } catch (e) {
@@ -470,8 +492,9 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
         const targetBucketNames = await getBucketNames(targetProfile, targetEnvironment);
         
         // migrate each user
-        for (const userToMigrate of usersToMigrate) {
-          await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId);
+        for (const [index, userToMigrate] of usersToMigrate.entries()) {
+          indexString = `(${index}/${usersToMigrate.length})`
+          await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId, indexString);
         };
         
       };
