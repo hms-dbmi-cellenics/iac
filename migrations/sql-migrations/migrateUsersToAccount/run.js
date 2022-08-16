@@ -317,16 +317,22 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     .where('experiment_id', experimentId);
     
     const {sourceAccountId, targetAccountId, sourceRegion, targetRegion} = experimentExecutionConfig;
-    
-    const targetExperimentExecutionTableEntries = sourceExperimentExecutionTableEntries
+
     // exclude entries that failed (will prompt to "Process project")
-    .filter(entry => {
+    const noExperimentExecutionErrors = sourceExperimentExecutionTableEntries.every(entry => {
       if (entry.last_status_response == null) return true;
 
       const key = Object.keys(entry.last_status_response)[0];
       const result = entry.last_status_response[key].status !== 'FAILED';
       return result;
     })
+
+    if (!noExperimentExecutionErrors) {
+      console.log('Experiment execution errors: will be prompted to "Process project".')
+      return;
+    }
+
+    const targetExperimentExecutionTableEntries = sourceExperimentExecutionTableEntries
     // stringify necessary values
     .map(entry => {
 
