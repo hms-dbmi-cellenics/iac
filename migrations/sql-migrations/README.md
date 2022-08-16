@@ -71,7 +71,7 @@ node cognito_to_json.js --userPoolId=eu-west-1_abcd1234 --region eu-west-1
 
 To migrate an experiment to inframock and view it locally, you need to make sure that the `Username` key in the target backup file is your Cognito id for staging (the user you log in with).
 
-move `eu-west-1_abc123.json` and `us-east-1_def456.json`  to `migrations/sql-migrations/downloaded_data/aws_to_aws/`.
+The backup files `eu-west-1_abc123.json` and `us-east-1_def456.json`  will be created in `migrations/sql-migrations/downloaded_data/aws_to_aws/`.
 
 ## Setup RDS tunnels
 
