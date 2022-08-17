@@ -216,8 +216,13 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
     const sourceSampleFileEntries = await sourceSqlClient('sample_file')
     .whereIn('id', sourceSampleFileIds);
     
-    await sqlInsert(targetSqlClient, sourceSampleFileEntries, 'sample_file');
-    
+    try {
+      await sqlInsert(targetSqlClient, sourceSampleFileEntries, 'sample_file');
+    } catch (error) {
+      console.log(`Original error: ${error.message}`)
+      console.log(`Check ${experimentId} manually!!! Might be fine (sample files can be used in multiple experiments).`)
+    }
+
     // insert into sample_to_sample_file_map has to happen AFTER sample_file entry insertion
     await sqlInsert(targetSqlClient, sourceSampleToSamplesFileMapEntries, 'sample_to_sample_file_map');
     
