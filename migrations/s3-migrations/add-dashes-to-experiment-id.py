@@ -118,13 +118,14 @@ def generate_new_tagging(object):
   
   old_experiment_id_tag["Value"] = experiment_id_with_dashes(old_experiment_id_tag["Value"])
 
+  tagging.pop("ResponseMetadata", None)
   return tagging
 
 async def copy_and_update_tags_worker_results():
   # Update worker-results Etag
   worker_results_bucket = s3.Bucket(from_worker_results) # Etag: {experimentId}
   
-  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
+  executor = concurrent.futures.ThreadPoolExecutor(max_workers=50)
 
   loop = asyncio.get_event_loop()
   blocking_tasks = []
