@@ -9,12 +9,14 @@ import concurrent.futures
 from timeit import default_timer as timer
 
 # Set to False to make the migration actually run
-dry_run = True
+dry_run = False
 
 s3 = boto3.resource('s3')
 s3_client = boto3.client('s3')
 
-executor = concurrent.futures.ThreadPoolExecutor(max_workers=5000)  
+max_workers_size=5000
+
+# executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
 
 def experiment_id_with_dashes(old_experiment_id):
   dash_positions = [0,8,12,16,20, None]
@@ -51,9 +53,7 @@ async def copy_and_rename_in_bucket(from_bucket_name, to_bucket_name):
   
   blocking_tasks = []
 
-  executor = concurrent.futures.ThreadPoolExecutor(
-    max_workers=10,
-  )
+  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
 
   loop = asyncio.get_event_loop()
 
@@ -90,7 +90,7 @@ def copy_and_rename_objects():
     "processed-matrix-test-staging-242905224710"
   ]
 
-  executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
   event_loop = asyncio.get_event_loop()
 
   all_start = timer()
@@ -125,7 +125,8 @@ async def copy_and_update_tags_worker_results():
   # Update worker-results Etag
   worker_results_bucket = s3.Bucket(from_worker_results) # Etag: {experimentId}
   
-  executor = concurrent.futures.ThreadPoolExecutor()
+  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
+
   loop = asyncio.get_event_loop()
   blocking_tasks = []
 
