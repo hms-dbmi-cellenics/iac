@@ -89,6 +89,17 @@ export AWS_PROFILE=prod2
 biomage rds tunnel -i production -r us-east-1 -lp 5433 -p prod2
 ```
 
+If you experience issues with timeouts, you can keep the RDS tunnel alive with e.g:
+
+```bash
+# prevent timeout of prod1
+while true
+do
+    echo "\dt" | biomage rds run psql -i production -s default -r us-east-1 -p prod1 -lp 5433
+    sleep 300
+done
+```
+
 ## Running the migration:
 
 To migration a single experiment from production --> inframock:
@@ -106,7 +117,7 @@ npm run migrateUsersToAccount -- \
  --sourceProfile prod1 
 ```
 
-To migrate all experiments for specified users from production 1 --> production 2:
+To migrate all experiments for specified users from production 1 --> production 2 and persist logs:
 
 ```bash
 npm run migrateUsersToAccount -- \
@@ -117,5 +128,6 @@ npm run migrateUsersToAccount -- \
  --sourceEnvironment production \
  --targetEnvironment production \
  --sourceProfile prod1 \
- --targetProfile prod2
+ --targetProfile prod2 \
+ 2>&1 | tee --append migration.log
 ```
