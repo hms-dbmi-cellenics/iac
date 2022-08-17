@@ -14,7 +14,7 @@ dry_run = False
 s3 = boto3.resource('s3')
 s3_client = boto3.client('s3')
 
-max_workers_size=5000
+max_workers_size=50
 
 # executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
 
@@ -48,12 +48,12 @@ def copy_object(from_bucket, from_key, to_bucket, to_key):
 
   print(f"[FINISHED] bucket: {to_bucket}, key: {to_key}")
 
-async def copy_and_rename_in_bucket(from_bucket_name, to_bucket_name):
+async def copy_and_rename_in_bucket(from_bucket_name, to_bucket_name, max_workers_for_bucket):
   current_bucket = s3.Bucket(from_bucket_name)
   
   blocking_tasks = []
 
-  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
+  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_for_bucket)
 
   loop = asyncio.get_event_loop()
 
@@ -77,26 +77,25 @@ async def copy_and_rename_in_bucket(from_bucket_name, to_bucket_name):
 def copy_and_rename_objects():
   # Update keys that depend on the experiment id
   from_bucket_names = [
-    "biomage-filtered-cells-staging-242905224710", # key: {experimentId}/{qcStepName}/{hash}.rds
     "biomage-source-staging-242905224710", # key: {experimentId}/r.rds
+    "biomage-filtered-cells-staging-242905224710", # key: {experimentId}/{qcStepName}/{hash}.rds
     "cell-sets-staging-242905224710", # key: {experimentId}
     "processed-matrix-staging-242905224710" # key: {experimentId}/r.rds
   ]
 
   to_bucket_names = [
-    "biomage-filtered-cells-test-staging-242905224710",
-    "biomage-source-test-staging-242905224710",
-    "cell-sets-test-staging-242905224710",
-    "processed-matrix-test-staging-242905224710"
+    ("biomage-source-test-staging-242905224710", 10),
+    ("biomage-filtered-cells-test-staging-242905224710", 50),
+    ("cell-sets-test-staging-242905224710", 50),
+    ("processed-matrix-test-staging-242905224710", 10)
   ]
-
-  executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_size)
+  
   event_loop = asyncio.get_event_loop()
 
   all_start = timer()
-  for from_bucket_name, to_bucket_name in zip(from_bucket_names, to_bucket_names):
+  for from_bucket_name, (to_bucket_name, max_workers_for_bucket) in zip(from_bucket_names, to_bucket_names):
     start = timer()
-    non_blocking_results = event_loop.run_until_complete(copy_and_rename_in_bucket(from_bucket_name, to_bucket_name))
+    non_blocking_results = event_loop.run_until_complete(copy_and_rename_in_bucket(from_bucket_name, to_bucket_name, max_workers_for_bucket))
     elapsed = (timer() - start)
     print(f"{from_bucket_name}. Time: {elapsed} elapsed. #objects copied: {len(non_blocking_results)}")
 
