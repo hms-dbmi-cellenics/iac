@@ -4,7 +4,7 @@ metadata:
   namespace: default
   name: 503-for-pending-subscriptions
   annotations:
-    alb.ingress.kubernetes.io/certificate-arn: >-
+    alb.ingress.kubernetes.io/certificate-arn: >- 
       {{ .Values.acmCertificate }}
     alb.ingress.kubernetes.io/group.name: "{{ .Values.clusterEnv }}"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
@@ -16,6 +16,22 @@ metadata:
       {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"503","messageBody":"The subscription endpoint is not available yet."}}
 spec:
   rules:
+    - http:
+        paths:
+          - path: /v1/pipelineResults
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
+          - path: /v1/gem2sResults
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
     - http:
         paths:
           - path: /v2/pipelineResults
