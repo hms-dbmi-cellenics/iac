@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up canaries to check for heartbeat of services [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up canaries to check for heartbeat of services [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -13,7 +13,6 @@ Parameters:
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
-  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Resources:
   CanariesBucketV2:
@@ -25,6 +24,10 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeletionRule
+            ExpirationInDays: 5
   CanaryExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -228,7 +231,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: !If [isHMSAccount, "alex_pickering@hms.harvard.edu", "engineering@biomage.net"]
+      Endpoint: "engineering@biomage.net"
       Protocol: "email"
 
   CanariesAlarm:

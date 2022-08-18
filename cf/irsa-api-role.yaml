@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up role for the API [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up role for the API [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -85,6 +85,12 @@ Resources:
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-upload-cell-sets-in-s3-${Environment}"
           PolicyDocument:
@@ -97,7 +103,8 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
-
+                  - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-get-object-tagging-from-s3-buckets-${Environment}"
           PolicyDocument:
@@ -108,7 +115,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
-
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-delete-original-files-s3-${Environment}"
           PolicyDocument:
@@ -121,6 +128,8 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-list-s3-cell-ids-${Environment}"
           PolicyDocument:
@@ -131,6 +140,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-access-details-of-redis-cluster-${Environment}"
           PolicyDocument:

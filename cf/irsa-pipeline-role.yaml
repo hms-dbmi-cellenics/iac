@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up role for the worker [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up role for the worker [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -60,6 +60,12 @@ Resources:
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
@@ -74,6 +80,9 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
                   
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
@@ -96,6 +105,13 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-pipeline-debug-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-pipeline-debug-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-delete-cell-ids-s3-${Environment}"
           PolicyDocument:
@@ -106,6 +122,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-modify-object-tags-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -115,6 +132,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"

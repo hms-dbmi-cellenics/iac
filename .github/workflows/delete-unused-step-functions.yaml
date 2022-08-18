@@ -1,4 +1,4 @@
-name: Delete old staging step functions
+name: Delete old step functions
 
 on:
   schedule:
@@ -9,9 +9,12 @@ env:
 
 jobs:
   run-e2e:
-    name: Delete old staging step functions
+    name: Delete old step functions
     runs-on: ubuntu-20.04
-    environment: Biomage
+    strategy:
+      matrix:
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -21,30 +24,57 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      # This will take everything OLDER THAN the last 500 step functions
-      # marked as staging and remove them.
+      # If the step functions list is too close to its limit,
+      # this will remove the 500 older step functions.
       - id: remove-old-state-machines
-        name: Remove old step functions from staging
+        name: Remove old step functions
         run: |-
-          aws stepfunctions list-state-machines --output text \
-            | grep staging \
-            | sort -k2 \
-            | head -n -500 \
-            | awk '{print $4}' \
-            | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+          state_machines_list=$(aws stepfunctions list-state-machines --output text)
+          threshold=500
+          maximum=$((10000 - $threshold))
+          count=$(echo $state_machines_list | grep -o 'arn:aws:states:' | wc -l)
 
-      # This will take everything OLDER THAN the last 500 activities
-      # marked as staging and remove them.
+          echo $count
+
+          if (($count > $maximum))
+          then
+            echo "$count higher than the maximum, so deleting $threshold state machines"
+            echo $state_machines_list \
+              | sed 's/STATEMACHINES/\n STATEMACHINES/g' \
+              | sort -k2 \
+              | head -$threshold \
+              | awk '{print $4}' \
+              | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+            echo "Finished deleting state machines"
+          else
+            echo "No state machines deleted"
+          fi
+
+      # If the activities list is too close to its limit,
+      # this will remove the 500 older activities.
       - id: remove-old-activities
-        name: Remove old activities from staging
+        name: Remove old activities
         run: |-
-          aws stepfunctions list-activities --output text \
-            | grep staging \
-            | sort -k2 \
-            | head -n -500 \
-            | awk '{print $2}' \
-            | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+          activities_list=$(aws stepfunctions list-activities --output text)
+          threshold=500
+          maximum=$((10000 - $threshold))
+          count=$(echo $activities_list | grep -o 'arn:aws:states:' | wc -l)
 
+          echo $count
+
+          if (($count > $maximum))
+          then
+            echo "$count higher than the maximum, so deleting $threshold activities"
+            echo $activities_list \
+              | sed 's/ACTIVITIES/\n ACTIVITIES/g' \
+              | sort -k2 \
+              | head -$threshold \
+              | awk '{print $2}' \
+              | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+            echo "Finished deleting activities"
+          else
+            echo "No activities deleted"
+          fi
 
       - id: send-to-slack
         name: Send failure notification to Slack

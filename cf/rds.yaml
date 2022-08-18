@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 # CF transform required to inject lamba required for secret rotation
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-secretsmanager.html
 Transform: AWS::SecretsManager-2020-07-23
-Description: Set up RDS Aurora cluster [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up RDS Aurora cluster [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -83,6 +83,7 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-sample-file-lambda-${Environment}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-s3-file-lambda-${Environment}"
 
   RDSInstanceAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment

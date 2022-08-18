@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lambda to delete files in S3 when sample is deleted
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the lambda is created
+
+Resources:
+  DeleteS3FileLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-delete-sample-files-in-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:DeleteObject'
+                Resource:
+                  - Fn::Sub: "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - Fn::Sub: "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
+                  - Fn::Sub: "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
+                  - Fn::Sub: "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
+                  - Fn::Sub: "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
+                  - Fn::Sub: "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
+
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/delete-s3-file-lambda-${Environment}"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/delete-s3-file-lambda-${Environment}:*"
+
+  DeleteSampleFileLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub delete-s3-file-lambda-${Environment}
+      Runtime: nodejs14.x
+      Role: !GetAtt DeleteS3FileLambdaRole.Arn
+      Handler: index.handler
+      Environment:
+        Variables:
+          AWS_ACCOUNT_ID: !Sub "${AWS::AccountId}"
+          CLUSTER_ENV: !Ref Environment
+      Code:
+        ZipFile: |
+          const AWS = require('aws-sdk');
+
+          const deleteS3File = (key, bucketName) => {
+            const params = {
+              Bucket: bucketName,
+              Key: key,
+            };
+
+            const s3 = new AWS.S3({
+              apiVersion: '2006-03-01',
+            });
+
+            s3.deleteObject(params, (err) => {
+              if (err) {
+                console.log(err, err.stack);
+                return;
+              }
+              console.log(`== Successfully deleted ${key} from ${bucketName}==`);
+            });
+          };
+
+          exports.handler = async (event, context, callback) => {
+            const { key, bucketName } = event;
+            const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
+
+            console.log(`== Deleting ${key} from ${bucketName} ==`);
+            deleteS3File(key, realBucketName);
+
+            callback(null, event);
+          };
+
+
+  LoggingGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/delete-s3-file-lambda-${Environment}"
+      RetentionInDays: 1
+      
