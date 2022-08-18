@@ -27,6 +27,7 @@ Resources:
       LifecycleConfiguration:
         Rules:
           - Id: DeletionRule
+            Status: "Enabled"
             ExpirationInDays: 5
   CanaryExecutionRole:
     Type: "AWS::IAM::Role"
