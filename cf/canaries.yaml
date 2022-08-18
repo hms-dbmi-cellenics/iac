@@ -24,6 +24,10 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeletionRule
+            ExpirationInDays: 5
   CanaryExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
