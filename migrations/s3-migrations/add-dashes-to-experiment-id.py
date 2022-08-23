@@ -84,10 +84,10 @@ def copy_and_rename_objects():
   ]
 
   to_bucket_names = [
-    ("biomage-source-test-staging-242905224710", 10),
-    ("biomage-filtered-cells-test-staging-242905224710", 50),
-    ("cell-sets-test-staging-242905224710", 50),
-    ("processed-matrix-test-staging-242905224710", 10)
+    ("biomage-source-staging-242905224710", 10),
+    ("biomage-filtered-cells-staging-242905224710", 50),
+    ("cell-sets-staging-242905224710", 50),
+    ("processed-matrix-staging-242905224710", 10)
   ]
   
   event_loop = asyncio.get_event_loop()
@@ -103,7 +103,7 @@ def copy_and_rename_objects():
   print(f"[DONE]. Time: {all_elapsed}")
   
 from_worker_results = "worker-results-staging-242905224710"
-to_worker_results = "worker-results-test-staging-242905224710"
+to_worker_results = "worker-results-staging-242905224710"
 
 def generate_new_tagging(object):
   
@@ -153,7 +153,6 @@ async def copy_and_update_tags_worker_results():
         Key=object.key,
         Tagging=new_tagging
       )
-
 
 copy_and_rename_objects()
 
