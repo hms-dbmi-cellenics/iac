@@ -201,13 +201,83 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
-        - PolicyName: "can-modify-rds"
+        - PolicyName: "rds-full-read-access"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "rds:*"
+                  - rds:DescribeDBProxyTargetGroups
+                  - rds:DescribeDBInstanceAutomatedBackups
+                  - rds:DescribeGlobalClusters
+                  - rds:DescribeEngineDefaultParameters
+                  - rds:ModifyDBProxyEndpoint
+                  - rds:DescribeRecommendations
+                  - rds:DescribeDBProxyTargets
+                  - rds:ModifyDBParameterGroup
+                  - rds:DownloadDBLogFilePortion
+                  - rds:DescribeSourceRegions
+                  - rds:ModifyDBInstance
+                  - rds:ModifyDBClusterParameterGroup
+                  - rds:ModifyDBClusterSnapshotAttribute
+                  - rds:DescribeDBSnapshots
+                  - rds:DescribeDBSecurityGroups
+                  - rds:DescribeReservedDBInstances
+                  - rds:DescribeValidDBInstanceModifications
+                  - rds:DescribeOrderableDBInstanceOptions
+                  - rds:ModifyDBClusterEndpoint
+                  - rds:ModifyDBCluster
+                  - rds:DescribeCertificates
+                  - rds:ModifyDBSnapshotAttribute
+                  - rds:DescribeOptionGroups
+                  - rds:DescribeDBEngineVersions
+                  - rds:DescribeDBSubnetGroups
+                  - rds:DescribeExportTasks
+                  - rds:DescribePendingMaintenanceActions
+                  - rds:DescribeDBParameterGroups
+                  - rds:DescribeDBClusterBacktracks
+                  - rds:DescribeReservedDBInstancesOfferings
+                  - rds:ModifyDBProxy
+                  - rds:DescribeRecommendationGroups
+                  - rds:DescribeDBInstances
+                  - rds:DescribeEngineDefaultClusterParameters
+                  - rds:DescribeDBProxies
+                  - rds:DescribeDBParameters
+                  - rds:DescribeEventCategories
+                  - rds:DescribeDBProxyEndpoints
+                  - rds:RestoreDBClusterToPointInTime
+                  - rds:DescribeEvents
+                  - rds:DescribeDBClusterSnapshotAttributes
+                  - rds:DescribeDBClusterParameters
+                  - rds:DescribeEventSubscriptions
+                  - rds:CopyDBSnapshot
+                  - rds:DescribeDBLogFiles
+                  - rds:DescribeDBSnapshotAttributes
+                  - rds:ModifyDBProxyTargetGroup
+                  - rds:ModifyDBSnapshot
+                  - rds:ListTagsForResource
+                  - rds:DescribeDBClusterSnapshots
+                  - rds:DescribeOptionGroupOptions
+                  - rds:DownloadCompleteDBLogFile
+                  - rds:DescribeDBClusterEndpoints
+                  - rds:DescribeAccountAttributes
+                  - rds:DescribeDBClusters
+                  - rds:DescribeDBClusterParameterGroups
+                  - rds:ModifyDBSubnetGroup
+                  - rds:RestoreDBInstanceToPointInTim
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
+        
+        - PolicyName: "can-perform-rds-restorations"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - rds:ModifyDBInstance
+                  - rds:ModifyDBCluster
+                  - rds:RestoreDBClusterToPointInTime
+                  - rds:RestoreDBInstanceToPointInTime
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
 
