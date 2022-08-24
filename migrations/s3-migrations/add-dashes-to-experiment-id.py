@@ -9,7 +9,7 @@ import concurrent.futures
 from timeit import default_timer as timer
 
 # Set to False to make the migration actually run
-dry_run = False
+dry_run = True
 
 s3 = boto3.resource('s3')
 s3_client = boto3.client('s3')
