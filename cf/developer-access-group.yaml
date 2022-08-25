@@ -166,21 +166,31 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
 
-        - PolicyName: "can-start-an-ssm-session"
+        - PolicyName: !Sub "can-connect-to-rds-agent-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
+                Action: ec2:DescribeInstances
+                Resource: "*"
+              - Effect: Allow
                 Action:
+                  - ec2-instance-connect:SendSSHPublicKey
+                  - ec2-instance-connect:SendSerialConsoleSSHPublicKey
+                Resource:
+                  - !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*
+                Condition:
+                  StringEquals:
+                    ec2:ResourceTag/Name: !Sub rds-${Environment}-ssm-agent
+              - Effect: Allow
+                Action: 
                   - ssm:StartSession
                   - ssm:TerminateSession
-                  - ec2-instance-connect:SendSSHPublicKey
-                Resource:
-                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
-                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:session/*"
-                  - !Sub "arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession"
+                Resource: 
+                  - !Sub arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession
+                  - !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*
 
-        - PolicyName: "can-access-rds"
+        - PolicyName: "can-connect-to-rds"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -188,7 +198,7 @@ Resources:
                 Action:
                   - rds-db:connect
                 Resource:
-                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:aurora-cluster-${Environment}-*/dev_role"
               - Effect: Allow
                 Action:
                   - rds:DescribeGlobalClusters
@@ -201,74 +211,59 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
-        - PolicyName: "rds-full-read-access"
+        - PolicyName: "can-look-at-rds-infrastructure-information"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - rds:DescribeDBProxyTargetGroups
-                  - rds:DescribeDBInstanceAutomatedBackups
-                  - rds:DescribeGlobalClusters
-                  - rds:DescribeEngineDefaultParameters
-                  - rds:ModifyDBProxyEndpoint
-                  - rds:DescribeRecommendations
-                  - rds:DescribeDBProxyTargets
-                  - rds:ModifyDBParameterGroup
-                  - rds:DownloadDBLogFilePortion
-                  - rds:DescribeSourceRegions
-                  - rds:ModifyDBInstance
-                  - rds:ModifyDBClusterParameterGroup
-                  - rds:ModifyDBClusterSnapshotAttribute
-                  - rds:DescribeDBSnapshots
-                  - rds:DescribeDBSecurityGroups
-                  - rds:DescribeReservedDBInstances
-                  - rds:DescribeValidDBInstanceModifications
-                  - rds:DescribeOrderableDBInstanceOptions
-                  - rds:ModifyDBClusterEndpoint
-                  - rds:ModifyDBCluster
-                  - rds:DescribeCertificates
-                  - rds:ModifyDBSnapshotAttribute
-                  - rds:DescribeOptionGroups
-                  - rds:DescribeDBEngineVersions
-                  - rds:DescribeDBSubnetGroups
-                  - rds:DescribeExportTasks
-                  - rds:DescribePendingMaintenanceActions
-                  - rds:DescribeDBParameterGroups
-                  - rds:DescribeDBClusterBacktracks
-                  - rds:DescribeReservedDBInstancesOfferings
-                  - rds:ModifyDBProxy
-                  - rds:DescribeRecommendationGroups
-                  - rds:DescribeDBInstances
-                  - rds:DescribeEngineDefaultClusterParameters
-                  - rds:DescribeDBProxies
-                  - rds:DescribeDBParameters
-                  - rds:DescribeEventCategories
-                  - rds:DescribeDBProxyEndpoints
-                  - rds:RestoreDBClusterToPointInTime
-                  - rds:DescribeEvents
-                  - rds:DescribeDBClusterSnapshotAttributes
-                  - rds:DescribeDBClusterParameters
-                  - rds:DescribeEventSubscriptions
-                  - rds:CopyDBSnapshot
-                  - rds:DescribeDBLogFiles
-                  - rds:DescribeDBSnapshotAttributes
-                  - rds:ModifyDBProxyTargetGroup
-                  - rds:ModifyDBSnapshot
-                  - rds:ListTagsForResource
-                  - rds:DescribeDBClusterSnapshots
-                  - rds:DescribeOptionGroupOptions
-                  - rds:DownloadCompleteDBLogFile
-                  - rds:DescribeDBClusterEndpoints
-                  - rds:DescribeAccountAttributes
-                  - rds:DescribeDBClusters
-                  - rds:DescribeDBClusterParameterGroups
-                  - rds:ModifyDBSubnetGroup
-                  - rds:RestoreDBInstanceToPointInTim
-                Resource:
-                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
+                  - "rds:DescribeClusters"
+                  - "rds:DescribeDBClusterEndpoints"
+                  - "rds:DescribeDBProxyTargetGroups"
+                  - "rds:DescribeDBInstanceAutomatedBackups"
+                  - "rds:DescribeGlobalClusters"
+                  - "rds:DescribeEngineDefaultParameters"
+                  - "rds:DescribeRecommendations"
+                  - "rds:DescribeDBProxyTargets"
+                  - "rds:DownloadDBLogFilePortion"
+                  - "rds:DescribeSourceRegions"
+                  - "rds:DescribeDBSnapshots"
+                  - "rds:DescribeDBSecurityGroups"
+                  - "rds:DescribeReservedDBInstances"
+                  - "rds:DescribeValidDBInstanceModifications"
+                  - "rds:DescribeOrderableDBInstanceOptions"
+                  - "rds:DescribeCertificates"
+                  - "rds:DescribeOptionGroups"
+                  - "rds:DescribeDBEngineVersions"
+                  - "rds:DescribeDBSubnetGroups"
+                  - "rds:DescribeExportTasks"
+                  - "rds:DescribePendingMaintenanceActions"
+                  - "rds:DescribeDBParameterGroups"
+                  - "rds:DescribeDBClusterBacktracks"
+                  - "rds:DescribeReservedDBInstancesOfferings"
+                  - "rds:DescribeRecommendationGroups"
+                  - "rds:DescribeDBInstances"
+                  - "rds:DescribeEngineDefaultClusterParameters"
+                  - "rds:DescribeDBProxies"
+                  - "rds:DescribeDBParameters"
+                  - "rds:DescribeEventCategories"
+                  - "rds:DescribeDBProxyEndpoints"
+                  - "rds:DescribeEvents"
+                  - "rds:DescribeDBClusterSnapshotAttributes"
+                  - "rds:DescribeDBClusterParameters"
+                  - "rds:DescribeEventSubscriptions"
+                  - "rds:DescribeDBLogFiles"
+                  - "rds:DescribeDBSnapshotAttributes"
+                  - "rds:DescribeDBClusterSnapshots"
+                  - "rds:DescribeOptionGroupOptions"
+                  - "rds:DownloadCompleteDBLogFile"
+                  - "rds:DescribeDBClusterEndpoints"
+                  - "rds:DescribeDBClusters"
+                  - "rds:DescribeAccountAttributes"
+                  - "rds:DescribeDBClusterParameterGroups"
+                Resource: "*"
         
-        - PolicyName: "can-perform-rds-restorations"
+        - PolicyName: "can-perform-rds-point-in-time-restores"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -276,10 +271,19 @@ Resources:
                 Action:
                   - rds:ModifyDBInstance
                   - rds:ModifyDBCluster
+                  - rds:CreateDBInstance
+                  - rds:CreateDBCluster
+                  - rds:ListTagsForResource
                   - rds:RestoreDBClusterToPointInTime
                   - rds:RestoreDBInstanceToPointInTime
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeAccountAttributes
+                Resource: "*"
 
         - PolicyName: "can-upload-cf-templates"
           PolicyDocument:
