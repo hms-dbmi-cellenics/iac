@@ -83,7 +83,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
-                  
+
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -91,13 +91,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:PutObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
-                  - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
-                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-pipeline-debug-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
@@ -120,7 +113,7 @@ Resources:
               - Effect: Allow
                 Action: "s3:DeleteObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-modify-object-tags-${Environment}"
@@ -130,7 +123,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:PutObjectTagging"
                 Resource:
-                  - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
