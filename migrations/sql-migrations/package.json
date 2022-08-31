@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "dynamoToSql": "node dynamoToSql/run",
-    "migrateUsersToAccount": "node migrateUsersToAccount/run"
+    "migrateUsersToAccount": "node migrateUsersToAccount/run",
+    "migrateAdminSub": "node migrateAdminSub/run"
   },
   "author": "",
   "license": "ISC",
