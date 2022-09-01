@@ -15,7 +15,7 @@ Resources:
   RdsDeveloperAccessGroup:
     Type: AWS::IAM::Group
     Properties:
-      GroupName: !Sub "engineer-${Environment}-access"
+      GroupName: !Sub "engineer-${Environment}-rds-access"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess
 
