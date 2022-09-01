@@ -236,7 +236,7 @@ Resources:
                 Action:
                   - "rds-db:connect"
                 Resource:
-                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:aurora-cluster-${Environment}-*/api_role"
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/api_role"
               - Effect: Allow
                 Action:
                   - "rds:DescribeDBClusterEndpoints"
