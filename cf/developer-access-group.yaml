@@ -98,7 +98,6 @@ Resources:
                   - "iam:PassRole"
                 Resource: 
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/biomage-rds-${Environment}-RDSInvokeLambdaRole-*"
 
         - PolicyName: "can-manage-own-password-and-mfa"
           PolicyDocument:

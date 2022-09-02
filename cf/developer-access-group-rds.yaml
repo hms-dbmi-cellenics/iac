@@ -86,3 +86,12 @@ Resources:
                   - ec2:DescribeVpcs
                   - ec2:DescribeAccountAttributes
                 Resource: "*"
+        - PolicyName: !Sub "can-add-permissions-for-rds-to-delete-s3-file-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:PassRole"
+                Resource: 
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/biomage-rds-${Environment}-RDSInvokeLambdaRole-*"
