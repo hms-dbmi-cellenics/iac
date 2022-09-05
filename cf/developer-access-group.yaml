@@ -25,7 +25,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess
         - arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser  
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
       Policies:
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
@@ -96,7 +96,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
-                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
+                Resource: 
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
 
         - PolicyName: "can-manage-own-password-and-mfa"
           PolicyDocument:
@@ -165,52 +166,7 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:user/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
-
-        - PolicyName: "can-start-an-ssm-session"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ssm:StartSession
-                  - ssm:TerminateSession
-                  - ec2-instance-connect:SendSSHPublicKey
-                Resource:
-                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
-                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:session/*"
-                  - !Sub "arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession"
-
-        - PolicyName: "can-access-rds"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - rds-db:connect
-                Resource:
-                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
-              - Effect: Allow
-                Action:
-                  - rds:DescribeGlobalClusters
-                Resource:
-                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:global-cluster:*"
-              - Effect: Allow
-                Action:
-                  - rds:DescribeClusters
-                  - rds:DescribeDBClusterEndpoints
-                Resource:
-                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
-
-        - PolicyName: "can-modify-rds"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "rds:*"
-                Resource:
-                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
-
+        
         - PolicyName: "can-upload-cf-templates"
           PolicyDocument:
             Version: "2012-10-17"
