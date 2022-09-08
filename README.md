@@ -1,10 +1,7 @@
 # iac
-
 Our infrastructure as code.
 
 ### Base infrastructure
-
-
 Base infrastructure means infrastructure required for Cellenics to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
 infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
@@ -53,7 +50,6 @@ The github workflow that triggers an update to the base infrastructure with the 
 5. After you've made your selections, click `run workflow`. This will update or recreate and update the cluster in the AWS region specified using the state of the iac repo in the branch selected in `use workflow from`.
 
 ### The Kubernetes Cluster
-
 The cluster is deployed using [eksctl](https://eksctl.io/introduction/) by the CI pipeline. The
 corresponding *ClusterConfig* is available under `infra/cluster.yaml`.
 
@@ -167,3 +163,27 @@ the correct deployment source and the name of the service account, e.g.:
 The permissions are configured as with any other IAM Role deployment. Make sure these
 follow best practice, with each resource appropriately scoped by account ID, region,
 environment, etc.
+
+### Configurations for setting up GUI for the relational tables
+The setup required to use a Relational Data Management GUI as part of your development.
+
+#### 1. Install a GUI
+Most people use either TablePlus or pgAdmin. Use either of them, or feel free to use a different one,
+if you have preference.
+
+#### 2. Configure the GUI
+To connect to the database in the relevant, add these fields in the connection setup window:
+
+For local development:
+  host: ‘localhost’
+  port: 5431
+  user: ‘dev_role’
+  password: empty (should work)
+  database: aurora_db
+
+For staging:
+  host: ‘localhost’
+  port: 5432
+  user: ‘dev_role’
+  password: password you get from `biomage rds token` (command available in [biomage-utils](https://github.com/biomage-org/biomage-utils))
+  database: aurora_db
