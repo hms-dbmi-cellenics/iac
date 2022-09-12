@@ -71,7 +71,7 @@ const createSqlClient = async (activeEnvironment, sandboxId, region, localPort, 
   return knex.default(knexfile[activeEnvironment]);
 };
 
-const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId, indexString) => {
+const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId, indexString, targetEnvironment) => {
   const { sourceUserId, targetUserId, email } = user;
 
   console.log(`\n==========\nMigrating User: ${email} ${indexString}\n`,)
@@ -105,7 +105,7 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
     console.log('\t- table(s): sample, sample_file, sample_to_sample_file_map [✓]')
 
     // migrate sample s3 files
-    await migrateS3Files(sourceSampleFileS3Paths, targetS3Client, sourceBucketNames.SAMPLE_FILES, targetBucketNames.SAMPLE_FILES);
+    await migrateS3Files(sourceSampleFileS3Paths, targetS3Client, sourceBucketNames.SAMPLE_FILES, targetBucketNames.SAMPLE_FILES, targetEnvironment);
     console.log('\t- s3 path(s) in table: sample_file [✓]')
 
     // migrate metadata_track and sample_in_metadata_track_map tables
@@ -118,22 +118,24 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
 
     // migrate plot s3 files
     // for testing
-    await migrateS3Files(sourceS3DataKeys, targetS3Client, sourceBucketNames.PLOTS, targetBucketNames.PLOTS);
+    await migrateS3Files(sourceS3DataKeys, targetS3Client, sourceBucketNames.PLOTS, targetBucketNames.PLOTS, targetEnvironment);
     console.log('\t- s3 path(s) in table: plot [✓]')
 
     // migrate processed data files
     const processedS3FilesParams = await getProcessedS3FilesParams(experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client);
-    await migrateS3FilesFromParams(processedS3FilesParams, targetS3Client);
+    await migrateS3FilesFromParams(processedS3FilesParams, targetS3Client, targetEnvironment);
     console.log('\t- s3 file(s) from buckets: cell-sets, processed-matrix, source, filtered-cells [✓]')
 
     // insert entries into user_acess table on target
     // experiment table entries (migrateExperiment above) need to be present before user_access
 
-    sqlInsert(targetSqlClient, [currentUserAccessEntry], 'user_access')
+    const targetUserAccessEntry = { ...currentUserAccessEntry, experiment_id: experimentId.replace(/-/g, '') };
+
+    sqlInsert(targetSqlClient, [targetUserAccessEntry], 'user_access')
     console.log('\t- table(s): user_access owner [✓]')
 
     // insert admin role
-    const currentAdminAccessEntry = { ...currentUserAccessEntry, user_id: targetAdminUserId, access_role: 'admin' };
+    const currentAdminAccessEntry = { ...targetUserAccessEntry, user_id: targetAdminUserId, access_role: 'admin' };
     sqlInsert(targetSqlClient, [currentAdminAccessEntry], 'user_access')
     console.log('\t- table(s): user_access admin [✓]')
   }
@@ -143,10 +145,12 @@ const migrateUser = async (user, sourceSqlClient, targetSqlClient, sourceS3Clien
 
 const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, targetBucketNames, sourceSampleIds, sourceS3Client) => {
 
+  const targetExperimentId = experimentId.replace(/-/g, '');
+
   const candidateProcessedS3FilesParams = [
-    { sourceBucket: sourceBucketNames.CELL_SETS, targetBucket: targetBucketNames.CELL_SETS, Key: experimentId },
-    { sourceBucket: sourceBucketNames.PROCESSED_MATRIX, targetBucket: targetBucketNames.PROCESSED_MATRIX, Key: `${experimentId}/r.rds` },
-    { sourceBucket: sourceBucketNames.RAW_SEURAT, targetBucket: targetBucketNames.RAW_SEURAT, Key: `${experimentId}/r.rds` },
+    { sourceBucket: sourceBucketNames.CELL_SETS, targetBucket: targetBucketNames.CELL_SETS, Key: experimentId, targetKey: targetExperimentId },
+    { sourceBucket: sourceBucketNames.PROCESSED_MATRIX, targetBucket: targetBucketNames.PROCESSED_MATRIX, Key: `${experimentId}/r.rds`, targetKey: `${targetExperimentId}/r.rds` },
+    { sourceBucket: sourceBucketNames.RAW_SEURAT, targetBucket: targetBucketNames.RAW_SEURAT, Key: `${experimentId}/r.rds`, targetKey: `${targetExperimentId}/r.rds` },
   ]
 
   // add filtered cells objects for each QC pipeline step
@@ -157,7 +161,8 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
       candidateProcessedS3FilesParams.push({
         sourceBucket: sourceBucketNames.FILTERED_CELLS,
         targetBucket: targetBucketNames.FILTERED_CELLS,
-        Key: `${experimentId}/${folderName}/${sampleId}.rds`
+        Key: `${experimentId}/${folderName}/${sampleId}.rds`,
+        targetKey: `${targetExperimentId}/${folderName}/${sampleId}.rds`
       });
 
     });
@@ -171,6 +176,8 @@ const getProcessedS3FilesParams = async (experimentId, sourceBucketNames, target
   );
 
   const processedS3FilesParams = candidateProcessedS3FilesParams.filter((_, i) => doesS3FileExist[i])
+
+
   return processedS3FilesParams;
 };
 
@@ -183,8 +190,14 @@ const migratePlots = async (experimentId, sourceSqlClient, targetSqlClient) => {
     .where('experiment_id', experimentId);
 
 
+  const targetPlotEntries = sourcePlotEntries.map(entry => ({
+    ...entry,
+    experiment_id: entry.experiment_id.replace(/-/g, ''),
+  }));
+
+
   // insert into target
-  await sqlInsert(targetSqlClient, sourcePlotEntries, 'plot');
+  await sqlInsert(targetSqlClient, targetPlotEntries, 'plot');
 
   // need s3 data keys to migrate files in S3
   const sourceS3DataKeys = sourcePlotEntries.map(entry => entry.s3_data_key);
@@ -199,8 +212,14 @@ const migrateSamples = async (experimentId, sourceSqlClient, targetSqlClient) =>
   const sourceSampleEntries = await sourceSqlClient('sample')
     .where('experiment_id', experimentId);
 
+
+  const targetSampleEntries = sourceSampleEntries.map(entry => ({
+    ...entry,
+    experiment_id: entry.experiment_id.replace(/-/g, ''),
+  }));
+
   // insert into target
-  await sqlInsert(targetSqlClient, sourceSampleEntries, 'sample');
+  await sqlInsert(targetSqlClient, targetSampleEntries, 'sample');
 
   // migrate sample_to_sample_file_map table
   // ----
@@ -256,17 +275,17 @@ const checkIfS3FileExists = async (Key, Bucket, s3Client) => {
   return s3FileExists;
 }
 
-const migrateS3Files = async (s3Paths, targetS3Client, sourceBucket, targetBucket) => {
+const migrateS3Files = async (s3Paths, targetS3Client, sourceBucket, targetBucket, targetEnvironment) => {
   if (!s3Paths.length) return;
 
-  s3Paths.map(async (Key) => await migrateS3File(Key, targetS3Client, sourceBucket, targetBucket))
+  s3Paths.map(async (Key) => await migrateS3File(Key, targetS3Client, sourceBucket, targetBucket, targetEnvironment))
 
 };
 
-const migrateS3FilesFromParams = async (S3FilesParams, targetS3Client) => {
+const migrateS3FilesFromParams = async (S3FilesParams, targetS3Client, targetEnvironment) => {
 
-  for (const { Key, sourceBucket, targetBucket } of S3FilesParams) {
-    await migrateS3File(Key, targetS3Client, sourceBucket, targetBucket)
+  for (const { Key, targetKey, sourceBucket, targetBucket } of S3FilesParams) {
+    await migrateS3File(Key, targetS3Client, sourceBucket, targetBucket, targetEnvironment, targetKey)
   }
 
 };
@@ -281,23 +300,31 @@ const makeid = (length) => {
   return result;
 }
 
-const migrateS3File = async (Key, targetS3Client, sourceBucket, targetBucket) => {
-  const s3FileExists = await checkIfS3FileExists(Key, targetBucket, targetS3Client);
-  if (s3FileExists) {
-    console.log(`\tObject ${Key} already exists in target. Skipping.`);
-    return;
+const migrateS3File = async (Key, targetS3Client, sourceBucket, targetBucket, targetEnvironment, targetKey = null) => {
+  if (targetKey === null) {
+    targetKey = Key;
   }
 
-  const sourceParams = {
-    Bucket: sourceBucket,
-    Key
+  if (targetKey == null) return;
+  // const s3FileExists = await checkIfS3FileExists(targetKey, targetBucket, targetS3Client);
+  // if (s3FileExists) {
+  //   console.log(`\tObject ${targetKey} already exists in target. Skipping.`);
+  //   return;
+  // }
+
+
+  let endpointUrl = '';
+  if (targetEnvironment === 'development') {
+    endpointUrl = '--endpoint-url=http://localhost:4566'
   }
+
   const fname = makeid(33);
+
   console.log(`\tGetting ${Key} from sourceBucket: ${sourceBucket}.`)
   await exec(`aws s3 cp s3://${sourceBucket}/${Key} temp/${fname} --profile ${sourceProfile} --no-progress`)
 
   console.log(`\tPutting ${Key} into targetBucket: ${targetBucket}.`)
-  await exec(`aws s3 cp temp/${fname} s3://${targetBucket}/${Key} --profile ${targetProfile} --no-progress`)
+  await exec(`aws ${endpointUrl} s3 cp temp/${fname} s3://${targetBucket}/${targetKey} --profile ${targetProfile} --no-progress`)
 
   await exec(`rm temp/${fname}`)
 
@@ -311,15 +338,20 @@ const migrateExperiment = async (experimentId, sourceSqlClient, targetSqlClient)
 
   // stringify necessary values
   const targetExperimentTableEntries = sourceExperimentTableEntries.map(entry => {
-    return {
+    const res = {
       ...entry,
+      id: entry.id.replace(/-/g, ''),
       processing_config: JSON.stringify(entry.processing_config),
       samples_order: JSON.stringify(entry.samples_order)
     }
+
+    delete res.pipeline_version;
+    return res;
   })
 
+
   // delete it if already on target
-  await sqlDelete(targetSqlClient, 'id', experimentId, 'experiment');
+  await sqlDelete(targetSqlClient, 'id', experimentId.replace(/-/g, ''), 'experiment');
 
   // insert
   await sqlInsert(targetSqlClient, targetExperimentTableEntries, 'experiment');
@@ -353,6 +385,7 @@ const migrateExperimentExecution = async (experimentId, sourceSqlClient, targetS
 
       return {
         ...entry,
+        experiment_id: entry.experiment_id.replace(/-/g, ''),
         last_status_response: JSON.stringify(entry.last_status_response)
       }
     })
@@ -388,8 +421,14 @@ const migrateMetadata = async (experimentId, sourceSqlClient, targetSqlClient) =
     .where('experiment_id', experimentId);
 
 
+  const targetMetadataTrackEntries = sourceMetadataTrackEntries.map(entry => ({
+    ...entry,
+    experiment_id: entry.experiment_id.replace(/-/g, ''),
+  }));
+
+
   // insert into target
-  await sqlInsert(targetSqlClient, sourceMetadataTrackEntries, 'metadata_track');
+  await sqlInsert(targetSqlClient, targetMetadataTrackEntries, 'metadata_track');
 
   // migrate sample_in_metadata_track_map table
   // ----
@@ -517,7 +556,7 @@ const run = async (usersToMigrate, sandboxId, sourceEnvironment, targetEnvironme
     let tryIndex = 0;
     while (tryIndex < 3) {
       try {
-        await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId, indexString);
+        await migrateUser(userToMigrate, sourceSqlClient, targetSqlClient, sourceS3Client, targetS3Client, sourceBucketNames, targetBucketNames, experimentsToMigrate, experimentExecutionConfig, targetAdminUserId, indexString, targetEnvironment);
         break;
 
       } catch (error) {
