@@ -44,3 +44,7 @@ if False in [counts[i] == counts_updated[i+1] for i in range(0, len(counts)-1)]:
 if [x+1 for x in list(set_ids)].sort() != set_ids_updated.sort():
     print(f'[FAIL] Differing ids exiting...')
     sys.exit(1)
+
+out_file = open("cellSets.json", "w")
+
+json.dump(cs, out_file)

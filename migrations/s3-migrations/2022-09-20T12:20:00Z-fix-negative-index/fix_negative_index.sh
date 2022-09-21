@@ -121,12 +121,12 @@ python3 cellsets-patch.py
 
 # verify that cell sets contain do not contain -1
 if [ "$(grep ',-1' cellsets.json)" != "" ]; then
-    echo '[FAIL]: ${experiment_id} cellsets still contain -1';
+    echo "[FAIL]: ${experiment_id} cellsets still contain -1"
 fi
 
 # verify that processed_r.rds file does not contain -1
-if [ "$(R -e 'any(readRDS("processed_r.rds")$cells_id == -1)' | grep FALSE)" == "" ]; then
-    echo '[FAIL]: ${experiment_id} processed_r still contain -1';
+if [ "$(R -e 'any(readRDS("processed_r.rds")$cells_id == -1)' | grep FALSE)" = "" ]; then
+    echo "[FAIL]: ${experiment_id} processed_r still contain -1"
 fi
 
 
@@ -142,6 +142,8 @@ if [ "${exists_wrong_sample}" = "true" ]; then
     echo "[FAIL]: ${experiment_id} raw samples still contain -1"
 fi
 
+
+to_upload_experiment_id=2a22bbfe-bb07-407e-8bb5-f3e9aac0b943
 # upload the resulting files into S3
 biomage experiment upload \
     -e ${experiment_id} \
