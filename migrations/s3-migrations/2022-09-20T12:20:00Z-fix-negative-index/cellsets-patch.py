@@ -47,4 +47,4 @@ if [x+1 for x in list(set_ids)].sort() != set_ids_updated.sort():
 
 out_file = open("cellSets.json", "w")
 
-json.dump(cs, out_file)
+json.dump(cs, out_file, separators=(',', ':'))
