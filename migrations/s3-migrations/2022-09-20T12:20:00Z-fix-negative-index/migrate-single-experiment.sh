@@ -58,7 +58,7 @@ for sample in $(ls raw/*.rds); do
     mv "${sample}" "${sample}.orig"
     R -e 'data <- readRDS("'${sample}'.orig")
       data$cells_id <- data$cells_id+1
-      saveRDS(data, "'${sample}'")'
+      saveRDS(data, "'${sample}'", compress = FALSE)'
 done
 
 # Migrate cellsets
