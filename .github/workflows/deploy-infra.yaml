@@ -14,7 +14,8 @@ on:
         description: Select cluster
         options:
         - production
-        default: production
+        - staging
+        default: staging
 env:
   RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
