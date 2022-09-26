@@ -5,6 +5,8 @@ set -euo pipefail
 
 experiment_id=$1
 
+## 1. Download experiment
+
 biomage experiment download \
     -e ${experiment_id} \
     -i ${MIGRATION_ENV} \
@@ -14,15 +16,17 @@ biomage experiment download \
     -f cellsets \
     -f filtered_cells
 
-exit 1
-## 3. Check how many experiments contain -1s
+## 2. Check how many experiments contain -1s
 
+original_pwd=$(pwd)
 
 cd ${DATA_MIGRATION_PATH}/${experiment_id}
 
+migration_log_file=${original_pwd}/migration.log
+
 # verify that cell sets contain a -1
 if [ "$(grep -v ',-1' cellsets.json)" != "" ]; then
-    echo '[SKIP]: ${experiment_id} cellsets does not contain -1';
+    echo '[SKIP]: ${experiment_id} cellsets does not contain -1'; | tee ${migration_log_file}
     exit 1
 fi
 
@@ -39,18 +43,20 @@ for sample in $(ls raw/*rds); do
 done
 
 if [ "${exists_wrong_sample}" != "true" ]; then
-    echo "[SKIP]: ${experiment_id} raw samples do not contain -1";
+    echo "[SKIP]: ${experiment_id} raw samples do not contain -1" | tee ${migration_log_file}
     exit 1
 fi
 
 # 4. Migrate files to stop using -1
 
+echo "[INFO] Patching" | tee ${migration_log_file}
 # Migrate processed RDS
 mv processed_r.rds processed_r.rds.orig
 R -e 'data <- readRDS("processed_r.rds.orig")
       data$cells_id <- data$cells_id+1
       saveRDS(data, "processed_r.rds")'
 
+echo "[INFO] processed_r.rds patched" | tee ${migration_log_file}
 
 
 # Migrate raw samples RDS
@@ -60,9 +66,12 @@ for sample in $(ls raw/*.rds); do
       data$cells_id <- data$cells_id+1
       saveRDS(data, "'${sample}'", compress = FALSE)'
 done
+echo "[INFO] raw/*.rds patched" | tee ${migration_log_file}
 
 # Migrate cellsets
 python3 /Users/ahriman/repos/github.com/biomage-ltd/iac/migrations/s3-migrations/2022-09-20T12:20:00Z-fix-negative-index/cellsets-patch.py
+
+echo "[INFO] cellsets patched" | tee ${migration_log_file}
 
 # Migrate filtered cells
 for sample in $(ls filtered-cells/*/*.rds); do
@@ -71,17 +80,19 @@ for sample in $(ls filtered-cells/*/*.rds); do
       data <- lapply(data, `+`, 1)
       saveRDS(data, "'${sample}'")'
 done
+echo "[INFO] filtered cells patched" | tee ${migration_log_file}
+
 # 5. Check that the results do not contain -1s
 
 # verify that cell sets contain do not contain -1
 if [ "$(grep ',-1' cellsets.json)" != "" ]; then
-    echo "[FAIL]: ${experiment_id} cellsets still contain -1"
+    echo "[FAIL]: ${experiment_id} cellsets still contain -1" | tee ${migration_log_file}
     exit 1
 fi
 
 # verify that processed_r.rds file does not contain -1
 if [ "$(R -e 'any(readRDS("processed_r.rds")$cells_id == -1)' | grep FALSE)" = "" ]; then
-    echo "[FAIL]: ${experiment_id} processed_r still contain -1"
+    echo "[FAIL]: ${experiment_id} processed_r still contain -1" | tee ${migration_log_file}
     exit 1
 fi
 
@@ -95,7 +106,7 @@ for sample in $(ls raw/*.rds); do
 done
 
 if [ "${exists_wrong_sample}" = "true" ]; then
-    echo "[FAIL]: ${experiment_id} raw samples still contain -1"
+    echo "[FAIL]: ${experiment_id} raw samples still contain -1" | tee ${migration_log_file}
     exit 1
 fi
 
@@ -113,4 +124,4 @@ biomage experiment upload \
 
 # done
 
-echo "[OK] Successfully patched ${experiment_id}"
+echo "[OK] Successfully patched ${experiment_id}" | tee ${migration_log_file}
