@@ -16,7 +16,7 @@ set -euo pipefail
 # All the steps require an active tunnel into the desired environment.
 
 # The script relies on the following environment variables
-export MIGRATION_ENV=staging # use staging for testing
+export MIGRATION_ENV=production # use staging for testing
 # BIOMAGE_DATA_PATH=... # where do you want the experiments to be downloaded to
 export DATA_MIGRATION_PATH=${BIOMAGE_DATA_PATH}/migration_-1
 
@@ -24,22 +24,22 @@ export DATA_MIGRATION_PATH=${BIOMAGE_DATA_PATH}/migration_-1
 
 # run the SQL command in the environment
 # replace '|' with ',' so it's a csv file
-echo "SELECT id, name, ee.last_response -> 'qc.startDate' , ua.user_id
-    FROM experiment e
-    LEFT JOIN user_access ua
-    ON ua.experiment_id  = e.id
-    LEFT JOIN experiment_execution ee
-    ON ee.experiment_id  = e.id
-    WHERE ua.access_role = 'owner'
-    AND ee.pipeline_type = 'qc'
-    AND e.pipeline_version  = '2'
-    AND e.id IN (
-        SELECT experiment_id
-        FROM experiment_execution ee
-        WHERE last_status_response  @@ '$.qc.startDate > \"2022-08-24\"'
-        AND last_status_response  @@ '$.qc.startDate < \"2022-09-15\"')"  |
-      biomage rds run -i ${MIGRATION_ENV} psql |
-      tr '|' ',' > affected_experiments-${MIGRATION_ENV}.csv
+# echo "SELECT id, name, ee.last_status_response -> 'qc.startDate' , ua.user_id
+#     FROM experiment e
+#     LEFT JOIN user_access ua
+#     ON ua.experiment_id  = e.id
+#     LEFT JOIN experiment_execution ee
+#     ON ee.experiment_id  = e.id
+#     WHERE ua.access_role = 'owner'
+#     AND ee.pipeline_type = 'qc'
+#     AND e.pipeline_version  = '2'
+#     AND e.id IN (
+#         SELECT experiment_id
+#         FROM experiment_execution ee
+#         WHERE last_status_response  @@ '$.qc.startDate > \"2022-08-24\"'
+#         AND last_status_response  @@ '$.qc.startDate < \"2022-09-15\"')"  |
+#       biomage rds run -i ${MIGRATION_ENV} psql |
+#       tr '|' ',' > affected_experiments-${MIGRATION_ENV}.csv
 
 
 
@@ -50,22 +50,17 @@ echo "SELECT id, name, ee.last_response -> 'qc.startDate' , ua.user_id
 # use tail to remove headers
 # filter the last row which contains row count from SQL
 # use awk to select only the first column (ids)
-experiment_ids=$(tail -n +3 affected_experiments.csv |
-                 egrep -v '\(\d+ rows\)' |
-                 awk '{print $1}')
+# experiment_ids=$(tail -n +3 affected_experiments-${MIGRATION_ENV}.csv |
+#                  egrep -v '\(\d+ rows\)' |
+#                  awk '{print $1}')
 
 
-for experiment_id in ${experiment_ids}; do
+# for experiment_id in ${experiment_ids}; do
+# for experiment_id in $(cat affected_experiments-${MIGRATION_ENV}-clean.csv); do
+for experiment_id in $(cat affected-experiments-non-biousers-production-ids.remaining.csv); do
 
     # ./run-tunnel.sh ${MIGRATION_ENV}
     ./migrate-single-experiment.sh ${experiment_id}
+    # ./remove-state-machine.sh ${experiment_id} ${MIGRATION_ENV}
 
-    # echo "Does the migration look good? Press [ENTER] to proceed"
-    # read -s -N 1 -t 1 key
-    # if [[ $key != $'\x0a' ]];        # if input == ENTER key
-    # then
-    #     exit 1
-    # fi
-
-    # clean downloaded data
 done
