@@ -25,7 +25,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess
         - arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser  
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
       Policies:
         - PolicyName: !Sub "can-manage-${Environment}-sqs"
@@ -48,6 +48,10 @@ Resources:
                   - "cloudwatch:List*"
                   - "logs:Get*"
                   - "logs:Describe*"
+                  - "logs:FilterLogEvents"
+                  - "logs:StartQuery"
+                  - "logs:StopQuery"
+                  - "logs:PutQueryDefinition"
                   - "sns:Get*"
                   - "sns:List*"
                 Resource: "*"
