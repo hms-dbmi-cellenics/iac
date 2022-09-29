@@ -197,9 +197,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
