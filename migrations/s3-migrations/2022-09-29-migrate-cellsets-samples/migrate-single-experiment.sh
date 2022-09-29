@@ -32,7 +32,6 @@ biomage experiment upload \
     --without_tunnel \
     -e ${experiment_id} \
     -o ${MIGRATION_ENV} \
-    -i ${DATA_MIGRATION_PATH}/${experiment_id} \
     -f cellsets
 
 echo "[INFO] Successfully patched ${experiment_id}" | tee -a ${migration_log_file}
