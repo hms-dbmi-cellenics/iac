@@ -55,16 +55,16 @@ Resources:
           ]
         }
       Path: /
-      Policies:
-        - PolicyName: !Sub "can-execute-lambda-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "lambda:InvokeFunction"
-                Resource:
-                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+      # Policies:
+      #   - PolicyName: !Sub "can-execute-lambda-${Environment}"
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - "lambda:InvokeFunction"
+      #           Resource:
+      #             Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
 
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -164,9 +164,9 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
-      LambdaConfig:
-        PostConfirmation:
-          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+      # LambdaConfig:
+      #   PostConfirmation:
+      #     Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
