@@ -3,8 +3,8 @@ import sys
 import os
 from collections import Counter
 
-cs = json.load(open('cellSets.json'))
-os.rename('cellSets.json', 'cellSets.json.orig')
+cs = json.load(open('cellsets.json'))
+os.rename('cellsets.json', 'cellsets.json.orig')
 
 set_ids = set()
 counts = Counter()
@@ -45,6 +45,6 @@ if [x+1 for x in list(set_ids)].sort() != set_ids_updated.sort():
     print(f'[FAIL] Differing ids exiting...')
     sys.exit(1)
 
-out_file = open("cellSets.json", "w")
+out_file = open("cellsets.json", "w")
 
 json.dump(cs, out_file, separators=(',', ':'))

@@ -24,20 +24,20 @@ export DATA_MIGRATION_PATH=${BIOMAGE_DATA_PATH}/migration_-1
 
 # run the SQL command in the environment
 # replace '|' with ',' so it's a csv file
-# echo "SELECT id, name, ee.last_status_response -> 'qc.startDate' , ua.user_id
+# echo "SELECT id, name, ee.last_status_response -> 'gem2s.startDate' , ua.user_id
 #     FROM experiment e
 #     LEFT JOIN user_access ua
 #     ON ua.experiment_id  = e.id
 #     LEFT JOIN experiment_execution ee
 #     ON ee.experiment_id  = e.id
 #     WHERE ua.access_role = 'owner'
-#     AND ee.pipeline_type = 'qc'
+#     AND ee.pipeline_type = 'gem2s'
 #     AND e.pipeline_version  = '2'
 #     AND e.id IN (
 #         SELECT experiment_id
 #         FROM experiment_execution ee
-#         WHERE last_status_response  @@ '$.qc.startDate > \"2022-08-24\"'
-#         AND last_status_response  @@ '$.qc.startDate < \"2022-09-15\"')"  |
+#         WHERE last_status_response  @@ '$.gem2s.startDate > \"2022-08-24\"'
+#         AND last_status_response  @@ '$.gem2s.startDate < \"2022-09-15\"')"  |
 #       biomage rds run -i ${MIGRATION_ENV} psql |
 #       tr '|' ',' > affected_experiments-${MIGRATION_ENV}.csv
 

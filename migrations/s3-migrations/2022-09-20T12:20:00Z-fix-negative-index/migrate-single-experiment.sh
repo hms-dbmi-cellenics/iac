@@ -11,6 +11,7 @@ migration_log_file=${original_pwd}/migration-${MIGRATION_ENV}.log
 echo "[INFO] Downloading ${experiment_id}" | tee -a ${migration_log_file}
 
 biomage experiment download \
+    --without_tunnel \
     -e ${experiment_id} \
     -i ${MIGRATION_ENV} \
     -o ${DATA_MIGRATION_PATH}/${experiment_id} \
@@ -37,7 +38,7 @@ IFS=$(echo -en "\n\b")
 
 # check that one raw sample file contains -1
 exists_wrong_sample=false
-for sample in $(ls raw/*rds); do
+for sample in $(ls raw/*/*rds); do
     if [ "$(R -e 'any(readRDS("'${sample}'")$cells_id == -1)' | grep TRUE)" != "" ]; then
         exists_wrong_sample=true
     fi
@@ -61,16 +62,16 @@ echo "[INFO] processed_r.rds patched" | tee -a ${migration_log_file}
 
 
 # Migrate raw samples RDS
-for sample in $(ls raw/*.rds); do
+for sample in $(ls raw/*/*.rds); do
     mv "${sample}" "${sample}.orig"
     R -e 'data <- readRDS("'${sample}'.orig")
       data$cells_id <- data$cells_id+1
       saveRDS(data, "'${sample}'", compress = FALSE)'
 done
-echo "[INFO] raw/*.rds patched" | tee -a ${migration_log_file}
+echo "[INFO] raw/*/*.rds patched" | tee -a ${migration_log_file}
 
 # Migrate cellsets
-python3 /Users/ahriman/repos/github.com/biomage-ltd/iac/migrations/s3-migrations/2022-09-20T12:20:00Z-fix-negative-index/cellsets-patch.py
+python3 ${original_pwd}/cellsets-patch.py
 
 echo "[INFO] cellsets patched" | tee -a ${migration_log_file}
 
@@ -100,7 +101,7 @@ fi
 
 # check that raw samples file do not contain -1
 exists_wrong_sample=false
-for sample in $(ls raw/*.rds); do
+for sample in $(ls raw/*/*.rds); do
     if [ "$(R -e 'any(readRDS("'${sample}'")$cells_id == -1)' | grep TRUE)" != "" ]; then
         exists_wrong_sample=true
     fi
@@ -114,6 +115,7 @@ fi
 
 ## 5. Upload the resulting files into S3
 biomage experiment upload \
+    --without_tunnel \
     -e ${experiment_id} \
     -o ${MIGRATION_ENV} \
     -i ${DATA_MIGRATION_PATH}/${experiment_id} \
