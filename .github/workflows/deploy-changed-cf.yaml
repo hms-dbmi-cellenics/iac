@@ -155,9 +155,6 @@ jobs:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [HMS]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -230,9 +227,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
