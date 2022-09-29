@@ -268,4 +268,5 @@ Resources:
             AllowedOrigins:
               - '*'
             Id: uiHeadersRule
+
             
