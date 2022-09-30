@@ -7,7 +7,8 @@ on:
         description: Select environment to deploy to
         options:
         - production
-        default: production
+        - staging
+        default: staging
   push:
     branches:
       - master
