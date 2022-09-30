@@ -4,4 +4,5 @@ myAccount:
   region: FILLED_IN_BY_CI
   accountId: FILLED_IN_BY_CI
   acmCertificate: FILLED_IN_BY_CI
+  datadogApiKey: FILLED_IN_BY_CI
   #FILLED IN BY IAC CI
