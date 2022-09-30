@@ -519,6 +519,18 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
+      - id: setup-datadog-cluster-agent
+        name: Setup Datadog cluster agent
+        if: matrix.environment-name == 'Biomage'
+        run: |-
+          ### Add Datadog cluster agent
+          helm repo add datadog https://helm.datadoghq.com
+          helm repo update
+          helm upgrade datadog-agent datadog/datadog \
+            -f infra/datadog/cluster-agent-values.yaml \
+            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+            --install
+
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
