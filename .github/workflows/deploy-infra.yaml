@@ -519,6 +519,46 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
+      - id: setup-cluster-cloudwatch-logging-policy
+        name: Setup permissions to cluster to log to Cloudwatch
+        if: matrix.environment-name == 'Biomage'
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+        run: |-
+          LOGGING_POLICY_NAME="cluster-cloudwatch-log-policy"
+
+          aws iam create-policy \
+          --policy-name $LOGGING_POLICY_NAME \
+          --policy-document infra/cluster-logging/cluster-cloudwatch-log-policy.json || true
+
+          echo "::set-output name=logging-policy-name::$LOGGING_POLICY_NAME"
+
+      - id: setup-fargate-logging
+        name: Setup logging for Fargate pods
+        if: matrix.environment-name == 'Biomage'
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          LOGGING_POLICY_NAME: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.logging-policy-name }}
+        run: |-
+          # Create FluentBit config
+          sed -i 's/CLUSTER_ENV/${CLUSTER_ENV}/g' fargate-fluentbit-config.yaml > fargate-fluentbit-config.yaml
+          kubectl apply -f infra/fargate-logging/fargate-fluentbit-config.yaml
+
+          # Attach role for pipeline and worker pods
+          PIPELINE_POD_EXEC_ROLE=$(aws eks describe-fargate-profile \
+            --cluster-name biomage-$CLUSTER_ENV \
+            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+          aws iam attach-role-policy \
+          --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/$LOGGING_POLICY_NAME \
+          --role-name $PIPELINE_POD_EXEC_ROLE
+
+          WORKER_POD_EXEC_ROLE=$(aws eks describe-fargate-profile \
+            --cluster-name biomage-$CLUSTER_ENV \
+            --fargate-profile-name worker-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+          aws iam attach-role-policy \
+          --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/$LOGGING_POLICY_NAME \
+          --role-name $WORKER_POD_EXEC_ROLE
+
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
