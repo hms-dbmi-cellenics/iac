@@ -519,6 +519,12 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
+      - id: setup-datadog-cluster-agent
+        name: Setup Datadog cluster agent
+        run: |-
+          ### Create ClusterRoles for Datadog sidecar deployments
+          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
