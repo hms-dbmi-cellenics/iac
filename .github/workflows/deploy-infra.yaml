@@ -254,8 +254,16 @@ jobs:
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
           | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
           | yq w -d0 - myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}" \
-          | yq w -d0 - myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}" \
+          | yq w -d0 - myAccount.datadogEnabled --style=double "false" \
+          | yq w -d0 - myAccount.datadogApiKey --style=double "" \
           > infra/account-config.yaml
+
+          if [[ $ENVIRONMENT_NAME = "Biomage" ]]
+          then
+            yq w -d0 infra/account-config.yaml myAccount.datadogEnabled --style=double "true" \
+            | yq w -d0 - myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}" \
+            > infra/account-config.yaml
+          fi
 
           cat infra/account-config.yaml
         env:
