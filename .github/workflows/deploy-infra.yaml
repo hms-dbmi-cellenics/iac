@@ -519,8 +519,9 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
-      - id: setup-datadog-cluster-agent
-        name: Setup Datadog cluster agent
+      - id: setup-datadog-sidecar-permissions
+        name: Setup Datadog sidecar permissions
+        if: matrix.environment-name == 'Biomage'
         run: |-
           ### Create ClusterRoles for Datadog sidecar deployments
           kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
