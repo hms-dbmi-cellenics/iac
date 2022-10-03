@@ -255,19 +255,19 @@ jobs:
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
         run: |-
-          yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
-          | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
-          | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
-          | yq w -d0 - myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}" \
-          | yq w -d0 - myAccount.datadogEnabled --style=double "false" \
-          | yq w -d0 - myAccount.datadogApiKey --style=double "" \
-          > infra/account-config.yaml
+          CONFIG_FILE="infra/account-config.yaml"
+
+          yq w -i -d0 $CONFIG_FILE myAccount.domainName --style=double "$DOMAIN_NAME"
+          yq w -i -d0 $CONFIG_FILE myAccount.region --style=double "$AWS_REGION"
+          yq w -i -d0 $CONFIG_FILE myAccount.accountId --style=double "$AWS_ACCOUNT_ID"
+          yq w -i -d0 $CONFIG_FILE myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}"
+          yq w -i -d0 $CONFIG_FILE myAccount.datadogEnabled --style=double "false"
+          yq w -i -d0 $CONFIG_FILE myAccount.datadogApiKey --style=double ""
 
           if [[ $ENVIRONMENT_NAME = "Biomage" ]]
           then
-            yq w -d0 infra/account-config.yaml myAccount.datadogEnabled --style=double "true" \
-            | yq w -d0 - myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}" \
-            > infra/account-config.yaml
+            yq w -i -d0 $CONFIG_FILE myAccount.datadogEnabled --style=double "true"
+            yq w -i -d0 $CONFIG_FILE myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}"
           fi
 
           cat infra/account-config.yaml
