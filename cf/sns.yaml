@@ -78,4 +78,3 @@ Resources:
       FilterPolicy:
         type:
           - GEM2SResponse
-
