@@ -264,7 +264,7 @@ jobs:
           yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "false"
           yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double ""
 
-          if [[ $ENVIRONMENT_NAME = "Biomage" ]]
+          if [[ $ENVIRONMENT_NAME = "Not Biomage" ]]
           then
             yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "true"
             yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}"
