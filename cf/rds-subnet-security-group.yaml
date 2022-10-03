@@ -63,5 +63,4 @@ Outputs:
   RDSSecurityGroup:
     Value: !Ref RDSSecurityGroup
     Export:
-      Name: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
-      
+      Name: !Sub "biomage-${Environment}-rds::RDSSecurityGroup" 
