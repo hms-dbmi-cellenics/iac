@@ -249,6 +249,11 @@ jobs:
 
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
         run: |-
           yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
@@ -266,10 +271,6 @@ jobs:
           fi
 
           cat infra/account-config.yaml
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
