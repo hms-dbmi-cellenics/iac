@@ -228,19 +228,19 @@ jobs:
       #   run: |-
       #     kubectl create namespace flux
 
-      # - id: setup-domain
-      #   name: Compile environment-specific domain name
-      #   run: |-
-      #     if [ "${{ matrix.environment-type }}" = "production" ]; then
-      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-      #     fi
-      #     if [ "${{ matrix.environment-type }}" = "staging" ]; then
-      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
-      #     fi
-      #     echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-      #     echo "::set-output name=domain-name::$DOMAIN_NAME"
+      - id: setup-domain
+        name: Compile environment-specific domain name
+        run: |-
+          if [ "${{ matrix.environment-type }}" = "production" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+          fi
+          if [ "${{ matrix.environment-type }}" = "staging" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+          fi
+          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
+          echo "::set-output name=domain-name::$DOMAIN_NAME"
 
       - id: install-yq
         name: Install yq for modifying the deployment spec.
