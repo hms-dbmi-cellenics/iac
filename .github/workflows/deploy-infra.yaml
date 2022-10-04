@@ -244,6 +244,8 @@ jobs:
 
       - id: setup-monitoring
         name: Determine if monitoring should be enabled for this deployment
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
         run: |-
           DATADOG_ENABLED=false
 
