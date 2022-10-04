@@ -96,4 +96,3 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/delete-sample-file-lambda-${Environment}"
       RetentionInDays: 1
       
-      
