@@ -16,65 +16,69 @@ jobs:
         environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     steps:
-      - id: setup-aws
-        name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+      - id: test-failure-notification
+        name: Testing failure notification. Should be removed.
+        run: exit 1
 
-      # If the step functions list is too close to its limit,
-      # this will remove the 500 older step functions.
-      - id: remove-old-state-machines
-        name: Remove old step functions
-        run: |-
-          state_machines_list=$(aws stepfunctions list-state-machines --output text)
-          threshold=500
-          maximum=$((10000 - $threshold))
-          count=$(echo $state_machines_list | grep -o 'arn:aws:states:' | wc -l)
+      # - id: setup-aws
+      #   name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.region }}
 
-          echo $count
+      # # If the step functions list is too close to its limit,
+      # # this will remove the 500 older step functions.
+      # - id: remove-old-state-machines
+      #   name: Remove old step functions
+      #   run: |-
+      #     state_machines_list=$(aws stepfunctions list-state-machines --output text)
+      #     threshold=500
+      #     maximum=$((10000 - $threshold))
+      #     count=$(echo $state_machines_list | grep -o 'arn:aws:states:' | wc -l)
 
-          if (($count > $maximum))
-          then
-            echo "$count higher than the maximum, so deleting $threshold state machines"
-            echo $state_machines_list \
-              | sed 's/STATEMACHINES/\n STATEMACHINES/g' \
-              | sort -k2 \
-              | head -$threshold \
-              | awk '{print $4}' \
-              | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
-            echo "Finished deleting state machines"
-          else
-            echo "No state machines deleted"
-          fi
+      #     echo $count
 
-      # If the activities list is too close to its limit,
-      # this will remove the 500 older activities.
-      - id: remove-old-activities
-        name: Remove old activities
-        run: |-
-          activities_list=$(aws stepfunctions list-activities --output text)
-          threshold=500
-          maximum=$((10000 - $threshold))
-          count=$(echo $activities_list | grep -o 'arn:aws:states:' | wc -l)
+      #     if (($count > $maximum))
+      #     then
+      #       echo "$count higher than the maximum, so deleting $threshold state machines"
+      #       echo $state_machines_list \
+      #         | sed 's/STATEMACHINES/\n STATEMACHINES/g' \
+      #         | sort -k2 \
+      #         | head -$threshold \
+      #         | awk '{print $4}' \
+      #         | xargs -I {} aws stepfunctions delete-state-machine --state-machine-arn {}
+      #       echo "Finished deleting state machines"
+      #     else
+      #       echo "No state machines deleted"
+      #     fi
 
-          echo $count
+      # # If the activities list is too close to its limit,
+      # # this will remove the 500 older activities.
+      # - id: remove-old-activities
+      #   name: Remove old activities
+      #   run: |-
+      #     activities_list=$(aws stepfunctions list-activities --output text)
+      #     threshold=500
+      #     maximum=$((10000 - $threshold))
+      #     count=$(echo $activities_list | grep -o 'arn:aws:states:' | wc -l)
 
-          if (($count > $maximum))
-          then
-            echo "$count higher than the maximum, so deleting $threshold activities"
-            echo $activities_list \
-              | sed 's/ACTIVITIES/\n ACTIVITIES/g' \
-              | sort -k2 \
-              | head -$threshold \
-              | awk '{print $2}' \
-              | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
-            echo "Finished deleting activities"
-          else
-            echo "No activities deleted"
-          fi
+      #     echo $count
+
+      #     if (($count > $maximum))
+      #     then
+      #       echo "$count higher than the maximum, so deleting $threshold activities"
+      #       echo $activities_list \
+      #         | sed 's/ACTIVITIES/\n ACTIVITIES/g' \
+      #         | sort -k2 \
+      #         | head -$threshold \
+      #         | awk '{print $2}' \
+      #         | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+      #       echo "Finished deleting activities"
+      #     else
+      #       echo "No activities deleted"
+      #     fi
 
       - id: send-to-slack
         name: Send failure notification to Slack
