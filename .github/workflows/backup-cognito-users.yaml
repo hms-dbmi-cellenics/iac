@@ -53,7 +53,7 @@ jobs:
         name: Send failure notification to Slack
         if: failure() && github.ref == 'refs/heads/master'
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: pipelines
