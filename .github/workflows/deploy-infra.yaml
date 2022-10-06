@@ -336,30 +336,30 @@ jobs:
               --install --wait
 
       - id: platform-public-facing
-        name: Get Flux mode
+        name: Get config for whether platform should be public facing
         uses: mikefarah/yq@master
         with:
           cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/workflow-config.yaml'
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
-      - id: deploy-env-loadbalancer
-        name: Deploy AWS Application Load Balancer for environment
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
-          name: "biomage-k8s-alb-${{ matrix.environment-type }}"
-          template: 'infra/cf-loadbalancer.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-env-loadbalancer
+      #   name: Deploy AWS Application Load Balancer for environment
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
+      #     name: "biomage-k8s-alb-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-loadbalancer.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-          name: "biomage-alb-route53-${{ matrix.environment-type }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: deploy-route53
+      #   name: Deploy Route 53 DNS records to ELB
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-route53.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: flux-git-read-only
         name: Get Flux mode
