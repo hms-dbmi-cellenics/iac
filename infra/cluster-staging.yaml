@@ -1,0 +1,53 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+# do not add `name` and `region` to this eksctl file. CI will fill these in automatically
+metadata:
+  name: "biomage-staging"
+  region: "us-east-2"
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: dummy-setup-account
+      attachPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Action:
+              - "s3:*"
+            Resource: '*'
+    - metadata:
+        name: aws-node
+        namespace: kube-system
+        labels:
+          aws-usage: cluster-ops
+      attachPolicyARNs:
+      - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+
+vpc:
+  # disable public access to endpoint and only allow private access
+  clusterEndpoints:
+    publicAccess: false
+    privateAccess: true
+
+managedNodeGroups:
+  - name: nodegroup-post-scaling-x86-v2
+    instanceType: r5.large
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 4
+    volumeSize: 80
+    iam:
+      withAddonPolicies:
+        ebs: true
+        autoScaler: true
+
+fargateProfiles:
+  - name: worker-default
+    selectors:
+      - namespace: worker-default
+  - name: pipeline-default
+    selectors:
+      - namespace: pipeline-default

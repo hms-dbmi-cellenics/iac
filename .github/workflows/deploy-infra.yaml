@@ -250,14 +250,14 @@ jobs:
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
-          yq w -d0 infra/config/eks-account-configmap.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
+          yq w -d0 infra/config/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
           | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
           | yq w -d0 - myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}" \
           | yq w -d0 - myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}" \
-          > infra/config/eks-account-configmap.yaml
+          > infra/config/account-config.yaml
 
-          cat infra/config/eks-account-configmap.yaml
+          cat infra/config/account-config.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
@@ -267,7 +267,7 @@ jobs:
         name: Create a configmap containing AWS account specific details
         continue-on-error: false
         run: |-
-          kubectl create configmap account-config --from-file=infra/config/eks-account-configmap.yaml -n flux -o yaml --dry-run | kubectl apply -f -
+          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
 
       - id: install-fluxctl
         name: Install fluxctl
