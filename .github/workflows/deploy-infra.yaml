@@ -106,7 +106,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [trv]
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
@@ -197,7 +197,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [trv]
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -263,12 +263,11 @@ jobs:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
 
-      # TODO remove the temp account-config-2 done for testing
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
         continue-on-error: false
         run: |-
-          kubectl create configmap account-config-2 --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
+          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
 
       - id: install-fluxctl
         name: Install fluxctl
@@ -343,23 +342,23 @@ jobs:
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
-      # - id: deploy-env-loadbalancer
-      #   name: Deploy AWS Application Load Balancer for environment
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
-      #     name: "biomage-k8s-alb-${{ matrix.environment-type }}"
-      #     template: 'infra/cf-loadbalancer.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-env-loadbalancer
+        name: Deploy AWS Application Load Balancer for environment
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
+          name: "biomage-k8s-alb-${{ matrix.environment-type }}"
+          template: 'infra/cf-loadbalancer.yaml'
+          no-fail-on-empty-changeset: "1"
 
-      # - id: deploy-route53
-      #   name: Deploy Route 53 DNS records to ELB
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
-      #     template: 'infra/cf-route53.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-route53
+        name: Deploy Route 53 DNS records to ELB
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          name: "biomage-alb-route53-${{ matrix.environment-type }}"
+          template: 'infra/cf-route53.yaml'
+          no-fail-on-empty-changeset: "1"
 
       - id: flux-git-read-only
         name: Get Flux mode
@@ -376,16 +375,12 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
           FLUX_GIT_READ_ONLY=${{ steps.flux-git-read-only.outputs.result }}
-          echo $FLUX_GIT_READ_ONLY
 
           if [[ $FLUX_GIT_READ_ONLY = "false" ]]; then
             GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
           elif [[ $FLUX_GIT_READ_ONLY = "true" ]]; then
             GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
           fi
-
-          echo "Github URL: "
-          echo $GIT_URL
 
           helm upgrade flux fluxcd/flux \
             --set git.url=$GIT_URL \
