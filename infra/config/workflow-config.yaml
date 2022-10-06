@@ -1,6 +1,6 @@
 Biomage:
-  fluxGitReadOnly: true
+  fluxGitReadOnly: false
   publicFacing: true
 trv:
-  fluxGitReadOnly: false
+  fluxGitReadOnly: true
   publicFacing: false
