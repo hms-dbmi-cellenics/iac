@@ -560,7 +560,7 @@ jobs:
 
           aws iam create-policy \
           --policy-name $LOGGING_POLICY_NAME \
-          --policy-document infra/cluster-logging/cluster-log-cloudwatch-policy.json || true
+          --policy-document file://infra/cluster-logging/cluster-log-cloudwatch-policy.json || true
 
           # Create FluentBit config
           sed -i 's/CLUSTER_ENV/${CLUSTER_ENV}/g' infra/cluster-logging/fargate-fluentbit-config.yaml
