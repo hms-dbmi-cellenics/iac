@@ -271,7 +271,7 @@ jobs:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
           DATADOG_ENABLED: ${{ steps.setup-monitoring.outputs.datadog-enabled }}
         run: |-
-          CONFIG_FILE="infra/account-config.yaml"
+          CONFIG_FILE="infra/config/account-config.yaml"
 
           yq w -d0 -i $CONFIG_FILE myAccount.domainName --style=double "$DOMAIN_NAME"
           yq w -d0 -i $CONFIG_FILE myAccount.region --style=double "$AWS_REGION"
