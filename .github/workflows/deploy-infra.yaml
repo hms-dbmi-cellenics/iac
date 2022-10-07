@@ -566,6 +566,7 @@ jobs:
           helm upgrade datadog-agent datadog/datadog \
             -f infra/datadog/cluster-agent-values.yaml \
             --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+            --set datadog.clusterName=biomage-$CLUSTER_ENV \
             --install
 
       - id: setup-datadog-sidecar-permissions
