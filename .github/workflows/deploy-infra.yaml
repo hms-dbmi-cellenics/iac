@@ -564,8 +564,6 @@ jobs:
 
           # Create FluentBit config
           sed -i "s/CLUSTER_ENV/${CLUSTER_ENV}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
-          cat infra/cluster-logging/fargate-fluentbit-config.yaml
-
           kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
           # Attach role for pipeline and worker pods
