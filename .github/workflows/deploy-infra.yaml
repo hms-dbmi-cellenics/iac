@@ -139,6 +139,7 @@ jobs:
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
+          CLUSTER_NAME=biomage-$CLUSTER_ENV
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
             .metadata.region = strenv(AWS_REGION)
@@ -147,7 +148,6 @@ jobs:
           cat /tmp/cluster-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          CLUSTER_NAME: biomage-$CLUSTER_ENV
 
       # - id: install-eksctl
       #   name: Install eksctl
