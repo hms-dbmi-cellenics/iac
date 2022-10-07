@@ -39,6 +39,10 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
   The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
 
+- DATADOG_API_KEY (optional, used only if the deployment will use Datadog monitoring)
+
+  The API key of the Datadog account.
+
 #### Changing base infrastructure
 The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/biomage-org/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
 1. Go to the *Deploy Biomage infrastructure*
