@@ -212,10 +212,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # - id: add-kubeconfig
-      #   name: Add k8s config file for existing cluster.
-      #   run: |-
-      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
       # - id: deploy-metrics-server
       #   name: Deploy k8s metrics server
@@ -228,24 +228,24 @@ jobs:
       #   run: |-
       #     kubectl create namespace flux
 
-      - id: setup-domain
-        name: Compile environment-specific domain name
-        run: |-
-          if [ "${{ matrix.environment-type }}" = "production" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-          fi
-          if [ "${{ matrix.environment-type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
-          fi
-          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-          echo "::set-output name=domain-name::$DOMAIN_NAME"
+      # - id: setup-domain
+      #   name: Compile environment-specific domain name
+      #   run: |-
+      #     if [ "${{ matrix.environment-type }}" = "production" ]; then
+      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+      #     fi
+      #     if [ "${{ matrix.environment-type }}" = "staging" ]; then
+      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+      #     fi
+      #     echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
+      #     echo "::set-output name=domain-name::$DOMAIN_NAME"
 
-      - id: install-yq
-        name: Install yq for modifying the deployment spec.
-        run: |-
-          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+      # - id: install-yq
+      #   name: Install yq for modifying the deployment spec.
+      #   run: |-
+      #     sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
 
       - id: platform-monitoring-enabled
         name: Get config for whetther monitoring should be enabled for platform
@@ -255,31 +255,31 @@ jobs:
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
-      - id: fill-account-specific-metadata
-        name: Fill in account specific metadata in ConfigMap
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-          MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
-        run: |-
-          CONFIG_FILE="infra/config/account-config.yaml"
+      # - id: fill-account-specific-metadata
+      #   name: Fill in account specific metadata in ConfigMap
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #     AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+      #     DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
+      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+      #     MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
+      #   run: |-
+      #     CONFIG_FILE="infra/config/account-config.yaml"
 
-          yq w -d0 -i $CONFIG_FILE myAccount.domainName --style=double "$DOMAIN_NAME"
-          yq w -d0 -i $CONFIG_FILE myAccount.region --style=double "$AWS_REGION"
-          yq w -d0 -i $CONFIG_FILE myAccount.accountId --style=double "$AWS_ACCOUNT_ID"
-          yq w -d0 -i $CONFIG_FILE myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}"
-          yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "false"
-          yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double ""
+      #     yq w -d0 -i $CONFIG_FILE myAccount.domainName --style=double "$DOMAIN_NAME"
+      #     yq w -d0 -i $CONFIG_FILE myAccount.region --style=double "$AWS_REGION"
+      #     yq w -d0 -i $CONFIG_FILE myAccount.accountId --style=double "$AWS_ACCOUNT_ID"
+      #     yq w -d0 -i $CONFIG_FILE myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}"
+      #     yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "false"
+      #     yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double ""
 
-          if [[ $MONITORING_ENABLED = "true" ]]
-          then
-            yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "true"
-            yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}"
-          fi
+      #     if [[ $MONITORING_ENABLED = "true" ]]
+      #     then
+      #       yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "true"
+      #       yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}"
+      #     fi
 
-          cat $CONFIG_FILE
+      #     cat $CONFIG_FILE
 
       # - id: create-account-information-configmap
       #   name: Create a configmap containing AWS account specific details
@@ -292,10 +292,10 @@ jobs:
       #   run: |-
       #     sudo snap install fluxctl --classic
 
-      # - id: install-helm
-      #   name: Install Helm
-      #   run: |-
-      #     sudo snap install helm --classic
+      - id: install-helm
+        name: Install Helm
+        run: |-
+          sudo snap install helm --classic
 
       # - id: install-eksctl
       #   name: Install eksctl
@@ -553,21 +553,19 @@ jobs:
         name: Setup Datadog cluster agent
         if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         run: |-
-          echo "Deploying Datadog agent"
-          # helm repo add datadog https://helm.datadoghq.com
-          # helm repo update
-          # helm upgrade datadog-agent datadog/datadog \
-          #   -f infra/datadog/cluster-agent-values.yaml \
-          #   --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-          #   --set datadog.clusterName=biomage-$CLUSTER_ENV \
-          #   --install
+          helm repo add datadog https://helm.datadoghq.com
+          helm repo update
+          helm upgrade datadog-agent datadog/datadog \
+            -f infra/datadog/cluster-agent-values.yaml \
+            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+            --set datadog.clusterName=biomage-$CLUSTER_ENV \
+            --install
 
-      - id: setup-datadog-sidecar-permissions
-        name: Setup Datadog sidecar permissions
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
-        run: |-
-          echo "Deploying Datadog sidecar permissions"
-          # kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+      # - id: setup-datadog-sidecar-permissions
+      #   name: Setup Datadog sidecar permissions
+      #   if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
+      #   run: |-
+      #     kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
   report-if-failed:
     name: Report if workflow failed
