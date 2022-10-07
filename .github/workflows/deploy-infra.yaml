@@ -242,25 +242,18 @@ jobs:
           echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
 
-      - id: setup-monitoring
-        name: Determine if monitoring should be enabled for this deployment
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-        run: |-
-          DATADOG_ENABLED=false
-
-          if [[ $ENVIRONMENT_NAME = "Biomage" ]]
-          then
-            DATADOG_ENABLED=true
-          fi
-
-          echo "DATADOG_ENABLED: $DATADOG_ENABLED"
-          echo "::set-output name=datadog-enabled::$DATADOG_ENABLED"
-
       - id: install-yq
         name: Install yq for modifying the deployment spec.
         run: |-
           sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+
+      - id: platform-monitoring-enabled
+        name: Get config for whetther monitoring should be enabled for platform
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
@@ -269,7 +262,7 @@ jobs:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-          DATADOG_ENABLED: ${{ steps.setup-monitoring.outputs.datadog-enabled }}
+          MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
         run: |-
           CONFIG_FILE="infra/config/account-config.yaml"
 
@@ -280,7 +273,7 @@ jobs:
           yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "false"
           yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double ""
 
-          if [[ $DATADOG_ENABLED = "true" ]]
+          if [[ $MONITORING_ENABLED = "true" ]]
           then
             yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "true"
             yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}"
@@ -558,7 +551,7 @@ jobs:
 
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
-        if: ${{ steps.setup-monitoring.outputs.datadog-enabled == 'true' }}
+        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         run: |-
           ### Add Datadog cluster agent
           helm repo add datadog https://helm.datadoghq.com
@@ -571,7 +564,7 @@ jobs:
 
       - id: setup-datadog-sidecar-permissions
         name: Setup Datadog sidecar permissions
-        if: ${{ steps.setup-monitoring.outputs.datadog-enabled == 'true' }}
+        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         run: |-
           ### Create ClusterRoles for Datadog sidecar deployments
           kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
