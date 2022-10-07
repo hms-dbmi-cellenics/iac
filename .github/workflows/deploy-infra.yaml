@@ -549,17 +549,17 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
-      - id: setup-cluster-cloudwatch-logging-policy
+      - id: setup-cluster-logging-cloudwatch-policy
         name: Setup permissions to cluster to log to Cloudwatch
         if: matrix.environment-name == 'Biomage'
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
         run: |-
-          LOGGING_POLICY_NAME="cluster-cloudwatch-log-policy"
+          LOGGING_POLICY_NAME="cluster-log-cloudwatch-policy"
 
           aws iam create-policy \
           --policy-name $LOGGING_POLICY_NAME \
-          --policy-document infra/cluster-logging/cluster-cloudwatch-log-policy.json || true
+          --policy-document infra/cluster-logging/cluster-log-cloudwatch-policy.json || true
 
           echo "::set-output name=logging-policy-name::$LOGGING_POLICY_NAME"
 
@@ -568,7 +568,7 @@ jobs:
         if: matrix.environment-name == 'Biomage'
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          LOGGING_POLICY_NAME: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.logging-policy-name }}
+          LOGGING_POLICY_NAME: ${{ steps.setup-cluster-logging-cloudwatch-policy.outputs.logging-policy-name }}
         run: |-
           # Create FluentBit config
           sed -i 's/CLUSTER_ENV/${CLUSTER_ENV}/g' fargate-fluentbit-config.yaml > fargate-fluentbit-config.yaml
