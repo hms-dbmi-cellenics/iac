@@ -248,7 +248,7 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
 
       - id: platform-monitoring-enabled
-        name: Get config for whetther monitoring should be enabled for platform
+        name: Get config for whether monitoring should be enabled for deployment
         uses: mikefarah/yq@master
         with:
           cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
