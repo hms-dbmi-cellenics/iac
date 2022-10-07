@@ -271,6 +271,10 @@ jobs:
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
+
+          export ACM_CERTIFICATE_ARN="abcd"
+          export DOMAIN_NAME=abcd
+
           yq -i '
             .myAccount.domainName = strenv(DOMAIN_NAME) |
             .myAccount.region = strenv(AWS_REGION) |
@@ -291,8 +295,8 @@ jobs:
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+          # DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
+          # ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
 
 
@@ -323,11 +327,11 @@ jobs:
       #     cat $CONFIG_FILE
 
       # TODO remove the -2
-      - id: create-account-information-configmap
-        name: Create a configmap containing AWS account specific details
-        continue-on-error: false
-        run: |-
-          kubectl create configmap account-config-2 --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
+      # - id: create-account-information-configmap
+      #   name: Create a configmap containing AWS account specific details
+      #   continue-on-error: false
+      #   run: |-
+      #     kubectl create configmap account-config-2 --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
 
   #     - id: install-fluxctl
   #       name: Install fluxctl
