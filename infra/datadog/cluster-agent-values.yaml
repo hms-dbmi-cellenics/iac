@@ -1,5 +1,6 @@
 targetSystem: "linux"
 datadog:
+  site: "datadoghq.eu"
   logs:
     enabled: false
   processAgent:
