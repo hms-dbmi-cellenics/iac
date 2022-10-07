@@ -292,7 +292,7 @@ jobs:
         name: Create a configmap containing AWS account specific details
         continue-on-error: false
         run: |-
-          kubectl create configmap account-config --from-file=infra/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
+          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
 
       - id: install-fluxctl
         name: Install fluxctl
@@ -359,11 +359,19 @@ jobs:
               --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
               --install --wait
 
+      - id: platform-public-facing
+        name: Get config for whether platform should be public facing
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
           name: "biomage-k8s-alb-${{ matrix.environment-type }}"
           template: 'infra/cf-loadbalancer.yaml'
           no-fail-on-empty-changeset: "1"
@@ -377,23 +385,27 @@ jobs:
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
 
+      - id: flux-git-read-only
+        name: Get Flux mode
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].fluxGitReadOnly' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
       - id: install-flux
         name: Deploy flux
         run: |-
           helm repo add fluxcd https://charts.fluxcd.io
           kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
 
-          FLUX_GIT_READ_ONLY=true
-          GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
+          FLUX_GIT_READ_ONLY=${{ steps.flux-git-read-only.outputs.result }}
 
-          if [[ $ENVIRONMENT_NAME = "Biomage" ]]
-          then
-            FLUX_GIT_READ_ONLY=false
+          if [[ $FLUX_GIT_READ_ONLY = "false" ]]; then
             GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
+          elif [[ $FLUX_GIT_READ_ONLY = "true" ]]; then
+            GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
           fi
-
-          echo "Github URL: "
-          echo $GIT_URL
 
           helm upgrade flux fluxcd/flux \
             --set git.url=$GIT_URL \
@@ -418,13 +430,13 @@ jobs:
 
       - id: get-public-key
         name: Get flux SSH deploy key
-        if: matrix.environment-name == 'Biomage'
+        if: steps.flux-git-read-only.outputs.result == 'false'
         run: |-
           fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
 
       - id: add-key-to-github
         name: Add Flux deploy key to GitHub repository
-        if: matrix.environment-name == 'Biomage'
+        if: steps.flux-git-read-only.outputs.result == 'false'
         run: |-
           # find existing key IDs. save them to a file
           curl \
