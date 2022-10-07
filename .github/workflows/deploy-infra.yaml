@@ -106,7 +106,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment-name: [trv]
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
@@ -126,64 +126,80 @@ jobs:
         name: Install yq for modifying the eksctl yaml spec.
         run: |-
           sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+  # sudo wget https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
 
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ secrets.AWS_REGION }} > /tmp/cluster-$CLUSTER_ENV.yaml
+          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" \
+          | yq w - metadata.region ${{ secrets.AWS_REGION }} \
+          > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
 
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
+      # - id: fill-metadata-new
+      #   name: Add name and region to the eksctl file.
+      #   run: |-
+      #     CLUSTER_NAME = "biomage-$CLUSTER_ENV"
+      #     yq -i '
+      #       .metadata.name = strenv(CLUSTER_NAME) |
+      #       .metadata.region = strenv(AWS_REGION)
+      #     ' infra/cluster.yaml
+      #     cp infra/cluster.yaml /tmp/cluster-$CLUSTER_ENV.yaml
+      #     cat /tmp/cluster-$CLUSTER_ENV.yaml
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
 
-      - id: create-clusters
-        name: Attempt to create clusters from spec.
-        # this job will always pass, irrespective of whether creation was successful or not.
-        # this is because the cluster may already exist. we will check for this condition
-        # on failure in the next step
-        continue-on-error: true
-        run: |-
-          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
+      # - id: install-eksctl
+      #   name: Install eksctl
+      #   run: |-
+      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #     sudo mv /tmp/eksctl /usr/local/bin
 
-          eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
-          echo "::set-output name=outcome::created"
-      - id: check-for-failure
-        name: Check for reason of failure if cluster creation failed.
-        if: steps.create-clusters.outcome == 'failure'
-        run: |-
-          # Check if failure was caused by an already exists exception.
-          # If not, the job should fail.
-          ALREADY_EXISTS=$(grep AlreadyExistsException /tmp/eksctl-$CLUSTER_ENV.log | wc -l | xargs)
-          if [ $ALREADY_EXISTS -ne 1 ]
-          then
-            echo Step failed for reason other than stack already existing.
-            echo Job failing...
-            echo "::set-output name=reason::error"
-            false
-          fi
+      # - id: create-clusters
+      #   name: Attempt to create clusters from spec.
+      #   # this job will always pass, irrespective of whether creation was successful or not.
+      #   # this is because the cluster may already exist. we will check for this condition
+      #   # on failure in the next step
+      #   continue-on-error: true
+      #   run: |-
+      #     exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
 
-          echo Cluster already exists.
-          echo "::set-output name=reason::already-exists"
+      #     eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
+      #     echo "::set-output name=outcome::created"
+      # - id: check-for-failure
+      #   name: Check for reason of failure if cluster creation failed.
+      #   if: steps.create-clusters.outcome == 'failure'
+      #   run: |-
+      #     # Check if failure was caused by an already exists exception.
+      #     # If not, the job should fail.
+      #     ALREADY_EXISTS=$(grep AlreadyExistsException /tmp/eksctl-$CLUSTER_ENV.log | wc -l | xargs)
+      #     if [ $ALREADY_EXISTS -ne 1 ]
+      #     then
+      #       echo Step failed for reason other than stack already existing.
+      #       echo Job failing...
+      #       echo "::set-output name=reason::error"
+      #       false
+      #     fi
 
-      - id: update-nodegroup
-        name: Attempt to update node groups for existing cluster.
-        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
-        run: |-
-          eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
-          eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+      #     echo Cluster already exists.
+      #     echo "::set-output name=reason::already-exists"
 
-      # note: iam service accounts should really be created from within the helm chart as seen here:
-      # https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
-      - id: update-serviceaccounts
-        name: Attempt to update IAM service accounts for existing cluster.
-        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
-        run: |-
-          eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
-          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
-          eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+      # - id: update-nodegroup
+      #   name: Attempt to update node groups for existing cluster.
+      #   if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+      #   run: |-
+      #     eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+      #     eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+
+      # # note: iam service accounts should really be created from within the helm chart as seen here:
+      # # https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
+      # - id: update-serviceaccounts
+      #   name: Attempt to update IAM service accounts for existing cluster.
+      #   if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+      #   run: |-
+      #     eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
+      #     eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+      #     eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
   configure-cluster:
     name: Configure Kubernetes resources on the EKS cluster
