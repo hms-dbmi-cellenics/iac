@@ -278,15 +278,15 @@ jobs:
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
             .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
             .myAccount.datadogApiKey = ""
-          ' infra/account-config.yaml
+          ' infra/config/account-config.yaml
 
           if [[ $MONITORING_ENABLED = "true" ]]
           then
             export API_KEY="${{ secrets.DATADOG_API_KEY }}"
-            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/account-config.yaml
+            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
           fi
 
-          cat infra/account-config.yaml
+          cat infra/config/account-config.yaml
 
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
