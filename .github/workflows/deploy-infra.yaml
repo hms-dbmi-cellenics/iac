@@ -563,7 +563,7 @@ jobs:
           --policy-document file://infra/cluster-logging/cluster-log-cloudwatch-policy.json || true
 
           # Create FluentBit config
-          sed -i 's/CLUSTER_ENV/${CLUSTER_ENV}/g' infra/cluster-logging/fargate-fluentbit-config.yaml
+          sed -i "s/CLUSTER_ENV/${CLUSTER_ENV}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
           cat infra/cluster-logging/fargate-fluentbit-config.yaml
 
           # kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
