@@ -45,7 +45,7 @@ data:
     [OUTPUT]
         Name cloudwatch
         Match kube.*
-        region eu-west-1
+        region AWS_REGION
         auto_create_group true
         log_retention_days 3
         log_key log

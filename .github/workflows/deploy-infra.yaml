@@ -554,6 +554,7 @@ jobs:
         if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |-
           # Setup permissions for Fargate pods to log to Cloudwatch
           LOGGING_POLICY_NAME="cluster-log-cloudwatch-policy"
@@ -564,6 +565,7 @@ jobs:
 
           # Create FluentBit config
           sed -i "s/CLUSTER_ENV/${CLUSTER_ENV}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
+          sed -i "s/AWS_REGION/${AWS_REGION}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
           kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
           # Attach role for pipeline and worker pods
