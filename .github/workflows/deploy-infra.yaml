@@ -568,11 +568,6 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: install-yq
-        name: Install yq for modifying the eksctl yaml spec.
-        run: |-
-          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-
       - id: platform-monitoring-enabled
         name: Get config for whether monitoring should be enabled for deployment
         uses: mikefarah/yq@master
@@ -630,9 +625,9 @@ jobs:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |-
-          # Create FluentBit config
-          sed -i "s/CLUSTER_ENV/${CLUSTER_ENV}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
-          sed -i "s/AWS_REGION/${AWS_REGION}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
+          # Using YQ4 because YQ3 does not have capability to substitute strings inside documents
+          yq -i ' (.. | select(type == "!!str")) |= sub("CLUSTER_ENV", "$CLUSTER_ENV")' infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i ' (.. | select(type == "!!str")) |= sub("AWS_REGION", "$AWS_REGION")' infra/cluster-logging/fargate-fluentbit-config.yaml
 
           kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
