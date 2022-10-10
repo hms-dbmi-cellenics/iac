@@ -90,4 +90,3 @@ Resources:
         Fn::Split:
           - ','
           - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
-
