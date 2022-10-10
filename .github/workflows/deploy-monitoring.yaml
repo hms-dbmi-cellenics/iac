@@ -58,7 +58,6 @@ jobs:
     name: Setup monitoring for deployment
     runs-on: ubuntu-20.04
     needs: [setup]
-    if: github.ref == 'refs/heads/master'
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
