@@ -44,6 +44,10 @@ managedNodeGroups:
     minSize: 2
     maxSize: 4
     volumeSize: 80
+    privateNetworking: true
+    subnets:
+      - dmz-us-east-2a
+      - dmz-us-east-2b
     iam:
       withAddonPolicies:
         ebs: true
