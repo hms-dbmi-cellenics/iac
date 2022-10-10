@@ -118,7 +118,8 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |-
           # Using YQ4 because YQ3 does not have capability to substitute strings inside documents
-          CLUSTER_ENV=$CLUSTER_ENV AWS_REGION=$AWS_REGION yq -i '(.. | select(type == "!!str")) |= envsubst(ne)' infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
 
           echo "CLUSTER_ENV: $CLUSTER_ENV"
           echo "AWS_REGION: $AWS_REGION"
