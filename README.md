@@ -35,6 +35,10 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
   The primary domain name where Cellenics will be deployed under (e.g. biomage.net). This is the name of the domain
   in the hosted zone.
 
+- ACM_CERTIFICATE_ARN
+
+  ARN of the SSL/TLS certificate used for HTTPS encryption.
+
 - DOMAIN_NAME_STAGING (optional, used only if the deployment is not on a production environment)
 
   The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
