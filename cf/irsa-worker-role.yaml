@@ -105,4 +105,3 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:biomage-redis-${Environment}"
 
-
