@@ -99,33 +99,28 @@ jobs:
             --cluster-name biomage-$CLUSTER_ENV \
             --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
 
-          echo "pod execution role name: $POD_EXEC_ROLE_NAME"
           echo '::set-output name=name::$POD_EXEC_ROLE_NAME'
 
-      # - id: setup-cluster-cloudwatch-logging-role
-      #   name: Setup role required for cluster to log to Cloudwatch
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
-      #     name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
-      #     template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: setup-cluster-cloudwatch-logging-role
+        name: Setup role required for cluster to log to Cloudwatch
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
+          name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
+          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+          no-fail-on-empty-changeset: "1"
 
-      - id: create-and-deploy-fluentbit-config
-        name: Create and deploy FluentBit config
-        env:
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |-
-          # Using YQ4 because YQ3 does not have capability to substitute strings inside documents
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+      # - id: create-and-deploy-fluentbit-config
+      #   name: Create and deploy FluentBit config
+      #   env:
+      #     AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #   run: |-
+      #     # Using YQ4 because YQ3 does not have capability to substitute strings inside documents
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
 
-          echo "CLUSTER_ENV: $CLUSTER_ENV"
-          echo "AWS_REGION: $AWS_REGION"
-          cat infra/cluster-logging/fargate-fluentbit-config.yaml
-
-          # kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
       # - id: setup-datadog-cluster-agent
       #   name: Setup Datadog cluster agent
