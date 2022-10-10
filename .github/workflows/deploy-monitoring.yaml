@@ -72,17 +72,8 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: platform-monitoring-enabled
-        name: Get config for whether monitoring should be enabled for deployment
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
       - id: setup-aws
         name: Configure AWS credentials
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -91,13 +82,11 @@ jobs:
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
       - id: get-pod-execution-role
         name: Get pod execution role name
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
         run: |-
@@ -114,7 +103,6 @@ jobs:
 
       - id: setup-cluster-cloudwatch-logging-role
         name: Setup role required for cluster to log to Cloudwatch
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
@@ -124,7 +112,6 @@ jobs:
 
       - id: create-and-deploy-fluentbit-config
         name: Create and deploy FluentBit config
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -137,7 +124,6 @@ jobs:
 
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         run: |-
           helm repo add datadog https://helm.datadoghq.com
           helm repo update
@@ -149,7 +135,6 @@ jobs:
 
       - id: setup-datadog-sidecar-permissions
         name: Setup Datadog sidecar permissions
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         run: |-
           kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
