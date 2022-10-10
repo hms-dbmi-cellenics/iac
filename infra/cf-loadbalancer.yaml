@@ -27,7 +27,7 @@ Resources:
         - Key: routing.http2.enabled
           Value: "true"
       Name: !Sub "k8s-${Environment}"
-      Scheme: !If [isPublic, "internet-facing", "internal"]
+      Scheme: internet-facing
       Subnets: 
         Fn::Split:
           - ','
