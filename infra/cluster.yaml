@@ -32,6 +32,7 @@ vpc:
         id: "subnet-0dcb4e46405522916"
       app-us-east-2b:
         id: "subnet-05b2d2c3c63feed96"
+    public:
       dmz-us-east-2a:
         id: "subnet-0d951e44b83833d28"
       dmz-us-east-2b:
@@ -44,10 +45,7 @@ managedNodeGroups:
     minSize: 2
     maxSize: 4
     volumeSize: 80
-    privateNetworking: true
     subnets:
-      - app-us-east-2a
-      - app-us-east-2b
       - dmz-us-east-2a
       - dmz-us-east-2b
     iam:
@@ -62,13 +60,9 @@ fargateProfiles:
     subnets:
       - subnet-0dcb4e46405522916
       - subnet-05b2d2c3c63feed96
-      - subnet-0d951e44b83833d28
-      - subnet-09bccdc8be23d5402
   - name: pipeline-default
     selectors:
       - namespace: pipeline-default
     subnets:
       - subnet-0dcb4e46405522916
       - subnet-05b2d2c3c63feed96
-      - subnet-0d951e44b83833d28
-      - subnet-09bccdc8be23d5402

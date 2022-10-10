@@ -31,7 +31,7 @@ Resources:
       Subnets: 
         Fn::Split:
           - ','
-          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPublic"
       Tags: 
         - Key: ingress.k8s.aws/resource
           Value: LoadBalancer
