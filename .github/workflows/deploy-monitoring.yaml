@@ -1,4 +1,5 @@
-name: Deploy Biomage infrastructure on AWS
+name: Setup monitoring for a deployment
+
 on:
   workflow_dispatch:
     inputs:
@@ -53,10 +54,10 @@ jobs:
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
 
-  setup-deployment-monitoring:
+  deploy-monitoring:
     name: Setup monitoring for deployment
     runs-on: ubuntu-20.04
-    needs: [setup, create-eks-cluster, configure-cluster]
+    needs: [setup]
     if: github.ref == 'refs/heads/master'
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -141,15 +142,15 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [configure-cluster]
+    needs: [setup, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
         name: Send failure notification to Slack on failure
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: pipelines
+          channel: workflow-failures
           status: FAILED
           color: danger
