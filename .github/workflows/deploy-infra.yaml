@@ -549,6 +549,53 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
+  setup-deployment-monitoring:
+    name: Setup monitoring for deployment
+    runs-on: ubuntu-20.04
+    needs: [setup, create-eks-cluster, configure-cluster]
+    if: github.ref == 'refs/heads/master'
+    env:
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: install-yq
+        name: Install yq for modifying the eksctl yaml spec.
+        run: |-
+          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+
+      - id: platform-monitoring-enabled
+        name: Get config for whether monitoring should be enabled for deployment
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+
       - id: setup-fargate-logging
         name: Setup logging for Fargate pods
         if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
