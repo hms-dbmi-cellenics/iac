@@ -44,8 +44,9 @@ managedNodeGroups:
     minSize: 2
     maxSize: 4
     volumeSize: 80
-    privateNetworking: true
     subnets:
+      - app-us-east-2a
+      - app-us-east-2b
       - dmz-us-east-2a
       - dmz-us-east-2b
     iam:
@@ -57,6 +58,16 @@ fargateProfiles:
   - name: worker-default
     selectors:
       - namespace: worker-default
+    subnets:
+      - app-us-east-2a
+      - app-us-east-2b
+      - dmz-us-east-2a
+      - dmz-us-east-2b
   - name: pipeline-default
     selectors:
       - namespace: pipeline-default
+    subnets:
+      - app-us-east-2a
+      - app-us-east-2b
+      - dmz-us-east-2a
+      - dmz-us-east-2b
