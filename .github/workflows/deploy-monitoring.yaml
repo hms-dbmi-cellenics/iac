@@ -81,10 +81,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: add-kubeconfig
-        name: Add k8s config file for existing cluster.
-        run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      # - id: add-kubeconfig
+      #   name: Add k8s config file for existing cluster.
+      #   run: |-
+      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
       - id: get-pod-execution-role
         name: Get pod execution role name
@@ -100,16 +100,17 @@ jobs:
             --cluster-name biomage-$CLUSTER_ENV \
             --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
 
+          echo "pod execution role name: $POD_EXEC_ROLE_NAME"
           echo '::set-output name=name::$POD_EXEC_ROLE_NAME'
 
-      - id: setup-cluster-cloudwatch-logging-role
-        name: Setup role required for cluster to log to Cloudwatch
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
-          name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
-          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
-          no-fail-on-empty-changeset: "1"
+      # - id: setup-cluster-cloudwatch-logging-role
+      #   name: Setup role required for cluster to log to Cloudwatch
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
+      #     name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
+      #     template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: create-and-deploy-fluentbit-config
         name: Create and deploy FluentBit config
@@ -121,23 +122,25 @@ jobs:
           yq -i ' (.. | select(type == "!!str")) |= sub("CLUSTER_ENV", "$CLUSTER_ENV")' infra/cluster-logging/fargate-fluentbit-config.yaml
           yq -i ' (.. | select(type == "!!str")) |= sub("AWS_REGION", "$AWS_REGION")' infra/cluster-logging/fargate-fluentbit-config.yaml
 
-          kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
+          cat infra/cluster-logging/fargate-fluentbit-config.yaml
 
-      - id: setup-datadog-cluster-agent
-        name: Setup Datadog cluster agent
-        run: |-
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-          helm upgrade datadog-agent datadog/datadog \
-            -f infra/datadog/cluster-agent-values.yaml \
-            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-            --set datadog.clusterName=biomage-$CLUSTER_ENV \
-            --install
+          # kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
-      - id: setup-datadog-sidecar-permissions
-        name: Setup Datadog sidecar permissions
-        run: |-
-          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+      # - id: setup-datadog-cluster-agent
+      #   name: Setup Datadog cluster agent
+      #   run: |-
+      #     helm repo add datadog https://helm.datadoghq.com
+      #     helm repo update
+      #     helm upgrade datadog-agent datadog/datadog \
+      #       -f infra/datadog/cluster-agent-values.yaml \
+      #       --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+      #       --set datadog.clusterName=biomage-$CLUSTER_ENV \
+      #       --install
+
+      # - id: setup-datadog-sidecar-permissions
+      #   name: Setup Datadog sidecar permissions
+      #   run: |-
+      #     kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
   report-if-failed:
     name: Report if workflow failed
