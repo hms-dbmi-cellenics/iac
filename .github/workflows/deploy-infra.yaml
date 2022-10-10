@@ -596,40 +596,45 @@ jobs:
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      - id: setup-fargate-logging
-        name: Setup logging for Fargate pods
+      - id: get-pod-execution-role
+        name: Get pod execution role name
+        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+        run: |-
+          # Get pod execution role ARN for cluster.
+          # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
+          # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
+          # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
+
+          POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
+            --cluster-name biomage-$CLUSTER_ENV \
+            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+
+          echo '::set-output name=name::$POD_EXEC_ROLE_NAME'
+
+      - id: setup-cluster-cloudwatch-logging-role
+        name: Setup role required for cluster to log to Cloudwatch
+        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
+          name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
+          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+          no-fail-on-empty-changeset: "1"
+
+      - id: create-and-deploy-fluentbit-config
+        name: Create and deploy FluentBit config
         if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |-
-          # Setup permissions for Fargate pods to log to Cloudwatch
-          LOGGING_POLICY_NAME="cluster-log-cloudwatch-policy"
-
-          aws iam create-policy \
-          --policy-name $LOGGING_POLICY_NAME \
-          --policy-document file://infra/cluster-logging/cluster-log-cloudwatch-policy.json || true
-
           # Create FluentBit config
           sed -i "s/CLUSTER_ENV/${CLUSTER_ENV}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
           sed -i "s/AWS_REGION/${AWS_REGION}/g" infra/cluster-logging/fargate-fluentbit-config.yaml
 
           kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
-
-          # Attach role for pipeline and worker pods
-          PIPELINE_POD_EXEC_ROLE=$(aws eks describe-fargate-profile \
-            --cluster-name biomage-$CLUSTER_ENV \
-            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
-          aws iam attach-role-policy \
-          --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/$LOGGING_POLICY_NAME \
-          --role-name $PIPELINE_POD_EXEC_ROLE
-
-          WORKER_POD_EXEC_ROLE=$(aws eks describe-fargate-profile \
-            --cluster-name biomage-$CLUSTER_ENV \
-            --fargate-profile-name worker-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
-          aws iam attach-role-policy \
-          --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/$LOGGING_POLICY_NAME \
-          --role-name $WORKER_POD_EXEC_ROLE
 
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
