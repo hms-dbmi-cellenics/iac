@@ -79,4 +79,3 @@ Resources:
       Roles:
         "authenticated":
           Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UIRoleArn"
-
