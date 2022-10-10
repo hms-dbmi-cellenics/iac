@@ -1,0 +1,26 @@
+name: Setup monitoring for a deployment
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        type: choice
+        description: Select cluster
+        options:
+        - staging
+        - production
+        - staging and production
+        default: staging
+
+jobs:
+  setup:
+    name: Init new workflow
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: init-workflow
+        name: Dummmy step to enable workflow
+        run: |-
+          echo New workflow for deployment
