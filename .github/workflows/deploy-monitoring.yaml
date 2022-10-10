@@ -99,7 +99,7 @@ jobs:
             --cluster-name biomage-$CLUSTER_ENV \
             --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
 
-          echo '::set-output name=name::$POD_EXEC_ROLE_NAME'
+          echo "::set-output name=name::$POD_EXEC_ROLE_NAME"
 
       - id: setup-cluster-cloudwatch-logging-role
         name: Setup role required for cluster to log to Cloudwatch
