@@ -53,9 +53,9 @@ data:
     [OUTPUT]
         Name cloudwatch
         Match kube.*
-        region ${AWS_REGION}
+        region AWS_REGION
         auto_create_group true
         log_retention_days 3
         log_key log
-        log_group_name /platform-logs/${CLUSTER_ENV}
+        log_group_name /platform-logs/CLUSTER_ENV
         log_stream_name $(kubernetes['namespace_name'])/$(kubernetes['labels']['experimentId'])/$(kubernetes['container_name'])/$(kubernetes['pod_name'])
