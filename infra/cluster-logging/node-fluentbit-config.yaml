@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: fluent-bit-pod-env
+  name: fluent-bit-pod-config
   namespace: node-logging
 data:
   cluster.name: 'biomage-CI_CLUSTER_ENV'
@@ -156,32 +156,32 @@ spec:
             - name: AWS_REGION
               valueFrom:
                 configMapKeyRef:
-                  name: fluent-bit-cluster-info
+                  name: fluent-bit-pod-config
                   key: logs.region
             - name: CLUSTER_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: fluent-bit-cluster-info
+                  name: fluent-bit-pod-config
                   key: cluster.name
             - name: HTTP_SERVER
               valueFrom:
                 configMapKeyRef:
-                  name: fluent-bit-cluster-info
+                  name: fluent-bit-pod-config
                   key: http.server
             - name: HTTP_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: fluent-bit-cluster-info
+                  name: fluent-bit-pod-config
                   key: http.port
             - name: READ_FROM_HEAD
               valueFrom:
                 configMapKeyRef:
-                  name: fluent-bit-cluster-info
+                  name: fluent-bit-pod-config
                   key: read.head
             - name: READ_FROM_TAIL
               valueFrom:
                 configMapKeyRef:
-                  name: fluent-bit-cluster-info
+                  name: fluent-bit-pod-config
                   key: read.tail
             - name: HOST_NAME
               valueFrom:
