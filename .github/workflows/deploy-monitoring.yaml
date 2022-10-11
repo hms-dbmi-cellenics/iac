@@ -117,6 +117,7 @@ jobs:
             --cluster biomage-$CLUSTER_ENV \
             --role-name irsa-fluent-bit-$CLUSTER_ENV \
             --attach-policy-arn $LOGGING_POLICY_ARN \
+            --override-existing-serviceaccounts \
             --approve
 
       - id: deploy-node-fluent-bit
