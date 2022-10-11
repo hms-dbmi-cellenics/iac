@@ -80,16 +80,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # - id: add-kubeconfig
-      #   name: Add k8s config file for existing cluster.
-      #   run: |-
-      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      # - id: install-eksctl
-      #   name: Install eksctl
-      #   run: |-
-      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-      #     sudo mv /tmp/eksctl /usr/local/bin
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
 
       - id: setup-cluster-cloudwatch-logging-policy
         name: Setup role required for cluster to log to Cloudwatch
@@ -101,23 +101,23 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      # # Setting up log forwarding for pods hosted in EC2 nodes
-      # - id: create-fluent-bit-namespace
-      #   name: Create namespace for node FluentBit deployment
-      #   run: kubectl -f apply  infra/cluster-logging/node-fluentbit-namespace.yaml
+      # Setting up log forwarding for pods hosted in EC2 nodes
+      - id: create-fluent-bit-namespace
+        name: Create namespace for node FluentBit deployment
+        run: kubectl -f apply infra/cluster-logging/node-fluentbit-namespace.yaml
 
-      # - id: create-service-account-for-node-fluent-bit
-      #   name: Create service account for node FluentBit
-      #   env:
-      #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
-      #   run: |-
-      #     eksctl create iamserviceaccount \
-      #       --name fluent-bit \
-      #       --namespace node-logging \
-      #       --cluster biomage-$CLUSTER_ENV \
-      #       --role-name irsa-fluent-bit-$CLUSTER_ENV \
-      #       --attach-policy-arn $LOGGING_POLICY_ARN \
-      #       --approve
+      - id: create-service-account-for-node-fluent-bit
+        name: Create service account for node FluentBit
+        env:
+          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+        run: |-
+          eksctl create iamserviceaccount \
+            --name fluent-bit \
+            --namespace node-logging \
+            --cluster biomage-$CLUSTER_ENV \
+            --role-name irsa-fluent-bit-$CLUSTER_ENV \
+            --attach-policy-arn $LOGGING_POLICY_ARN \
+            --approve
 
       - id: deploy-node-fluent-bit
         name: Deploy FluentBit for EC2 nodes
@@ -128,11 +128,7 @@ jobs:
           yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
           yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
 
-          echo "AWS_REGION: $AWS_REGION"
-          echo "CLUSTER_ENV: $CLUSTER_ENV"
-          cat infra/cluster-logging/node-fluentbit-config.yaml
-
-          # kubectl -f apply  infra/cluster-logging/node-fluentbit-config.yaml
+          kubectl -f apply  infra/cluster-logging/node-fluentbit-config.yaml
 
       # Setting up log forwarding for pods hosted on Fargate nodes
       - id: attach-pod-execution-role-name
@@ -153,7 +149,7 @@ jobs:
           # aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
 
       - id: deploy-fargate-fluent-bit-config
-        name: Create and deploy FluentBit config for Fargate pods
+        name: Deploy FluentBit config for Fargate pods
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |-
