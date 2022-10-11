@@ -99,6 +99,7 @@ jobs:
           name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
           template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
           no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
       # # Setting up log forwarding for pods hosted in EC2 nodes
       # - id: create-fluent-bit-namespace
