@@ -128,7 +128,6 @@ jobs:
           # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
           # We do not want to log everything for costs/security concerns
 
-          # Using yq4 because yq3 does not have capability to substitute strings inside documents
           yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
           yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
 
@@ -150,13 +149,12 @@ jobs:
 
           aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
 
-      - id: deploy-fargate-fluent-bit-config
+      - id: deploy-fargate-fluent-bit
         name: Deploy FluentBit config for Fargate pods
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |-
           # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
-          # Using yq4 because yq3 does not have capability to substitute strings inside documents
           yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
           yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
 
