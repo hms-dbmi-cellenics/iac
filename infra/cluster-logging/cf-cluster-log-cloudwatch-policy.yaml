@@ -29,10 +29,6 @@ Resources:
               - "logs:CreateLogGroup"
               - "logs:DescribeLogStreams"
               - "logs:PutRetentionPolicy"
-            Resource:
-              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}"
-          - Effect: Allow
-            Action:
               - "logs:PutLogEvents"
             Resource:
-              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}:log-stream:*"
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}*"
