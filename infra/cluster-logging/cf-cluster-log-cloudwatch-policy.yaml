@@ -12,11 +12,16 @@ Parameters:
   PodExecutionRoleName:
     Type: String
 
+Outputs:
+  PolicyARN:
+    Description: ARN of PlatformLogToCloudwatchPolicy
+    Value: !Ref PlatformLogToCloudwatchPolicy
+
 Resources:
-  PlatformLogToCloudwatchRole:
-    Type: "AWS::IAM::Policy"
+  PlatformLogToCloudwatchPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
     Properties:
-      PolicyName: !Sub "platform-log-to-cloudwatch-${Environment}"
+      ManagedPolicyName: !Sub "platform-log-to-cloudwatch-${Environment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
