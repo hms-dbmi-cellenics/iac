@@ -30,7 +30,7 @@ jobs:
 
           if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
           then
-            echo AWS certificate ARN is not defined.
+            echo Datadog API key is not defined.
             ERROR=true
           fi
 
@@ -85,12 +85,12 @@ jobs:
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      - id: get-pod-execution-role
+      - id: get-pod-execution-role-name
         name: Get pod execution role name
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
         run: |-
-          # Get pod execution role ARN for cluster.
+          # Get pod execution role name for cluster.
           # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
           # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
           # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
@@ -105,7 +105,7 @@ jobs:
         name: Setup role required for cluster to log to Cloudwatch
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role.outputs.name }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role-name.outputs.name }}"
           name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
           template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
           no-fail-on-empty-changeset: "1"
