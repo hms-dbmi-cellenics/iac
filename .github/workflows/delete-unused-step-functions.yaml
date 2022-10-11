@@ -8,7 +8,7 @@ env:
   region: ${{ secrets.AWS_REGION }}
 
 jobs:
-  run-e2e:
+  delete-unused-step-functions:
     name: Delete old step functions
     runs-on: ubuntu-20.04
     strategy:
@@ -16,6 +16,11 @@ jobs:
         environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     steps:
+
+      - id: test-error
+        name: Test error
+        run: exit 1
+
       - id: setup-aws
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -78,7 +83,7 @@ jobs:
 
       - id: send-to-slack
         name: Send failure notification to Slack
-        if: failure() && github.ref == 'refs/heads/master'
+        if: failure()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
