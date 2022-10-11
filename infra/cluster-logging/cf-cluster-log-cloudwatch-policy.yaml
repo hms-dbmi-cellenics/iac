@@ -9,8 +9,6 @@ Parameters:
       - staging
       - production
     Description: The environment for which the logs need to be created.
-  PodExecutionRoleName:
-    Type: String
 
 Outputs:
   PolicyARN:
@@ -38,5 +36,3 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}:log-stream:*"
-      Roles:
-        - !Ref PodExecutionRoleName
