@@ -549,24 +549,6 @@ jobs:
               --username $user
           done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
-      - id: setup-datadog-cluster-agent
-        name: Setup Datadog cluster agent
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
-        run: |-
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-          helm upgrade datadog-agent datadog/datadog \
-            -f infra/datadog/cluster-agent-values.yaml \
-            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-            --set datadog.clusterName=biomage-$CLUSTER_ENV \
-            --install
-
-      - id: setup-datadog-sidecar-permissions
-        name: Setup Datadog sidecar permissions
-        if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
-        run: |-
-          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
-
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04

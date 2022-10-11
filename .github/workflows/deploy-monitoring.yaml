@@ -1,4 +1,5 @@
 name: Setup monitoring for a deployment
+
 on:
   workflow_dispatch:
     inputs:
@@ -13,14 +14,142 @@ on:
 
 jobs:
   setup:
-    name: Init new workflow
+    name: Check secrets and set up matrix
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - id: init-workflow
-        name: Dummmy step to enable workflow
+      - id: check-secrets
+        name: Check if necessary secrets are installed.
         run: |-
-          echo New workflow for deployment
+          echo Checking if secrets are defined in the repository.
+
+          if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
+          then
+            echo Datadog API key is not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
+            exit 1
+          fi
+      - id: set-matrix
+        name: Set up cluster matrix
+        run: |-
+          if [ "${CLUSTER}" = "staging" ]; then
+            echo '::set-output name=matrix::["staging"]'
+          elif [ "${CLUSTER}" = "production" ]; then
+            echo '::set-output name=matrix::["production"]'
+          elif [ "${CLUSTER}" = "staging and production" ]; then
+            echo '::set-output name=matrix::["staging", "production"]'
+          fi
+        env:
+          CLUSTER: ${{ github.event.inputs.cluster }}
+
+  deploy-monitoring:
+    name: Setup monitoring for deployment
+    runs-on: ubuntu-20.04
+    needs: [setup]
+    env:
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-name: [Biomage]
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+
+      - id: get-pod-execution-role-name
+        name: Get pod execution role name
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+        run: |-
+          # Get pod execution role name for cluster.
+          # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
+          # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
+          # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
+
+          POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
+            --cluster-name biomage-$CLUSTER_ENV \
+            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+
+          echo "::set-output name=name::$POD_EXEC_ROLE_NAME"
+
+      - id: setup-cluster-cloudwatch-logging-role
+        name: Setup role required for cluster to log to Cloudwatch
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},PodExecutionRoleName=${{ steps.get-pod-execution-role-name.outputs.name }}"
+          name: "cluster-cloudwatch-logging-role-${{ matrix.environment-type }}"
+          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+          no-fail-on-empty-changeset: "1"
+
+      - id: create-and-deploy-fluentbit-config
+        name: Create and deploy FluentBit config
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |-
+          # Using YQ4 because YQ3 does not have capability to substitute strings inside documents
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+
+          kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
+
+      - id: setup-datadog-cluster-agent
+        name: Setup Datadog cluster agent
+        run: |-
+          helm repo add datadog https://helm.datadoghq.com
+          helm repo update
+          helm upgrade datadog-agent datadog/datadog \
+            -f infra/datadog/cluster-agent-values.yaml \
+            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+            --set datadog.clusterName=biomage-$CLUSTER_ENV \
+            --install
+
+      - id: setup-datadog-sidecar-permissions
+        name: Setup Datadog sidecar permissions
+        run: |-
+          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+
+  report-if-failed:
+    name: Report if workflow failed
+    runs-on: ubuntu-20.04
+    needs: [setup, deploy-monitoring]
+    if: failure() && github.ref == 'refs/heads/master'
+    steps:
+      - id: send-to-slack
+        name: Send failure notification to Slack on failure
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: workflow-failures
+          status: FAILED
+          color: danger
