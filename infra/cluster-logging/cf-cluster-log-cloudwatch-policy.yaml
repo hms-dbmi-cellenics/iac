@@ -9,14 +9,17 @@ Parameters:
       - staging
       - production
     Description: The environment for which the logs need to be created.
-  PodExecutionRoleName:
-    Type: String
+
+Outputs:
+  PolicyARN:
+    Description: ARN of PlatformLogToCloudwatchPolicy
+    Value: !Ref PlatformLogToCloudwatchPolicy
 
 Resources:
-  PlatformLogToCloudwatchRole:
-    Type: "AWS::IAM::Policy"
+  PlatformLogToCloudwatchPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
     Properties:
-      PolicyName: !Sub "platform-log-to-cloudwatch-${Environment}"
+      ManagedPolicyName: !Sub "platform-log-to-cloudwatch-${Environment}"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -26,12 +29,6 @@ Resources:
               - "logs:CreateLogGroup"
               - "logs:DescribeLogStreams"
               - "logs:PutRetentionPolicy"
-            Resource:
-              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}"
-          - Effect: Allow
-            Action:
               - "logs:PutLogEvents"
             Resource:
-              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}:log-stream:*"
-      Roles:
-        - !Ref PodExecutionRoleName
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}*"
