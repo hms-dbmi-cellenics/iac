@@ -581,36 +581,18 @@ jobs:
   #             --username $user
   #         done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
 
-  #     - id: setup-datadog-cluster-agent
-  #       name: Setup Datadog cluster agent
-  #       if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
-  #       run: |-
-  #         helm repo add datadog https://helm.datadoghq.com
-  #         helm repo update
-  #         helm upgrade datadog-agent datadog/datadog \
-  #           -f infra/datadog/cluster-agent-values.yaml \
-  #           --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-  #           --set datadog.clusterName=biomage-$CLUSTER_ENV \
-  #           --install
-
-  #     - id: setup-datadog-sidecar-permissions
-  #       name: Setup Datadog sidecar permissions
-  #       if: ${{ steps.platform-monitoring-enabled.outputs.result == 'true'}}
-  #       run: |-
-  #         kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
-
-  # report-if-failed:
-  #   name: Report if workflow failed
-  #   runs-on: ubuntu-20.04
-  #   needs: [setup, create-eks-cluster, configure-cluster]
-  #   if: failure() && github.ref == 'refs/heads/master'
-  #   steps:
-  #     - id: send-to-slack
-  #       name: Send failure notification to Slack on failure
-  #       env:
-  #         SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
-  #       uses: voxmedia/github-action-slack-notify-build@v1
-  #       with:
-  #         channel: pipelines
-  #         status: FAILED
-  #         color: danger
+  report-if-failed:
+    name: Report if workflow failed
+    runs-on: ubuntu-20.04
+    needs: [setup, create-eks-cluster, configure-cluster]
+    if: failure() && github.ref == 'refs/heads/master'
+    steps:
+      - id: send-to-slack
+        name: Send failure notification to Slack on failure
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: workflow-failures
+          status: FAILED
+          color: danger
