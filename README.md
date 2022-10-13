@@ -168,7 +168,7 @@ environment, etc.
 The setup required to use a Relational Data Management GUI as part of your development.
 
 #### 1. Install a GUI
-Most people use either TablePlus or pgAdmin. Use either of them, or feel free to use a different one,
+Our developers are currently using [pgAdmin](https://www.pgadmin.org/), [TablePlus](https://tableplus.com/), or [DBeaver](https://dbeaver.io/). Use either of them, or feel free to use a different one.
 if you have preference.
 
 #### 2. Configure the GUI
