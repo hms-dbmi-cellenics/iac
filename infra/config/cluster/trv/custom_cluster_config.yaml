@@ -23,6 +23,7 @@ fargateProfiles:
     subnets:
       - subnet-0dcb4e46405522916
       - subnet-05b2d2c3c63feed96
+
   - name: pipeline-default
     subnets:
       - subnet-0dcb4e46405522916
