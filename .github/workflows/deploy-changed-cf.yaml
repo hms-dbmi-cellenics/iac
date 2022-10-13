@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [trv]
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -148,20 +148,15 @@ jobs:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
     needs: [setup, get-modified-templates, lint-templates]
-    if: github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
     strategy:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [trv]
+        environment-name: [Biomage]
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
-          - environment-name: Biomage
-            environment-type: production
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -233,12 +228,7 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [trv]
-        exclude:
-          - environment-name: trv
-            environment-type: staging
-          - environment-name: Biomage
-            environment-type: production
+        environment-name: [Biomage]
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
