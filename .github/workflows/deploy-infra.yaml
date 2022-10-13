@@ -540,6 +540,7 @@ jobs:
             --username state-machine-runner
 
       # see https://eksctl.io/usage/iam-identity-mappings/
+      # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
