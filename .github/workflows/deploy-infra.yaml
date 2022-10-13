@@ -132,9 +132,6 @@ jobs:
           ' infra/config/cluster/cluster-template.yaml
           
           export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
-          echo "this is a test"
-          echo ${CUSTOM_CLUSTER_CONFIG}
-          echo "this is a test"
           yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
         env:
