@@ -20,7 +20,10 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage]
+        environment-name: [Biomage, trv]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -60,7 +63,10 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage]
+        environment-name: [Biomage, trv]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
