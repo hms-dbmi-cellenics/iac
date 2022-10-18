@@ -129,9 +129,10 @@ jobs:
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
             .metadata.region = strenv(AWS_REGION)
-          ' infra/cluster.yaml
+          ' infra/config/cluster/cluster-template.yaml
           
-          cp infra/cluster.yaml /tmp/cluster-$CLUSTER_ENV.yaml
+          export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
+          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -534,10 +535,11 @@ jobs:
             --username state-machine-runner
 
       # see https://eksctl.io/usage/iam-identity-mappings/
+      # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          echo "Reading cluster rights from file: infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
+          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
           while IFS= read -r user
           do
             echo "Adding cluster admin rights to $user"
@@ -546,7 +548,7 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
+          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
 
   report-if-failed:
     name: Report if workflow failed
