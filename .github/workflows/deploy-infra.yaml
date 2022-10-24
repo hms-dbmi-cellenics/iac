@@ -1,4 +1,4 @@
-name: Deploy Biomage infrastructure on AWS
+name: Deploy Cellenics infrastructure on AWS
 on:
   workflow_dispatch:
     inputs:
