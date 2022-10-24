@@ -144,7 +144,8 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        # if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        if: ${{ github.event.inputs.with-rds == 'True' }}
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -165,7 +166,8 @@ jobs:
           keys-as-outputs: true
 
       - id: setup-rds-roles
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        # if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        if: ${{ github.event.inputs.with-rds == 'True' }}
         name: Setup RDS roles
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
