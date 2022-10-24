@@ -60,8 +60,9 @@ Resources:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: password
         PasswordLength: 32
-        ExcludePunctuation: True
-        IncludeSpace: False
+        ExcludePunctuation: true
+        RequireEachIncludedType: false
+        IncludeSpace: false
 
   RDSInvokeLambdaRole:
     Type: "AWS::IAM::Role"
