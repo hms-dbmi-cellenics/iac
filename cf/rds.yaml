@@ -60,8 +60,7 @@ Resources:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: password
         PasswordLength: 32
-        ExcludePunctuation: true
-        RequireEachIncludedType: false
+        ExcludeCharacters: "/@\"'\\!#$%&()*+,-.:;<=>?[]^_`{|}~ "
         IncludeSpace: false
 
   RDSInvokeLambdaRole:
