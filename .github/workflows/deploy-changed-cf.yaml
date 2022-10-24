@@ -282,7 +282,9 @@ jobs:
             echo "Can not connect to RDS agent: No instances found for $CLUSTER_ENV"
             exit 1
           fi
+
           CLUSTER_NAME=aurora-cluster-${CLUSTER_ENV}-default
+
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
             --db-cluster-identifier $CLUSTER_NAME \
@@ -293,6 +295,13 @@ jobs:
             echo "Failed getting RDS host with name $CLUSTER_NAME"
             exit 1
           fi
+
+          ENSURE_PSQL_INSTALLED_COMMAND="sudo yum -y install postgresql"
+
+          aws ssm send-command --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --parameters "commands='$ENSURE_PSQL_INSTALLED_COMMAND'"
+
           SETUP_ROLES_CMD="
             PGPASSWORD=\'${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD}\' psql \
               --host=${RDSHOST} \
