@@ -59,7 +59,7 @@ Resources:
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: password
-        PasswordLength: 24
+        PasswordLength: 32
         ExcludePunctuation: true
         IncludeSpace: false
 
@@ -110,7 +110,6 @@ Resources:
           Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"
         VpcSecurityGroupIds:
           Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"
-      RotateImmediatelyOnUpdate: false
       RotationRules:
         Duration: 2h
         ScheduleExpression: 'cron(0 8 1 * ? *)'
