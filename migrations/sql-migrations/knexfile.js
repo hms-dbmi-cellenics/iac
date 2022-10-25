@@ -24,7 +24,7 @@ module.exports = async (env, inputSandboxId) => {
   const sandboxId = inputSandboxId || process.env.SANDBOX_ID;
   const region = process.env.REGION || 'eu-west-1';
 
-  if (!sandboxId) {
+  if (environment !== 'development' && !sandboxId) {
     throw new Error("Please specify the sandboxId by using the SANDBOX_ID environment variable");
   }
 
