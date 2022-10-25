@@ -9,6 +9,14 @@ Parameters:
       - staging
       - production
     Description: The environment for which the Load Balancer needs to be created.
+  PublicFacing:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Whether the platform should be accessed via the public internet or not. Defines what type of ALB to deploy
+
+Conditions:
+  isPublic: !Equals [!Ref PublicFacing, "true"]
 
 Resources: 
   LoadBalancer:
@@ -19,7 +27,7 @@ Resources:
         - Key: routing.http2.enabled
           Value: "true"
       Name: !Sub "k8s-${Environment}"
-      Scheme: internet-facing
+      Scheme: !If [isPublic, "internet-facing", "internal"]
       Subnets: 
         Fn::Split:
           - ','

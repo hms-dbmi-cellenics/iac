@@ -4,9 +4,7 @@ on:
     branches:
       - master
     paths:
-      - 'infra/cluster_admins_*'
-      - 'infra/cluster_users'
-      - 'infra/biomage-read-only-group/**'
+      - 'infra/config/cluster/*'
       - 'infra/cf-state-machine-role.yaml'
 env:
   region: ${{ secrets.AWS_REGION }}
@@ -22,7 +20,10 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage]
+        environment-name: [Biomage, trv]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -62,7 +63,10 @@ jobs:
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment: [Biomage]
+        environment-name: [Biomage, trv]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -136,18 +140,18 @@ jobs:
             --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
             --group state-machine-runner-group \
             --username state-machine-runner
-
+      
       # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          echo "Reading cluster rights from file: infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
-          for user in $(cat "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV")
+          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+          while IFS= read -r user
           do
             echo "Adding cluster admin rights to $user"
             eksctl create iamidentitymapping \
               --cluster=biomage-$CLUSTER_ENV \
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
-              --username ${user##*/}
-          done
+              --username $user
+          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"

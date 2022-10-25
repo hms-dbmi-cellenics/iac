@@ -1,0 +1,8 @@
+Biomage:
+  fluxGitReadOnly: false
+  publicFacing: true
+  monitoringEnabled: true
+trv:
+  fluxGitReadOnly: true
+  publicFacing: false
+  monitoringEnabled: false
