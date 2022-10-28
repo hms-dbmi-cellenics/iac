@@ -23,9 +23,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment: [HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -66,9 +63,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment: [HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}

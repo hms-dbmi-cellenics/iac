@@ -1,4 +1,4 @@
-name: Deploy Biomage infrastructure on AWS
+name: Deploy Cellenics infrastructure on AWS
 on:
   workflow_dispatch:
     inputs:
@@ -14,7 +14,8 @@ on:
         description: Select cluster
         options:
         - production
-        default: production
+        - staging
+        default: staging
 env:
   RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
@@ -105,9 +106,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
@@ -199,9 +197,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
         environment-name: [HMS]
-        exclude:
-          - environment-name: HMS
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -238,13 +233,16 @@ jobs:
           if [ "${{ matrix.environment-type }}" = "production" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN }}"
           fi
           if [ "${{ matrix.environment-type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME_STAGING }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+            ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN_STAGING }}"
           fi
           echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
+          echo "::set-output name=acm-certificate-arn::$ACM_CERTIFICATE_ARN"
 
       - id: install-yq
         name: Install yq for modifying the deployment spec.
@@ -257,7 +255,7 @@ jobs:
           yq w -d0 infra/account-config.yaml myAccount.domainName --style=double "$DOMAIN_NAME" \
           | yq w -d0 - myAccount.region --style=double "$AWS_REGION" \
           | yq w -d0 - myAccount.accountId --style=double "$AWS_ACCOUNT_ID" \
-          | yq w -d0 - myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN}}" \
+          | yq w -d0 - myAccount.acmCertificate --style=double "$ACM_CERTIFICATE_ARN" \
           > infra/account-config.yaml
 
           cat infra/account-config.yaml
@@ -265,12 +263,13 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
+          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
         continue-on-error: false
         run: |-
-          kubectl create configmap account-config --from-file=infra/account-config.yaml -n flux -o yaml --dry-run | kubectl replace -f -
+          kubectl create configmap account-config --from-file=infra/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
 
       - id: install-fluxctl
         name: Install fluxctl
@@ -311,6 +310,8 @@ jobs:
       - id: install-lbc
         name: Deploy AWS Load Balancer Controller
         uses: nick-invision/retry@v2
+        env:
+            ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
         with:
           timeout_seconds: 600
           max_attempts: 20
@@ -334,7 +335,7 @@ jobs:
             helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
               --namespace default \
               --set clusterEnv=$CLUSTER_ENV \
-              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
+              --set acmCertificate=$ACM_CERTIFICATE_ARN \
               --install --wait
 
       - id: deploy-env-loadbalancer
