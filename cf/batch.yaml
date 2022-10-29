@@ -6,7 +6,6 @@ Parameters:
     Type: String
     Default: development
     AllowedValues:
-      - development
       - staging
       - production
 
@@ -53,6 +52,9 @@ Resources:
           - Rscript
           - init.R
         Image: !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-${Environment}"
-        Vcpus: 2
-        Memory: 8192 # MiB
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 2
+          - Type: MEMORY
+            Value: 8192 # MiB
       Type: Container
