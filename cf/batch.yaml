@@ -6,6 +6,7 @@ Parameters:
     Type: String
     Default: development
     AllowedValues:
+      - development
       - staging
       - production
 
