@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
+        environment-type: [staging, production]
         environment-name: [Biomage, trv]
         exclude:
           - environment-name: trv
