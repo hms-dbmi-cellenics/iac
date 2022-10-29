@@ -159,6 +159,6 @@ Resources:
               - Effect: Allow
                 Action:
                   - "batch:SubmitJob"
-                Resource: # TODO: restrict more the job-definitions / Qs
-                  - "arn:aws:batch:*:242905224710:job-definition/*:*"
-                  - "arn:aws:batch:*:242905224710:job-queue/*"
+                Resource:
+                  - !Sub "arn:aws:batch:*:242905224710:job-definition/job-pipeline-${Environment}"
+                  - !Sub "arn:aws:batch:*:242905224710:job-queue/queue-pipeline-${Environment}"
