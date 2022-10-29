@@ -116,6 +116,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
+
         - PolicyName: !Sub "can-modify-object-tags-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -125,6 +126,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}/*"
+
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -132,6 +134,7 @@ Resources:
               - Effect: Allow
                 Action: "sns:Publish"
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
+
         - PolicyName: !Sub "can-get-work-and-report-results-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -148,4 +151,14 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
-                  
+
+        - PolicyName: !Sub "can-submit-batch-jobs-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "batch:SubmitJob"
+                Resource:
+                  - !Sub "arn:aws:batch:*:242905224710:job-definition/job-pipeline-${Environment}"
+                  - !Sub "arn:aws:batch:*:242905224710:job-queue/queue-pipeline-${Environment}"
