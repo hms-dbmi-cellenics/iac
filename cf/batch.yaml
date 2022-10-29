@@ -14,7 +14,7 @@ Resources:
   BatchComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
-      ComputeEnvironmentName: !Sub "batch-compute-env-${Environment}"
+      ComputeEnvironmentName: !Sub "compute-env-${Environment}"
       State:  ENABLED
       Type: MANAGED
       ComputeResources:
@@ -37,22 +37,22 @@ Resources:
     Type: AWS::Batch::JobQueue
     DependsOn: BatchComputeEnvironment
     Properties:
-      JobQueueName: !Sub "batch-joq-queue-${Environment}"
+      JobQueueName: !Sub "queue-pipeline-${Environment}"
       Priority: 1
       ComputeEnvironmentOrder:
-        - ComputeEnvironment: !Sub "batch-compute-env-${Environment}"
+        - ComputeEnvironment: !Sub "compute-env-${Environment}"
           Order: 1
       State: ENABLED
 
   BatchPipelineJob:
     Type: AWS::Batch::JobDefinition
     Properties:
-      JobDefinitionName: !Sub "batch-job-definition-pipeline-${Environment}"
+      JobDefinitionName: !Sub "job-pipeline-${Environment}"
       ContainerProperties:
         Command:
           - Rscript
           - init.R
-        Image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:no-entrypoint.1
+        Image: !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-${Environment}"
         Vcpus: 2
         Memory: 8192 # MiB
       Type: Container
