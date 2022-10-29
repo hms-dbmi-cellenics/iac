@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up AWS Batch for pipelines
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+
+Resources:
+  BatchComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName: !Sub "pipeline-${Environment}"
+      State:  ENABLED
+      Type: MANAGED
+      ComputeResources:
+        Type: EC2
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        MinvCpus: 0
+        DesiredvCpus: 0
+        MaxvCpus: 128
+        InstanceRole: arn:aws:iam::242905224710:instance-profile/ecsInstanceRole
+        InstanceTypes:
+          - optimal
+        SecurityGroupIds:
+          - sg-60b63017
+        Subnets:
+          - subnet-5c7c3a3a
+          - subnet-60085928
+          - subnet-5337b709
