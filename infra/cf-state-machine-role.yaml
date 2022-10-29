@@ -52,7 +52,7 @@ Resources:
                 Action: "sns:Publish"
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
 
-        - PolicyName: !Sub "can-submit-batch-job-${Environment}"
+        - PolicyName: !Sub "can-submit-job-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
