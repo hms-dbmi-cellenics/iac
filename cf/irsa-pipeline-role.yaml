@@ -153,3 +153,10 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
+
+Outputs:
+  PipelineRole:
+    Description: The role the pipeline instance runs with
+    Value: !Ref PipelineRole
+    Export:
+      Name: !Sub 'pipeline-${Environment}::Role'
