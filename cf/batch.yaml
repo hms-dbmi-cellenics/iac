@@ -23,8 +23,7 @@ Resources:
         MinvCpus: 0
         DesiredvCpus: 0
         MaxvCpus: 128
-        InstanceRole:
-          Fn::ImportValue: !Sub pipeline-${Environment}::Role
+        InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
         InstanceTypes:
           - optimal
         SecurityGroupIds:
