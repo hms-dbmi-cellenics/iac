@@ -41,7 +41,7 @@ Resources:
           }
       Path: /
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
       Policies:
         - PolicyName: !Sub "can-list-objects-in-source-buckets-${Environment}"
           PolicyDocument:

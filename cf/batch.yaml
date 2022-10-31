@@ -23,7 +23,8 @@ Resources:
         MinvCpus: 0
         DesiredvCpus: 0
         MaxvCpus: 128
-        InstanceRole: arn:aws:iam::242905224710:instance-profile/ecsInstanceRole
+        InstanceRole:
+          Fn::ImportValue: !Sub pipeline-${Environment}::Role
         InstanceTypes:
           - optimal
         SecurityGroupIds:
