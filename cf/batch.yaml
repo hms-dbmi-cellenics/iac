@@ -24,15 +24,12 @@ Resources:
         MinvCpus: 0
         DesiredvCpus: 0
         MaxvCpus: 128
-        InstanceRole: arn:aws:iam::242905224710:instance-profile/ecsInstanceRole
+        InstanceRole: !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/ecsInstanceRole" # change this role
         InstanceTypes:
           - optimal
         SecurityGroupIds:
-          - sg-60b63017
-        Subnets:
-          - subnet-5c7c3a3a
-          - subnet-60085928
-          - subnet-5337b709
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
+        Subnets: Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
 
   BatchJobQueue:
     Type: AWS::Batch::JobQueue
