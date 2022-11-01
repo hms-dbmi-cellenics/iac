@@ -24,7 +24,7 @@ Resources:
         MinvCpus: 0
         DesiredvCpus: 0
         MaxvCpus: 128
-        InstanceRole: !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/ecsInstanceRole" # change this role
+        InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
         InstanceTypes:
           - optimal
         SecurityGroupIds:

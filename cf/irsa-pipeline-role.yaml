@@ -16,6 +16,12 @@ Parameters:
     Description: The OIDC provider
 
 Resources:
+  PipelineProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub "pipeline-instance-profile-${Environment}"
+      Roles: 
+        - !Ref PipelineRole
   PipelineRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -36,10 +42,19 @@ Resources:
                     "${OIDCProvider}:sub": "system:serviceaccount:pipeline-*:deployment-runner"
                   }
                 }
+              },
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
               }
             ]
           }
       Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
       Policies:
         - PolicyName: !Sub "can-list-objects-in-source-buckets-${Environment}"
           PolicyDocument:
