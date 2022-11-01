@@ -42,6 +42,13 @@ Resources:
                     "${OIDCProvider}:sub": "system:serviceaccount:pipeline-*:deployment-runner"
                   }
                 }
+              },
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
               }
             ]
           }
