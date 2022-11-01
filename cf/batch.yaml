@@ -17,6 +17,7 @@ Resources:
       ComputeEnvironmentName: !Sub "compute-env-${Environment}"
       State:  ENABLED
       Type: MANAGED
+      ReplaceComputeEnvironment: false
       ComputeResources:
         Type: EC2
         AllocationStrategy: BEST_FIT_PROGRESSIVE
