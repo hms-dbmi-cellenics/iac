@@ -265,7 +265,7 @@ jobs:
       - id: install-fluxctl
         name: Install fluxctl
         run: |-
-          sudo snap install fluxctl --classic
+          sudo wget https://github.com/fluxcd/flux/releases/download/1.25.4/fluxctl_linux_amd64 -O /usr/local/bin/fluxctl && sudo chmod +x /usr/local/bin/fluxctl
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
