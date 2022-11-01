@@ -28,11 +28,9 @@ Resources:
         InstanceTypes:
           - optimal
         SecurityGroupIds:
-          - sg-60b63017
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
         Subnets:
-          - subnet-5c7c3a3a
-          - subnet-60085928
-          - subnet-5337b709
+          Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
 
   BatchJobQueue:
     Type: AWS::Batch::JobQueue
