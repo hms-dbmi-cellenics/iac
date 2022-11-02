@@ -32,3 +32,10 @@ spec:
                 name: response-503
                 port:
                   name: use-annotation
+          - path: /v2/seuratResults
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: response-503
+                port:
+                  name: use-annotation
