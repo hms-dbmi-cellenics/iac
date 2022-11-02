@@ -9,7 +9,6 @@ https://aws.amazon.com/premiumsupport/knowledge-center/sns-subscribe-private-htt
 Its deployment is done manually. When deploying, put in the same VPC where EKS.
 Put the lambda only in PRIVATE subnets. See more details on why here:
 https://stackoverflow.com/questions/52992085/why-cant-an-aws-lambda-function-inside-a-public-subnet-in-a-vpc-connect-to-the
-
 """
 def lambda_handler(event, context):
     print("EVENT: ", event)
@@ -21,10 +20,8 @@ def lambda_handler(event, context):
     url = ""
     
     if sns_message_payload["MessageAttributes"]["type"]["Value"] == "PipelineResponse":
-        # url = "https://api-default.scp-staging.biomage.net/v2/pipelineResults"
         url = "https://api.cellenics.apps.flaretx.com/v2/pipelineResults"
     elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "GEM2SResponse":
-        # url = "https://api-default.scp-staging.biomage.net/v2/gem2sResults"
         url = "https://api.cellenics.apps.flaretx.com/v2/gem2sResults"
 
     print("[ENDPOINT CALLED] ", url)
