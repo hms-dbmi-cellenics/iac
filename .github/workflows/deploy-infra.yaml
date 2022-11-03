@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage]
+        environment-name: [Biomage, trv]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -106,7 +106,10 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment-name: [Biomage, trv]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'deploy and configure'
     steps:
@@ -122,16 +125,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: install-yq
-        name: Install yq for modifying the eksctl yaml spec.
-        run: |-
-          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          yq w infra/cluster.yaml metadata.name "biomage-$CLUSTER_ENV" | yq w - metadata.region ${{ secrets.AWS_REGION }} > /tmp/cluster-$CLUSTER_ENV.yaml
+          export CLUSTER_NAME="biomage-$CLUSTER_ENV"
+          yq -i '
+            .metadata.name = strenv(CLUSTER_NAME) |
+            .metadata.region = strenv(AWS_REGION)
+          ' infra/config/cluster/cluster-template.yaml
+          
+          export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
+          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
 
       - id: install-eksctl
         name: Install eksctl
@@ -197,7 +204,10 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment-name: [Biomage, trv]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -242,11 +252,6 @@ jobs:
           echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
 
-      - id: install-yq
-        name: Install yq for modifying the deployment spec.
-        run: |-
-          sudo wget https://github.com/mikefarah/yq/releases/download/3.4.1/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
-
       - id: platform-monitoring-enabled
         name: Get config for whether monitoring should be enabled for deployment
         uses: mikefarah/yq@master
@@ -257,29 +262,30 @@ jobs:
 
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
+        run: |-
+          yq -i '
+            .myAccount.domainName = strenv(DOMAIN_NAME) |
+            .myAccount.region = strenv(AWS_REGION) |
+            .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
+            .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
+            .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
+            .myAccount.datadogApiKey = ""
+          ' infra/config/account-config.yaml
+
+          if [[ $MONITORING_ENABLED = "true" ]]
+          then
+            export API_KEY="${{ secrets.DATADOG_API_KEY }}"
+            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
+          fi
+
+          cat infra/config/account-config.yaml
+
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
-        run: |-
-          CONFIG_FILE="infra/config/account-config.yaml"
-
-          yq w -d0 -i $CONFIG_FILE myAccount.domainName --style=double "$DOMAIN_NAME"
-          yq w -d0 -i $CONFIG_FILE myAccount.region --style=double "$AWS_REGION"
-          yq w -d0 -i $CONFIG_FILE myAccount.accountId --style=double "$AWS_ACCOUNT_ID"
-          yq w -d0 -i $CONFIG_FILE myAccount.acmCertificate --style=double "${{ secrets.ACM_CERTIFICATE_ARN }}"
-          yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "false"
-          yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double ""
-
-          if [[ $MONITORING_ENABLED = "true" ]]
-          then
-            yq w -d0 -i $CONFIG_FILE myAccount.datadogEnabled --style=double "true"
-            yq w -d0 -i $CONFIG_FILE myAccount.datadogApiKey --style=double "${{ secrets.DATADOG_API_KEY }}"
-          fi
-
-          cat $CONFIG_FILE
 
       - id: create-account-information-configmap
         name: Create a configmap containing AWS account specific details
@@ -535,10 +541,11 @@ jobs:
             --username state-machine-runner
 
       # see https://eksctl.io/usage/iam-identity-mappings/
+      # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          echo "Reading cluster rights from file: infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
+          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
           while IFS= read -r user
           do
             echo "Adding cluster admin rights to $user"
@@ -547,7 +554,7 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/cluster-access/${{matrix.environment-name}}/cluster_admins_$CLUSTER_ENV"
+          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
 
   report-if-failed:
     name: Report if workflow failed

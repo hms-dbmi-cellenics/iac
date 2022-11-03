@@ -43,6 +43,7 @@ Resources:
                   - "dynamodb:PutItem"
                 Resource:
                   - '*'
+
         - PolicyName: !Sub "can-publish-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -50,6 +51,17 @@ Resources:
               - Effect: Allow
                 Action: "sns:Publish"
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
+
+        - PolicyName: !Sub "can-submit-job-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "batch:SubmitJob"
+                Resource:
+                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job-definition/job-pipeline-${Environment}"
+                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job-queue/queue-pipeline-${Environment}"
 
 Outputs:
   Arn:

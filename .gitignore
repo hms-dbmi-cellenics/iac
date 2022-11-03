@@ -1,2 +1,6 @@
 .DS_Store
 .vscode
+*.txt
+*.json
+*.log
+*.csv

@@ -24,6 +24,8 @@ iam:
       attachPolicyARNs:
       - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
+# if you add or remove items under managedNodeGroups, make sure you update customized cluster
+# config for each of the Github environments under infra/config/cluster
 managedNodeGroups:
   - name: nodegroup-post-scaling-x86-v2
     instanceType: r5.large
@@ -36,6 +38,8 @@ managedNodeGroups:
         ebs: true
         autoScaler: true
 
+# if you add or remove items under fargateProfiles, make sure you update customized cluster
+# config for each of the Github environments under infra/config/cluster
 fargateProfiles:
   - name: worker-default
     selectors:
