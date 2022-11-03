@@ -17,6 +17,7 @@ Parameters:
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
+  isStaging: !Equals [!Ref Environment, "staging"]
 
 Resources:
   UserPoolClientCluster:
@@ -31,7 +32,9 @@ Resources:
             !If [ isProd,
               !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
               !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-          ]]
+          ],
+        - !If [ isStaging, "http://localhost:5000/data-management"]
+        ]
       AllowedOAuthFlows:
         - 'code'
       AllowedOAuthScopes:
