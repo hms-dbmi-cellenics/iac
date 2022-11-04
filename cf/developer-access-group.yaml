@@ -194,6 +194,7 @@ Resources:
                   - "support:DescribeAttachment"
                   - "support:AddCommunicationToCase"
                   - "support:DescribeCommunications"
+                  - "support:DescribeCaseAttributes"
                   - "support:DescribeServices"
                   - "support:DescribeSupportLevel"
                   - "support:DescribeSeverityLevels"
