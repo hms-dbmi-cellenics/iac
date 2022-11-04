@@ -14,6 +14,7 @@ def lambda_handler(event, context):
     print("EVENT: ", event)
     sns_message_payload = event["Records"][0]["Sns"]
 
+
     experiment_id = json.loads(sns_message_payload["Message"])["experimentId"]
     print("[experimentId] ", experiment_id)
 
@@ -25,8 +26,12 @@ def lambda_handler(event, context):
         url = "https://api.cellenics.apps.flaretx.com/v2/gem2sResults"
 
     print("[ENDPOINT CALLED] ", url)
-
+    
     sns_message_headers = {
+        "x-amz-sns-message-id": sns_message_payload['MessageId'],
+        "x-amz-sns-message-type": sns_message_payload["Type"],
+        "x-amz-sns-subscription-arn" : event["Records"][0]["EventSubscriptionArn"],
+        "x-amz-sns-topic-arn" : sns_message_payload["TopicArn"],
         "Content-Type": "text/plain",
         'Connection':'close'
     }
