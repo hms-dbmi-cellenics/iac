@@ -262,20 +262,22 @@ jobs:
           user_email: ci@biomage.net
           user_name: 'Biomage CI/CD'
 
-      - id: install-fluxctl
-        name: Install fluxctl
-        run: |-
-          sudo snap install fluxctl --classic
+# Disabled all flux-related changes because flux v1 doesn't seem to be supported anymore, 
+# we have to migrate to v2 asap but until then commenting out should keep this workflow working
+      # - id: install-fluxctl
+      #   name: Install fluxctl
+      #   run: |-
+      #     sudo snap install fluxctl --classic
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
         run: |-
           aws eks update-kubeconfig --name biomage-staging
 
-      - id: update-flux-namespace
-        name: Update flux staging
-        run: |-
-          fluxctl sync --k8s-fwd-ns flux --context arn:aws:eks:${{ env.region }}:${{ steps.setup-aws.outputs.aws-account-id }}:cluster/biomage-staging
+      # - id: update-flux-namespace
+      #   name: Update flux staging
+      #   run: |-
+      #     fluxctl sync --k8s-fwd-ns flux --context arn:aws:eks:${{ env.region }}:${{ steps.setup-aws.outputs.aws-account-id }}:cluster/biomage-staging
 
       - id: cleanup-pipeline-fargate-profile-if-failure
         name: Remove Fargate profile for the pipelines
