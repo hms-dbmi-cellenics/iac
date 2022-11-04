@@ -44,8 +44,7 @@ Resources:
         - 'openid'
         - 'aws.cognito.signin.user.admin'
         - 'profile'
-      DefaultRedirectURI: 
-        - !Sub ["${BaseUrl}/data-management", BaseUrl:
+      DefaultRedirectURI: !Sub ["${BaseUrl}/data-management", BaseUrl:
             !If [ isProd,
               !Sub ["https://${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
               !Sub ["https://ui-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
