@@ -35,6 +35,8 @@ serviceAccount:
 ingress:
   tls:
     enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
 
 livenessProbe:
   path: "/"
