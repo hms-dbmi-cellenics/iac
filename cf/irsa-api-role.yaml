@@ -232,7 +232,7 @@ Resources:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}-*"
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
-        - PolicyName: "can-manage-batch-jobs"
+        - PolicyName: "can-delete-batch-jobs"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -241,7 +241,7 @@ Resources:
                   - "batch:TerminateJob"
                   - "batch:CancelJob"
                 Resource:
-                  - !Sub "Resource": "arn:aws:batch:*:${AWS::AccountId}:job/${Environment}-*"
+                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job/${Environment}-*"
               - Effect: Allow
                 Action:
                   - "batch:ListJobs"
