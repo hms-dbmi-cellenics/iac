@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Cognito app client to use with the programmatic interface
+
+Parameters:
+  Environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - production
+    Description: The environment for which the app client need to be created.
+
+Resources:
+  ProgrammaticInterfaceClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "biomage-programmatic-client-${Environment}"
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: False
+      PreventUserExistenceErrors: LEGACY
+      UserPoolId:
+        Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolId"
