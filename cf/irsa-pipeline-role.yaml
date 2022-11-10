@@ -81,7 +81,7 @@ Resources:
                   - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}"
-
+ 
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
