@@ -232,11 +232,11 @@ jobs:
         run: |-
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-      # - id: create-flux-namespace
-      #   name: Attempt to create flux namespace
-      #   continue-on-error: true
-      #   run: |-
-      #     kubectl create namespace flux
+      - id: create-flux-namespace
+        name: Attempt to create flux namespace
+        continue-on-error: true
+        run: |-
+          kubectl create namespace flux
 
       - id: setup-domain
         name: Compile environment-specific domain name
@@ -287,11 +287,11 @@ jobs:
           ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
 
-      # - id: create-account-information-configmap
-      #   name: Create a configmap containing AWS account specific details
-      #   continue-on-error: false
-      #   run: |-
-      #     kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
+      - id: create-account-information-configmap
+        name: Create a configmap containing AWS account specific details
+        continue-on-error: false
+        run: |-
+          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
 
       # - id: install-fluxctl
       #   name: Install fluxctl
