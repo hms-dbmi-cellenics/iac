@@ -19,8 +19,6 @@ def lambda_handler(event, context):
 
     if message_body.get("experimentId"):
         print("[experimentId] ", message_body.get("experimentId"))
-    else:
-        print("Kubernetes event")
 
     url = ""
 
