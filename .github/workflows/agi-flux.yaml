@@ -1,0 +1,247 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-flux
+  name: ui-agi-flux
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: ui
+  namespace: ui-agi-flux
+spec:
+  interval: 5m0s
+  ref:
+    branch: master
+  url: https://github.com/biomage-org/iac
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-87-merge-*
+  labels:
+    sandboxId: agi-flux
+  name: ui
+  namespace: ui-agi-flux
+spec:
+  chart:
+    spec:
+      chart: charts/nodejs
+      sourceRef:
+        kind: GitRepository
+        name: ui
+        namespace: ui-agi-flux
+  interval: 2m0s
+  releaseName: ui
+  values:
+    biomageCi:
+      repo: biomage-org/ui
+      sandboxId: agi-flux
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: ui
+      tag: refs-pull-87-merge-fa625c3aade7be578b048dbd33c4497cd738e3a1
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /robots.txt
+      periodSeconds: 30
+    readinessProbe:
+      command:
+      - echo
+      - '0'
+      probeType: exec
+    replicaCount: 1
+    service:
+      additionalHosts: false
+    serviceAccount:
+      iamRole: ui-role-staging
+  valuesFrom:
+  - key: account-config.yaml
+    kind: ConfigMap
+    name: account-config
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-flux
+  name: api-agi-flux
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: api
+  namespace: api-agi-flux
+spec:
+  interval: 5m0s
+  ref:
+    branch: master
+  url: https://github.com/biomage-org/iac
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/chart-image: glob:refs-pull-39-merge-*
+  labels:
+    sandboxId: agi-flux
+    test: make-it-reconcile
+  name: api
+  namespace: api-agi-flux
+spec:
+  chart:
+    spec:
+      chart: charts/nodejs
+      sourceRef:
+        kind: GitRepository
+        name: api
+        namespace: api-agi-flux
+  interval: 2m0s
+  releaseName: api
+  values:
+    biomageCi:
+      rdsSandboxId: default
+      repo: biomage-org/api
+      sandboxId: agi-flux
+    hpa:
+      enabled: false
+    image:
+      registry: 242905224710.dkr.ecr.eu-west-1.amazonaws.com
+      repository: api
+      tag: refs-pull-39-merge-fb3ef0ccc6791e9dbb535dffc955662ab49b2871
+    kubernetes:
+      env: staging
+    livenessProbe:
+      probeType: tcpSocket
+    loadBalancerHealthCheck:
+      path: /v2/health
+    readinessProbe:
+      path: /v2/health
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 100m
+    service:
+      externalPort: 3000
+      internalPort: 3000
+    serviceAccount:
+      iamRole: api-role-staging
+  valuesFrom:
+  - key: account-config.yaml
+    kind: ConfigMap
+    name: account-config
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-flux
+  name: worker-agi-flux
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: worker
+  namespace: worker-agi-flux
+spec:
+  interval: 5m0s
+  ref:
+    branch: flux-v2-migration
+  url: https://github.com/biomage-org/worker
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/python: glob:refs-pull-41-merge-*-python
+    filter.fluxcd.io/r: glob:refs-pull-41-merge-*-r
+  labels:
+    sandboxId: agi-flux
+  name: worker
+  namespace: worker-agi-flux
+spec:
+  chart:
+    spec:
+      chart: chart-infra/
+      sourceRef:
+        kind: GitRepository
+        name: worker
+        namespace: worker-agi-flux
+  interval: 2m0s
+  releaseName: worker
+  values:
+    datadogTags: kube_namespace:worker-agi-flux
+    kubernetes:
+      env: staging
+    python:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-41-merge-b78c3709e6bb5e952c541a0028b31f8db953f419-python
+    r:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/worker:refs-pull-41-merge-b78c3709e6bb5e952c541a0028b31f8db953f419-r
+      memoryRequest: 4Gi
+    replicaCount: 0
+    sandboxId: agi-flux
+    serviceAccount:
+      iamRole: worker-role-staging
+  valuesFrom:
+  - kind: ConfigMap
+    name: account-config
+    optional: false
+    key: account-config.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    sandboxId: agi-flux
+  name: pipeline-agi-flux
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: pipeline
+  namespace: pipeline-agi-flux
+spec:
+  interval: 5m0s
+  ref:
+    branch: flux-v2-migration
+  url: https://github.com/biomage-org/pipeline
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  annotations:
+    filter.fluxcd.io/pipelineRunner: glob:refs-pull-59-merge-*-pipeline-runner
+  labels:
+    sandboxId: agi-flux
+  name: pipeline
+  namespace: pipeline-agi-flux
+spec:
+  chart:
+    spec:
+      chart: chart-infra/
+      sourceRef:
+        kind: GitRepository
+        name: pipeline
+        namespace: pipeline-agi-flux
+  interval: 2m0s
+  releaseName: pipeline
+  values:
+    clusterEnv: staging
+    datadogTags: kube_namespace:pipeline-agi-flux
+    memoryRequest: 4Gi
+    pipelineRunner:
+      image: 242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:refs-pull-59-merge-3e7be73b7ff805ca11fcead23788ba0ff4d70cd4-pipeline-runner
+    replicaCount: 0
+    sandboxId: agi-flux
+    serviceAccount:
+      iamRole: pipeline-role-staging
+  valuesFrom:
+  - kind: ConfigMap
+    name: account-config
+    optional: false
+    key: account-config.yaml

@@ -2,6 +2,14 @@ name: Deploy Biomage infrastructure on AWS
 on:
   workflow_dispatch:
     inputs:
+      environment_name:
+        type: choice
+        description: Select the environment name to run the actions on
+        options:
+          - trv
+          - Biomage
+          - all
+        default: all
       workflow_actions:
         type: choice
         description: Select actions to perform
@@ -9,9 +17,9 @@ on:
         - deploy and configure
         - configure
         default: configure
-      cluster:
+      environment_type:
         type: choice
-        description: Select cluster
+        description: Select environment type
         options:
         - staging
         - production
@@ -25,57 +33,83 @@ env:
 concurrency: cluster-update-mutex
 
 jobs:
-  setup:
-    name: Check secrets and set up matrix
+  set-environments:
+    name: Set up environment name and environment type for action run
     runs-on: ubuntu-20.04
+    outputs:
+      env_type: ${{ steps.set-env-type.outputs.env_type }}
+      env_name: ${{ steps.set-env-name.outputs.env_name }}
+    steps:
+      - id: set-env-type
+        name: Set up environment type
+        run: |-
+          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
+            echo 'env_type=["staging"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
+            echo 'env_type=["production"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
+            echo 'env_type=["staging", "production"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+          ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
+      - id: set-env-name
+        name: Set up environment name
+        run: |-
+          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
+            echo 'env_name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
+            echo 'env_name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
+            echo 'env_name=["Biomage"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+          ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+
+  check-secrets:
+    name: Check that sufficient secrets are specified for environment name
+    runs-on: ubuntu-20.04
+    needs: set-environments
     strategy:
       matrix:
-        environment-name: [Biomage, trv]
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env_name) }}
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - id: check-secrets
+      - id: check-secrets-for-environment
         name: Check if necessary secrets are installed.
         run: |-
           echo Checking if secrets are defined in the repository.
-
           if [ -z "${{ secrets.ACM_CERTIFICATE_ARN}}" ]
           then
             echo AWS certificate ARN is not defined.
             ERROR=true
           fi
-
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
             echo AWS Access Key ID not defined.
             ERROR=true
           fi
-
           if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
           then
             echo AWS Secret Access Key not defined.
             ERROR=true
           fi
-
           if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
           then
             echo GitHub deploy key access token not defined.
             ERROR=true
           fi
-
           if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ]
           then
             echo Secret PRIMARY_DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
-
           if [ -z "${{ secrets.DOMAIN_NAME }}" ]
           then
             echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
-
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -83,30 +117,18 @@ jobs:
             echo Please make they are created by adding/rotating them manually.
             exit 1
           fi
-      - id: set-matrix
-        name: Set up cluster matrix
-        run: |-
-          if [ "${CLUSTER}" = "staging" ]; then
-            echo '::set-output name=matrix::["staging"]'
-          elif [ "${CLUSTER}" = "production" ]; then
-            echo '::set-output name=matrix::["production"]'
-          elif [ "${CLUSTER}" = "staging and production" ]; then
-            echo '::set-output name=matrix::["staging", "production"]'
-          fi
-        env:
-          CLUSTER: ${{ github.event.inputs.cluster }}
 
   create-eks-cluster:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
-    needs: setup
+    needs: [set-environments, check-secrets]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, trv]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env_type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env_name) }}
         exclude:
           - environment-name: trv
             environment-type: staging
@@ -195,7 +217,7 @@ jobs:
   configure-cluster:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
-    needs: [setup, create-eks-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster]
     if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -203,8 +225,8 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, trv]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env_type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env_name) }}
         exclude:
           - environment-name: trv
             environment-type: staging
@@ -561,7 +583,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [setup, create-eks-cluster, configure-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
