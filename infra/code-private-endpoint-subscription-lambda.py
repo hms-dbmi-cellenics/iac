@@ -38,9 +38,10 @@ def lambda_handler(event, context):
     }
 
     if message_body.get("reason") == "BackOff":
+        # url = "https://api-default.scp-staging.biomage.net/v2/kubernetesEvents"
+        url = "https://api.cellenics.apps.flaretx.com/v2/kubernetesEvents"
         data = message_body
         headers = application_json_headers
-        url = "https://api.cellenics.apps.flaretx.com/v2/kubernetesEvents"
     elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "PipelineResponse":
         # url = "https://api-default.scp-staging.biomage.net/v2/pipelineResults"
         url = "https://api.cellenics.apps.flaretx.com/v2/pipelineResults"
