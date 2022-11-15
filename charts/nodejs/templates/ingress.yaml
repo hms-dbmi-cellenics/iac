@@ -12,9 +12,6 @@ metadata:
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 
   annotations:
-{{- if .Values.ingress.annotations }}
-{{ toYaml .Values.ingress.annotations | indent 4 }}
-{{- end }}
 {{- if .Values.ingress.tls.enabled }}
     alb.ingress.kubernetes.io/actions.ssl-redirect: >-
       {"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port":
