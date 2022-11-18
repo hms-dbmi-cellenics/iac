@@ -97,7 +97,7 @@ data:
         log_retention_days 3
         log_key log
         log_group_name /platform-logs/CI_CLUSTER_ENV
-        log_stream_name $(kubernetes['namespace_name'])/$(kubernetes['container_name'])/$(kubernetes['pod_name'])
+        log_stream_name $(kubernetes['namespace_name'])
   flb_log_cw: 'false'
   fluent-bit.conf: |
     [SERVICE]
