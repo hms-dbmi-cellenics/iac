@@ -29,6 +29,7 @@ metadata:
     alb.ingress.kubernetes.io/healthy-threshold-count: "{{ .Values.loadBalancerHealthCheck.successThreshold }}"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "{{ .Values.loadBalancerHealthCheck.failureThreshold }}"
     alb.ingress.kubernetes.io/group.name: {{ .Values.kubernetes.env }}
+    alb.ingress.kubernetes.io/target-type: ip
 spec:
   rules:
   - host: {{ template "hostname" . }}
