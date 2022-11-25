@@ -41,13 +41,11 @@ def lambda_handler(event, context):
         data = message_body
         headers = application_json_headers
     elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "PipelineResponse":
-        # url = "https://api-default.scp-staging.biomage.net/v2/pipelineResults"
-        url = "https://api.cellenics.apps.flaretx.com/v2/pipelineResults"
+        url = f"{message_body.get('apiUrl')}/v2/pipelineResults"
         data = sns_message_payload
         headers = sns_message_headers
     elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "GEM2SResponse":
-        # url = "https://api-default.scp-staging.biomage.net/v2/gem2sResults"
-        url = "https://api.cellenics.apps.flaretx.com/v2/gem2sResults"
+        url = f"{message_body.get('apiUrl')}/v2/gem2sResults"
         data = sns_message_payload
         headers = sns_message_headers
 
