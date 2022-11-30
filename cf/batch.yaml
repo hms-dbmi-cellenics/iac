@@ -26,7 +26,12 @@ Resources:
         MaxvCpus: 128
         InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
         InstanceTypes:
-          - optimal
+          - r6i.xlarge
+          - r6i.2xlarge
+          - r6i.4xlarge
+          - r6i.8xlarge
+          - r6i.12xlarge
+          - r6i.16xlarge
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
         Subnets:
