@@ -282,7 +282,7 @@ jobs:
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
-      - id: is-self-signed-certificate
+      - id: using-self-signed-certificate
         name: Get config for whether deployment is using self-signed certificate
         uses: mikefarah/yq@master
         with:
@@ -316,7 +316,7 @@ jobs:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-          SELF_SIGNED_CERTIFICATE: ${{ steps.is-self-signed-certificate.outputs.result }}
+          SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
 
       - id: create-account-information-configmap
