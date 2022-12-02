@@ -2,7 +2,9 @@ Biomage:
   fluxGitReadOnly: false
   publicFacing: true
   monitoringEnabled: true
+  selfSignedCertificate: false
 trv:
   fluxGitReadOnly: true
   publicFacing: false
   monitoringEnabled: false
+  selfSignedCertificate: true
