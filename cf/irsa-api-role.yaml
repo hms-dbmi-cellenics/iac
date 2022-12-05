@@ -241,7 +241,7 @@ Resources:
                   - "batch:TerminateJob"
                   - "batch:CancelJob"
                 Resource:
-                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job/${Environment}-*"
+                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job/*"
               - Effect: Allow
                 Action:
                   - "batch:ListJobs"
