@@ -100,4 +100,3 @@ Resources:
       FilterPolicy:
         type:
           - SeuratResponse
-
