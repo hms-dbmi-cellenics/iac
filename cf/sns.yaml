@@ -78,26 +78,4 @@ Resources:
       FilterPolicy:
         type:
           - GEM2SResponse
-  SeuratResultsSubscriptionV2:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref SNSTopicV2
-      Endpoint: !Sub [ "${BaseUrl}/v2/seuratResults", BaseUrl: !If [
-                        isDev, "http://host.docker.internal:3000", !If [
-                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - SeuratResponse
 
