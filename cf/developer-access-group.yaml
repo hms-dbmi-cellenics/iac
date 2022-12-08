@@ -226,6 +226,5 @@ Resources:
                   - "batch:DescribeSchedulingPolicies"
                   - "batch:ListJobs"
                   - "batch:ListSchedulingPolicies"
-                  - "batch:ListTagsForResource"
                 Resource:
-                  - "*""
+                  - "*"
