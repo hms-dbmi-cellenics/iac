@@ -164,6 +164,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:pipeline-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-gem2s-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-subset-${Environment}-*"
 
         - PolicyName: !Sub "can-stop-execution-${Environment}"
           PolicyDocument:
