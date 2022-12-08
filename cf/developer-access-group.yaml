@@ -33,7 +33,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 'sqs:*'
+                Action: "sqs:*"
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
 
         - PolicyName: "access-to-cloudwatch"
@@ -71,7 +71,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 'sns:*'
+                Action: "sns:*"
                 Resource:
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
                   - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:cloudwatch-alarms-{Environment}"
@@ -82,7 +82,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 'eks:DescribeCluster'
+                Action: "eks:DescribeCluster"
                 Resource: !Sub "arn:aws:eks:${AWS::Region}:${AWS::AccountId}:cluster/biomage-${Environment}"
 
         - PolicyName: !Sub "can-manage-${Environment}-elasticache"
@@ -90,7 +90,7 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: 'elasticache:*'
+                Action: "elasticache:*"
                 Resource: !Sub "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:biomage-redis-${Environment}"
 
         - PolicyName: !Sub "can-create-${Environment}-cognito-environments"
@@ -100,7 +100,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
 
         - PolicyName: "can-manage-own-password-and-mfa"
@@ -170,14 +170,14 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:user/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
-        
+
         - PolicyName: "can-upload-cf-templates"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - 's3:PutObject'
+                  - "s3:PutObject"
                 Resource:
                   - "arn:aws:s3:::cf-templates-*"
 
@@ -208,7 +208,24 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - 's3:PutObject'
+                  - "s3:PutObject"
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
+
+        - PolicyName: "can-list-and-describe-batch-resources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "batch:DescribeComputeEnvironments"
+                  - "batch:DescribeJobs"
+                  - "batch:DescribeJobDefinitions"
+                  - "batch:DescribeJobQueues"
+                  - "batch:DescribeSchedulingPolicies"
+                  - "batch:ListJobs"
+                  - "batch:ListSchedulingPolicies"
+                  - "batch:ListTagsForResource"
+                Resource:
+                  - "*""
