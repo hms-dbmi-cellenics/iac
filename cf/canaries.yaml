@@ -13,6 +13,7 @@ Parameters:
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
+  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Resources:
   CanariesBucketV2:
@@ -24,6 +25,11 @@ Resources:
         BlockPublicPolicy: True
         IgnorePublicAcls: True
         RestrictPublicBuckets: True
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeletionRule
+            Status: "Enabled"
+            ExpirationInDays: 5
   CanaryExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -181,7 +187,7 @@ Resources:
             !Sub ["https://ui-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]
       SuccessRetentionPeriod: 2
-      RuntimeVersion: syn-nodejs-puppeteer-3.3
+      RuntimeVersion: syn-nodejs-puppeteer-3.6
       Schedule:
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
@@ -227,7 +233,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: "alex_pickering@hms.harvard.edu"
+      Endpoint: !If [isHMSAccount, "alex_pickering@hms.harvard.edu", "engineering@biomage.net"]
       Protocol: "email"
 
   CanariesAlarm:

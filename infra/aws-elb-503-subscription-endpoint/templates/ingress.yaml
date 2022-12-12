@@ -11,7 +11,6 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/group.order: '1000'
-    alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/actions.response-503: >
       {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"503","messageBody":"The subscription endpoint is not available yet."}}
 spec:

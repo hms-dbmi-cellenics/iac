@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up SNS topics for Cellenics [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up SNS topics for Cellenics [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:

@@ -36,7 +36,6 @@ ingress:
   tls:
     enabled: true
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
 
 livenessProbe:
@@ -101,7 +100,7 @@ networkPolicy:
 # SHOULD BE FILLED IN BY THE CI SYSTEM
 biomageCi:
   ref: refs-heads-master
-  repo: hms-dbmi-cellenics/ui
+  repo: biomage-org/ui
   sandboxId: default
   rdsSandboxId: default
 

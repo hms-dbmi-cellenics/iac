@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up role for the worker [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up role for the worker [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -48,10 +48,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:ListBucket"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}"
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}"
@@ -68,10 +64,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:GetObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
@@ -92,7 +84,6 @@ Resources:
                   - "s3:PutObject"
                   - "s3:PutObjectTagging"
                 Resource:
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
         - PolicyName: !Sub "can-read-from-worker-queue-${Environment}"
@@ -113,3 +104,4 @@ Resources:
                 Action: "elasticache:DescribeReplicationGroups"
                 Resource:
                   - !Sub "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:biomage-redis-${Environment}"
+

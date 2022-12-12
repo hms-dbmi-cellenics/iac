@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up role for the API [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up role for the API [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -73,12 +73,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:GetObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
-                  - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
-                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
@@ -99,8 +93,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:PutObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
@@ -113,7 +105,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:GetObjectTagging"
                 Resource:
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
 
@@ -124,10 +115,8 @@ Resources:
               - Effect: Allow
                 Action: "s3:DeleteObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
 
@@ -138,7 +127,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:ListBucket"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}"
 
@@ -246,3 +234,18 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}-*"
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+
+        - PolicyName: "can-delete-batch-jobs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "batch:TerminateJob"
+                  - "batch:CancelJob"
+                Resource:
+                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job/*"
+              - Effect: Allow
+                Action:
+                  - "batch:ListJobs"
+                Resource: '*'

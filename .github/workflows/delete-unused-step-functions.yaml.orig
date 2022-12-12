@@ -1,0 +1,80 @@
+name: Delete old step functions
+
+on:
+  schedule:
+    - cron:  '20 4 * * *'
+  workflow_dispatch:
+env:
+  region: ${{ secrets.AWS_REGION }}
+
+jobs:
+  delete-unused-step-functions:
+    name: Delete old step functions
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+<<<<<<< HEAD
+        environment-name: [HMS]
+=======
+        environment-name: [Biomage]
+>>>>>>> biomage/master
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+
+      # If the step functions list is too close to its limit,
+      # this will remove the 500 older step functions.
+      - id: remove-old-state-machines
+        name: Remove old step functions
+        run: |-
+          threshold=500
+
+          state_machines_list=$(aws stepfunctions list-state-machines --output text)
+          count=$(echo $state_machines_list | wc -l)
+          too_close_to_theshold=$(($count > 10000 - $threshold))
+
+          if test $too_close_to_theshold
+          then
+            echo $state_machines_list \
+              | sort -k2 \
+              | head -n -$threshold \
+              | awk '{print $4}' \
+              | xargs -I {} aws stepfunctions delete-state-machine --activity-arn {}
+          fi
+
+      # If the activities list is too close to its limit,
+      # this will remove the 500 older activities.
+      - id: remove-old-activities
+        name: Remove old activities
+        run: |-
+          threshold=500
+
+          activities_list=$(aws stepfunctions list-activities --output text)
+          count=$(echo $activities_list | wc -l)
+          too_close_to_theshold=$(($count > 10000 - $threshold))
+
+          if test $too_close_to_theshold
+          then
+            echo $activities_list \
+              | sort -k2 \
+              | head -n -$threshold \
+              | awk '{print $2}' \
+              | xargs -I {} aws stepfunctions delete-activity --activity-arn {}
+          fi
+
+      - id: send-to-slack
+        name: Send failure notification to Slack
+        if: failure() && github.ref == 'refs/heads/master'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: workflow-failures
+          status: FAILED
+          color: danger

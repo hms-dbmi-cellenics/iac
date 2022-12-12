@@ -1,0 +1,6 @@
+Biomage:
+  publicFacing: true
+  monitoringEnabled: true
+trv:
+  publicFacing: false
+  monitoringEnabled: false

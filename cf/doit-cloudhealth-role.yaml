@@ -1,0 +1,130 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a cross account role for CloudHealth Billing Platform
+  (used by DoiT)
+Outputs:
+  RoleARN:
+    Description: CloudHealth IAM policy - for more details go to https://help.doit-intl.com/amazon-web-services/set-up-cloudhealth
+    Value:
+      Fn::GetAtt:
+      - CloudHealthRole
+      - Arn
+Parameters:
+  ExternalID:
+    Description: The External ID (provided to you by DoiT) that will be required to
+      assume the role
+    MinLength: '1'
+    Type: String
+Resources:
+  CloudHealthRole:
+    Properties:
+      RoleName: CloudHealth
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Condition:
+            StringEquals:
+              sts:ExternalId:
+                Ref: ExternalID
+          Effect: Allow
+          Principal:
+            AWS: arn:aws:iam::454464851268:root
+          Sid: ''
+        Version: '2012-10-17'
+      Path: "/"
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - autoscaling:Describe*
+            - aws-portal:ViewBilling
+            - aws-portal:ViewUsage
+            - cloudformation:ListStacks
+            - cloudformation:ListStackResources
+            - cloudformation:DescribeStacks
+            - cloudformation:DescribeStackEvents
+            - cloudformation:DescribeStackResources
+            - cloudformation:GetTemplate
+            - cloudfront:Get*
+            - cloudfront:List*
+            - cloudtrail:DescribeTrails
+            - cloudtrail:GetEventSelectors
+            - cloudtrail:ListTags
+            - cloudwatch:Describe*
+            - cloudwatch:Get*
+            - cloudwatch:List*
+            - config:Get*
+            - config:Describe*
+            - config:Deliver*
+            - config:List*
+            - cur:Describe*
+            - dms:Describe*
+            - dms:List*
+            - dynamodb:DescribeTable
+            - dynamodb:List*
+            - ec2:Describe*
+            - ec2:GetReservedInstancesExchangeQuote
+            - ecs:List*
+            - ecs:Describe*
+            - elasticache:Describe*
+            - elasticache:ListTagsForResource
+            - elasticbeanstalk:Check*
+            - elasticbeanstalk:Describe*
+            - elasticbeanstalk:List*
+            - elasticbeanstalk:RequestEnvironmentInfo
+            - elasticbeanstalk:RetrieveEnvironmentInfo
+            - elasticfilesystem:Describe*
+            - elasticloadbalancing:Describe*
+            - elasticmapreduce:Describe*
+            - elasticmapreduce:List*
+            - es:List*
+            - es:Describe*
+            - firehose:ListDeliveryStreams
+            - firehose:DescribeDeliveryStream
+            - firehose:ListTagsForDeliveryStream
+            - iam:List*
+            - iam:Get*
+            - iam:GenerateCredentialReport
+            - kinesis:Describe*
+            - kinesis:List*
+            - kms:DescribeKey
+            - kms:GetKeyRotationStatus
+            - kms:ListKeys
+            - lambda:List*
+            - logs:Describe*
+            - organizations:ListAccounts
+            - organizations:ListTagsForResource
+            - organizations:DescribeOrganization
+            - redshift:Describe*
+            - route53:Get*
+            - route53:List*
+            - rds:Describe*
+            - rds:ListTagsForResource
+            - s3:GetBucketAcl
+            - s3:GetBucketLocation
+            - s3:GetBucketLogging
+            - s3:GetBucketPolicyStatus
+            - s3:GetBucketPublicAccessBlock
+            - s3:GetAccountPublicAccessBlock
+            - s3:GetBucketTagging
+            - s3:GetBucketVersioning
+            - s3:GetBucketWebsite
+            - s3:List*
+            - sagemaker:Describe*
+            - sagemaker:List*
+            - savingsplans:DescribeSavingsPlans
+            - sdb:GetAttributes
+            - sdb:List*
+            - ses:Get*
+            - ses:List*
+            - sns:Get*
+            - sns:List*
+            - sqs:GetQueueAttributes
+            - sqs:ListQueues
+            - storagegateway:List*
+            - storagegateway:Describe*
+            - workspaces:Describe*
+            Resource: "*"
+          Version: '2012-10-17'
+        PolicyName: CloudHealth
+    Type: AWS::IAM::Role
