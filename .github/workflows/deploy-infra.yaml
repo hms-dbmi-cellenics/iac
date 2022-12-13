@@ -441,6 +441,7 @@ jobs:
             .myAccount.domainName = strenv(DOMAIN_NAME) |
             .myAccount.region = strenv(AWS_REGION) |
             .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
+            .myAccount.publicFacing = strenv(PUBLIC_FACING) |
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
             .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
             .myAccount.datadogApiKey = ""
@@ -457,6 +458,7 @@ jobs:
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
+          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
 
       - id: create-flux-namespace
         name: Attempt to create flux namespace
