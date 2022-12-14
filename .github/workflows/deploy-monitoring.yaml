@@ -163,32 +163,32 @@ jobs:
 
       - id: test-if-statement-1
         name: Testing if statement Cloudwatch
-        if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+        if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
         run: |-
           echo "Running for Cloudwatch"
 
       - id: test-if-statement-2
-        if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
+        if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
         name: Testing if statement Datadog
         run: |-
           echo "Running for Datadog"
 
       # - id: add-kubeconfig
       #   name: Add k8s config file for existing cluster.
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   run: |-
       #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
       # - id: install-eksctl
       #   name: Install eksctl
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   run: |-
       #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
       #     sudo mv /tmp/eksctl /usr/local/bin
 
       # - id: setup-cluster-cloudwatch-logging-policy
       #   name: Setup permissions required for cluster to log to Cloudwatch
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
       #   with:
       #     parameter-overrides: "Environment=${{ matrix.environment-type }}"
@@ -200,12 +200,12 @@ jobs:
       # # Setting up log forwarding for pods hosted in EC2 nodes
       # - id: create-fluent-bit-namespace
       #   name: Create namespace for node FluentBit deployment
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
 
       # - id: create-service-account-for-node-fluent-bit
       #   name: Create service account for node FluentBit
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   env:
       #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
       #   run: |-
@@ -220,7 +220,7 @@ jobs:
 
       # - id: deploy-node-fluent-bit
       #   name: Deploy FluentBit for EC2 nodes
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   env:
       #     AWS_REGION: ${{ secrets.AWS_REGION }}
       #   run: |
@@ -235,7 +235,7 @@ jobs:
       # # Setting up log forwarding for pods hosted on Fargate nodes
       # - id: attach-pod-execution-role-name
       #   name: Attach logging policy to pod execution role
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   env:
       #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
       #   run: |-
@@ -251,7 +251,7 @@ jobs:
 
       # - id: deploy-fargate-fluent-bit
       #   name: Deploy FluentBit config for Fargate pods
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
       #   env:
       #     AWS_REGION: ${{ secrets.AWS_REGION }}
       #   run: |-
@@ -264,7 +264,7 @@ jobs:
       # # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
       # - id: setup-datadog-cluster-agent
       #   name: Setup Datadog cluster agent
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
       #   run: |-
       #     helm repo add datadog https://helm.datadoghq.com
       #     helm repo update
@@ -276,7 +276,7 @@ jobs:
 
       # - id: setup-datadog-sidecar-permissions
       #   name: Setup Datadog sidecar permissions
-      #   if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
+      #   if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
       #   run: |-
       #     kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
