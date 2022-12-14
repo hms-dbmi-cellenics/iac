@@ -161,10 +161,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: test-deployment
-        name: Setting up
+      - id: test-if-statement-1
+        name: Testing if statement Cloudwatch
+        if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
         run: |-
-          echo "Deploying clusters for ${{ matrix.environment-name }} - $CLUSTER_ENV"
+          echo "Running for Cloudwatch"
+
+      - id: test-if-statement-2
+        if: {{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
+        name: Testing if statement Datadog
+        run: |-
+          echo "Running for Datadog"
 
       # - id: add-kubeconfig
       #   name: Add k8s config file for existing cluster.
