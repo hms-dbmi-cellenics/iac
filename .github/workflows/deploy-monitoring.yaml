@@ -276,7 +276,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [setup, deploy-monitoring]
+    needs: [set-environments, check-secrets, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
