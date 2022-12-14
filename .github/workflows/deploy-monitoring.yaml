@@ -11,7 +11,7 @@ on:
           - Biomage
           - all
         default: all
-      deployment_option:
+      monitoring_option:
         type: choice
         description: Select the monitoring to configure
         options:
@@ -114,7 +114,7 @@ jobs:
 
       - id: check-datadog-secrets
         name: Check if necessary Datadog secrets are installed.
-        if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
+        if: ${{ inputs.monitoring_option == 'all' || inputs.monitoring_option == 'Datadog' }}
         run: |-
           echo Checking if Datadog secrets are defined in the repository.
 
@@ -135,7 +135,7 @@ jobs:
   deploy-cloudwatch-monitoring:
     name: Setup Cloudwatch monitoring for deployment
     runs-on: ubuntu-20.04
-    if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Cloudwatch' }}
+    if: ${{ inputs.monitoring_option == 'all' || inputs.monitoring_option == 'Cloudwatch' }}
     needs: [set-environments, check-secrets]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -245,7 +245,7 @@ jobs:
   deploy-datadog-monitoring:
     name: Setup Datadog monitoring for deployment
     runs-on: ubuntu-20.04
-    if: ${{ inputs.deployment_option == 'all' || inputs.deployment_option == 'Datadog' }}
+    if: ${{ inputs.monitoring_option == 'all' || inputs.monitoring_option == 'Datadog' }}
     needs: [set-environments, check-secrets]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
