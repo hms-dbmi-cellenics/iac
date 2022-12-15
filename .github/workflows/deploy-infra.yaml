@@ -312,13 +312,13 @@ jobs:
       - id: install-elb-503-subscription-endpoint
         name: Install ELB 503 subscription endpoint
         run: |-
+            echo "value of publicFacing: $PUBLIC_FACING"
+
             # Check that publicFacing is set to true or false
             if [ "$PUBLIC_FACING" != "true" ] && [ "$PUBLIC_FACING" != "false" ]; then
               echo "value of publicFacing in infra/config/github-environments-config.yaml is not set to true or false"
               exit 1
             fi
-
-            echo "value of publicFacing: $PUBLIC_FACING"
 
             # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
             # API staging environments because their endpoints are not yet available.
@@ -330,11 +330,6 @@ jobs:
               --install --wait
         env:
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
-
-      - id: this-step-should-not-run-if-fail
-        name: Step should not run
-        run: |-
-          echo "This step should not run"
 
       # - id: deploy-env-loadbalancer
       #   name: Deploy AWS Application Load Balancer for environment
