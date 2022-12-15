@@ -313,7 +313,7 @@ jobs:
         name: Install ELB 503 subscription endpoint
         run: |-
             # Check that publicFacing is set to true or false
-            if [ "$PUBLIC_FACING" != "true" || "$PUBLIC_FACING" != "false" ]; then
+            if [ "$PUBLIC_FACING" != "true" ] || [ "$PUBLIC_FACING" != "false" ]; then
               echo "value of publicFacing in infra/config/github-environments-config.yaml is not set to true or false"
               exit 1
             fi
