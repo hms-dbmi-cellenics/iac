@@ -1,5 +1,5 @@
 Biomage:
-  publicFacing: true
+  publicFacing: testValue
   monitoringEnabled: true
 trv:
   publicFacing: false
