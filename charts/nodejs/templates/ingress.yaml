@@ -23,7 +23,7 @@ metadata:
 {{- end }}
 {{- if eq .Values.myAccount.publicFacing "true" }}
     alb.ingress.kubernetes.io/scheme: internet-facing
-{{- else }}
+{{- else if eq .Values.myAccount.publicFacing "false" }}
     alb.ingress.kubernetes.io/scheme: internal
 {{- end }}
     alb.ingress.kubernetes.io/success-codes: {{ .Values.loadBalancerHealthCheck.successCodes }}
