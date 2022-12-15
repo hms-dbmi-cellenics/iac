@@ -279,9 +279,9 @@ jobs:
             --override-existing-serviceaccounts \
             --approve
 
-      we need to retry this due to an active issue with the AWS Load Balancer Controller
-      where there are intermittent failures that are only fixable by retrying
-      see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
+      # we need to retry this due to an active issue with the AWS Load Balancer Controller
+      # where there are intermittent failures that are only fixable by retrying
+      # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
       - id: install-lbc
         name: Deploy AWS Load Balancer Controller
         uses: nick-invision/retry@v2
@@ -354,6 +354,8 @@ jobs:
           echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
 
+      # This is commented out because running Route53 for trv is still causing an error.
+      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
       # - id: deploy-route53
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
