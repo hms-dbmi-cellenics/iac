@@ -272,6 +272,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+
       # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
