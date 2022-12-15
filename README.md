@@ -124,6 +124,8 @@ This is automatically configured for the charts in this repository.
 Read more about this here:
 - https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
 - https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
+- https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/
+- https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/
 
 **Important**: When the cluster is (re)deployed, there may be a delay in the DNS changes propagating to all hosts on
 the internet. If redeploying the infrastructure to another region, **make sure the old deployment still exists**.
