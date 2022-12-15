@@ -327,7 +327,7 @@ jobs:
               --set publicFacing=$PUBLIC_FACING \
               --install --wait
         env:
-          PUBLIC_FACING=${{ steps.platform-public-facing.outputs.result }}
+          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
 
       # - id: deploy-env-loadbalancer
       #   name: Deploy AWS Application Load Balancer for environment
