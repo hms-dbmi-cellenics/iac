@@ -324,7 +324,7 @@ jobs:
               --namespace default \
               --set clusterEnv=$CLUSTER_ENV \
               --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
-              --set publicFacing="true" \
+              --set-string publicFacing="$PUBLIC_FACING" \
               --install --wait
         env:
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
