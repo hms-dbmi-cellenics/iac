@@ -3,4 +3,4 @@ Biomage:
   monitoringEnabled: true
 trv:
   publicFacing: false
-  monitoringEnabled: false
+  monitoringEnabled: true
