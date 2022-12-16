@@ -100,7 +100,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/ui-auth-user-role-${Environment}"
 
         - PolicyName: "can-manage-own-password-and-mfa"
@@ -170,7 +170,7 @@ Resources:
                   - !Sub "arn:aws:iam::${AWS::AccountId}:user/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
                   - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
-        
+
         - PolicyName: "can-upload-cf-templates"
           PolicyDocument:
             Version: "2012-10-17"
@@ -212,3 +212,19 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
+
+        - PolicyName: "can-list-and-describe-batch-resources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "batch:DescribeComputeEnvironments"
+                  - "batch:DescribeJobs"
+                  - "batch:DescribeJobDefinitions"
+                  - "batch:DescribeJobQueues"
+                  - "batch:DescribeSchedulingPolicies"
+                  - "batch:ListJobs"
+                  - "batch:ListSchedulingPolicies"
+                Resource:
+                  - "*"

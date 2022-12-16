@@ -14,19 +14,17 @@ on:
         type: choice
         description: Select actions to perform
         options:
-        - deploy and configure
-        - configure
+          - deploy and configure
+          - configure
         default: configure
       environment_type:
         type: choice
         description: Select environment type
         options:
-        - staging
-        - production
-        - staging and production
+          - staging
+          - production
+          - staging and production
         default: staging
-env:
-  RELEASES_REPOSITORY: $GITHUB_REPOSITORY_OWNER/releases
 
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
@@ -155,7 +153,7 @@ jobs:
             .metadata.name = strenv(CLUSTER_NAME) |
             .metadata.region = strenv(AWS_REGION)
           ' infra/config/cluster/cluster-template.yaml
-          
+
           export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
           yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
@@ -179,6 +177,7 @@ jobs:
 
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
           echo "::set-output name=outcome::created"
+
       - id: check-for-failure
         name: Check for reason of failure if cluster creation failed.
         if: steps.create-clusters.outcome == 'failure'
@@ -254,82 +253,6 @@ jobs:
         run: |-
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-      - id: create-flux-namespace
-        name: Attempt to create flux namespace
-        continue-on-error: true
-        run: |-
-          kubectl create namespace flux
-
-      - id: setup-domain
-        name: Compile environment-specific domain name
-        run: |-
-          if [ "${{ matrix.environment-type }}" = "production" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-          fi
-          if [ "${{ matrix.environment-type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
-          fi
-          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-          echo "::set-output name=domain-name::$DOMAIN_NAME"
-
-      - id: platform-monitoring-enabled
-        name: Get config for whether monitoring should be enabled for deployment
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
-      - id: using-self-signed-certificate
-        name: Get config for whether deployment is using self-signed certificate
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
-      - id: fill-account-specific-metadata
-        name: Fill in account specific metadata in ConfigMap
-        run: |-
-          yq -i '
-            .myAccount.domainName = strenv(DOMAIN_NAME) |
-            .myAccount.region = strenv(AWS_REGION) |
-            .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
-            .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
-            .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
-            .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
-            .myAccount.datadogApiKey = ""
-          ' infra/config/account-config.yaml
-
-          if [[ $MONITORING_ENABLED = "true" ]]
-          then
-            export API_KEY="${{ secrets.DATADOG_API_KEY }}"
-            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
-          fi
-
-          cat infra/config/account-config.yaml
-
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-          SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
-          MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
-
-      - id: create-account-information-configmap
-        name: Create a configmap containing AWS account specific details
-        continue-on-error: false
-        run: |-
-          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux -o yaml --dry-run | kubectl apply -f -
-
-      # - id: install-fluxctl
-      #   name: Install fluxctl
-      #   run: |-
-      #     sudo snap install fluxctl --classic
-
       - id: install-helm
         name: Install Helm
         run: |-
@@ -345,11 +268,9 @@ jobs:
         name: Deploy permissions for AWS load balancer controller
         run: |-
           curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
-
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --policy-document file://iam-policy.json || true
-
           eksctl create iamserviceaccount \
             --cluster=biomage-$CLUSTER_ENV \
             --namespace=kube-system \
@@ -372,22 +293,12 @@ jobs:
           command: |-
             helm repo add eks https://aws.github.io/eks-charts
             kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
-
             helm repo update
-
             helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
               --namespace kube-system \
               --set serviceAccount.create=false \
               --set serviceAccount.name=aws-load-balancer-controller \
               --set clusterName=biomage-$CLUSTER_ENV \
-              --install --wait
-
-            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-            # API staging environments because their endpoints are not yet available.
-            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-              --namespace default \
-              --set clusterEnv=$CLUSTER_ENV \
-              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
               --install --wait
 
       - id: platform-public-facing
@@ -398,6 +309,28 @@ jobs:
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
+      - id: install-elb-503-subscription-endpoint
+        name: Install ELB 503 subscription endpoint
+        run: |-
+            echo "value of publicFacing: $PUBLIC_FACING"
+
+            # Check that publicFacing is set to true or false
+            if [ "$PUBLIC_FACING" != "true" ] && [ "$PUBLIC_FACING" != "false" ]; then
+              echo "value of publicFacing in infra/config/github-environments-config.yaml is not set to true or false"
+              exit 1
+            fi
+
+            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+            # API staging environments because their endpoints are not yet available.
+            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+              --namespace default \
+              --set clusterEnv=$CLUSTER_ENV \
+              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
+              --set-string publicFacing="$PUBLIC_FACING" \
+              --install --wait
+        env:
+          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
+
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -407,112 +340,30 @@ jobs:
           template: 'infra/cf-loadbalancer.yaml'
           no-fail-on-empty-changeset: "1"
 
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-          name: "biomage-alb-route53-${{ matrix.environment-type }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
+      - id: setup-domain
+        name: Compile environment-specific domain name
+        run: |-
+          if [ "${{ matrix.environment-type }}" = "production" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+          fi
+          if [ "${{ matrix.environment-type }}" = "staging" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+          fi
+          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
+          echo "::set-output name=domain-name::$DOMAIN_NAME"
 
-      # - id: flux-git-read-only
-      #   name: Get Flux mode
-      #   uses: mikefarah/yq@master
+      # This is commented out because running Route53 for trv is still causing an error.
+      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # - id: deploy-route53
+      #   name: Deploy Route 53 DNS records to ELB
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
       #   with:
-      #     cmd: yq '.[env(ENVIRONMENT_NAME)].fluxGitReadOnly' 'infra/config/github-environments-config.yaml'
-      #   env:
-      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
-# Disabled all flux-related changes because flux v1 doesn't seem to be supported anymore, 
-# we have to migrate to v2 asap but until then commenting out should keep this workflow working
-      # - id: install-flux
-      #   name: Deploy flux
-      #   run: |-
-      #     helm repo add fluxcd https://charts.fluxcd.io
-      #     kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/master/deploy/crds.yaml
-
-      #     FLUX_GIT_READ_ONLY=${{ steps.flux-git-read-only.outputs.result }}
-
-      #     if [[ $FLUX_GIT_READ_ONLY = "false" ]]; then
-      #       GIT_URL=git@github.com:${{ env.RELEASES_REPOSITORY }}
-      #     elif [[ $FLUX_GIT_READ_ONLY = "true" ]]; then
-      #       GIT_URL=https://github.com/${{ env.RELEASES_REPOSITORY }}
-      #     fi
-
-      #     helm upgrade flux fluxcd/flux \
-      #       --set git.url=$GIT_URL \
-      #       --set git.path="$CLUSTER_ENV" \
-      #       --set git.label="flux-sync-$CLUSTER_ENV" \
-      #       --set git.pollInterval="2m" \
-      #       --set git.timeout="40s" \
-      #       --set git.readonly=$FLUX_GIT_READ_ONLY \
-      #       --set syncGarbageCollection.enabled=true \
-      #       --namespace flux \
-      #       --install --wait
-
-      #     helm upgrade helm-operator fluxcd/helm-operator \
-      #       --set git.ssh.secretName=flux-git-deploy \
-      #       --set helm.versions=v3 \
-      #       --set git.pollInterval="2m" \
-      #       --set git.timeout="40s" \
-      #       --namespace flux \
-      #       --install --wait
-      #   env:
-      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
-      # - id: get-public-key
-      #   name: Get flux SSH deploy key
-      #   if: steps.flux-git-read-only.outputs.result == 'false'
-      #   run: |-
-      #     fluxctl identity --k8s-fwd-ns flux | tee ~/flux.pub
-
-      # - id: add-key-to-github
-      #   name: Add Flux deploy key to GitHub repository
-      #   if: steps.flux-git-read-only.outputs.result == 'false'
-      #   run: |-
-      #     # find existing key IDs. save them to a file
-      #     curl \
-      #       -H"Authorization: token $API_TOKEN_GITHUB"\
-      #       https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys 2>/dev/null\
-      #       | jq '.[] | select(.title | contains(env.CLUSTER_ENV)) | .id' > /tmp/key_ids
-
-      #     # iterate through them and delete all existing deploy keys
-      #     cat /tmp/key_ids | \
-      #       while read _id; do
-      #         echo "- delete  deploy key: $_id"
-      #         curl \
-      #           -X "DELETE"\
-      #           -H"Authorization: token $API_TOKEN_GITHUB"\
-      #           https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys/$_id 2>/dev/null
-      #       done
-
-      #     # add the keyfile to github
-      #     echo
-      #     echo "+ flux deploy key:"
-      #     echo -n ">> "
-      #     {
-      #       curl \
-      #         -i\
-      #         -H"Authorization: token $API_TOKEN_GITHUB"\
-      #         --data @- https://api.github.com/repos/${{ env.RELEASES_REPOSITORY }}/keys << EOF
-      #       {
-      #         "title" : "Flux CI -- $CLUSTER_ENV -- $(date)",
-      #         "key" : "$(cat ~/flux.pub)",
-      #         "read_only" : false
-      #       }
-      #     EOF
-      #     } 2>/dev/null | tee /tmp/create_key_result | head -1
-
-      #     # check if key was created
-      #     KEY_CREATED=$(grep 201 /tmp/create_key_result | wc -l | xargs)
-      #     if [ $KEY_CREATED -eq 0 ]
-      #     then
-      #       echo
-      #       echo Key creation failed. Full response shown below:
-      #       cat /tmp/create_key_result
-      #       false
-      #     fi
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-route53.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: deploy-xray-daemon
         name: Deploy AWS X-Ray daemon
@@ -554,7 +405,6 @@ jobs:
         run: |-
           eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
           jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
-
           while IFS= read -r user
           do
             echo "Remove rights of $user"
@@ -589,6 +439,171 @@ jobs:
               --group system:masters \
               --username $user
           done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+
+      ###
+      ### INSTALL AND CONFIGURE FLUX V2 ###
+      ###
+      - id: platform-monitoring-enabled
+        name: Get config for whether monitoring should be enabled for deployment
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      - id: using-self-signed-certificate
+        name: Get config for whether deployment is using self-signed certificate
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      - id: fill-account-specific-metadata
+        name: Fill in account specific metadata in ConfigMap
+        run: |-
+          yq -i '
+            .myAccount.domainName = strenv(DOMAIN_NAME) |
+            .myAccount.region = strenv(AWS_REGION) |
+            .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
+            .myAccount.publicFacing = strenv(PUBLIC_FACING) |
+            .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
+            .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
+            .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
+            .myAccount.datadogApiKey = ""
+          ' infra/config/account-config.yaml
+          if [[ $MONITORING_ENABLED = "true" ]]
+          then
+            export API_KEY="${{ secrets.DATADOG_API_KEY }}"
+            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
+          fi
+          cat infra/config/account-config.yaml
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
+          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+          MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
+          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
+          SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
+
+      - id: create-flux-namespace
+        name: Attempt to create flux namespace
+        continue-on-error: true
+        run: |-
+          kubectl create namespace flux-system
+
+      - id: create-account-information-configmap
+        name: Create a configmap containing AWS account specific details
+        continue-on-error: false
+        run: |-
+          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
+
+      - id: install-flux-v2
+        name: Install flux CLI
+        run: |-
+          curl -s https://fluxcd.io/install.sh | sudo bash
+
+      - id: delete-old-flux-github-deploy-key
+        name: Attempt to delete previous github flux deploy key
+        continue-on-error: true
+        run: |-
+          kubectl -n flux-system delete secret flux-system
+
+      - id: install-flux
+        name: Install Flux to EKS cluster
+        run: |-
+
+          FLUX_REPO=releases
+          FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
+          REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
+
+          echo "flux-full-repo=$(echo $REPO_FULL_PATH)" >> $GITHUB_ENV
+          echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
+
+          args=(
+            --owner $GITHUB_REPOSITORY_OWNER
+            --repository $FLUX_REPO
+            --branch master
+            --path $FLUX_PATH
+            --timeout 40s
+            –-interval 2m
+            --components-extra=image-reflector-controller,image-automation-controller
+            --namespace flux-system
+            --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
+            --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
+          )
+          
+          if [ "${{ matrix.environment-type }}" = "staging" ]
+          then
+            echo Flux will be deployed in staging with read and write permissions
+            args+=(--read-write-key)
+          elif [ "${{ matrix.environment-type }}" = "production" ]
+          then
+            echo Flux will be deployed in production with read-only permissions
+          fi
+          
+          flux bootstrap github "${args[@]}"
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      - id: fill-in-sync-yaml
+        name: Create the sync.yaml file that contains the Kustomization to sync the cluster
+        run: |-
+          export SPEC_PATH="./$CLUSTER_ENV"
+          yq -i '
+            .spec.path = strenv(SPEC_PATH)
+          ' infra/flux/sync.yaml
+
+          cat infra/flux/sync.yaml
+
+      - id: push-sync-yaml
+        name: Push the sync.yaml file that was filled in during the previous step
+        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: infra/flux/sync.yaml
+          destination_repo: ${{ env.flux-full-repo }}
+          destination_folder: ${{ env.flux-path }}
+          user_email: ci@biomage.net
+          user_name: 'Biomage CI/CD'
+
+      - id: push-kustomization-yaml
+        name: Push the kustomization.yaml file to apply our custom config
+        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: infra/flux/kustomization.yaml
+          destination_repo: ${{ env.flux-full-repo }}
+          destination_folder: ${{ env.flux-path }}/flux-system
+          user_email: ci@biomage.net
+          user_name: 'Biomage CI/CD'
+
+      - id: install-kubernetes-reflector
+        name: Install kubernetes reflector
+        run: |-
+          helm repo add emberstack https://emberstack.github.io/helm-charts
+          helm repo update
+          helm upgrade --install reflector emberstack/reflector --namespace flux-system
+
+      - id: add-account-config-configmap-annotations
+        name: Add annotations to account-config configmap
+        run: |-
+          kubectl annotate configmap account-config \
+            --overwrite \
+            --namespace flux-system \
+            reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
+            reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="ui-.*,api-.*,pipeline-.*,worker-.*" \
+            reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true"
+      ###
+      ### END OF INSTALL AND CONFIGURE FLUX V2 ###
+      ###
 
   report-if-failed:
     name: Report if workflow failed

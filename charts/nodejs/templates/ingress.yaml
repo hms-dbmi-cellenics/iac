@@ -12,6 +12,7 @@ metadata:
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 
   annotations:
+    kubernetes.io/ingress.class: alb
 {{- if .Values.ingress.tls.enabled }}
     alb.ingress.kubernetes.io/actions.ssl-redirect: >-
       {"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port":
@@ -20,7 +21,11 @@ metadata:
       {{ .Values.myAccount.acmCertificate }}
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
 {{- end }}
-    kubernetes.io/ingress.class: alb
+{{- if eq .Values.myAccount.publicFacing "true" }}
+    alb.ingress.kubernetes.io/scheme: internet-facing
+{{- else if eq .Values.myAccount.publicFacing "false" }}
+    alb.ingress.kubernetes.io/scheme: internal
+{{- end }}
     alb.ingress.kubernetes.io/success-codes: {{ .Values.loadBalancerHealthCheck.successCodes }}
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "{{ .Values.loadBalancerHealthCheck.periodSeconds }}"
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "{{ .Values.loadBalancerHealthCheck.timeoutSeconds }}"
