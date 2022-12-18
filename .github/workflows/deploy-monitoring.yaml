@@ -1,32 +1,7 @@
-name: Setup monitoring for a deployment
+name: Deploy monitoring in a deployment
 
 on:
   workflow_dispatch:
-    inputs:
-      environment_name:
-        type: choice
-        description: Select the environment name to run the actions on
-        options:
-          - trv
-          - Biomage
-          - all
-        default: all
-      monitoring_option:
-        type: choice
-        description: Select the monitoring to configure
-        options:
-          - Datadog
-          - Cloudwatch
-          - all
-        default: Cloudwatch
-      environment_type:
-        type: choice
-        description: Select environment type
-        options:
-          - staging
-          - production
-          - staging and production
-        default: staging
 
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
@@ -34,54 +9,43 @@ concurrency: cluster-update-mutex
 
 jobs:
   set-environments:
-    name: Set up environment name and environment type for action run
+    name: Set environments
     runs-on: ubuntu-20.04
     outputs:
-      env-type: ${{ steps.set-env-type.outputs.env-type }}
-      env-name: ${{ steps.set-env-name.outputs.env-name }}
+      all-envs: ${{ steps.get-all-envs.outputs.result }}
+      datadog-envs: ${{ steps.get-datadog-enabled-envs.outputs.result }}
     steps:
-      - id: set-env-type
-        name: Set up environment type
-        run: |-
-          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
-            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
-            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
-            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
-          fi
-        env:
-          ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
 
-      - id: set-env-name
-        name: Set up environment name
-        run: |-
-          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
-            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
-            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-          fi
-        env:
-          ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+      - id: get-all-envs
+        name: Filter environments
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq 'keys' github-env.yaml -o json
 
-  check-secrets:
+      - id: get-datadog-enabled-envs
+        name: Filter environments
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq 'with_entries(select(.value.datadogEnabled)) | keys' github-env.yaml -o json
+
+  check-environment-secrets:
     name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
     needs: set-environments
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
+      max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
+        environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
+        environment-types: [staging, production]
+      exclude:
+        - environment-name: trv
+          environment-type: staging
     environment: ${{ matrix.environment-name }}
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -112,30 +76,9 @@ jobs:
             exit 1
           fi
 
-      - id: check-datadog-secrets
-        name: Check if necessary Datadog secrets are installed.
-        if: ${{ inputs.monitoring_option == 'all' || inputs.monitoring_option == 'Datadog' }}
-        run: |-
-          echo Checking if Datadog secrets are defined in the repository.
-
-          if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
-          then
-            echo Datadog API key is not defined.
-            ERROR=true
-          fi
-
-          if [ ! -z "$ERROR" ]
-          then
-            echo
-            echo This workflow requires some Datadog secrets to complete.
-            echo Please make sure they are created by adding/rotating them manually.
-            exit 1
-          fi
-
   deploy-cloudwatch-monitoring:
     name: Setup Cloudwatch monitoring for deployment
     runs-on: ubuntu-20.04
-    if: ${{ inputs.monitoring_option == 'all' || inputs.monitoring_option == 'Cloudwatch' }}
     needs: [set-environments, check-secrets]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -143,8 +86,8 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
+        environment-type: [staging, production]
         exclude:
           - environment-name: trv
             environment-type: staging
@@ -245,7 +188,6 @@ jobs:
   deploy-datadog-monitoring:
     name: Setup Datadog monitoring for deployment
     runs-on: ubuntu-20.04
-    if: ${{ inputs.monitoring_option == 'all' || inputs.monitoring_option == 'Datadog' }}
     needs: [set-environments, check-secrets]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -253,13 +195,33 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.datadog-envs) }}
+        environment-type: [staging, production]
         exclude:
           - environment-name: trv
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
+      - id: check-datadog-secrets
+        name: Check if necessary Datadog secrets are installed.
+        if: ${{ steps.datadog-enabled.outputs.result }}
+        run: |-
+          echo Checking if Datadog secrets are defined in the repository.
+
+          if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
+          then
+            echo Datadog API key is not defined.
+            ERROR=true
+          fi
+
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some Datadog secrets to complete.
+            echo Please make sure they are created by adding/rotating them manually.
+            exit 1
+          fi
+
       - id: checkout
         name: Check out source code
         uses: actions/checkout@v2
