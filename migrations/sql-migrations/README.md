@@ -32,4 +32,4 @@ npm ci
 MIGRATION_ENV=development npm run dynamoToSql
 ```
 
-If you want to migrate data for `MIGRATION_ENV` that is not equal to development, you will first need to run the `biomage rds tunnel` command (see more in [biomage-utils](https://github.com/hms-dbmi-cellenics/biomage-utils]).
+If you want to migrate data for `MIGRATION_ENV` that is not equal to development, you will first need to run the `cellenics rds tunnel` command (see more in [cellenics-utils](https://github.com/hms-dbmi-cellenics/cellenics-utils]).
