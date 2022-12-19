@@ -268,7 +268,7 @@ jobs:
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --override-existing-serviceaccounts \
             --approve
- 
+
       # we need to retry this due to an active issue with the AWS Load Balancer Controller
       # where there are intermittent failures that are only fixable by retrying
       # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
@@ -290,13 +290,6 @@ jobs:
               --set serviceAccount.name=aws-load-balancer-controller \
               --set clusterName=biomage-$CLUSTER_ENV \
               --install --wait
-            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-            # API staging environments because their endpoints are not yet available.
-            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-              --namespace default \
-              --set clusterEnv=$CLUSTER_ENV \
-              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
-              --install --wait
 
       - id: platform-public-facing
         name: Get config for whether platform should be public facing
@@ -305,6 +298,28 @@ jobs:
           cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      - id: install-elb-503-subscription-endpoint
+        name: Install ELB 503 subscription endpoint
+        run: |-
+            echo "value of publicFacing: $PUBLIC_FACING"
+
+            # Check that publicFacing is set to true or false
+            if [ "$PUBLIC_FACING" != "true" ] && [ "$PUBLIC_FACING" != "false" ]; then
+              echo "value of publicFacing in infra/config/github-environments-config.yaml is not set to true or false"
+              exit 1
+            fi
+
+            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+            # API staging environments because their endpoints are not yet available.
+            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+              --namespace default \
+              --set clusterEnv=$CLUSTER_ENV \
+              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
+              --set-string publicFacing="$PUBLIC_FACING" \
+              --install --wait
+        env:
+          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
 
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
@@ -329,11 +344,8 @@ jobs:
           echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
 
-      # When manually updating Route53 records in production, 
-      # we didn't save the previous values of scp.biomage.net and *.scp.biomage.net.
-      # As a result, this step now fails, complaining that
-      # "the values provided do not match the current values".
-      # We will ask DoIt for help, but until then this step should be disabled.
+      # This is commented out because running Route53 for trv is still causing an error.
+      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
       # - id: deploy-route53
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -429,6 +441,14 @@ jobs:
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
+      - id: using-self-signed-certificate
+        name: Get config for whether deployment is using self-signed certificate
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
@@ -436,7 +456,9 @@ jobs:
             .myAccount.domainName = strenv(DOMAIN_NAME) |
             .myAccount.region = strenv(AWS_REGION) |
             .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
+            .myAccount.publicFacing = strenv(PUBLIC_FACING) |
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
+            .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
             .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
             .myAccount.datadogApiKey = ""
           ' infra/config/account-config.yaml
@@ -452,6 +474,8 @@ jobs:
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
+          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
+          SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
 
       - id: create-flux-namespace
         name: Attempt to create flux namespace

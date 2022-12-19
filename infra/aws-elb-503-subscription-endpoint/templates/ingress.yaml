@@ -4,6 +4,11 @@ metadata:
   namespace: default
   name: 503-for-pending-subscriptions
   annotations:
+{{- if eq .Values.publicFacing "true" }}
+    alb.ingress.kubernetes.io/scheme: internet-facing
+{{- else if eq .Values.publicFacing "false" }}
+    alb.ingress.kubernetes.io/scheme: internal
+{{- end }}
     alb.ingress.kubernetes.io/certificate-arn: >-
       {{ .Values.acmCertificate }}
     alb.ingress.kubernetes.io/group.name: "{{ .Values.clusterEnv }}"
