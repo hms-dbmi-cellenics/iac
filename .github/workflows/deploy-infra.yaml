@@ -315,11 +315,12 @@ jobs:
             helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
               --namespace default \
               --set clusterEnv=$CLUSTER_ENV \
-              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
+              --set acmCertificate="$ACM_CERTIFICATE_ARN" \
               --set-string publicFacing="$PUBLIC_FACING" \
               --install --wait
         env:
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
+          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
 
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
@@ -336,13 +337,16 @@ jobs:
           if [ "${{ matrix.environment-type }}" = "production" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN }}"
           fi
           if [ "${{ matrix.environment-type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME_STAGING }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+            ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN_STAGING }}"
           fi
           echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
           echo "::set-output name=domain-name::$DOMAIN_NAME"
+          echo "::set-output name=acm-certificate-arn::$ACM_CERTIFICATE_ARN"
 
       # This is commented out because running Route53 for trv is still causing an error.
       # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
@@ -472,7 +476,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
           MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
           SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
