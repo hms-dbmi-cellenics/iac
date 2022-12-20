@@ -348,16 +348,14 @@ jobs:
           echo "::set-output name=domain-name::$DOMAIN_NAME"
           echo "::set-output name=acm-certificate-arn::$ACM_CERTIFICATE_ARN"
 
-      # This is commented out because running Route53 for trv is still causing an error.
-      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
-      # - id: deploy-route53
-      #   name: Deploy Route 53 DNS records to ELB
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
-      #     template: 'infra/cf-route53.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-route53
+        name: Deploy Route 53 DNS records to ELB
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          name: "biomage-alb-route53-${{ matrix.environment-type }}"
+          template: 'infra/cf-route53.yaml'
+          no-fail-on-empty-changeset: "1"
 
       - id: deploy-xray-daemon
         name: Deploy AWS X-Ray daemon
