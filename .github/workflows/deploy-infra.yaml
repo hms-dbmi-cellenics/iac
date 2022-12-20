@@ -470,12 +470,17 @@ jobs:
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
             .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
             .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
-            .myAccount.datadogApiKey = ""
+            .myAccount.datadogApiKey = "" |
+            .myAccount.datadogAppKey = ""
           ' infra/config/account-config.yaml
           if [[ $MONITORING_ENABLED = "true" ]]
           then
-            export API_KEY="${{ secrets.DATADOG_API_KEY }}"
-            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
+            export DD_API_KEY="${{ secrets.DATADOG_API_KEY }}"
+            export DD_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
+            yq -i '
+              .myAccount.datadogApiKey = strenv(DD_API_KEY) |
+              .myAccount.datadogAppKey = strenv(DD_APP_KEY)
+            ' infra/config/account-config.yaml
           fi
           cat infra/config/account-config.yaml
         env:
