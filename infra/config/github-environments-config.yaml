@@ -1,8 +1,8 @@
 Biomage:
   publicFacing: true
+  monitoringEnabled: true
   selfSignedCertificate: false
-  datadogEnabled: true
 trv:
   publicFacing: false
+  monitoringEnabled: true
   selfSignedCertificate: true
-  datadogEnabled: true

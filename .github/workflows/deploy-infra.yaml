@@ -441,11 +441,11 @@ jobs:
       ###
       ### INSTALL AND CONFIGURE FLUX V2 ###
       ###
-      - id: datadog-monitoring-enabled
+      - id: platform-monitoring-enabled
         name: Get config for whether monitoring should be enabled for deployment
         uses: mikefarah/yq@master
         with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].datadogEnabled' 'infra/config/github-environments-config.yaml'
+          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
         env:
           ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
@@ -467,10 +467,10 @@ jobs:
             .myAccount.publicFacing = strenv(PUBLIC_FACING) |
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
             .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
-            .myAccount.datadogEnabled = strenv(DATADOG_ENABLED) |
+            .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
             .myAccount.datadogApiKey = ""
           ' infra/config/account-config.yaml
-          if [[ $DATADOG_ENABLED = "true" ]]
+          if [[ $MONITORING_ENABLED = "true" ]]
           then
             export API_KEY="${{ secrets.DATADOG_API_KEY }}"
             yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
@@ -481,7 +481,7 @@ jobs:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-          DATADOG_ENABLED: ${{ steps.datadog-monitoring-enabled.outputs.result }}
+          MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
           SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
 
