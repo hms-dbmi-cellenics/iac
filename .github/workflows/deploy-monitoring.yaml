@@ -91,7 +91,7 @@ jobs:
         environment-type: [staging, production]
         exclude:
           - environment-name: trv
-            environment-type: production
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -200,7 +200,7 @@ jobs:
         environment-type: [staging, production]
         exclude:
           - environment-name: trv
-            environment-type: production
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-datadog-secrets
