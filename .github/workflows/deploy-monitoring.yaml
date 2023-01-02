@@ -20,13 +20,13 @@ jobs:
         uses: actions/checkout@v2
 
       - id: get-all-envs
-        name: Filter environments
+        name: Get all environments
         uses: mikefarah/yq@master
         with:
           cmd: yq 'keys' infra/config/github-environments-config.yaml -o json
 
       - id: get-datadog-enabled-envs
-        name: Filter environments
+        name: Get Datadog enabled envs
         uses: mikefarah/yq@master
         with:
           cmd: yq 'with_entries(select(.value.monitoringEnabled)) | keys' infra/config/github-environments-config.yaml -o json
@@ -98,93 +98,93 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: setup-aws
-        name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      # - id: setup-aws
+      #   name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: add-kubeconfig
-        name: Add k8s config file for existing cluster.
-        run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      # - id: add-kubeconfig
+      #   name: Add k8s config file for existing cluster.
+      #   run: |-
+      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
+      # - id: install-eksctl
+      #   name: Install eksctl
+      #   run: |-
+      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #     sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: setup-cluster-cloudwatch-logging-policy
-        name: Setup permissions required for cluster to log to Cloudwatch
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
-          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+      # - id: setup-cluster-cloudwatch-logging-policy
+      #   name: Setup permissions required for cluster to log to Cloudwatch
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }}"
+      #     name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
+      #     template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+      #     no-fail-on-empty-changeset: "1"
+      #     capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      # Setting up log forwarding for pods hosted in EC2 nodes
-      - id: create-fluent-bit-namespace
-        name: Create namespace for node FluentBit deployment
-        run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
+      # # Setting up log forwarding for pods hosted in EC2 nodes
+      # - id: create-fluent-bit-namespace
+      #   name: Create namespace for node FluentBit deployment
+      #   run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
 
-      - id: create-service-account-for-node-fluent-bit
-        name: Create service account for node FluentBit
-        env:
-          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
-        run: |-
-          eksctl create iamserviceaccount \
-            --name fluent-bit \
-            --namespace node-logging \
-            --cluster biomage-$CLUSTER_ENV \
-            --role-name irsa-fluent-bit-$CLUSTER_ENV \
-            --attach-policy-arn $LOGGING_POLICY_ARN \
-            --override-existing-serviceaccounts \
-            --approve
+      # - id: create-service-account-for-node-fluent-bit
+      #   name: Create service account for node FluentBit
+      #   env:
+      #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+      #   run: |-
+      #     eksctl create iamserviceaccount \
+      #       --name fluent-bit \
+      #       --namespace node-logging \
+      #       --cluster biomage-$CLUSTER_ENV \
+      #       --role-name irsa-fluent-bit-$CLUSTER_ENV \
+      #       --attach-policy-arn $LOGGING_POLICY_ARN \
+      #       --override-existing-serviceaccounts \
+      #       --approve
 
-      - id: deploy-node-fluent-bit
-        name: Deploy FluentBit for EC2 nodes
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
-          # We do not want to log everything for costs/security concerns
+      # - id: deploy-node-fluent-bit
+      #   name: Deploy FluentBit for EC2 nodes
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #   run: |
+      #     # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
+      #     # We do not want to log everything for costs/security concerns
 
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
 
-          kubectl apply -f infra/cluster-logging/node-fluentbit-config.yaml
+      #     kubectl apply -f infra/cluster-logging/node-fluentbit-config.yaml
 
-      # Setting up log forwarding for pods hosted on Fargate nodes
-      - id: attach-pod-execution-role-name
-        name: Attach logging policy to pod execution role
-        env:
-          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
-        run: |-
-          # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
-          # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
-          # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
+      # # Setting up log forwarding for pods hosted on Fargate nodes
+      # - id: attach-pod-execution-role-name
+      #   name: Attach logging policy to pod execution role
+      #   env:
+      #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+      #   run: |-
+      #     # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
+      #     # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
+      #     # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
 
-          POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
-            --cluster-name biomage-$CLUSTER_ENV \
-            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+      #     POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
+      #       --cluster-name biomage-$CLUSTER_ENV \
+      #       --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
 
-          aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
+      #     aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
 
-      - id: deploy-fargate-fluent-bit
-        name: Deploy FluentBit config for Fargate pods
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |-
-          # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+      # - id: deploy-fargate-fluent-bit
+      #   name: Deploy FluentBit config for Fargate pods
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #   run: |-
+      #     # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
 
-          kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
   deploy-datadog-monitoring:
     name: Setup Datadog monitoring for deployment
@@ -227,35 +227,35 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      - id: setup-aws
-        name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      # - id: setup-aws
+      #   name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: add-kubeconfig
-        name: Add k8s config file for existing cluster.
-        run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      # - id: add-kubeconfig
+      #   name: Add k8s config file for existing cluster.
+      #   run: |-
+      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
-      - id: setup-datadog-cluster-agent
-        name: Setup Datadog cluster agent
-        run: |-
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-          helm upgrade datadog-agent datadog/datadog \
-            -f infra/datadog/cluster-agent-values.yaml \
-            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-            --set datadog.clusterName=biomage-$CLUSTER_ENV \
-            --install
+      # # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
+      # - id: setup-datadog-cluster-agent
+      #   name: Setup Datadog cluster agent
+      #   run: |-
+      #     helm repo add datadog https://helm.datadoghq.com
+      #     helm repo update
+      #     helm upgrade datadog-agent datadog/datadog \
+      #       -f infra/datadog/cluster-agent-values.yaml \
+      #       --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+      #       --set datadog.clusterName=biomage-$CLUSTER_ENV \
+      #       --install
 
-      - id: setup-datadog-sidecar-permissions
-        name: Setup Datadog sidecar permissions
-        run: |-
-          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+      # - id: setup-datadog-sidecar-permissions
+      #   name: Setup Datadog sidecar permissions
+      #   run: |-
+      #     kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
   report-if-failed:
     name: Report if workflow failed
