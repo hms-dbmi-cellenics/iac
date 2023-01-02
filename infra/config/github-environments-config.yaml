@@ -4,5 +4,5 @@ Biomage:
   selfSignedCertificate: false
 trv:
   publicFacing: false
-  monitoringEnabled: false
+  monitoringEnabled: true
   selfSignedCertificate: true
