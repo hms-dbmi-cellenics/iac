@@ -1,4 +1,4 @@
-name: Deploy monitoring in a deployment
+name: Deploy cluster monitoring
 
 on:
   workflow_dispatch:
@@ -202,7 +202,7 @@ jobs:
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.datadog-envs) }}
         environment-type: [production]
-        exclude:
+        include:
           - environment-name: Biomage
             environment-type: staging
     environment: ${{ matrix.environment-name }}
