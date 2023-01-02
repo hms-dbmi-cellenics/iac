@@ -46,10 +46,10 @@ jobs:
       max-parallel: 1
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
-        environment-types: [production]
-      include:
-        - environment-name: Biomage
-          environment-type: staging
+        environment-type: [production]
+        include:
+          - environment-name: Biomage
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
