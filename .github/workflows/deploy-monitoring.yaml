@@ -29,7 +29,7 @@ jobs:
         name: Filter environments
         uses: mikefarah/yq@master
         with:
-          cmd: yq 'with_entries(select(.value.datadogEnabled)) | keys' github-env.yaml -o json
+          cmd: yq 'with_entries(select(.value.monitoringEnabled)) | keys' github-env.yaml -o json
 
   check-environment-secrets:
     name: Check that sufficient secrets are specified for environment name
@@ -41,9 +41,9 @@ jobs:
       max-parallel: 1
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
-        environment-types: [staging, production]
-      exclude:
-        - environment-name: trv
+        environment-types: [production]
+      include:
+        - environment-name: Biomage
           environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -76,8 +76,8 @@ jobs:
             exit 1
           fi
 
-  deploy-cloudwatch-monitoring:
-    name: Setup Cloudwatch monitoring for deployment
+  deploy-cloudwatch-logs:
+    name: Setup Cloudwatch logging for deployment
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets]
     env:
@@ -87,9 +87,9 @@ jobs:
       max-parallel: 1
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
-        environment-type: [staging, production]
-        exclude:
-          - environment-name: trv
+        environment-type: [production]
+        include:
+          - environment-name: Biomage
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -196,9 +196,9 @@ jobs:
       max-parallel: 1
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.datadog-envs) }}
-        environment-type: [staging, production]
+        environment-type: [production]
         exclude:
-          - environment-name: trv
+          - environment-name: Biomage
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -259,7 +259,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, deploy-cloudwatch-monitoring, deploy-datadog-monitoring]
+    needs: [set-environments, check-secrets, deploy-cloudwatch-logs, deploy-datadog-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
