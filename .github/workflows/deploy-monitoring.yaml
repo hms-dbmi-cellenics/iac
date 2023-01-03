@@ -36,13 +36,11 @@ jobs:
             echo GitHub deploy key access token not defined.
             ERROR=true
           fi
-
           if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
           then
             echo Datadog API key is not defined.
             ERROR=true
           fi
-
           if [ ! -z "$ERROR" ]
           then
             echo

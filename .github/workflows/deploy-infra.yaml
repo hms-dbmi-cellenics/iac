@@ -111,6 +111,11 @@ jobs:
             echo Secret DATADOG_API_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
+          if [ -z "${{ secrets.DATADOG_APP_KEY }}" ]
+          then
+            echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -458,6 +463,7 @@ jobs:
         name: Fill in account specific metadata in ConfigMap
         run: |-
           export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
+          export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
 
           yq -i '
             .myAccount.domainName = strenv(DOMAIN_NAME) |
@@ -467,7 +473,8 @@ jobs:
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
             .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
             .myAccount.datadogEnabled = "true" |
-            .myAccount.datadogApiKey = strenv(DATADOG_API_KEY)
+            .myAccount.datadogApiKey = strenv(DATADOG_API_KEY) |
+            .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY)
           ' infra/config/account-config.yaml
 
           cat infra/config/account-config.yaml
