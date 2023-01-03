@@ -1,8 +1,6 @@
 Biomage:
   publicFacing: true
-  monitoringEnabled: true
   selfSignedCertificate: false
 trv:
   publicFacing: false
-  monitoringEnabled: true
   selfSignedCertificate: true
