@@ -238,13 +238,13 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
-      # - id: setup-aws
-      #   name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       # - id: add-kubeconfig
       #   name: Add k8s config file for existing cluster.
@@ -304,13 +304,13 @@ jobs:
       #         --set clusterName=biomage-$CLUSTER_ENV \
       #         --install --wait
 
-      # - id: platform-public-facing
-      #   name: Get config for whether platform should be public facing
-      #   uses: mikefarah/yq@master
-      #   with:
-      #     cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
-      #   env:
-      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+      - id: platform-public-facing
+        name: Get config for whether platform should be public facing
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
       # - id: install-elb-503-subscription-endpoint
       #   name: Install ELB 503 subscription endpoint
@@ -343,19 +343,19 @@ jobs:
       #     template: 'infra/cf-loadbalancer.yaml'
       #     no-fail-on-empty-changeset: "1"
 
-      # - id: setup-domain
-      #   name: Compile environment-specific domain name
-      #   run: |-
-      #     if [ "${{ matrix.environment-type }}" = "production" ]; then
-      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-      #     fi
-      #     if [ "${{ matrix.environment-type }}" = "staging" ]; then
-      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
-      #     fi
-      #     echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-      #     echo "::set-output name=domain-name::$DOMAIN_NAME"
+      - id: setup-domain
+        name: Compile environment-specific domain name
+        run: |-
+          if [ "${{ matrix.environment-type }}" = "production" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+          fi
+          if [ "${{ matrix.environment-type }}" = "staging" ]; then
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+          fi
+          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
+          echo "::set-output name=domain-name::$DOMAIN_NAME"
 
       # # This is commented out because running Route53 for trv is still causing an error.
       # # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
@@ -443,16 +443,16 @@ jobs:
       #         --username $user
       #     done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
 
-      # ###
-      # ### INSTALL AND CONFIGURE FLUX V2 ###
-      # ###
-      # - id: using-self-signed-certificate
-      #   name: Get config for whether deployment is using self-signed certificate
-      #   uses: mikefarah/yq@master
-      #   with:
-      #     cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
-      #   env:
-      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+      ###
+      ### INSTALL AND CONFIGURE FLUX V2 ###
+      ###
+      - id: using-self-signed-certificate
+        name: Get config for whether deployment is using self-signed certificate
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
