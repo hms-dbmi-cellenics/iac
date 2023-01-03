@@ -1,71 +1,68 @@
-name: Setup monitoring for a deployment
+name: Deploy cluster monitoring
 
 on:
   workflow_dispatch:
-    inputs:
-      cluster:
-        type: choice
-        description: Select cluster
-        options:
-        - staging
-        - production
-        - staging and production
-        default: staging
+
+# this ensures that only one CI pipeline with the same key
+#  can run at once in order to prevent undefined states
+concurrency: cluster-update-mutex
 
 jobs:
-  setup:
-    name: Check secrets and set up matrix
+  check-secrets:
+    name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage]
+        environment-name: [Biomage, trv]
     environment: ${{ matrix.environment-name }}
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
         run: |-
-          echo Checking if secrets are defined in the repository.
+          echo Checking if required secrets are defined in the repository.
 
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key not defined.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
+          then
+            echo GitHub deploy key access token not defined.
+            ERROR=true
+          fi
           if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
           then
             echo Datadog API key is not defined.
             ERROR=true
           fi
-
           if [ ! -z "$ERROR" ]
           then
             echo
             echo This workflow requires some secrets to complete.
-            echo Please make they are created by adding/rotating them manually.
+            echo Please make sure they are created by adding/rotating them manually.
             exit 1
           fi
-      - id: set-matrix
-        name: Set up cluster matrix
-        run: |-
-          if [ "${CLUSTER}" = "staging" ]; then
-            echo '::set-output name=matrix::["staging"]'
-          elif [ "${CLUSTER}" = "production" ]; then
-            echo '::set-output name=matrix::["production"]'
-          elif [ "${CLUSTER}" = "staging and production" ]; then
-            echo '::set-output name=matrix::["staging", "production"]'
-          fi
-        env:
-          CLUSTER: ${{ github.event.inputs.cluster }}
 
   deploy-monitoring:
-    name: Setup monitoring for deployment
+    name: Setup logging and monitoring
     runs-on: ubuntu-20.04
-    needs: [setup]
+    needs: check-secrets
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     strategy:
-      max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage]
+        environment-name: [Biomage, trv]
+        environment-type: [staging, production]
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -180,7 +177,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [setup, deploy-monitoring]
+    needs: [check-secrets, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
