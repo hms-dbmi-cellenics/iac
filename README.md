@@ -39,13 +39,17 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
   ARN of the SSL/TLS certificate used for HTTPS encryption.
 
+- DATADOG_API_KEY
+
+  The [Datadog API key](https://docs.datadoghq.com/account_management/api-app-keys/#api-keys) of the Datadog account.
+
+- DATADOG_APP_KEY
+
+  The [Datadog application](https://docs.datadoghq.com/account_management/api-app-keys/#application-keys) key created for the Datadog account for AWS Batch monitoring. This can be created in the Organization Settings submenu inside the Datadog account.
+
 - DOMAIN_NAME_STAGING (optional, used only if the deployment is not on a production environment)
 
   The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
-
-- DATADOG_API_KEY (optional, used only if the deployment will use Datadog monitoring)
-
-  The API key of the Datadog account.
 
 #### Changing base infrastructure
 The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/biomage-org/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
