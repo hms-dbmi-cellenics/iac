@@ -8,44 +8,12 @@ on:
 concurrency: cluster-update-mutex
 
 jobs:
-  set-environments:
-    name: Set environments
-    runs-on: ubuntu-20.04
-    outputs:
-      all-envs: ${{ steps.get-all-envs.outputs.result }}
-      datadog-envs: ${{ steps.get-datadog-enabled-envs.outputs.result }}
-    steps:
-      - id: checkout
-        name: Check out source code
-        uses: actions/checkout@v2
-
-      - id: get-all-envs
-        name: Get all environments
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq 'keys' infra/config/github-environments-config.yaml -o json
-
-      - id: get-datadog-enabled-envs
-        name: Get Datadog enabled envs
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq 'with_entries(select(.value.monitoringEnabled)) | keys' infra/config/github-environments-config.yaml -o json
-
-      - id: test-datadog-enabled-envs
-        name: Test Datadog enabled envs
-        run: |-
-          echo "Datadog-enabled envs '${{ steps.get-datadog-enabled-envs.outputs.result }}'"
-
   check-secrets:
     name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
-    needs: set-environments
-    env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
-      max-parallel: 1
       matrix:
-        environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
+        environment-name: [Biomage, trv]
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -69,6 +37,12 @@ jobs:
             ERROR=true
           fi
 
+          if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
+          then
+            echo Datadog API key is not defined.
+            ERROR=true
+          fi
+
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -77,17 +51,17 @@ jobs:
             exit 1
           fi
 
-  deploy-cloudwatch-logs:
-    name: Setup Cloudwatch logging for deployment
+  deploy-monitoring:
+    name: Setup logging and monitoring
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets]
+    needs: check-secrets
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-name: ${{ fromJson(needs.set-environments.outputs.all-envs) }}
+        environment-name: [Biomage, trv]
         environment-type: [staging, production]
         exclude:
           - environment-name: trv
@@ -186,60 +160,6 @@ jobs:
 
           kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
-  deploy-datadog-monitoring:
-    name: Setup Datadog monitoring for deployment
-    runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets]
-    env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
-      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-    strategy:
-      max-parallel: 1
-      matrix:
-        environment-name: ${{ fromJson(needs.set-environments.outputs.datadog-envs) }}
-        environment-type: [staging, production]
-        exclude:
-          - environment-name: trv
-            environment-type: staging
-    environment: ${{ matrix.environment-name }}
-    steps:
-      - id: check-datadog-secrets
-        name: Check if necessary Datadog secrets are installed.
-        if: ${{ steps.datadog-enabled.outputs.result }}
-        run: |-
-          echo Checking if Datadog secrets are defined in the repository.
-
-          if [ -z "${{ secrets.DATADOG_API_KEY}}" ]
-          then
-            echo Datadog API key is not defined.
-            ERROR=true
-          fi
-
-          if [ ! -z "$ERROR" ]
-          then
-            echo
-            echo This workflow requires some Datadog secrets to complete.
-            echo Please make sure they are created by adding/rotating them manually.
-            exit 1
-          fi
-
-      - id: checkout
-        name: Check out source code
-        uses: actions/checkout@v2
-
-      - id: setup-aws
-        name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - id: add-kubeconfig
-        name: Add k8s config file for existing cluster.
-        run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
-
       # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
@@ -260,7 +180,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, deploy-cloudwatch-logs, deploy-datadog-monitoring]
+    needs: [check-secrets, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
