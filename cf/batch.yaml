@@ -56,7 +56,7 @@ Resources:
         Command:
           - Rscript
           - init.R
-        Image: !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-${Environment}"
+        Image: !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-${Environment}"
         ResourceRequirements:
           - Type: VCPU
             Value: 2
