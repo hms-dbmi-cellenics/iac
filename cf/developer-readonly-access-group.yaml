@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up readonly access rights to a given environment for development [managed by github.com/biomage-org/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the access group is created.
+
+Resources:
+  DeveloperAccessGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Sub "engineer-readonly-${Environment}-access"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ServiceQuotasReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+        - PolicyName: "access-to-cloudwatch"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "autoscaling:Describe*"
+                  - "cloudwatch:Describe*"
+                  - "cloudwatch:Get*"
+                  - "cloudwatch:List*"
+                  - "logs:Get*"
+                  - "logs:Describe*"
+                  - "logs:FilterLogEvents"
+                  - "logs:StartQuery"
+                  - "logs:StopQuery"
+                  - "logs:PutQueryDefinition"
+                  - "sns:Get*"
+                  - "sns:List*"
+                Resource: "*"
+
+        - PolicyName: !Sub "can-access-${Environment}-eks-cluster"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'eks:DescribeCluster'
+                Resource: !Sub "arn:aws:eks:${AWS::Region}:${AWS::AccountId}:cluster/biomage-${Environment}"
+
+        - PolicyName: "can-manage-own-password-and-mfa"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:GetAccountPasswordPolicy"
+                  - "iam:ListVirtualMFADevices"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "iam:ChangePassword"
+                  - "iam:GetUser"
+                  - "iam:CreateAccessKey"
+                  - "iam:DeleteAccessKey"
+                  - "iam:ListAccessKeys"
+                  - "iam:UpdateAccessKey"
+                  - "iam:DeleteSigningCertificate"
+                  - "iam:ListSigningCertificates"
+                  - "iam:UpdateSigningCertificate"
+                  - "iam:UploadSigningCertificate"
+                  - "iam:DeleteSSHPublicKey"
+                  - "iam:GetSSHPublicKey"
+                  - "iam:ListSSHPublicKeys"
+                  - "iam:UpdateSSHPublicKey"
+                  - "iam:UploadSSHPublicKey"
+                  - "iam:CreateServiceSpecificCredential"
+                  - "iam:DeleteServiceSpecificCredential"
+                  - "iam:ListServiceSpecificCredentials"
+                  - "iam:ResetServiceSpecificCredential"
+                  - "iam:UpdateServiceSpecificCredential"
+                  - "iam:CreateVirtualMFADevice"
+                  - "iam:DeleteVirtualMFADevice"
+                  - "iam:DeactivateMFADevice"
+                  - "iam:EnableMFADevice"
+                  - "iam:ListMFADevices"
+                  - "iam:ResyncMFADevice"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:user/${!aws:username}"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:mfa/${!aws:username}"
+
+        - PolicyName: "can-see-user-and-group-policies"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "iam:ListUsers"
+                  - "iam:GetUser"
+                  - "iam:ListUserTags"
+                  - "iam:ListGroups"
+                  - "iam:ListGroupsForUser"
+                  - "iam:GetGroup"
+                  - "iam:ListRoles"
+                  - "iam:GetRole"
+                  - "iam:ListPolicies"
+                  - "iam:ListUserPolicies"
+                  - "iam:ListGroupPolicies"
+                  - "iam:ListAttachedUserPolicies"
+                  - "iam:ListAttachedGroupPolicies"
+                  - "iam:GetPolicy"
+                  - "iam:GetRolePolicy"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:group/*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:user/*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:policy/*"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/*"
+
+        - PolicyName: !Sub "can-manage-${Environment}-batch"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'batch:ListSchedulingPolicies'
+                  - 'batch:DescribeComputeEnvironments'
+                Resource:
+                  - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
