@@ -22,7 +22,7 @@ Expand the name of the chart.
 {{- printf "arn:aws:iam::%s:role/%s" .Values.myAccount.accountId .Values.serviceAccount.iamRole -}}
 {{- end -}}
 
-{{- define "serviceAccountRoleTemplate"-}}
+{{- define "serviceAccountRoleTemplate" -}}
 {{- printf "arn:aws:iam::%s:role/event-exporter-role-stagingIVA" .Values.myAccount.accountId -}}
 {{- end -}}
 
