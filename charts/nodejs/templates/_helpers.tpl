@@ -23,6 +23,10 @@ Expand the name of the chart.
 {{- printf "arn:aws:iam::%s:role/%s" .Values.myAccount.accountId .Values.serviceAccount.iamRole -}}
 {{- end -}}
 
+{{- define "serviceAccountRoleTemplate"-}}
+{{- printf "arn:aws:iam::%s:role/event-exporter-role-staging" .Values.myAccount.accountId -}}
+{{- end -}}
+
 
 {{/*
 Get SecRule's arguments with unescaped single&double quotes
