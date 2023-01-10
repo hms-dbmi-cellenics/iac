@@ -11,7 +11,7 @@ metadata:
   namespace: monitoring
   name: event-exporter
   annotations:
-    eks.amazonaws.com/role-arn: {{ template "serviceAccountRoleTemplate" .}}event-exporter-role-staging
+    eks.amazonaws.com/role-arn: {{ template "serviceAccountRoleTemplate" .}}
     sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
