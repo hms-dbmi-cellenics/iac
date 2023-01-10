@@ -17,7 +17,6 @@ Expand the name of the chart.
 {{- else -}}
 {{- printf "%s-%s.%s" (split "/" .Values.biomageCi.repo)._1 .Values.biomageCi.sandboxId .Values.myAccount.domainName -}}
 {{- end -}}
-
 {{- end -}}
 {{- define "serviceAccountRole" -}}
 {{- printf "arn:aws:iam::%s:role/%s" .Values.myAccount.accountId .Values.serviceAccount.iamRole -}}
