@@ -24,7 +24,7 @@ Expand the name of the chart.
 {{- end -}}
 
 {{- define "serviceAccountRoleTemplate"-}}
-{{- printf "arn:aws:iam::%s:role/" .Values.myAccount.accountId -}}
+{{- printf "arn:aws:iam::%s:role/event-exporter-role-staging" .Values.myAccount.accountId -}}
 {{- end -}}
 
 
