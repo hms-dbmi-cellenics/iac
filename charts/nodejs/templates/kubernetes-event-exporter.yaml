@@ -45,9 +45,10 @@ data:
         - type: "Normal"
     receivers:
       - name: "cleanup"
-        sns:
-          topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-production-default-v2"
-          region: {{ .Values.myAccount.region }}
+        webhook:
+          endpoint: https://{{ template "hostname" .}}/v2/kubernetesEvents
+          headers:
+            User-Agent: kube-event-exporter 1.0
 {{ else }}
   config.yaml: |
     logLevel: info
@@ -60,10 +61,9 @@ data:
         - type: "Normal"
     receivers:
       - name: "cleanup"
-        webhook:
-          endpoint: https://{{ template "hostname" .}}/v2/kubernetesEvents
-          headers:
-            User-Agent: kube-event-exporter 1.0
+        sns:
+          topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-production-default-v2"
+          region: {{ .Values.myAccount.region }}
 {{ end }}
 
 ---
