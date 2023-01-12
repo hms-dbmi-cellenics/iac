@@ -41,6 +41,13 @@ Resources:
                     "${OIDCProvider}:sub": "system:serviceaccount:event-exporter"
                   }
                 }
+              },
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
               }
             ]
           }
@@ -50,6 +57,6 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              - Effect: Allow
+              - Effect: "Allow"
                 Action: "sns:Publish"
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-${SandboxID}-v2"
