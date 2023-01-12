@@ -10,9 +10,6 @@ kind: ServiceAccount
 metadata:
   namespace: monitoring
   name: event-exporter
-  annotations:
-    eks.amazonaws.com/role-arn: {{ template "serviceAccountRoleTemplate" .}}/event-exporter-role-{{ .Values.kubernetes.env }}
-    sandboxId: "{{ .Values.biomageCi.sandboxId }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -37,8 +34,6 @@ data:
   config.yaml: |
     logLevel: info
     logFormat: json
-    kubeQPS: 60
-    kubeBurst: 300
     route:
       match:
         - reason: "BackOff"
@@ -55,8 +50,6 @@ data:
   config.yaml: |
     logLevel: info
     logFormat: json
-    kubeQPS: 60
-    kubeBurst: 300
     route:
       match:
         - reason: "BackOff"
