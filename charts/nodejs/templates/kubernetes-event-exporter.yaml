@@ -65,7 +65,6 @@ data:
           topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-production-default-v2"
           region: {{ .Values.myAccount.region }}
 {{- end }}
-{{- end }}
 
 ---
 apiVersion: apps/v1
