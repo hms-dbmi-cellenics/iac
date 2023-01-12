@@ -37,8 +37,8 @@ data:
   config.yaml: |
     logLevel: info
     logFormat: json
-    kubeQPS: 100
-    kubeBurst: 500
+    kubeQPS: 60
+    kubeBurst: 300
     route:
       match:
         - reason: "BackOff"
@@ -55,8 +55,8 @@ data:
   config.yaml: |
     logLevel: info
     logFormat: json
-    kubeQPS: 100
-    kubeBurst: 500
+    kubeQPS: 60
+    kubeBurst: 300
     route:
       match:
         - reason: "BackOff"
