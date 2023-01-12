@@ -33,7 +33,22 @@ metadata:
   name: event-exporter-cfg
   namespace: monitoring
 data:
-# {{ if eq .Values.myAccount.accountId "242905224710" }}
+{{ if eq .Values.myAccount.accountId "242905224710" }}
+  config.yaml: |
+    logLevel: info
+    logFormat: json
+    route:
+      match:
+        - reason: "BackOff"
+          receiver: "cleanup"
+      drop:
+        - type: "Normal"
+    receivers:
+      - name: "cleanup"
+        sns:
+          topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-production-default-v2"
+          region: {{ .Values.myAccount.region }}
+{{ else }}
   config.yaml: |
     logLevel: info
     logFormat: json
@@ -49,22 +64,7 @@ data:
           endpoint: https://{{ template "hostname" .}}/v2/kubernetesEvents
           headers:
             User-Agent: kube-event-exporter 1.0
-# {{ else }}
-#   config.yaml: |
-#     logLevel: info
-#     logFormat: json
-#     route:
-#       match:
-#         - reason: "BackOff"
-#           receiver: "cleanup"
-#       drop:
-#         - type: "Normal"
-#     receivers:
-#       - name: "cleanup"
-#         sns:
-#           topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-production-default-v2"
-#           region: {{ .Values.myAccount.region }}
-# {{ end }}
+{{ end }}
 
 ---
 apiVersion: apps/v1
