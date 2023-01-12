@@ -37,17 +37,11 @@ Resources:
                 },
                 "Action": "sts:AssumeRoleWithWebIdentity",
                 "Condition": {
-                  "StringLike": {
-                    "${OIDCProvider}:sub": "system:serviceaccount:event-exporter"
+                  "StringEquals": {
+                    "${OIDCProvider}:sub": "system:serviceaccount:monitoring:event-exporter",
+                    "${OIDCProvider}:aud": "sts.amazonaws.com"
                   }
                 }
-              },
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "ec2.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
               }
             ]
           }
