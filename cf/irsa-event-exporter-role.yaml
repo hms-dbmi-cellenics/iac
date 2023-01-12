@@ -21,7 +21,7 @@ Parameters:
     Description: The sandbox ID of the environment that this topic is created for.
 
 Resources:
-  WorkerRole:
+  EventExporterRole:
     Type: "AWS::IAM::Role"
     Properties:
       RoleName: !Sub "event-exporter-role-${Environment}"
@@ -52,5 +52,4 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: "sns:Publish"
-                Resource:
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-${SandboxID}-v2"
+                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-${SandboxID}-v2"
