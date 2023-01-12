@@ -44,10 +44,25 @@ data:
         - type: "Normal"
     receivers:
       - name: "cleanup"
-        webhook:
-          endpoint: https://{{ template "hostname" .}}/v2/kubernetesEvents
-          headers:
-            User-Agent: kube-event-exporter 1.0
+        sns:
+          topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}::work-results-production-default-v2"
+          region: {{ .Values.myAccount.region }}
+# data:
+#   config.yaml: |
+#     logLevel: info
+#     logFormat: json
+#     route:
+#       match:
+#         - reason: "BackOff"
+#           receiver: "cleanup"
+#       drop:
+#         - type: "Normal"
+#     receivers:
+#       - name: "cleanup"
+#         webhook:
+#           endpoint: https://{{ template "hostname" .}}/v2/kubernetesEvents
+#           headers:
+#             User-Agent: kube-event-exporter 1.0
 ---
 apiVersion: apps/v1
 kind: Deployment
