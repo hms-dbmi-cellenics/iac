@@ -37,6 +37,8 @@ data:
   config.yaml: |
     logLevel: info
     logFormat: json
+    kubeQPS: 100
+    kubeBurst: 500
     route:
       match:
         - reason: "BackOff"
@@ -53,6 +55,8 @@ data:
   config.yaml: |
     logLevel: info
     logFormat: json
+    kubeQPS: 100
+    kubeBurst: 500
     route:
       match:
         - reason: "BackOff"
@@ -62,7 +66,7 @@ data:
     receivers:
       - name: "cleanup"
         sns:
-          topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-production-default-v2"
+          topicARN: "arn:aws:sns:{{ .Values.myAccount.region }}:{{ .Values.myAccount.accountId }}:work-results-{{ .Values.kubernetes.env }}-default-v2"
           region: {{ .Values.myAccount.region }}
 {{ end }}
 
