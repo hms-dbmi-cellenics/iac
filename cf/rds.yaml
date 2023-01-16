@@ -62,7 +62,6 @@ Resources:
         PasswordLength: 32
         ExcludePunctuation: true
         IncludeSpace: false
-        ExcludeCharacters: "/@\"'\\"
 
   RDSInvokeLambdaRole:
     Type: "AWS::IAM::Role"
@@ -84,7 +83,6 @@ Resources:
                 Action:
                   - "lambda:InvokeFunction"
                 Resource:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-sample-file-lambda-${Environment}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:delete-s3-file-lambda-${Environment}"
 
   RDSInstanceAttachment:

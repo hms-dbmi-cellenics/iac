@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Setup policy required for K8s cluster to log to Cloudwatch [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - production
+    Description: The environment for which the logs need to be created.
+
+Outputs:
+  PolicyARN:
+    Description: ARN of PlatformLogToCloudwatchPolicy
+    Value: !Ref PlatformLogToCloudwatchPolicy
+
+Resources:
+  PlatformLogToCloudwatchPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub "platform-log-to-cloudwatch-${Environment}"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:CreateLogGroup"
+              - "logs:DescribeLogStreams"
+              - "logs:PutRetentionPolicy"
+              - "logs:PutLogEvents"
+            Resource:
+              - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/platform-logs/${Environment}*"

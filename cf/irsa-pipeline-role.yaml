@@ -16,6 +16,12 @@ Parameters:
     Description: The OIDC provider
 
 Resources:
+  PipelineProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: !Sub "pipeline-instance-profile-${Environment}"
+      Roles: 
+        - !Ref PipelineRole
   PipelineRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -36,10 +42,19 @@ Resources:
                     "${OIDCProvider}:sub": "system:serviceaccount:pipeline-*:deployment-runner"
                   }
                 }
+              },
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
               }
             ]
           }
       Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
       Policies:
         - PolicyName: !Sub "can-list-objects-in-source-buckets-${Environment}"
           PolicyDocument:
@@ -66,7 +81,7 @@ Resources:
                   - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}"
-
+ 
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -83,7 +98,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
-                  
+
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -91,13 +106,6 @@ Resources:
               - Effect: Allow
                 Action: "s3:PutObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::worker-results-${Environment}/*"
-                  - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
-                  - !Sub "arn:aws:s3:::processed-matrix-${Environment}/*"
-                  - !Sub "arn:aws:s3:::cell-sets-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-source-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
-                  - !Sub "arn:aws:s3:::biomage-pipeline-debug-${Environment}/*"
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
@@ -120,9 +128,10 @@ Resources:
               - Effect: Allow
                 Action: "s3:DeleteObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}/*"
+                  - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-test-${Environment}-${AWS::AccountId}/*"
+
         - PolicyName: !Sub "can-modify-object-tags-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -130,9 +139,9 @@ Resources:
               - Effect: Allow
                 Action: "s3:PutObjectTagging"
                 Resource:
-                  - !Sub "arn:aws:s3:::plots-tables-${Environment}/*"
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::plots-tables-test-${Environment}-${AWS::AccountId}/*"
+
         - PolicyName: !Sub "can-push-to-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -140,6 +149,7 @@ Resources:
               - Effect: Allow
                 Action: "sns:Publish"
                 Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-*"
+
         - PolicyName: !Sub "can-get-work-and-report-results-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -155,5 +165,6 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-seurat-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-subset-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
+                  

@@ -281,7 +281,9 @@ jobs:
             echo "Can not connect to RDS agent: No instances found for $CLUSTER_ENV"
             exit 1
           fi
+
           CLUSTER_NAME=aurora-cluster-${CLUSTER_ENV}-default
+
           RDSHOST=$(aws rds describe-db-cluster-endpoints \
             --region $REGION \
             --db-cluster-identifier $CLUSTER_NAME \
@@ -298,7 +300,7 @@ jobs:
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --parameters "commands='$ENSURE_PSQL_INSTALLED_COMMAND'"
-            
+
           SETUP_ROLES_CMD="
             PGPASSWORD=\'${AURORA_${{ steps.setup-rds-env.outputs.uppercase }}_PASSWORD}\' psql \
               --host=${RDSHOST} \
@@ -332,7 +334,7 @@ jobs:
       - id: send-to-slack
         name: Send failure notification to Slack on failure
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.BUILD_STATUS_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: workflow-failures

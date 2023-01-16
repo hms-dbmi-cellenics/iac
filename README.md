@@ -44,9 +44,13 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
   The primary domain name where the staging instance of Cellenics will be deployed under (e.g. app.net). This is the name of the domain
   in the hosted zone.
 
+- DATADOG_API_KEY (optional, used only if the deployment will use Datadog monitoring)
+
+  The API key of the Datadog account.
+
 - ACM_CERTIFICATE_ARN
 
-  The AWS ACM ARN for the SSL certificate for the Cellenics domain name.
+ The AWS ACM ARN for the SSL certificate for the Cellenics domain name.
 
 - ACM_CERTIFICATE_ARN_STAGING  (optional, used only if the deployment is not on a production environment)
 

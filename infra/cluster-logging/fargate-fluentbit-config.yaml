@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aws-observability
+  labels:
+    aws-observability: enabled
+---
+# Reference: https://docs.aws.amazon.com/eks/latest/userguide/fargate-logging.html
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-logging
+  namespace: aws-observability
+data:
+  flb_log_cw: 'false'
+  parsers.conf: |
+    [PARSER]
+        Name crio
+        Format Regex
+        Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>P|F) (?<log>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+        Time_Keep On
+  filters.conf: |
+    [FILTER]
+        Name parser
+        Match kube.*
+        Key_name log
+        Parser crio
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Merge_Log           On
+        Buffer_Size         0
+        Kube_Meta_Cache_TTL 5s
+
+    # Include only pipeline or worker pods
+    [FILTER]
+        Name   grep
+        Match  kube.*
+        Regex  $kubernetes['container_name'] (pipeline|worker|worker-r)
+
+    # Exclude logs from pipline pods in standby
+    [FILTER]
+        Name   grep
+        Match  kube.*
+        Exclude log No activity ARN label set yet
+
+    # Exclude logs from Python worker containers in standby
+    [FILTER]
+        Name   grep
+        Match  kube.*
+        Exclude log No experiment ID label set yet
+
+    # Exclude logs from R worker containers in standby
+    [FILTER]
+        Name   grep
+        Match  kube.*
+        Exclude log Experiment not yet assigned
+
+  output.conf: |
+    [OUTPUT]
+        Name cloudwatch
+        Match kube.*
+        region CI_AWS_REGION
+        auto_create_group true
+        log_retention_days 3
+        log_key log
+        log_group_name /platform-logs/CI_CLUSTER_ENV
+        log_stream_name $(kubernetes['namespace_name'])/$(kubernetes['labels']['experimentId'])/$(kubernetes['container_name'])/$(kubernetes['pod_name'])

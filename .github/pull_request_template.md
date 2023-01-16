@@ -16,11 +16,11 @@ Your changes will be ready for merging after each of the steps below have been c
 
 ### Testing
 - [ ] Unit tests written
-- [ ] Tested locally with Inframock  (with latest production data downloaded with biomage experiment pull)
+- [ ] Tested locally with Inframock  (with latest production data downloaded with cellenics experiment pull)
 - [ ] Deployed to staging
 
 To set up easy local testing with inframock, follow the instructions here: https://github.com/hms-dbmi-cellenics/inframock
-To deploy to the staging environment, follow the instructions here: https://github.com/hms-dbmi-cellenics/biomage-utils
+To deploy to the staging environment, follow the instructions here: https://github.com/hms-dbmi-cellenics/cellenics-utils
 
 ### Documentation updates
 Is all relevant documentation updated to reflect the proposed changes in this PR?
@@ -33,7 +33,7 @@ Is all relevant documentation updated to reflect the proposed changes in this PR
 - [ ] (UX changes) Approved by vickymorrison (this is her username, tag her if you need approval)
 
 ### Just before merging:
-- [ ] After the PR is approved, the `unstage` script in here: https://github.com/hms-dbmi-cellenics/biomage-utils is executed. This script cleans up your deployment to staging
+- [ ] After the PR is approved, the `unstage` script in here: https://github.com/hms-dbmi-cellenics/cellenics-utils is executed. This script cleans up your deployment to staging
 
 ### Optional
 - [ ] Photo of a cute animal attached to this PR
