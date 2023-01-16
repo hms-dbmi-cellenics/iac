@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up AWS Batch for pipelines
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+
+Resources:
+  BatchComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName: !Sub "compute-env-${Environment}"
+      State:  ENABLED
+      Type: MANAGED
+      ReplaceComputeEnvironment: false
+      ComputeResources:
+        Type: EC2
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        MinvCpus: 0
+        DesiredvCpus: 0
+        MaxvCpus: 128
+        InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
+        InstanceTypes:
+          - r6i.xlarge
+          - r6i.2xlarge
+          - r6i.4xlarge
+          - r6i.8xlarge
+          - r6i.12xlarge
+          - r6i.16xlarge
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
+        Subnets:
+          Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+
+  BatchJobQueue:
+    Type: AWS::Batch::JobQueue
+    DependsOn: BatchComputeEnvironment
+    Properties:
+      JobQueueName: !Sub "queue-pipeline-${Environment}"
+      Priority: 1
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Sub "compute-env-${Environment}"
+          Order: 1
+      State: ENABLED
+
+  BatchPipelineJob:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      JobDefinitionName: !Sub "job-pipeline-${Environment}"
+      ContainerProperties:
+        Command:
+          - Rscript
+          - init.R
+        Image: !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-${Environment}"
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 2
+          - Type: MEMORY
+            Value: 8192 # MiB
+      Type: Container
