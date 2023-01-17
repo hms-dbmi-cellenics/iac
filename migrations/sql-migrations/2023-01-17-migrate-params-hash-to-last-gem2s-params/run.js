@@ -97,7 +97,8 @@ const getValueForSample = (experimentId, trackKey, trackCellSets, sampleData) =>
   const { cellIds: sampleCellIds } = sampleData;
 
   const samplesValue = trackCellSets.find(({ key, cellIds: valueCellIds }) => {
-    console.log(`STILL RUNNING ${sampleCellIds.length}, ${valueCellIds.length}`);
+    // console.log(`STILL RUNNING ${sampleCellIds.length}, ${valueCellIds.length}`);
+
     // Each cellId is in only in one metadata track, so if we find where the first cellId is
     //  then we can assume all the other ones are there too
     const includes = valueCellIds.includes(sampleCellIds[0]);
@@ -130,7 +131,7 @@ const getValueForSample = (experimentId, trackKey, trackCellSets, sampleData) =>
 }
 
 const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
-  console.log(`Begun getMetadata for experiment: ${experimentId}`);
+  // console.log(`Begun getMetadata for experiment: ${experimentId}`);
   const metadata = metadataTracks.reduce((metadataTracksAcum, { key, children: trackCellSets }) => {
     // trackCellSets.forEach((trackCellSets));
 
@@ -150,7 +151,7 @@ const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
     return metadataTracksAcum;
   }, {});
 
-  console.log(`Finished getMetadata for experiment: ${experimentId}`);
+  // console.log(`Finished getMetadata for experiment: ${experimentId}`);
 
   return metadata;
 }
@@ -227,9 +228,9 @@ const startMigration = async (sqlClient) => {
     gem2sExecutions
       .slice(0, sliceSize)
       .map(async (execution, index) => {
-        try {
-          const { experiment_id: experimentId } = execution;
+        const { experiment_id: experimentId } = execution;
 
+        try {
           const currentGem2sParams = await getCurrentGem2sParams(experimentId, sqlClient);
           const latestGem2sRunParams = await getLatestGem2sRunParams(experimentId, currentGem2sParams);
 
@@ -260,8 +261,12 @@ const startMigration = async (sqlClient) => {
           //   });
 
         } catch (e) {
-          console.log(chalk.red('Error: '));
-          console.log(e);
+          if (e.code === 'ENOENT') {
+            console.log(`Experiment ${experimentId}, cell sets not found`);
+          } else {
+            console.log(chalk.red('Error: '));
+            console.log(e);
+          }
 
           missingExps.delete(index);
         }
