@@ -91,37 +91,49 @@ const readCellSets = async (filePath) => {
   return cellSets;
 };
 
-let includesCellIds = (subarray, container) => subarray.some(v => container.includes(v));
+let hasAllCellIds = (subarray, containerSet) => subarray.every(v => containerSet.has(v));
 
 const getValueForSample = (experimentId, trackKey, trackCellSets, sampleData) => {
   const { cellIds: sampleCellIds } = sampleData;
 
-  const samplesValue = trackCellSets.filter(({ cellIds: valueCellIds }) => {
-    return includesCellIds(sampleCellIds, valueCellIds);
+  const samplesValue = trackCellSets.find(({ key, cellIds: valueCellIds }) => {
+    console.log(`STILL RUNNING ${sampleCellIds.length}, ${valueCellIds.length}`);
+    // Each cellId is in only in one metadata track, so if we find where the first cellId is
+    //  then we can assume all the other ones are there too
+    const includes = valueCellIds.includes(sampleCellIds[0]);
+
+    if (includes) {
+      if (!hasAllCellIds(sampleCellIds, new Set(valueCellIds))) {
+        console.error(
+          chalk.red(
+            `
+        ---------------------[ERROR]---------------------
+          experiment: ${experimentId}, 
+          sample: ${sampleData.key}
+          metadataTrack: ${trackKey}
+          metadataValue: ${key}
+          
+          Metadata value has some cellIds of the sample but not all
+        -------------------------------------------------
+    `
+          )
+        );
+
+        throw new Error('Metadata value has some cellIds of the sample but not all');
+      }
+    }
+
+    return includes;
   });
 
-  if (samplesValue.length > 1) {
-    console.error(
-      chalk.red(
-        `
-    ---------------------[ERROR]---------------------
-      experiment: ${experimentId}, 
-      sample: ${sampleData.key}
-      metadataTrack: ${trackKey}
-      
-      More than one metadata value has cellIds from the sample
-    -------------------------------------------------
-`
-      )
-    );
-    throw new Error('More than one metadata value has cellIds from the sample');
-  }
-
-  return samplesValue[0].key;
+  return samplesValue.key;
 }
 
 const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
+  console.log(`Begun getMetadata for experiment: ${experimentId}`);
   const metadata = metadataTracks.reduce((metadataTracksAcum, { key, children: trackCellSets }) => {
+    // trackCellSets.forEach((trackCellSets));
+
     const trackValues = [];
 
     sortedSamplesData.forEach((sampleData) => {
@@ -137,6 +149,8 @@ const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
     metadataTracksAcum[key] = trackValues;
     return metadataTracksAcum;
   }, {});
+
+  console.log(`Finished getMetadata for experiment: ${experimentId}`);
 
   return metadata;
 }
@@ -204,10 +218,10 @@ const getCurrentGem2sParams = async (experimentId, knex) => {
 const startMigration = async (sqlClient) => {
   const gem2sExecutions = await sqlClient.select().from(tableNames.EXPERIMENT_EXECUTION).where({ pipeline_type: 'gem2s' });
 
-  // const sliceSize = gem2sExecutions.length;
-  const sliceSize = 100;
+  const sliceSize = gem2sExecutions.length;
+  // const sliceSize = 100;
 
-  const missingExps = new Set(_.range(1, sliceSize + 1));
+  const missingExps = new Set(_.range(sliceSize));
 
   await Promise.all(
     gem2sExecutions
@@ -248,6 +262,8 @@ const startMigration = async (sqlClient) => {
         } catch (e) {
           console.log(chalk.red('Error: '));
           console.log(e);
+
+          missingExps.delete(index);
         }
       }),
   );
