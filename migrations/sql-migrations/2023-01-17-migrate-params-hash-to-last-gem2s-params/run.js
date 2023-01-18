@@ -133,8 +133,6 @@ const getValueForSample = (experimentId, trackKey, trackCellSets, sampleData) =>
 const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
   // console.log(`Begun getMetadata for experiment: ${experimentId}`);
   const metadata = metadataTracks.reduce((metadataTracksAcum, { key, children: trackCellSets }) => {
-    // trackCellSets.forEach((trackCellSets));
-
     const trackValues = [];
 
     sortedSamplesData.forEach((sampleData) => {
@@ -156,22 +154,44 @@ const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
   return metadata;
 }
 
+// We need to get the names of the samples from currentGem2sParams when possible
+//  to guarantee that people renaming the sample in their cellSets (but not in data management)
+//  won't cause a wrong "Process project" button
+const getSampleNames = (currentGem2sParams, latestSampleIds, latestSampleNames) => {
+  return latestSampleIds.map((sampleId, index) => {
+    const currentIndex = currentGem2sParams.sampleIds.indexOf(sampleId);
+
+    // If the sample id isn't in the current params, then just return the name we have in cell sets
+    // It doesn't matter that much becuase that means a sample was deleted, 
+    // so it will have "Process project" anyways
+    if (currentIndex === -1) return latestSampleNames[index];
+
+    return currentGem2sParams.sampleNames[currentIndex];
+  });
+}
+
 const getLatestGem2sRunParams = async (experimentId, currentGem2sParams) => {
   const cellSets = await readCellSets(`${CELL_SETS_DIR}/${experimentId}`);
 
   const samplesData = _.find(cellSets, { key: 'sample' }).children;
+  // sortedSamplesData looks like: [{key: 'sample-0', ...}, {key: 'sample-1', ...}]
   const sortedSamplesData = _.sortBy(samplesData, ['key']);
 
   // Any cell class of type metadataCategorical (and not sample) is a metadata
   const metadataTracks = cellSets.filter(({ type, key }) => type === 'metadataCategorical' && key !== 'sample');
 
+  const sampleIds = _.map(sortedSamplesData, 'key');
+  const sampleNames = _.map(sortedSamplesData, 'name');
+
   return {
     sampleTechnology: undefined,
-    sampleIds: _.map(sortedSamplesData, 'key'),
-    sampleNames: _.map(sortedSamplesData, 'name'),
-    // TODO: Should we look at sampleOptions? It might be harder to see whether this is checked, and honestly it's not used that much as far as I know
-    // Current implementation isn't looking at sampleOptions)
-    sampleOptions: currentGem2sParams.sampleOptions,
+    sampleIds: sampleIds,
+    sampleNames: getSampleNames(currentGem2sParams, sampleIds, sampleNames),
+    // Checked, all 10x have lists of {}, all the real rhapsody exps 
+    //  have "go to data processing" in the button, so we can just copy it from here
+    // Also, sampleOptions is the same value for all samples, 
+    //  so we don't need to find the relevant sample like with sampleName
+    sampleOptions: currentGem2sParams.sampleOptions.slice(0, sortedSamplesData.length),
     metadata: await getMetadata(experimentId, sortedSamplesData, metadataTracks),
   };
 };
@@ -187,7 +207,7 @@ const getCurrentGem2sParams = async (experimentId, knex) => {
     {},
   );
 
-  const { sampleTechnology, metadata } = samples[0];
+  const { sampleTechnology = undefined, metadata = {} } = samples[0] ?? {};
 
   const sampleIds = Object.keys(samplesObj).sort();
   const sampleNames = sampleIds.map((id) => samplesObj[id].name);
@@ -264,7 +284,7 @@ const startMigration = async (sqlClient) => {
           if (e.code === 'ENOENT') {
             console.log(`Experiment ${experimentId}, cell sets not found`);
           } else {
-            console.log(chalk.red('Error: '));
+            console.log(chalk.red(`Experiment: ${experimentId}. Error: `));
             console.log(e);
           }
 
