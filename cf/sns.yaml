@@ -78,3 +78,10 @@ Resources:
       FilterPolicy:
         type:
           - GEM2SResponse
+
+Outputs:
+  SNSTopicV2Arn:
+    Description: The ARN of the SNS v2 topic
+    Value: !Ref SNSTopicV2
+    Export:
+      Name: !Sub 'sns-work-result-${Environment}::Arn'
