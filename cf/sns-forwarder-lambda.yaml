@@ -140,14 +140,6 @@ Resources:
                   'body': {"error": "yes"}
               }
 
-  SNSEndpointLambdaEventSourceMapping:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      Enabled: true
-      EventSourceArn:
-        Fn::ImportValue: !Sub "sns-work-result-${Environment}::Arn"
-      FunctionName: !Ref SNSEndpointLambda
-
   SNSEndpointInvocationPermission:
     Type: AWS::Lambda::Permission
     Properties:
