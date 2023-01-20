@@ -40,11 +40,19 @@ Resources:
                 Action:
                   - "ec2:CreateNetworkInterface"
                   - "ec2:DeleteNetworkInterface"
-                  - "ec2:DescribeNetworkInterfaces"
                   - "ec2:AssignPrivateIpAddresses"
                   - "ec2:UnassignPrivateIpAddresses"
                 Resource:
-                  - Fn::Sub: "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-describe-network-interfaces-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:DescribeNetworkInterfaces"
+                Resource:
+                  - "*"
         - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -53,7 +61,7 @@ Resources:
                 Action:
                   - "logs:CreateLogGroup"
                 Resource:
-                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}"
         - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -63,7 +71,7 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource:
-                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}:*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}:*"
 
   SNSEndpointLambda:
     Type: AWS::Lambda::Function
