@@ -158,15 +158,6 @@ Resources:
                     'body': {"error": "yes"}
                 }
 
-  SNSEndpointInvocationPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: "lambda:InvokeFunction"
-      FunctionName: !Ref SNSEndpointLambda
-      Principal: "sns.amazonaws.com"
-      SourceArn:
-        Fn::ImportValue: !Sub "sns-work-result-${Environment}::ARN"
-
   LoggingGroup:
     Type: AWS::Logs::LogGroup
     Properties:
