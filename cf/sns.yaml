@@ -84,4 +84,4 @@ Outputs:
     Description: The ARN of the SNS v2 topic
     Value: !Ref SNSTopicV2
     Export:
-      Name: !Sub 'sns-work-result-${Environment}::Arn'
+      Name: !Sub 'sns-work-result-${Environment}::ARN'
