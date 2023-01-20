@@ -74,6 +74,11 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt SNSEndpointLambdaRole.Arn
       Handler: index.lambda_handler
+      VpcConfig:
+        SecurityGroupIds:
+          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+        SubnetIds:
+          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
           DOMAIN_NAME: !If [
@@ -152,7 +157,7 @@ Resources:
       FunctionName: !Ref SNSEndpointLambda
       Principal: "sns.amazonaws.com"
       SourceArn:
-        Fn::ImportValue: !Sub "sns-work-result-${Environment}::Arn"
+        Fn::ImportValue: !Sub "sns-work-result-${Environment}::ARN"
 
   LoggingGroup:
     Type: AWS::Logs::LogGroup
