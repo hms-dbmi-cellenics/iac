@@ -1,0 +1,164 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lambda to forward SNS messages to API endpoints
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the lambda is created
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this topic is created for.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+  isDev: !Equals [!Ref Environment, "development"]
+
+Resources:
+  SNSEndpointLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-create-required-vpc-access-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ec2:AssignPrivateIpAddresses"
+                  - "ec2:UnassignPrivateIpAddresses"
+                Resource:
+                  - Fn::Sub: "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}:*"
+
+  SNSEndpointLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub sns-endpoint-lambda-${Environment}
+      Runtime: python3.8
+      Role: !GetAtt SNSEndpointLambdaRole.Arn
+      Handler: lambda_handler
+      Environment:
+        Variables:
+          DOMAIN_NAME: !If [
+                        isDev, "http://host.docker.internal:3000", !If [
+                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                      ]]
+      Code:
+        ZipFile: |
+          import os
+
+          print("EVENT: ", event)
+          sns_message_payload = event["Records"][0]["Sns"]
+
+          message_body = json.loads(sns_message_payload["Message"])
+
+          if message_body.get("experimentId"):
+              print("[experimentId] ", message_body.get("experimentId"))
+          else:
+              print("Kubernetes event")
+
+          url = ""
+
+          sns_message_headers = {
+              "x-amz-sns-message-id": sns_message_payload['MessageId'],
+              "x-amz-sns-message-type": sns_message_payload["Type"],
+              "x-amz-sns-subscription-arn" : event["Records"][0]["EventSubscriptionArn"],
+              "x-amz-sns-topic-arn" : sns_message_payload["TopicArn"],
+              "Content-Type": "text/plain",
+              'Connection':'close'
+          }
+
+          application_json_headers = {
+              "Content-Type": "application/json"
+          }
+
+          if message_body.get("reason") == "BackOff":
+              data = message_body
+              headers = application_json_headers
+              url = f"{os.getenv('DOMAIN_NAME')}/v2/kubernetesEvents"
+          elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "PipelineResponse":
+              url = f"{message_body.get('apiUrl')}/v2/pipelineResults"
+              data = sns_message_payload
+              headers = sns_message_headers
+          elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "GEM2SResponse":
+              url = f"{message_body.get('apiUrl')}/v2/gem2sResults"
+              data = sns_message_payload
+              headers = sns_message_headers
+
+          print("[ENDPOINT CALLED] ", url)
+          print("[DATA PAYLOAD] ", json.dumps(data))
+
+          try:
+              r = requests.post(url = url, data = json.dumps(data), headers = headers, verify=False, timeout=300)
+              print("[SUCCESS] ", r.content)
+              print("***********************")
+              return {
+                  'statusCode': 200,
+                  'body': {"alles": "gut"}
+              }
+          except Exception as e:
+              print("[FAILURE] ", e)
+              print("***********************")
+              return {
+                  'statusCode': 500,
+                  'body': {"error": "yes"}
+              }
+
+  SNSEndpointLambdaEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      Enabled: true
+      EventSourceArn:
+        Fn::ImportValue: !Sub "sns-work-result-${Environment}::Arn"
+      FunctionName: !Ref SNSEndpointLambda
+
+  SNSEndpointInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref SNSEndpointLambda
+      Principal: "sns.amazonaws.com"
+      SourceArn:
+        Fn::ImportValue: !Sub "sns-work-result-${Environment}::Arn"
+
+  LoggingGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}"
+      RetentionInDays: 3
