@@ -32,7 +32,7 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
-        - PolicyName: !Sub "can-create-required-vpc-access-${Environment}"
+        - PolicyName: !Sub "can-create-required-vpc-access-${Environment}-${SandboxID}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -44,7 +44,7 @@ Resources:
                   - "ec2:UnassignPrivateIpAddresses"
                 Resource:
                   - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
-        - PolicyName: !Sub "can-describe-network-interfaces-${Environment}"
+        - PolicyName: !Sub "can-describe-network-interfaces-${Environment}-${SandboxID}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -53,7 +53,7 @@ Resources:
                   - "ec2:DescribeNetworkInterfaces"
                 Resource:
                   - "*"
-        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}-${SandboxID}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -61,8 +61,8 @@ Resources:
                 Action:
                   - "logs:CreateLogGroup"
                 Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}"
-        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}-${SandboxID}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -71,12 +71,12 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}:*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}:*"
 
   SNSEndpointLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub sns-endpoint-lambda-${Environment}
+      FunctionName: !Sub sns-endpoint-lambda-${Environment}-${SandboxID}
       # Using 3.7 so that we can import requests directly from botocore. See https://stackoverflow.com/a/48495770/1940886
       # Otherwise we'd have to upload the Lambda code and its dependencies to S3 and use the files from there.
       Runtime: python3.7
@@ -161,5 +161,5 @@ Resources:
   LoggingGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}"
+      LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
       RetentionInDays: 3
