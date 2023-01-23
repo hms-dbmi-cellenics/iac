@@ -14,10 +14,10 @@ Parameters:
     Type: String
     Default: default
     Description: The sandbox ID of the environment that this topic is created for.
-
-
-Mappings:
-  SNSTopicName: !Sub "work-results-${Environment}-${SandboxID}-v2"
+  TopicName:
+    Type: String
+    Default: !Sub "work-results-${Environment}-${SandboxID}-v2"
+    Description: Name of the SNS topic
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -37,7 +37,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       KmsMasterKeyId: "alias/aws/sns"
-      TopicName: !FindInMap SNSTopicName
+      TopicName: !Sub "${TopicName}"
   PipelineResultsSubscriptionV2:
     Type: 'AWS::SNS::Subscription'
     Properties:
@@ -88,4 +88,4 @@ Outputs:
     Description: The ARN of the SNS v2 topic
     Value: !Ref SNSTopicV2
     Export:
-      Name: !FindInMap SNSTopicName
+      Name: !Sub "${TopicName}"
