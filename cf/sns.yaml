@@ -34,50 +34,6 @@ Resources:
     Properties:
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "work-results-${Environment}-${SandboxID}-v2"
-  PipelineResultsSubscriptionV2:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref SNSTopicV2
-      Endpoint: !Sub [ "${BaseUrl}/v2/pipelineResults", BaseUrl: !If [
-                        isDev, "http://host.docker.internal:3000", !If [
-                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - PipelineResponse
-  Gem2sResultsSubscriptionV2:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref SNSTopicV2
-      Endpoint: !Sub [ "${BaseUrl}/v2/gem2sResults", BaseUrl: !If [
-                        isDev, "http://host.docker.internal:3000", !If [
-                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - GEM2SResponse
 
 Outputs:
   SNSTopicV2Arn:
