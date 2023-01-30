@@ -35,9 +35,21 @@ Resources:
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "work-results-${Environment}-${SandboxID}-v2"
 
-Outputs:
-  SNSTopicV2Arn:
-    Description: The ARN of the SNS v2 topic
-    Value: !Ref SNSTopicV2
-    Export:
-      Name: !Sub "sns-work-results-${Environment}-${SandboxID}-v2::ARN"
+  SNSEndpointLambdaSubcription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopicV2
+      Protocol: "lambda"
+      Endpoint:
+        # Sandbox id for the subscription is set to default because right now
+        # there is only 1 endpoint Lambda instance for each environment
+        Fn::ImportValue: !Sub "sns-endpoint-lambda-${Environment}-default-v2::ARN"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
