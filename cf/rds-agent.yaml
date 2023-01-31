@@ -62,6 +62,11 @@ Resources:
       InstanceType: t2.nano
       IamInstanceProfile: !Ref SSMProfile
       ImageId: !Ref LatestAmiId
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeType: gp2
+            Encrypted: true
       SecurityGroupIds:
         - Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
       SubnetId:
