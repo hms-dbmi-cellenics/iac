@@ -2,7 +2,7 @@ const _ = require('lodash');
 const knexfileLoader = require('../knexfile');
 const knex = require('knex');
 const chalk = require('chalk');
-const { atomic } = require('atomic');
+const objectHash = require('object-hash');
 
 const fs = require('fs');
 const { exit } = require('process');
@@ -138,6 +138,12 @@ const getMetadata = async (experimentId, sortedSamplesData, metadataTracks) => {
     sortedSamplesData.forEach((sampleData) => {
       const sampleValue = getValueForSample(experimentId, key, trackCellSets, sampleData);
 
+      console.log('sampleDataNameDebug');
+      console.log(sampleData.name);
+
+      console.log('sampleDataValueDebug');
+      console.log(sampleValue);
+
       // In the cellsets, the metadata values have this format: `${track}-${value}`
       //  Everywhere else they have the format `${value}`, so remove the first appearance of `${track}-`
       const sampleValueCleaned = sampleValue.replace(`${key}-`, '');
@@ -184,7 +190,7 @@ const getLatestGem2sRunParams = async (experimentId, currentGem2sParams) => {
   const sampleNames = _.map(sortedSamplesData, 'name');
 
   return {
-    sampleTechnology: undefined,
+    sampleTechnology: currentGem2sParams.sampleTechnology,
     sampleIds: sampleIds,
     sampleNames: getSampleNames(currentGem2sParams, sampleIds, sampleNames),
     // Checked, all 10x have lists of {}, all the real rhapsody exps 
@@ -207,9 +213,9 @@ const getCurrentGem2sParams = async (experimentId, knex) => {
     {},
   );
 
-  const { sampleTechnology = undefined, metadata = {} } = samples[0] ?? {};
+  const { sample_technology: sampleTechnology = undefined, metadata = {} } = samples[0] ?? {};
 
-  const sampleIds = Object.keys(samplesObj).sort();
+  const sampleIds = _.sortBy(Object.keys(samplesObj));
   const sampleNames = sampleIds.map((id) => samplesObj[id].name);
   const sampleOptions = sampleIds.map((id) => samplesObj[id].options);
 
@@ -244,8 +250,11 @@ const startMigration = async (sqlClient) => {
 
   const missingExps = new Set(_.range(sliceSize));
 
+
+
   await Promise.all(
     gem2sExecutions
+      // .filter(({ experiment_id }) => experiment_id === '102a4c3f-9224-e3a1-2390-850825fc64d4')
       .slice(0, sliceSize)
       .map(async (execution, index) => {
         const { experiment_id: experimentId } = execution;
@@ -254,27 +263,41 @@ const startMigration = async (sqlClient) => {
           const currentGem2sParams = await getCurrentGem2sParams(experimentId, sqlClient);
           const latestGem2sRunParams = await getLatestGem2sRunParams(experimentId, currentGem2sParams);
 
-          if (!_.isEqual(currentGem2sParams, latestGem2sRunParams)) {
-            console.log(chalk.yellow('-----experimentIdDebug'));
-            console.log(experimentId);
+          const latestGem2sRunParamsHash = objectHash.sha1(
+            {
+              organism: null,
+              ...latestGem2sRunParams,
+            },
+            { unorderedObjects: true, unorderedArrays: true, unorderedSets: true },
+          );
 
-            console.log(chalk.yellow('-----currentGem2sParamsDebug'));
-            console.log(currentGem2sParams);
+          console.log('latestGem2sRunParamsHashDebug');
+          console.log(latestGem2sRunParamsHash);
 
-            console.log(chalk.yellow('-----latestGem2sRunParamsDebug'));
-            console.log(latestGem2sRunParams);
+          console.log('executionparams_hashDebug');
+          console.log(execution.params_hash);
 
-            console.log(chalk.yellow('Are they equal?'));
-            console.log(_.isEqual(currentGem2sParams, latestGem2sRunParams));
+          // if (!_.isEqual(currentGem2sParams, latestGem2sRunParams)) {
+          console.log(chalk.yellow('-----experimentIdDebug'));
+          console.log(experimentId);
 
-            console.log(chalk.yellow('------------------------------------------'));
-          }
+          console.log(chalk.yellow('-----currentGem2sParamsDebug'));
+          console.log(currentGem2sParams);
+
+          console.log(chalk.yellow('-----latestGem2sRunParamsDebug'));
+          console.log(latestGem2sRunParams);
+
+          console.log(chalk.yellow('Are they equal?'));
+          console.log(`Equal: ${_.isEqual(currentGem2sParams, latestGem2sRunParams)}`);
+
+          console.log(chalk.yellow('------------------------------------------'));
+          // }
 
           missingExps.delete(index);
           console.log(`Experiments missing: ${missingExps.size}`);
 
           // await sqlClient(tableNames.EXPERIMENT_EXECUTION)
-          //   .update({ last_gem2s_params: currentGem2sParams })
+          //   .update({ last_gem2s_params: latestGem2sRunParams })
           //   .where({
           //     pipeline_type: 'gem2s',
           //     experiment_id: experimentId,
@@ -318,7 +341,7 @@ const run = async () => {
     exit();
   } else {
     console.log('You need to specify what environment to run this on.');
-    console.log('e.g.: TARGET_ENV=staging npm run dynamoToSql');
+    console.log('e.g.: TARGET_ENV=staging SANDBOX_ID=<sandbox_id> npm run paramsHashToParams');
   }
 };
 
