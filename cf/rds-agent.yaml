@@ -63,10 +63,10 @@ Resources:
       IamInstanceProfile: !Ref SSMProfile
       ImageId: !Ref LatestAmiId
       BlockDeviceMappings:
-        - DeviceName: "/dev/sda1"
+        - DeviceName: "/dev/xvda"
           Ebs:
-            VolumeType: gp2
-            Encrypted: true
+            VolumeSize: '8'
+            Encrypted: 'true'
       SecurityGroupIds:
         - Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
       SubnetId:
