@@ -113,6 +113,7 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
         name: Check out source code
