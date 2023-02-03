@@ -84,9 +84,15 @@ Resources:
       Handler: index.lambda_handler
       VpcConfig:
         SecurityGroupIds:
-          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+          !If [
+            isDev, [],
+            Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+          ]
         SubnetIds:
-          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+          !If [
+            isDev, [],
+            Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+          ]
       Environment:
         Variables:
           DOMAIN_NAME: !If [
