@@ -60,6 +60,7 @@ jobs:
   check-secrets:
     name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
+    needs: set-environments
     strategy:
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
