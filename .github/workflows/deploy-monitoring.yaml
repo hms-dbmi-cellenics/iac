@@ -11,13 +11,6 @@ on:
           - Biomage
           - all
         default: all
-      workflow_actions:
-        type: choice
-        description: Select actions to perform
-        options:
-          - deploy and configure
-          - configure
-        default: configure
       environment_type:
         type: choice
         description: Select environment type
