@@ -102,7 +102,7 @@ jobs:
   deploy-monitoring:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
-    needs: check-secrets
+    needs: [set-environments, check-secrets]
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
