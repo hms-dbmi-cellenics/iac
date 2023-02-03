@@ -33,6 +33,10 @@ managedNodeGroups:
     minSize: 2
     maxSize: 4
     volumeSize: 80
+    BlockDeviceMappings:
+      - DeviceName: "/dev/xvda"
+        Ebs:
+          Encrypted: 'true'
     iam:
       withAddonPolicies:
         ebs: true
