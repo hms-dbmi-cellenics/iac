@@ -106,6 +106,9 @@ jobs:
           BASE_NAME=biomage-sns-staging-$SANDBOX_ID
           echo "::set-output name=sns-name::$BASE_NAME"
 
+          BASE_NAME=biomage-sns-endpoint-lambda-$SANDBOX_ID
+          echo "::set-output name=sns-endpoint-lambda-name::$BASE_NAME"
+
           BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
@@ -229,6 +232,16 @@ jobs:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.sns-name }}
           template: cf/sns.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: deploy-template-sns-endpoint-lambda
+        name: Deploy CloudFormation stack for SNS endpoint lambda
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
+          name: ${{ steps.set-stack-name.outputs.sns-endpoint-lambda-name }}
+          template: cf/sns-endpoint-lambda.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
