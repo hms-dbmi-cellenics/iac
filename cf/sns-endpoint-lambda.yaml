@@ -181,3 +181,12 @@ Resources:
           numMinDelayRetries: 2
           numMaxDelayRetries: 16
           backoffFunction: exponential
+
+  SNSEndpointInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref SNSEndpointLambda
+      Principal: "sns.amazonaws.com"
+      SourceArn:
+        Fn::ImportValue: !Sub "sns-work-results-${Environment}-${SandboxID}-v2::ARN"
