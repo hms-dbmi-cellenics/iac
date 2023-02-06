@@ -83,10 +83,13 @@ Resources:
       Role: !GetAtt SNSEndpointLambdaRole.Arn
       Handler: index.lambda_handler
       VpcConfig:
-        SecurityGroupIds:
-          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
-        SubnetIds:
-          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+        !If
+          - isDev
+          - !Ref "AWS::NoValue"
+          - SecurityGroupIds:
+              Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+            SubnetIds:
+              Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
           DOMAIN_NAME: !If [
