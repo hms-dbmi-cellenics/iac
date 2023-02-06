@@ -289,7 +289,7 @@ jobs:
 
       - id: update-nodegroup
         name: Attempt to update node groups for existing cluster.
-        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+        if: steps.create-clusters.outcome == 'failure'
         run: |-
           eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
           eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
