@@ -163,3 +163,21 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
       RetentionInDays: 3
+
+  SNSEndpointLambdaSubcription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn:
+        Fn::ImportValue: !Sub "sns-work-results-${Environment}-${SandboxID}-v2::ARN"
+      Protocol: "lambda"
+      Endpoint:
+        !GetAtt SNSEndpointLambda.Arn
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
