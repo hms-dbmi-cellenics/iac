@@ -272,27 +272,6 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: fill-metadata
-        name: Add name and region to the eksctl file.
-        run: |-
-          export CLUSTER_NAME="biomage-$CLUSTER_ENV"
-          yq -i '
-            .metadata.name = strenv(CLUSTER_NAME) |
-            .metadata.region = strenv(AWS_REGION)
-          ' infra/config/cluster/cluster-template.yaml
-
-          export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
-          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
-          cat /tmp/cluster-$CLUSTER_ENV.yaml
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      - id: update-nodegroup
-        name: Attempt to update node groups for existing cluster.
-        run: |-
-          eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
-          eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
-
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
         run: |-
