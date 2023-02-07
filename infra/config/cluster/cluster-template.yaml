@@ -28,7 +28,17 @@ iam:
 # config for each of the Github environments under infra/config/cluster
 managedNodeGroups:
   - name: nodegroup-post-scaling-x86-v2
-    instanceType: r6i.xlarge
+    instanceType: r5.large
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 4
+    volumeSize: 80
+    iam:
+      withAddonPolicies:
+        ebs: true
+        autoScaler: true
+  - name: nodegroup-post-scaling-x86-v3
+    instanceType: r6i.large
     desiredCapacity: 2
     minSize: 2
     maxSize: 4
