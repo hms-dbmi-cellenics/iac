@@ -145,7 +145,7 @@ Resources:
 
             try:
                 req = urllib.request.Request(url = url, data = json.dumps(data), headers = headers, unverifiable=True)
-                with urllib.request.openurl(req, timeout=300) as r:
+                with urllib.request.urlopen(req, timeout=300) as r:
                   print("[SUCCESS] ", r.read())
                   print("***********************")
                   return {
