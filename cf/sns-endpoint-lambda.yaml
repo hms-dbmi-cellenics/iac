@@ -82,14 +82,14 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt SNSEndpointLambdaRole.Arn
       Handler: index.lambda_handler
-      # VpcConfig:
-      #   !If
-      #     - isDev
-      #     - !Ref "AWS::NoValue"
-      #     - SecurityGroupIds:
-      #         Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
-      #       SubnetIds:
-      #         Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+      VpcConfig:
+        !If
+          - isDev
+          - !Ref "AWS::NoValue"
+          - SecurityGroupIds:
+              Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+            SubnetIds:
+              Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
           DOMAIN_NAME: !If [
@@ -102,10 +102,13 @@ Resources:
           from botocore.vendored import requests
           import json
           import os
+          import sys
 
           def lambda_handler(event, context):
             print("EVENT: ", event)
             sns_message_payload = event["Records"][0]["Sns"]
+
+            print("*** python version", sys.version)
 
             message_body = json.loads(sns_message_payload["Message"])
 
