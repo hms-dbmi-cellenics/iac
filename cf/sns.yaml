@@ -16,7 +16,6 @@ Parameters:
     Description: The sandbox ID of the environment that this topic is created for.
 
 Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
 
 Resources:
