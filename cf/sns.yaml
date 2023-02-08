@@ -27,6 +27,7 @@ Resources:
       FifoQueue: true
       QueueName: !If [isDev, "development-queue.fifo", !Sub "queue-job-${SandboxID}-${Environment}.fifo"]
       FifoThroughputLimit: "perMessageGroupId"
+      SqsManagedSseEnabled: true
 
   SNSTopicV2:
     Type: AWS::SNS::Topic
