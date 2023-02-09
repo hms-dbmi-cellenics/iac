@@ -102,7 +102,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: !Join [ "", ["arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]]
-            Resource: !Join [ "", [!Ref ALBLogsBucket, !Sub "/k8s-${Environment}/*"]]
+            Resource: !Join [ "", [!GetAtt ALBLogsBucket.Arn, !Sub "/k8s-${Environment}/*"]]
 
 Outputs:
   CanonicalHostedZoneID:
