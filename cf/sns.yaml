@@ -94,6 +94,7 @@ Resources:
     Properties:
       FunctionName: !Sub sns-endpoint-lambda-${Environment}-${SandboxID}
       Runtime: python3.9
+      Timeout: 8
       Role: !GetAtt SNSEndpointLambdaRole.Arn
       Handler: index.lambda_handler
       VpcConfig:
@@ -198,7 +199,6 @@ Resources:
           numMinDelayRetries: 2
           numMaxDelayRetries: 16
           backoffFunction: exponential
-      Timeout: 8
 
   SNSEndpointInvocationPermission:
     Type: AWS::Lambda::Permission
