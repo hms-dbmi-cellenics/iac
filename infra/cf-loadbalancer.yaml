@@ -18,9 +18,22 @@ Parameters:
 Conditions:
   isPublic: !Equals [!Ref PublicFacing, "true"]
 
+
+Mappings:
+  # The value of the account ID in the service below is determined by AWS
+  # Refer to https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
+  ALBServiceMap:
+    us-east-1:
+      AccountId: "127311923021"
+    us-east-2:
+      AccountId: "033677994240"
+    eu-west-1:
+      AccountId: "156460612806"
+
 Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Name: !Sub "k8s-${Environment}"
     Properties:
       IpAddressType: ipv4
       LoadBalancerAttributes:
@@ -35,8 +48,7 @@ Resources:
         - Key: access_logs.s3.bucket
           Value: !Ref ALBLogsBucket
         - Key: access_logs.s3.prefix
-          Value: ""
-      Name: !Sub "k8s-${Environment}"
+          Value: !Sub "k8s-${Environment}"
       Scheme: !If [isPublic, "internet-facing", "internal"]
       Subnets:
         Fn::Split:
@@ -75,6 +87,20 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
+
+  ALBLogsBucketPermission:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ALBLogsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - 's3:PutObject'
+            Effect: Allow
+            Principal:
+              Service: !Join [ "arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]
+            Resource: !Join [ !Ref ALBLogsBucket, !Sub "/k8s-${Environment}/*"]
 
 Outputs:
   CanonicalHostedZoneID:
