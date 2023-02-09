@@ -17,6 +17,10 @@ managedNodeGroups:
     subnets:
       - dmz-us-east-2a
       - dmz-us-east-2b
+  - name: nodegroup-post-scaling-x86-v3
+    subnets:
+      - dmz-us-east-2a
+      - dmz-us-east-2b
 
 fargateProfiles:
   - name: worker-default
