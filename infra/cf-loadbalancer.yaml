@@ -20,7 +20,7 @@ Conditions:
 
 
 Mappings:
-  # The value of the account ID in the service below is determined by AWS
+  # The values below are the account IDs of the ALB logger service and are determined by AWS
   # Refer to https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
   ALBServiceMap:
     us-east-1:
@@ -99,8 +99,8 @@ Resources:
               - 's3:PutObject'
             Effect: Allow
             Principal:
-              Service: !Join [ "arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]
-            Resource: !Join [ !Ref ALBLogsBucket, !Sub "/k8s-${Environment}/*"]
+              Service: !Join [ "", ["arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]]
+            Resource: !Join [ "", [!Ref ALBLogsBucket, !Sub "/k8s-${Environment}/*"]]
 
 Outputs:
   CanonicalHostedZoneID:
