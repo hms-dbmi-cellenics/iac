@@ -185,8 +185,7 @@ Resources:
   SNSEndpointLambdaSubcription:
     Type: 'AWS::SNS::Subscription'
     Properties:
-      TopicArn:
-        Fn:: !Ref SNSTopicV2
+      TopicArn: !Ref SNSTopicV2
       Protocol: "lambda"
       Endpoint:
         !GetAtt SNSEndpointLambda.Arn
