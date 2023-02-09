@@ -101,7 +101,7 @@ Resources:
               - 's3:PutObject'
             Effect: Allow
             Principal:
-              Service: !Join [ "", ["arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]]
+              AWS: !Join [ "", ["arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]]
             Resource: !Join [ "", [!Ref ALBLogsBucket, !Sub "/k8s-${Environment}/*"]]
 
 Outputs:
