@@ -309,13 +309,13 @@ jobs:
       #         --set clusterName=biomage-$CLUSTER_ENV \
       #         --install --wait
 
-      # - id: platform-public-facing
-      #   name: Get config for whether platform should be public facing
-      #   uses: mikefarah/yq@master
-      #   with:
-      #     cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
-      #   env:
-      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+      - id: platform-public-facing
+        name: Get config for whether platform should be public facing
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
       # - id: install-elb-503-subscription-endpoint
       #   name: Install ELB 503 subscription endpoint
