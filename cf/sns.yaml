@@ -161,7 +161,7 @@ Resources:
 
             try:
                 req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers, unverifiable=True)
-                with urllib.request.urlopen(req, timeout=300) as r:
+                with urllib.request.urlopen(req, timeout=8000) as r:
                   print("[SUCCESS] ", r.read())
                   print("***********************")
                   return {
@@ -198,6 +198,7 @@ Resources:
           numMinDelayRetries: 2
           numMaxDelayRetries: 16
           backoffFunction: exponential
+      Timeout: 8
 
   SNSEndpointInvocationPermission:
     Type: AWS::Lambda::Permission
