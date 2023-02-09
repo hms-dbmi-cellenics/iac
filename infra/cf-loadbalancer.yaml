@@ -33,8 +33,8 @@ Mappings:
 Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Name: !Sub "k8s-${Environment}"
     Properties:
+      Name: !Sub "k8s-${Environment}"
       IpAddressType: ipv4
       LoadBalancerAttributes:
         - Key: routing.http2.enabled
