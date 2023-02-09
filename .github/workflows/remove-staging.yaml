@@ -132,6 +132,9 @@ jobs:
           BASE_NAME=biomage-sns-staging-$SANDBOX_ID
           echo "::set-output name=sns-name::$BASE_NAME"
 
+          BASE_NAME=biomage-sns-endpoint-lambda-$SANDBOX_ID
+          echo "::set-output name=sns-endpoint-lambda-name::$BASE_NAME"
+
           BASE_NAME=biomage-rds-staging-$SANDBOX_ID
           echo "::set-output name=rds-name::$BASE_NAME"
 
@@ -139,6 +142,13 @@ jobs:
           echo "::set-output name=cognito-name::$BASE_NAME"
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
+
+      - id: remove-template-sns-endpoint-lambda
+        name: Remove CloudFormation stack for SNS endpoint lambda
+        run: |-
+          aws cloudformation delete-stack --stack-name $STACK_NAME
+        env:
+          STACK_NAME: ${{ steps.set-name.outputs.sns-endpoint-lambda-name }}
 
       - id: remove-template-sns
         name: Remove CloudFormation stack for SNS topic

@@ -94,7 +94,7 @@ data:
         Match kube.*
         region CI_AWS_REGION
         auto_create_group true
-        log_retention_days 3
+        log_retention_days 14
         log_key log
         log_group_name /platform-logs/CI_CLUSTER_ENV
         log_stream_name $(kubernetes['namespace_name'])
