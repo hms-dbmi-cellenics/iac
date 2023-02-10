@@ -168,7 +168,7 @@ Resources:
             ctx.verify_mode = ssl.CERT_NONE
 
             try:
-                req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers, unverifiable=True)
+                req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers)
                 with urllib.request.urlopen(req, timeout=8000, context=ctx) as r:
                   print("[SUCCESS] ", r.read())
                   print("***********************")
