@@ -115,6 +115,7 @@ Resources:
       Code:
         ZipFile: |
           import urllib.request
+          import ssl
           import json
           import os
 
@@ -160,9 +161,15 @@ Resources:
             print("[ENDPOINT CALLED] ", url)
             print("[DATA PAYLOAD] ", json.dumps(data))
 
+            # Ignore SSL certificate presented by the API
+            # This is to fix errors from deployments without CA-signed cert
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
             try:
                 req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers, unverifiable=True)
-                with urllib.request.urlopen(req, timeout=8000) as r:
+                with urllib.request.urlopen(req, timeout=8000, context=ctx) as r:
                   print("[SUCCESS] ", r.read())
                   print("***********************")
                   return {
