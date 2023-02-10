@@ -35,16 +35,161 @@ Resources:
     Properties:
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "work-results-${Environment}-${SandboxID}-v2"
-  PipelineResultsSubscriptionV2:
-    Type: 'AWS::SNS::Subscription'
+
+  SNSEndpointLambdaRole:
+    Type: "AWS::IAM::Role"
     Properties:
-      TopicArn: !Ref SNSTopicV2
-      Endpoint: !Sub [ "${BaseUrl}/v2/pipelineResults", BaseUrl: !If [
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-create-required-vpc-access-${Environment}-${SandboxID}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:AssignPrivateIpAddresses"
+                  - "ec2:UnassignPrivateIpAddresses"
+                Resource:
+                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-describe-network-interfaces-${Environment}-${SandboxID}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:DescribeNetworkInterfaces"
+                Resource:
+                  - "*"
+        - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}-${SandboxID}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
+        - PolicyName: !Sub "can-add-logs-in-cloudwatch-${Environment}-${SandboxID}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}:*"
+
+  SNSEndpointLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub sns-endpoint-lambda-${Environment}-${SandboxID}
+      Runtime: python3.9
+      Timeout: 8
+      Role: !GetAtt SNSEndpointLambdaRole.Arn
+      Handler: index.lambda_handler
+      VpcConfig:
+        !If
+          - isDev
+          - !Ref "AWS::NoValue"
+          - SecurityGroupIds:
+              Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+            SubnetIds:
+              Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+      Environment:
+        Variables:
+          DOMAIN_NAME: !If [
                         isDev, "http://host.docker.internal:3000", !If [
                         isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
                         !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
+                      ]]
+      Code:
+        ZipFile: |
+          import urllib.request
+          import json
+          import os
+
+          def lambda_handler(event, context):
+            print("EVENT: ", event)
+            sns_message_payload = event["Records"][0]["Sns"]
+
+            message_body = json.loads(sns_message_payload["Message"])
+
+            if message_body.get("experimentId"):
+                print("[experimentId] ", message_body.get("experimentId"))
+            else:
+                print("Kubernetes event")
+
+            url = ""
+
+            sns_message_headers = {
+                "x-amz-sns-message-id": sns_message_payload['MessageId'],
+                "x-amz-sns-message-type": sns_message_payload["Type"],
+                "x-amz-sns-subscription-arn" : event["Records"][0]["EventSubscriptionArn"],
+                "x-amz-sns-topic-arn" : sns_message_payload["TopicArn"],
+                "Content-Type": "text/plain",
+                'Connection':'close'
+            }
+
+            application_json_headers = {
+                "Content-Type": "application/json"
+            }
+
+            if message_body.get("reason") == "BackOff":
+                data = message_body
+                headers = application_json_headers
+                url = f"{os.getenv('DOMAIN_NAME')}/v2/kubernetesEvents"
+            elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "PipelineResponse":
+                url = f"{message_body.get('apiUrl')}/v2/pipelineResults"
+                data = sns_message_payload
+                headers = sns_message_headers
+            elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "GEM2SResponse":
+                url = f"{message_body.get('apiUrl')}/v2/gem2sResults"
+                data = sns_message_payload
+                headers = sns_message_headers
+
+            print("[ENDPOINT CALLED] ", url)
+            print("[DATA PAYLOAD] ", json.dumps(data))
+
+            try:
+                req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers, unverifiable=True)
+                with urllib.request.urlopen(req, timeout=8000) as r:
+                  print("[SUCCESS] ", r.read())
+                  print("***********************")
+                  return {
+                      'statusCode': 200,
+                      'body': {"alles": "gut"}
+                  }
+            except Exception as e:
+                print("[FAILURE] ", e)
+                print("***********************")
+                return {
+                    'statusCode': 500,
+                    'body': {"error": "yes"}
+                }
+
+  LoggingGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
+      RetentionInDays: 3
+
+  SNSEndpointLambdaSubcription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopicV2
+      Protocol: "lambda"
+      Endpoint:
+        !GetAtt SNSEndpointLambda.Arn
       DeliveryPolicy:
         healthyRetryPolicy:
           minDelayTarget: 10
@@ -54,31 +199,14 @@ Resources:
           numMinDelayRetries: 2
           numMaxDelayRetries: 16
           backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - PipelineResponse
-  Gem2sResultsSubscriptionV2:
-    Type: 'AWS::SNS::Subscription'
+
+  SNSEndpointInvocationPermission:
+    Type: AWS::Lambda::Permission
     Properties:
-      TopicArn: !Ref SNSTopicV2
-      Endpoint: !Sub [ "${BaseUrl}/v2/gem2sResults", BaseUrl: !If [
-                        isDev, "http://host.docker.internal:3000", !If [
-                        isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                        !Sub ["https://api-${SandboxID}.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                      ]]]
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - GEM2SResponse
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref SNSEndpointLambda
+      Principal: "sns.amazonaws.com"
+      SourceArn: !Ref SNSTopicV2
 
 Outputs:
   SNSTopicV2Arn:
