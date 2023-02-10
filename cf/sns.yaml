@@ -25,7 +25,7 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
-  isUsingSelfSignedCert: !Equals [!Ref UsingSelfSignedCert, "false"]
+  isUsingSelfSignedCert: !Equals [!Ref UsingSelfSignedCert, "true"]
 
 Resources:
   SQSQueue:
