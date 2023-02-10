@@ -10,6 +10,13 @@ Parameters:
       - staging
       - production
     Description: The environment for which the SNS topic needs to be created.
+  UsingSelfSignedCert:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "false"
+      - "true"
+    Description: Determine whether lambda should ignore SSL certificate or not.
   SandboxID:
     Type: String
     Default: default
@@ -18,6 +25,7 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
+  isUsingSelfSignedCert: !Equals [!Ref UsingSelfSignedCert, "false"]
 
 Resources:
   SQSQueue:
@@ -107,6 +115,7 @@ Resources:
               Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
+          IGNORE_SSL_CERTIFICATE: !If [isUsingSelfSignedCert, "true", "false"]
           DOMAIN_NAME: !If [
                         isDev, "http://host.docker.internal:3000", !If [
                         isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
@@ -161,11 +170,11 @@ Resources:
             print("[ENDPOINT CALLED] ", url)
             print("[DATA PAYLOAD] ", json.dumps(data))
 
-            # Ignore SSL certificate presented by the API
-            # This is to fix errors from deployments without CA-signed cert
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
+            ctx=None
+            if(os.getenv('IGNORE_SSL_CERTIFICATE') == 'true'):
+              ctx = ssl.create_default_context()
+              ctx.check_hostname = False
+              ctx.verify_mode = ssl.CERT_NONE
 
             try:
                 req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers)
