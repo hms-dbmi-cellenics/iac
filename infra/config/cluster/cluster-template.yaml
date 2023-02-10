@@ -38,7 +38,7 @@ managedNodeGroups:
         ebs: true
         autoScaler: true
   - name: nodegroup-post-scaling-x86-v3
-    instanceType: r6i.large
+    instanceType: r5.large
     desiredCapacity: 2
     minSize: 2
     maxSize: 4
