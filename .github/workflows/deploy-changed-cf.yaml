@@ -202,7 +202,18 @@ jobs:
 
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') }}
+        if: ${{ !contains(matrix.template, 'irsa-') && matrix.template != 'sns.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-sns-template
+        name: Deploy CloudFormation SNS template
+        if: ${{ matrix.template == 'sns.yaml' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment-type }},UsingSelfSignedCert=${{ steps.using-self-signed-certificate.outputs.result }}"
