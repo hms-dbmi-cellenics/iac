@@ -17,6 +17,7 @@ on:
           - create and configure cluster
           - configure cluster
           - deploy monitoring
+        default: configure cluster
       environment_type:
         type: choice
         description: Select environment type
@@ -225,7 +226,7 @@ jobs:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster]
-    if: github.event.inputs.workflow_actions != 'deploy monitoring' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    if: always() && github.event.inputs.workflow_actions != 'deploy monitoring' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
