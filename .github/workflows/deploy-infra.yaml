@@ -154,6 +154,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - id: test-failure
+        name: test action to see what happens if a job fails for particular environment
+        run: |
+          if [ "${{ matrix.environment-name }}" = "Biomage" ] && [ "${{ matrix.environment-type }}" = "production" ]
+          then
+            echo Raising a test error to see how this script behaves
+            ERROR=true
+          fi
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
+            exit 1
+          fi
+
       # - id: fill-metadata
       #   name: Add name and region to the eksctl file.
       #   run: |-
