@@ -621,11 +621,10 @@ jobs:
       # ### END OF INSTALL AND CONFIGURE FLUX V2 ###
       # ###
 
-
   deploy-monitoring:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, configure-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
     if: always() && github.event.inputs.workflow_actions != 'configure cluster' && (needs.configure-cluster.result == 'success' || needs.configure-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
