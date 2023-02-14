@@ -735,7 +735,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
