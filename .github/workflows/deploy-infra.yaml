@@ -14,9 +14,9 @@ on:
         type: choice
         description: Select actions to perform
         options:
-          - deploy and configure
-          - configure
-        default: configure
+          - create and configure cluster
+          - configure cluster
+          - deploy monitoring
       environment_type:
         type: choice
         description: Select environment type
@@ -139,7 +139,7 @@ jobs:
           - environment-name: trv
             environment-type: staging
     environment: ${{ matrix.environment-name }}
-    if: github.event.inputs.workflow_actions == 'deploy and configure'
+    if: github.event.inputs.workflow_actions == 'create and configure cluster'
     steps:
       - id: checkout
         name: Check out source code
@@ -153,205 +153,79 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: fill-metadata
-        name: Add name and region to the eksctl file.
-        run: |-
-          export CLUSTER_NAME="biomage-$CLUSTER_ENV"
-          yq -i '
-            .metadata.name = strenv(CLUSTER_NAME) |
-            .metadata.region = strenv(AWS_REGION)
-          ' infra/config/cluster/cluster-template.yaml
+      # - id: fill-metadata
+      #   name: Add name and region to the eksctl file.
+      #   run: |-
+      #     export CLUSTER_NAME="biomage-$CLUSTER_ENV"
+      #     yq -i '
+      #       .metadata.name = strenv(CLUSTER_NAME) |
+      #       .metadata.region = strenv(AWS_REGION)
+      #     ' infra/config/cluster/cluster-template.yaml
 
-          export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
-          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
-          cat /tmp/cluster-$CLUSTER_ENV.yaml
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+      #     export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
+      #     yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
+      #     cat /tmp/cluster-$CLUSTER_ENV.yaml
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
 
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
+      # - id: install-eksctl
+      #   name: Install eksctl
+      #   run: |-
+      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #     sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: create-clusters
-        name: Attempt to create clusters from spec.
-        # this job will always pass, irrespective of whether creation was successful or not.
-        # this is because the cluster may already exist. we will check for this condition
-        # on failure in the next step
-        continue-on-error: true
-        run: |-
-          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
+      # - id: create-clusters
+      #   name: Attempt to create clusters from spec.
+      #   # this job will always pass, irrespective of whether creation was successful or not.
+      #   # this is because the cluster may already exist. we will check for this condition
+      #   # on failure in the next step
+      #   continue-on-error: true
+      #   run: |-
+      #     exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
 
-          eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
-          echo "::set-output name=outcome::created"
+      #     eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
+      #     echo "::set-output name=outcome::created"
 
-      - id: check-for-failure
-        name: Check for reason of failure if cluster creation failed.
-        if: steps.create-clusters.outcome == 'failure'
-        run: |-
-          # Check if failure was caused by an already exists exception.
-          # If not, the job should fail.
-          ALREADY_EXISTS=$(grep AlreadyExistsException /tmp/eksctl-$CLUSTER_ENV.log | wc -l | xargs)
-          if [ $ALREADY_EXISTS -ne 1 ]
-          then
-            echo Step failed for reason other than stack already existing.
-            echo Job failing...
-            echo "::set-output name=reason::error"
-            false
-          fi
+      # - id: check-for-failure
+      #   name: Check for reason of failure if cluster creation failed.
+      #   if: steps.create-clusters.outcome == 'failure'
+      #   run: |-
+      #     # Check if failure was caused by an already exists exception.
+      #     # If not, the job should fail.
+      #     ALREADY_EXISTS=$(grep AlreadyExistsException /tmp/eksctl-$CLUSTER_ENV.log | wc -l | xargs)
+      #     if [ $ALREADY_EXISTS -ne 1 ]
+      #     then
+      #       echo Step failed for reason other than stack already existing.
+      #       echo Job failing...
+      #       echo "::set-output name=reason::error"
+      #       false
+      #     fi
 
-          echo Cluster already exists.
-          echo "::set-output name=reason::already-exists"
+      #     echo Cluster already exists.
+      #     echo "::set-output name=reason::already-exists"
 
-      - id: update-nodegroup
-        name: Attempt to update node groups for existing cluster.
-        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
-        run: |-
-          eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
-          eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
+      # - id: update-nodegroup
+      #   name: Attempt to update node groups for existing cluster.
+      #   if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+      #   run: |-
+      #     eksctl create nodegroup --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+      #     eksctl delete nodegroup --config-file /tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
-      # note: iam service accounts should really be created from within the helm chart as seen here:
-      # https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
-      - id: update-serviceaccounts
-        name: Attempt to update IAM service accounts for existing cluster.
-        if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
-        run: |-
-          eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
-          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
-          eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
-
-  deploy-monitoring:
-    name: Setup logging and monitoring
-    runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster]
-    if: github.event.inputs.workflow_actions == 'deploy and configure'
-    env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
-      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-    strategy:
-      matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
-    environment: ${{ matrix.environment-name }}
-    steps:
-      - id: checkout
-        name: Check out source code
-        uses: actions/checkout@v2
-
-      - id: setup-aws
-        name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - id: add-kubeconfig
-        name: Add k8s config file for existing cluster.
-        run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
-
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-
-      - id: setup-cluster-cloudwatch-logging-policy
-        name: Setup permissions required for cluster to log to Cloudwatch
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
-          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
-          no-fail-on-empty-changeset: "1"
-          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
-      # Setting up log forwarding for pods hosted in EC2 nodes
-      - id: create-fluent-bit-namespace
-        name: Create namespace for node FluentBit deployment
-        run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
-
-      - id: create-service-account-for-node-fluent-bit
-        name: Create service account for node FluentBit
-        env:
-          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
-        run: |-
-          eksctl create iamserviceaccount \
-            --name fluent-bit \
-            --namespace node-logging \
-            --cluster biomage-$CLUSTER_ENV \
-            --role-name irsa-fluent-bit-$CLUSTER_ENV \
-            --attach-policy-arn $LOGGING_POLICY_ARN \
-            --override-existing-serviceaccounts \
-            --approve
-
-      - id: deploy-node-fluent-bit
-        name: Deploy FluentBit for EC2 nodes
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
-          # We do not want to log everything for costs/security concerns
-
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
-
-          kubectl apply -f infra/cluster-logging/node-fluentbit-config.yaml
-
-      # Setting up log forwarding for pods hosted on Fargate nodes
-      - id: attach-pod-execution-role-name
-        name: Attach logging policy to pod execution role
-        env:
-          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
-        run: |-
-          # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
-          # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
-          # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
-
-          POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
-            --cluster-name biomage-$CLUSTER_ENV \
-            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
-
-          aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
-
-      - id: deploy-fargate-fluent-bit
-        name: Deploy FluentBit config for Fargate pods
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |-
-          # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
-          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
-
-          kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
-
-      # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
-      - id: setup-datadog-cluster-agent
-        name: Setup Datadog cluster agent
-        run: |-
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-          helm upgrade datadog-agent datadog/datadog \
-            -f infra/datadog/cluster-agent-values.yaml \
-            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-            --set datadog.clusterName=biomage-$CLUSTER_ENV \
-            --install
-
-      - id: setup-datadog-sidecar-permissions
-        name: Setup Datadog sidecar permissions
-        run: |-
-          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+      # # note: iam service accounts should really be created from within the helm chart as seen here:
+      # # https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
+      # - id: update-serviceaccounts
+      #   name: Attempt to update IAM service accounts for existing cluster.
+      #   if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
+      #   run: |-
+      #     eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
+      #     eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+      #     eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
   configure-cluster:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, deploy-monitoring]
-    if: always() && (needs.deploy-monitoring.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    needs: [set-environments, check-secrets, create-eks-cluster]
+    if: github.event.inputs.workflow_actions != 'deploy monitoring' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -377,358 +251,485 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: add-kubeconfig
-        name: Add k8s config file for existing cluster.
-        run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+      # - id: add-kubeconfig
+      #   name: Add k8s config file for existing cluster.
+      #   run: |-
+      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      - id: deploy-metrics-server
-        name: Deploy k8s metrics server
-        run: |-
-          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+      # - id: deploy-metrics-server
+      #   name: Deploy k8s metrics server
+      #   run: |-
+      #     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-      - id: install-helm
-        name: Install Helm
-        run: |-
-          sudo snap install helm --classic
+      # - id: install-helm
+      #   name: Install Helm
+      #   run: |-
+      #     sudo snap install helm --classic
 
-      - id: install-eksctl
-        name: Install eksctl
-        run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
+      # - id: install-eksctl
+      #   name: Install eksctl
+      #   run: |-
+      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #     sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: deploy-load-balancer-role
-        name: Deploy permissions for AWS load balancer controller
-        run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
-          aws iam create-policy \
-            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --policy-document file://iam-policy.json || true
-          eksctl create iamserviceaccount \
-            --cluster=biomage-$CLUSTER_ENV \
-            --namespace=kube-system \
-            --name=aws-load-balancer-controller \
-            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --override-existing-serviceaccounts \
-            --approve
+      # - id: deploy-load-balancer-role
+      #   name: Deploy permissions for AWS load balancer controller
+      #   run: |-
+      #     curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+      #     aws iam create-policy \
+      #       --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+      #       --policy-document file://iam-policy.json || true
+      #     eksctl create iamserviceaccount \
+      #       --cluster=biomage-$CLUSTER_ENV \
+      #       --namespace=kube-system \
+      #       --name=aws-load-balancer-controller \
+      #       --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+      #       --override-existing-serviceaccounts \
+      #       --approve
 
-      # we need to retry this due to an active issue with the AWS Load Balancer Controller
-      # where there are intermittent failures that are only fixable by retrying
-      # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
-      - id: install-lbc
-        name: Deploy AWS Load Balancer Controller
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 600
-          max_attempts: 20
-          retry_on: error
-          on_retry_command: sleep $(shuf -i 5-15 -n 1)
-          command: |-
-            helm repo add eks https://aws.github.io/eks-charts
-            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
-            helm repo update
-            helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
-              --namespace kube-system \
-              --set serviceAccount.create=false \
-              --set serviceAccount.name=aws-load-balancer-controller \
-              --set clusterName=biomage-$CLUSTER_ENV \
-              --install --wait
+      # # we need to retry this due to an active issue with the AWS Load Balancer Controller
+      # # where there are intermittent failures that are only fixable by retrying
+      # # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
+      # - id: install-lbc
+      #   name: Deploy AWS Load Balancer Controller
+      #   uses: nick-invision/retry@v2
+      #   with:
+      #     timeout_seconds: 600
+      #     max_attempts: 20
+      #     retry_on: error
+      #     on_retry_command: sleep $(shuf -i 5-15 -n 1)
+      #     command: |-
+      #       helm repo add eks https://aws.github.io/eks-charts
+      #       kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+      #       helm repo update
+      #       helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+      #         --namespace kube-system \
+      #         --set serviceAccount.create=false \
+      #         --set serviceAccount.name=aws-load-balancer-controller \
+      #         --set clusterName=biomage-$CLUSTER_ENV \
+      #         --install --wait
 
-      - id: platform-public-facing
-        name: Get config for whether platform should be public facing
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+      # - id: platform-public-facing
+      #   name: Get config for whether platform should be public facing
+      #   uses: mikefarah/yq@master
+      #   with:
+      #     cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
+      #   env:
+      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
-      - id: install-elb-503-subscription-endpoint
-        name: Install ELB 503 subscription endpoint
-        run: |-
-            echo "value of publicFacing: $PUBLIC_FACING"
+      # - id: install-elb-503-subscription-endpoint
+      #   name: Install ELB 503 subscription endpoint
+      #   run: |-
+      #       echo "value of publicFacing: $PUBLIC_FACING"
 
-            # Check that publicFacing is set to true or false
-            if [ "$PUBLIC_FACING" != "true" ] && [ "$PUBLIC_FACING" != "false" ]; then
-              echo "value of publicFacing in infra/config/github-environments-config.yaml is not set to true or false"
-              exit 1
-            fi
+      #       # Check that publicFacing is set to true or false
+      #       if [ "$PUBLIC_FACING" != "true" ] && [ "$PUBLIC_FACING" != "false" ]; then
+      #         echo "value of publicFacing in infra/config/github-environments-config.yaml is not set to true or false"
+      #         exit 1
+      #       fi
 
-            # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
-            # API staging environments because their endpoints are not yet available.
-            helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
-              --namespace default \
-              --set clusterEnv=$CLUSTER_ENV \
-              --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
-              --set-string publicFacing="$PUBLIC_FACING" \
-              --install --wait
-        env:
-          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
+      #       # this is needed so SNS does not stop trying to subscribe to not-yet-deployed
+      #       # API staging environments because their endpoints are not yet available.
+      #       helm upgrade aws-elb-503-subscription-endpoint infra/aws-elb-503-subscription-endpoint \
+      #         --namespace default \
+      #         --set clusterEnv=$CLUSTER_ENV \
+      #         --set acmCertificate=${{ secrets.ACM_CERTIFICATE_ARN }} \
+      #         --set-string publicFacing="$PUBLIC_FACING" \
+      #         --install --wait
+      #   env:
+      #     PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
 
-      - id: deploy-env-loadbalancer
-        name: Deploy AWS Application Load Balancer for environment
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
-          name: "biomage-k8s-alb-${{ matrix.environment-type }}"
-          template: 'infra/cf-loadbalancer.yaml'
-          no-fail-on-empty-changeset: "1"
-
-      - id: setup-domain
-        name: Compile environment-specific domain name
-        run: |-
-          if [ "${{ matrix.environment-type }}" = "production" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
-          fi
-          if [ "${{ matrix.environment-type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
-            DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
-          fi
-          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-          echo "::set-output name=domain-name::$DOMAIN_NAME"
-
-      # This is commented out because running Route53 for trv is still causing an error.
-      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
-      # - id: deploy-route53
-      #   name: Deploy Route 53 DNS records to ELB
+      # - id: deploy-env-loadbalancer
+      #   name: Deploy AWS Application Load Balancer for environment
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
       #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
-      #     template: 'infra/cf-route53.yaml'
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
+      #     name: "biomage-k8s-alb-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-loadbalancer.yaml'
       #     no-fail-on-empty-changeset: "1"
 
-      - id: deploy-xray-daemon
-        name: Deploy AWS X-Ray daemon
-        run: |-
-          helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
-            --namespace default \
-            --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
-            --install --wait
+      # - id: setup-domain
+      #   name: Compile environment-specific domain name
+      #   run: |-
+      #     if [ "${{ matrix.environment-type }}" = "production" ]; then
+      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+      #     fi
+      #     if [ "${{ matrix.environment-type }}" = "staging" ]; then
+      #       PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+      #       DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+      #     fi
+      #     echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
+      #     echo "::set-output name=domain-name::$DOMAIN_NAME"
 
-      - id: install-ebs-csi-driver
-        name: Install AWS EBS Container Storage Interface (CSI) drivers
-        run: |-
-          helm upgrade \
-            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.6.4/aws-ebs-csi-driver-2.6.4.tgz \
-            --namespace kube-system \
-            --set enableVolumeScheduling=true \
-            --set enableVolumeResizing=true \
-            --set enableVolumeSnapshot=true \
-            --install --wait \
+      # # This is commented out because running Route53 for trv is still causing an error.
+      # # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # # - id: deploy-route53
+      # #   name: Deploy Route 53 DNS records to ELB
+      # #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      # #   with:
+      # #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+      # #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
+      # #     template: 'infra/cf-route53.yaml'
+      # #     no-fail-on-empty-changeset: "1"
 
-      - id: deploy-read-only-group
-        name: Deploy read-only permission definition for cluster
-        run: |-
-          helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
-            --install --wait
+      # - id: deploy-xray-daemon
+      #   name: Deploy AWS X-Ray daemon
+      #   run: |-
+      #     helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
+      #       --namespace default \
+      #       --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
+      #       --install --wait
 
-      - id: deploy-state-machine-role
-        name: Deploy AWS Step Function (state machine) roles
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
+      # - id: install-ebs-csi-driver
+      #   name: Install AWS EBS Container Storage Interface (CSI) drivers
+      #   run: |-
+      #     helm upgrade \
+      #       aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.6.4/aws-ebs-csi-driver-2.6.4.tgz \
+      #       --namespace kube-system \
+      #       --set enableVolumeScheduling=true \
+      #       --set enableVolumeResizing=true \
+      #       --set enableVolumeSnapshot=true \
+      #       --install --wait \
+
+      # - id: deploy-read-only-group
+      #   name: Deploy read-only permission definition for cluster
+      #   run: |-
+      #     helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
+      #       --install --wait
+
+      # - id: deploy-state-machine-role
+      #   name: Deploy AWS Step Function (state machine) roles
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }}"
+      #     name: "biomage-state-machine-role-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-state-machine-role.yaml'
+      #     capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
+      #     no-fail-on-empty-changeset: "1"
+
+      # - id: remove-identitymappings
+      #   name: Remove all previous identity mappings for IAM users
+      #   run: |-
+      #     eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
+      #     jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
+      #     while IFS= read -r user
+      #     do
+      #       echo "Remove rights of $user"
+      #       eksctl delete iamidentitymapping \
+      #         --cluster=biomage-$CLUSTER_ENV \
+      #         --arn $user \
+      #         --all
+      #     done < "/tmp/users_to_remove"
+
+      # # see https://eksctl.io/usage/iam-identity-mappings/
+      # - id: add-state-machine-role
+      #   name: Grant rights to the state machine IAM role.
+      #   run: |-
+      #     eksctl create iamidentitymapping \
+      #       --cluster=biomage-$CLUSTER_ENV \
+      #       --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
+      #       --group state-machine-runner-group \
+      #       --username state-machine-runner
+
+      # # see https://eksctl.io/usage/iam-identity-mappings/
+      # # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
+      # - id: update-identitymapping-admin
+      #   name: Add cluster admin rights to everyone on the admin list.
+      #   run: |-
+      #     echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+      #     while IFS= read -r user
+      #     do
+      #       echo "Adding cluster admin rights to $user"
+      #       eksctl create iamidentitymapping \
+      #         --cluster=biomage-$CLUSTER_ENV \
+      #         --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+      #         --group system:masters \
+      #         --username $user
+      #     done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+
+      # ###
+      # ### INSTALL AND CONFIGURE FLUX V2 ###
+      # ###
+      # - id: using-self-signed-certificate
+      #   name: Get config for whether deployment is using self-signed certificate
+      #   uses: mikefarah/yq@master
+      #   with:
+      #     cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
+      #   env:
+      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      # - id: fill-account-specific-metadata
+      #   name: Fill in account specific metadata in ConfigMap
+      #   run: |-
+      #     export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
+      #     export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
+
+      #     yq -i '
+      #       .myAccount.domainName = strenv(DOMAIN_NAME) |
+      #       .myAccount.region = strenv(AWS_REGION) |
+      #       .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
+      #       .myAccount.publicFacing = strenv(PUBLIC_FACING) |
+      #       .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
+      #       .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
+      #       .myAccount.datadogEnabled = "true" |
+      #       .myAccount.datadogApiKey = strenv(DATADOG_API_KEY) |
+      #       .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY)
+      #     ' infra/config/account-config.yaml
+
+      #     cat infra/config/account-config.yaml
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #     AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+      #     DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
+      #     ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+      #     PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
+      #     SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
+
+      # - id: create-flux-namespace
+      #   name: Attempt to create flux namespace
+      #   continue-on-error: true
+      #   run: |-
+      #     kubectl create namespace flux-system
+
+      # - id: create-account-information-configmap
+      #   name: Create a configmap containing AWS account specific details
+      #   continue-on-error: false
+      #   run: |-
+      #     kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
+
+      # - id: install-flux-v2
+      #   name: Install flux CLI
+      #   run: |-
+      #     curl -s https://fluxcd.io/install.sh | sudo bash
+
+      # - id: delete-old-flux-github-deploy-key
+      #   name: Attempt to delete previous github flux deploy key
+      #   continue-on-error: true
+      #   run: |-
+      #     kubectl -n flux-system delete secret flux-system
+
+      # - id: install-flux
+      #   name: Install Flux to EKS cluster
+      #   run: |-
+
+      #     FLUX_REPO=releases
+      #     FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
+      #     REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
+
+      #     echo "flux-full-repo=$(echo $REPO_FULL_PATH)" >> $GITHUB_ENV
+      #     echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
+
+      #     args=(
+      #       --owner $GITHUB_REPOSITORY_OWNER
+      #       --repository $FLUX_REPO
+      #       --branch master
+      #       --path $FLUX_PATH
+      #       --timeout 40s
+      #       –-interval 2m
+      #       --components-extra=image-reflector-controller,image-automation-controller
+      #       --namespace flux-system
+      #       --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
+      #       --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
+      #     )
+
+      #     if [ "${{ matrix.environment-type }}" = "staging" ]
+      #     then
+      #       echo Flux will be deployed in staging with read and write permissions
+      #       args+=(--read-write-key)
+      #     elif [ "${{ matrix.environment-type }}" = "production" ]
+      #     then
+      #       echo Flux will be deployed in production with read-only permissions
+      #     fi
+
+      #     flux bootstrap github "${args[@]}"
+
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #     AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+      #     ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
+      # - id: fill-in-sync-yaml
+      #   name: Create the sync.yaml file that contains the Kustomization to sync the cluster
+      #   run: |-
+      #     export SPEC_PATH="./$CLUSTER_ENV"
+      #     yq -i '
+      #       .spec.path = strenv(SPEC_PATH)
+      #     ' infra/flux/sync.yaml
+
+      #     cat infra/flux/sync.yaml
+
+      # - id: push-sync-yaml
+      #   name: Push the sync.yaml file that was filled in during the previous step
+      #   uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      #   with:
+      #     source_file: infra/flux/sync.yaml
+      #     destination_repo: ${{ env.flux-full-repo }}
+      #     destination_folder: ${{ env.flux-path }}
+      #     user_email: ci@biomage.net
+      #     user_name: 'Biomage CI/CD'
+
+      # - id: push-kustomization-yaml
+      #   name: Push the kustomization.yaml file to apply our custom config
+      #   uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      #   with:
+      #     source_file: infra/flux/kustomization.yaml
+      #     destination_repo: ${{ env.flux-full-repo }}
+      #     destination_folder: ${{ env.flux-path }}/flux-system
+      #     user_email: ci@biomage.net
+      #     user_name: 'Biomage CI/CD'
+
+      # - id: install-kubernetes-reflector
+      #   name: Install kubernetes reflector
+      #   run: |-
+      #     helm repo add emberstack https://emberstack.github.io/helm-charts
+      #     helm repo update
+      #     helm upgrade --install reflector emberstack/reflector --namespace flux-system
+
+      # - id: add-account-config-configmap-annotations
+      #   name: Add annotations to account-config configmap
+      #   run: |-
+      #     kubectl annotate configmap account-config \
+      #       --overwrite \
+      #       --namespace flux-system \
+      #       reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
+      #       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="ui-.*,api-.*,pipeline-.*,worker-.*" \
+      #       reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true"
+      # ###
+      # ### END OF INSTALL AND CONFIGURE FLUX V2 ###
+      # ###
+
+
+  deploy-monitoring:
+    name: Setup logging and monitoring
+    runs-on: ubuntu-20.04
+    needs: [set-environments, check-secrets]
+    if: github.event.inputs.workflow_actions == 'deploy monitoring' || (github.event.inputs.workflow_actions == 'create and configure cluster' && needs.create-eks-cluster.result == 'success')
+    env:
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    strategy:
+      matrix:
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+          - environment-name: trv
+            environment-type: staging
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "biomage-state-machine-role-${{ matrix.environment-type }}"
-          template: 'infra/cf-state-machine-role.yaml'
-          capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
-          no-fail-on-empty-changeset: "1"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - id: remove-identitymappings
-        name: Remove all previous identity mappings for IAM users
-        run: |-
-          eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
-          jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
-          while IFS= read -r user
-          do
-            echo "Remove rights of $user"
-            eksctl delete iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn $user \
-              --all
-          done < "/tmp/users_to_remove"
+      # - id: add-kubeconfig
+      #   name: Add k8s config file for existing cluster.
+      #   run: |-
+      #     aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: add-state-machine-role
-        name: Grant rights to the state machine IAM role.
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster=biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
-            --group state-machine-runner-group \
-            --username state-machine-runner
+      # - id: install-eksctl
+      #   name: Install eksctl
+      #   run: |-
+      #     curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #     sudo mv /tmp/eksctl /usr/local/bin
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
-      - id: update-identitymapping-admin
-        name: Add cluster admin rights to everyone on the admin list.
-        run: |-
-          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
-          while IFS= read -r user
-          do
-            echo "Adding cluster admin rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group system:masters \
-              --username $user
-          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+      # - id: setup-cluster-cloudwatch-logging-policy
+      #   name: Setup permissions required for cluster to log to Cloudwatch
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }}"
+      #     name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
+      #     template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+      #     no-fail-on-empty-changeset: "1"
+      #     capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
-      ###
-      ### INSTALL AND CONFIGURE FLUX V2 ###
-      ###
-      - id: using-self-signed-certificate
-        name: Get config for whether deployment is using self-signed certificate
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+      # # Setting up log forwarding for pods hosted in EC2 nodes
+      # - id: create-fluent-bit-namespace
+      #   name: Create namespace for node FluentBit deployment
+      #   run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
 
-      - id: fill-account-specific-metadata
-        name: Fill in account specific metadata in ConfigMap
-        run: |-
-          export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
-          export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
+      # - id: create-service-account-for-node-fluent-bit
+      #   name: Create service account for node FluentBit
+      #   env:
+      #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+      #   run: |-
+      #     eksctl create iamserviceaccount \
+      #       --name fluent-bit \
+      #       --namespace node-logging \
+      #       --cluster biomage-$CLUSTER_ENV \
+      #       --role-name irsa-fluent-bit-$CLUSTER_ENV \
+      #       --attach-policy-arn $LOGGING_POLICY_ARN \
+      #       --override-existing-serviceaccounts \
+      #       --approve
 
-          yq -i '
-            .myAccount.domainName = strenv(DOMAIN_NAME) |
-            .myAccount.region = strenv(AWS_REGION) |
-            .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
-            .myAccount.publicFacing = strenv(PUBLIC_FACING) |
-            .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
-            .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
-            .myAccount.datadogEnabled = "true" |
-            .myAccount.datadogApiKey = strenv(DATADOG_API_KEY) |
-            .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY)
-          ' infra/config/account-config.yaml
+      # - id: deploy-node-fluent-bit
+      #   name: Deploy FluentBit for EC2 nodes
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #   run: |
+      #     # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
+      #     # We do not want to log everything for costs/security concerns
 
-          cat infra/config/account-config.yaml
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-          PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
-          SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
 
-      - id: create-flux-namespace
-        name: Attempt to create flux namespace
-        continue-on-error: true
-        run: |-
-          kubectl create namespace flux-system
+      #     kubectl apply -f infra/cluster-logging/node-fluentbit-config.yaml
 
-      - id: create-account-information-configmap
-        name: Create a configmap containing AWS account specific details
-        continue-on-error: false
-        run: |-
-          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
+      # # Setting up log forwarding for pods hosted on Fargate nodes
+      # - id: attach-pod-execution-role-name
+      #   name: Attach logging policy to pod execution role
+      #   env:
+      #     LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+      #   run: |-
+      #     # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
+      #     # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
+      #     # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
 
-      - id: install-flux-v2
-        name: Install flux CLI
-        run: |-
-          curl -s https://fluxcd.io/install.sh | sudo bash
+      #     POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
+      #       --cluster-name biomage-$CLUSTER_ENV \
+      #       --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
 
-      - id: delete-old-flux-github-deploy-key
-        name: Attempt to delete previous github flux deploy key
-        continue-on-error: true
-        run: |-
-          kubectl -n flux-system delete secret flux-system
+      #     aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
 
-      - id: install-flux
-        name: Install Flux to EKS cluster
-        run: |-
+      # - id: deploy-fargate-fluent-bit
+      #   name: Deploy FluentBit config for Fargate pods
+      #   env:
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #   run: |-
+      #     # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+      #     yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
 
-          FLUX_REPO=releases
-          FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
-          REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
+      #     kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
 
-          echo "flux-full-repo=$(echo $REPO_FULL_PATH)" >> $GITHUB_ENV
-          echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
+      # # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
+      # - id: setup-datadog-cluster-agent
+      #   name: Setup Datadog cluster agent
+      #   run: |-
+      #     helm repo add datadog https://helm.datadoghq.com
+      #     helm repo update
+      #     helm upgrade datadog-agent datadog/datadog \
+      #       -f infra/datadog/cluster-agent-values.yaml \
+      #       --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+      #       --set datadog.clusterName=biomage-$CLUSTER_ENV \
+      #       --install
 
-          args=(
-            --owner $GITHUB_REPOSITORY_OWNER
-            --repository $FLUX_REPO
-            --branch master
-            --path $FLUX_PATH
-            --timeout 40s
-            –-interval 2m
-            --components-extra=image-reflector-controller,image-automation-controller
-            --namespace flux-system
-            --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
-            --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
-          )
-
-          if [ "${{ matrix.environment-type }}" = "staging" ]
-          then
-            echo Flux will be deployed in staging with read and write permissions
-            args+=(--read-write-key)
-          elif [ "${{ matrix.environment-type }}" = "production" ]
-          then
-            echo Flux will be deployed in production with read-only permissions
-          fi
-
-          flux bootstrap github "${args[@]}"
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
-      - id: fill-in-sync-yaml
-        name: Create the sync.yaml file that contains the Kustomization to sync the cluster
-        run: |-
-          export SPEC_PATH="./$CLUSTER_ENV"
-          yq -i '
-            .spec.path = strenv(SPEC_PATH)
-          ' infra/flux/sync.yaml
-
-          cat infra/flux/sync.yaml
-
-      - id: push-sync-yaml
-        name: Push the sync.yaml file that was filled in during the previous step
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: infra/flux/sync.yaml
-          destination_repo: ${{ env.flux-full-repo }}
-          destination_folder: ${{ env.flux-path }}
-          user_email: ci@biomage.net
-          user_name: 'Biomage CI/CD'
-
-      - id: push-kustomization-yaml
-        name: Push the kustomization.yaml file to apply our custom config
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: infra/flux/kustomization.yaml
-          destination_repo: ${{ env.flux-full-repo }}
-          destination_folder: ${{ env.flux-path }}/flux-system
-          user_email: ci@biomage.net
-          user_name: 'Biomage CI/CD'
-
-      - id: install-kubernetes-reflector
-        name: Install kubernetes reflector
-        run: |-
-          helm repo add emberstack https://emberstack.github.io/helm-charts
-          helm repo update
-          helm upgrade --install reflector emberstack/reflector --namespace flux-system
-
-      - id: add-account-config-configmap-annotations
-        name: Add annotations to account-config configmap
-        run: |-
-          kubectl annotate configmap account-config \
-            --overwrite \
-            --namespace flux-system \
-            reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
-            reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="ui-.*,api-.*,pipeline-.*,worker-.*" \
-            reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true"
-      ###
-      ### END OF INSTALL AND CONFIGURE FLUX V2 ###
-      ###
+      # - id: setup-datadog-sidecar-permissions
+      #   name: Setup Datadog sidecar permissions
+      #   run: |-
+      #     kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
   report-if-failed:
     name: Report if workflow failed
