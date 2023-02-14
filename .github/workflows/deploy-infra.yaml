@@ -31,6 +31,10 @@ on:
 #  can run at once in order to prevent undefined states
 concurrency: cluster-update-mutex
 
+# After set-environments and check-secrets jobs are finished:
+#   "create and configure cluster" workflow_actions option runs all jobs.
+#   "configure cluster" workflow_actions option runs only configure-cluster job
+#   "deploy monitoring" workflow_actions option runs only deploy-monitoring job
 jobs:
   set-environments:
     name: Set up environment name and environment type for action run
