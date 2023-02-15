@@ -74,48 +74,48 @@ Resources:
         ZipFile: |
           const AWS = require('aws-sdk');
           const s3Client = new AWS.S3({
-              apiVersion: '2006-03-01',
+            apiVersion: '2006-03-01',
           });
 
           const deleteS3Files = async (key, bucketName) => {
-              const listObjectParams = {
-                  Bucket: bucketName,
-                  Prefix: key
+            const listObjectParams = {
+              Bucket: bucketName,
+              Prefix: key
+            };
+
+            try {
+              // Get all files in case the objects are nested
+              const { Contents: objects } = await s3Client
+                .listObjectsV2(listObjectParams)
+                .promise();
+
+              const items = objects.map((object) => ({ Key: object.Key }));
+
+              const deleteObjectParams = {
+                Bucket: bucketName,
+                Delete: {
+                  Objects: items // List of items to delete
+                }
               };
 
-              try {
-                  // Get all files in case the objects are nested
-                  const { Contents: objects } = await s3Client
-                      .listObjectsV2(listObjectParams)
-                      .promise();
+              items.map(items => console.log(`== Deleting ${items.Key} from ${bucketName} ==`));
 
-                  const items = objects.map((object) => ({ Key: object.Key }));
-
-                  const deleteObjectParams = {
-                      Bucket: bucketName,
-                      Delete: {
-                          Objects: items // List of items to delete
-                      }
-                  };
-
-                  items.map(items => console.log(`== Deleting ${items.Key} from ${bucketName} ==`));
-
-                  s3Client.deleteObjects(deleteObjectParams, (err, data) => {
-                      if (err) console.log(err, err.stack);
-                      else console.log(`== Successfully deleted files from ${bucketName}==`, data);
-                  });
-              } catch (err) {
-                  console.log(err, err.stack);
-              }
+              s3Client.deleteObjects(deleteObjectParams, (err, data) => {
+                if (err) console.log(err, err.stack);
+                else console.log(`== Successfully deleted files from ${bucketName}==`, data);
+              });
+            } catch (err) {
+              console.log(err, err.stack);
+            }
           };
 
           exports.handler = async (event, context, callback) => {
-              const { key, bucketName } = event;
-              const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
+            const { key, bucketName } = event;
+            const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
 
-              deleteS3Files(key, realBucketName);
+            deleteS3Files(key, realBucketName);
 
-              callback(null, event);
+            callback(null, event);
           };
 
   LoggingGroup:
