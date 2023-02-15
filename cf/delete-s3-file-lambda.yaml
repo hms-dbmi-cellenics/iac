@@ -73,40 +73,53 @@ Resources:
       Code:
         ZipFile: |
           const AWS = require('aws-sdk');
-
-          const deleteS3File = (key, bucketName) => {
-            const params = {
-              Bucket: bucketName,
-              Key: key,
-            };
-
-            const s3 = new AWS.S3({
+          const s3Client = new AWS.S3({
               apiVersion: '2006-03-01',
-            });
+          });
 
-            s3.deleteObject(params, (err) => {
-              if (err) {
-                console.log(err, err.stack);
-                return;
+          const deleteS3Files = async (key, bucketName) => {
+              const listObjectParams = {
+                  Bucket: bucketName,
+                  Prefix: key
+              };
+
+              try {
+                  // Get all files in case the objects are nested
+                  const { Contents: objects } = await s3Client
+                      .listObjectsV2(listObjectParams)
+                      .promise();
+
+                  const items = objects.map((object) => ({ Key: object.Key }));
+
+                  const deleteObjectParams = {
+                      Bucket: bucketName,
+                      Delete: {
+                          Objects: items // List of items to delete
+                      }
+                  };
+
+                  items.map(items => console.log(`== Deleting ${items.Key} from ${bucketName} ==`));
+
+                  s3Client.deleteObjects(deleteObjectParams, (err, data) => {
+                      if (err) console.log(err, err.stack);
+                      else console.log(`== Successfully deleted files from ${bucketName}==`, data);
+                  });
+              } catch (err) {
+                  console.log(err, err.stack);
               }
-              console.log(`== Successfully deleted ${key} from ${bucketName}==`);
-            });
           };
 
           exports.handler = async (event, context, callback) => {
-            const { key, bucketName } = event;
-            const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
+              const { key, bucketName } = event;
+              const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
 
-            console.log(`== Deleting ${key} from ${bucketName} ==`);
-            deleteS3File(key, realBucketName);
+              deleteS3Files(key, realBucketName);
 
-            callback(null, event);
+              callback(null, event);
           };
-
 
   LoggingGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/delete-s3-file-lambda-${Environment}"
       RetentionInDays: 1
-      
