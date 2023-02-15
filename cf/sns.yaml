@@ -25,7 +25,6 @@ Parameters:
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
   isDev: !Equals [!Ref Environment, "development"]
-  isUsingSelfSignedCert: !Equals [!Ref UsingSelfSignedCert, "true"]
 
 Resources:
   SQSQueue:
@@ -115,7 +114,7 @@ Resources:
               Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
-          IGNORE_SSL_CERTIFICATE: !If [isUsingSelfSignedCert, "true", "false"]
+          IGNORE_SSL_CERTIFICATE: !Ref UsingSelfSignedCert
           DOMAIN_NAME: !If [
                         isDev, "http://host.docker.internal:3000", !If [
                         isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
