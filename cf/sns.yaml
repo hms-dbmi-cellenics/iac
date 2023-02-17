@@ -10,6 +10,13 @@ Parameters:
       - staging
       - production
     Description: The environment for which the SNS topic needs to be created.
+  UsingSelfSignedCert:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "false"
+      - "true"
+    Description: Determine whether lambda should ignore SSL certificate or not.
   SandboxID:
     Type: String
     Default: default
@@ -107,6 +114,7 @@ Resources:
               Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
+          IGNORE_SSL_CERTIFICATE: !Ref UsingSelfSignedCert
           DOMAIN_NAME: !If [
                         isDev, "http://host.docker.internal:3000", !If [
                         isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
@@ -115,6 +123,7 @@ Resources:
       Code:
         ZipFile: |
           import urllib.request
+          import ssl
           import json
           import os
 
@@ -160,9 +169,15 @@ Resources:
             print("[ENDPOINT CALLED] ", url)
             print("[DATA PAYLOAD] ", json.dumps(data))
 
+            ctx=None
+            if(os.getenv('IGNORE_SSL_CERTIFICATE') == 'true'):
+              ctx = ssl.create_default_context()
+              ctx.check_hostname = False
+              ctx.verify_mode = ssl.CERT_NONE
+
             try:
-                req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers, unverifiable=True)
-                with urllib.request.urlopen(req, timeout=8000) as r:
+                req = urllib.request.Request(url = url, data = json.dumps(data).encode('utf-8'), headers = headers)
+                with urllib.request.urlopen(req, timeout=8000, context=ctx) as r:
                   print("[SUCCESS] ", r.read())
                   print("***********************")
                   return {

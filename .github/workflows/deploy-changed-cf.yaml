@@ -192,12 +192,31 @@ jobs:
         env:
           FILE_NAME: ${{ matrix.template }}
 
+      - id: using-self-signed-certificate
+        name: Get config for whether deployment is using self-signed certificate
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
+        env:
+          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') }}
+        if: ${{ !contains(matrix.template, 'irsa-') && matrix.template != 'cf/sns.yaml' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-sns-template
+        name: Deploy CloudFormation SNS template
+        if: ${{ matrix.template == 'cf/sns.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},UsingSelfSignedCert=${{ steps.using-self-signed-certificate.outputs.result }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
