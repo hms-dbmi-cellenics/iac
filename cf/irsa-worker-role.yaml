@@ -53,7 +53,6 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}"
-                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}"
 
@@ -70,7 +69,6 @@ Resources:
                   - !Sub "arn:aws:s3:::worker-results-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::worker-results-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}/*"
