@@ -84,7 +84,6 @@ Resources:
                   - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-test-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-test-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-upload-cell-sets-in-s3-${Environment}"
           PolicyDocument:
@@ -96,7 +95,6 @@ Resources:
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::cell-sets-test-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::biomage-originals-test-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-get-object-tagging-from-s3-buckets-${Environment}"
           PolicyDocument:
