@@ -200,8 +200,6 @@ jobs:
 
           eksctl create addon -f /tmp/cluster-$CLUSTER_ENV.yaml
 
-          echo "::set-output name=outcome::created"
-
       - id: check-for-failure
         name: Check for reason of failure if cluster creation failed.
         if: steps.create-clusters.outcome == 'failure'
