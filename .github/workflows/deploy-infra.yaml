@@ -189,6 +189,8 @@ jobs:
           exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
 
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
+          eksctl create addon --cluster biomage-$CLUSTER_ENV -f /tmp/cluster-$CLUSTER_ENV.yaml
+
           echo "::set-output name=outcome::created"
 
       - id: check-for-failure
