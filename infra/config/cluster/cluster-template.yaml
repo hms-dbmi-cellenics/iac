@@ -48,17 +48,6 @@ managedNodeGroups:
       withAddonPolicies:
         ebs: true
         autoScaler: true
-  - name: nodegroup-post-scaling-x86-v4
-    instanceType: r6i.large
-    desiredCapacity: 2
-    minSize: 2
-    maxSize: 4
-    volumeSize: 80
-    volumeEncrypted: true
-    iam:
-      withAddonPolicies:
-        ebs: true
-        autoScaler: true
 
 addons:
   - name: vpc-cni
