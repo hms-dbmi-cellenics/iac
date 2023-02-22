@@ -191,16 +191,6 @@ jobs:
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
 
           echo "::set-output name=outcome::created"
-  
-      - id: update-addons-for-cluster
-        name: Attempt to create addons for cluster.
-        continue-on-error: true
-        run: |-
-          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
-
-          eksctl create addon -f /tmp/cluster-$CLUSTER_ENV.yaml
-
-          echo "::set-output name=outcome::created"
 
       - id: check-for-failure
         name: Check for reason of failure if cluster creation failed.
@@ -219,6 +209,14 @@ jobs:
 
           echo Cluster already exists.
           echo "::set-output name=reason::already-exists"
+      
+      - id: update-addons-for-cluster
+        name: Attempt to create addons for cluster.
+        continue-on-error: true
+        run: |-
+          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
+
+          eksctl create addon -f /tmp/cluster-$CLUSTER_ENV.yaml
 
       - id: update-nodegroup
         name: Attempt to update node groups for existing cluster.
