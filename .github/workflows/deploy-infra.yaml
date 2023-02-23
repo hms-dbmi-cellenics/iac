@@ -8,7 +8,7 @@ on:
         options:
           - trv
           - Biomage
-	  - HMS
+          - HMS
           - all
         default: HMS
       workflow_actions:
@@ -65,7 +65,7 @@ jobs:
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-	  elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
+          elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
             echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
           fi
         env:
