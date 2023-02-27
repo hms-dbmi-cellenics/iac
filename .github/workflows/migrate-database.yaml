@@ -96,8 +96,6 @@ jobs:
     name: Migrate database
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets]
-    env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
       max-parallel: 1
       matrix:
@@ -121,7 +119,7 @@ jobs:
 
       - id: setup-tunnel
         name: Setup tunnel to connect to RDS
-        run: ./workflow-utils/rds-tunnel.sh ${{ CLUSTER_ENV }} default ${{ secrets.AWS_REGION }} 5432 READER
+        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} 5432 READER
 
       # - id: cd-migrations-folder
       #   name: Move to migrations folder
@@ -129,4 +127,4 @@ jobs:
 
       # - id: run-migration
       #   name: Run database migration
-      #   run: NODE_ENV=${{ CLUSTER_ENV }} SANDBOX_ID=default knex migrate:latest
+      #   run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default knex migrate:latest
