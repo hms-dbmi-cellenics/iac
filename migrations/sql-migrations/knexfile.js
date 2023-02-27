@@ -1,3 +1,4 @@
+const path = require('path')
 const getConnectionParams = require('./getConnectionParams');
 
 // This is one of the shapes the knexfile can take https://knexjs.org/#knexfile
@@ -13,7 +14,7 @@ const fetchConfiguration = async (environment, sandboxId, region) => {
       pool: { min: 0, max: maxConnections },
       acquireConnectionTimeout: 6000000,
       migrations: {
-        directory: '../../../api/src/sql/migrations'
+        directory: path.join(__dirname, '..', process.env.NODE_ENV)
       }
     },
   };
