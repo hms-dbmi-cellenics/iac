@@ -122,10 +122,10 @@ jobs:
         name: Setup tunnel to connect to RDS
         run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} 5432 READER
 
-      # - id: cd-migrations-folder
-      #   name: Move to migrations folder
-      #   run: cd ./migrations/sql-migrations
+      - id: cd-migrations-folder
+        name: Move to migrations folder
+        run: cd ./migrations/sql-migrations
 
-      # - id: run-migration
-      #   name: Run database migration
-      #   run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default knex migrate:latest
+      - id: run-migration
+        name: Run database migration
+        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default knex migrate:latest
