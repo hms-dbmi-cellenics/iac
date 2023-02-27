@@ -3,15 +3,13 @@ const getConnectionParams = require('./getConnectionParams');
 
 // This is one of the shapes the knexfile can take https://knexjs.org/#knexfile
 const fetchConfiguration = async (environment, sandboxId, region) => {
-  const maxConnections = environment === 'development' ? 10 : 100;
-
   const params = await getConnectionParams(environment, sandboxId, region);
 
   return {
     [environment]: {
       client: 'postgresql',
       connection: params,
-      pool: { min: 0, max: maxConnections },
+      pool: { min: 0, max: 100 },
       acquireConnectionTimeout: 6000000,
       migrations: {
         directory: path.join(__dirname, '..', 'sql', process.env.NODE_ENV)
@@ -20,13 +18,13 @@ const fetchConfiguration = async (environment, sandboxId, region) => {
   };
 };
 
-module.exports = async (env, inputSandboxId) => {
-  const environment = env || process.env.NODE_ENV;
-  const sandboxId = inputSandboxId || process.env.SANDBOX_ID;
-  const region = process.env.AWS_REGION || 'eu-west-1';
+module.exports = async () => {
+  const environment = process.env.NODE_ENV;
+  const sandboxId = process.env.SANDBOX_ID;
+  const region = process.env.AWS_REGION;
 
-  if (environment !== 'development' && !sandboxId) {
-    throw new Error("Please specify the sandboxId by using the SANDBOX_ID environment variable");
+  if (!environment || !sandboxId || !region) {
+    throw new Error("Please specify the NODE_ENV, SANDBOX_ID and AWS_REGION environment values");
   }
 
   const configuration = await fetchConfiguration(environment, sandboxId, region);
