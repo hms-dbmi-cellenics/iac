@@ -114,7 +114,7 @@ jobs:
         with:
           node-version: 14
           cache: 'npm'
-          cache-dependency-path: migrations/sql-migrations
+          cache-dependency-path: migrations/sql-migrations/package-lock.json
 
       - id: setup-aws
         name: Configure AWS credentials
