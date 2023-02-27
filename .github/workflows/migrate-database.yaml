@@ -110,6 +110,12 @@ jobs:
         name: Check out source code
         uses: actions/checkout@v2
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: 'npm'
+          cache-dependency-path: migrations/sql-migrations
+
       - id: setup-aws
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -125,10 +131,6 @@ jobs:
       - id: cd-migrations-folder
         name: Move to migrations folder
         run: cd ./migrations/sql-migrations
-
-      - id: cache-seek
-        name: Check for npm cache hit
-        uses: c-hive/gha-npm-cache@v1
 
       - id: install
         name: Install dependencies
