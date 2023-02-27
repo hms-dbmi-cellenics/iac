@@ -517,6 +517,8 @@ jobs:
         name: Install Flux to EKS cluster
         run: |-
 
+          # Refer to https://github.com/fluxcd/flux2/releases
+          FLUX_VERSION=v0.40.1
           FLUX_REPO=releases
           FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
           REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
@@ -525,6 +527,7 @@ jobs:
           echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
 
           args=(
+            --version $FLUX_VERSION
             --owner $GITHUB_REPOSITORY_OWNER
             --repository $FLUX_REPO
             --branch master
@@ -575,6 +578,18 @@ jobs:
           destination_folder: ${{ env.flux-path }}
           user_email: ci@biomage.net
           user_name: 'Biomage CI/CD'
+
+      - id: fill-kustomization-template
+        name: Fill in Kustomization template
+        run: |-
+          cat infra/flux/kustomization.yaml \
+            | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
+            | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
+            > infra/flux/kustomization.yaml
+
+          cat infra/flux/kustomization.yaml
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
 
       - id: push-kustomization-yaml
         name: Push the kustomization.yaml file to apply our custom config

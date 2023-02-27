@@ -4,15 +4,17 @@ resources:
   - gotk-components.yaml
   - gotk-sync.yaml
 
-# allow image-reflector pod to access ECR
+# Assign IRSA role that allows image-reflector pod to access ECR
 patches:
   - target:
-      version: v1
-      group: apps
-      kind: Deployment
+      kind: ServiceAccount
       name: image-reflector-controller
       namespace: flux-system
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/args/-
-        value: --aws-autologin-for-ecr
+    patch: |
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: image-reflector-controller
+        namespace: flux-system
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/flux-image-reflector-role-CLUSTER_ENV
