@@ -149,3 +149,19 @@ jobs:
       - id: run-migration
         name: Run database migration
         run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default knex migrate:latest
+
+  report-if-failed:
+    name: Report if workflow failed
+    runs-on: ubuntu-20.04
+    needs: [set-environments, check-secrets, migrate-database]
+    if: failure() && github.ref == 'refs/heads/master'
+    steps:
+      - id: send-to-slack
+        name: Send failure notification to Slack on failure
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: workflow-failures
+          status: FAILED
+          color: danger
