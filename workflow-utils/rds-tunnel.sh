@@ -26,7 +26,7 @@ AVAILABILITY_ZONE=$(echo $INSTANCE_DATA | jq -r '.[0][0].AvailabilityZone')
 
 ssh-keygen -t rsa -N '' -f temp <<<y >/dev/null 2>&1
 
-AWS_PAGER="" aws ec2-instance-connect send-ssh-public-key --instance-id $INSTANCE_ID --availability-zone $AVAILABILITY_ZONE --instance-os-user ec2-user --ssh-public-key file://temp.pub
+AWS_PAGER="" aws ec2-instance-connect send-ssh-public-key --region $REGION --instance-id $INSTANCE_ID --availability-zone $AVAILABILITY_ZONE --instance-os-user ec2-user --ssh-public-key file://temp.pub
 
 ssh -i temp -N -f -M -S temp-ssh.sock -L "$LOCAL_PORT:${RDSHOST}:5432" "ec2-user@${INSTANCE_ID}" -o "IdentitiesOnly yes" -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -o ProxyCommand="aws ssm start-session --target %h --region ${REGION} --document-name AWS-StartSSHSession --parameters portNumber=%p"
 
