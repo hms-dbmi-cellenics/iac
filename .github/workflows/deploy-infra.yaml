@@ -576,6 +576,18 @@ jobs:
           user_email: ci@biomage.net
           user_name: 'Biomage CI/CD'
 
+      - id: fill-kustomization-template
+        name: Fill in Kustomization template
+        run: |-
+          cat infra/flux/kustomization.yaml \
+            | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
+            | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
+            > infra/flux/kustomization.yaml
+
+          cat infra/flux/kustomization.yaml
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+
       - id: push-kustomization-yaml
         name: Push the kustomization.yaml file to apply our custom config
         uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
