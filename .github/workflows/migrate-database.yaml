@@ -71,12 +71,17 @@ jobs:
           echo Checking if secrets are defined in the repository.
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
-            echo AWS Access Key ID not defined.
+            echo AWS Access Key ID is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
           then
-            echo AWS Secret Access Key not defined.
+            echo AWS Secret Access Key is not defined.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.AWS_REGION }}" ]
+          then
+            echo AWS Region is not defined.
             ERROR=true
           fi
           if [ ! -z "$ERROR" ]
@@ -86,3 +91,42 @@ jobs:
             echo Please make they are created by adding/rotating them manually.
             exit 1
           fi
+
+  migrate-database:
+    name: Migrate database
+    runs-on: ubuntu-20.04
+    needs: [set-environments, check-secrets]
+    env:
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+          - environment-name: trv
+            environment-type: staging
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - id: setup-tunnel
+        name: Setup tunnel to connect to RDS
+        run: ./workflow-utils/rds-tunnel.sh ${{ CLUSTER_ENV }} default ${{ secrets.AWS_REGION }} 5432 READER
+
+      # - id: cd-migrations-folder
+      #   name: Move to migrations folder
+      #   run: cd ./migrations/sql-migrations
+
+      # - id: run-migration
+      #   name: Run database migration
+      #   run: NODE_ENV=${{ CLUSTER_ENV }} SANDBOX_ID=default knex migrate:latest
