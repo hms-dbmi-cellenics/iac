@@ -14,7 +14,7 @@ const fetchConfiguration = async (environment, sandboxId, region) => {
       pool: { min: 0, max: maxConnections },
       acquireConnectionTimeout: 6000000,
       migrations: {
-        directory: path.join(__dirname, '..', process.env.NODE_ENV)
+        directory: path.join(__dirname, '..', 'sql', process.env.NODE_ENV)
       }
     },
   };
