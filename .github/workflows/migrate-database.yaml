@@ -142,7 +142,7 @@ jobs:
       - id: run-migration
         name: Run database migration
         working-directory: ./migrations/sql-migrations
-        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default knex migrate:latest
+        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default ./node_modules/.bin/knex migrate:latest
 
   report-if-failed:
     name: Report if workflow failed
