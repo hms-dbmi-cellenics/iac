@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up role for the event-exporter [managed by github.com/biomage-org/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+
+  OIDCProvider:
+    Type: String
+    Description: The OIDC provider
+
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this topic is created for.
+
+Resources:
+  EventExporterRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "flux-image-reflector-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Fn::Sub: |-
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
+                },
+                "Action": "sts:AssumeRoleWithWebIdentity",
+                "Condition": {
+                  "StringEquals": {
+                    "${OIDCProvider}:sub": "system:serviceaccount:flux-system:image-reflector-controller",
+                    "${OIDCProvider}:aud": "sts.amazonaws.com"
+                  }
+                }
+              }
+            ]
+          }
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
