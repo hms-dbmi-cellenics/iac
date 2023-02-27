@@ -132,6 +132,10 @@ jobs:
         name: Move to migrations folder
         run: cd ./migrations/sql-migrations
 
+      - id: echo-pwd
+        name: Move to migrations folder
+        run: pwd
+
       - id: install
         name: Install dependencies
         run: |-
