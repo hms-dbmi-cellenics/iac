@@ -591,10 +591,10 @@ jobs:
           cat infra/flux/kustomization.yaml \
             | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
             | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
-            > infra/flux/kustomization.yaml
+            > test.yaml
 
           echo "AFTER"
-          cat infra/flux/kustomization.yaml
+          cat test.yaml
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
 
