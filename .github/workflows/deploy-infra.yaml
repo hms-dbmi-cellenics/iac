@@ -582,12 +582,12 @@ jobs:
       - id: fill-kustomization-template
         name: Fill in Kustomization template
         run: |-
-          cat infra/flux/kustomization.yaml \
+          cat infra/flux/kustomization-template.yaml \
             | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
             | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
-            > infra/flux/modified-kustomization.yaml
+            > infra/flux/kustomization.yaml
 
-          cat infra/flux/modified-kustomization.yaml
+          cat infra/flux/kustomization.yaml
         env:
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
 
@@ -597,7 +597,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source_file: infra/flux/modified-kustomization.yaml
+          source_file: infra/flux/kustomization.yaml
           destination_repo: ${{ env.flux-full-repo }}
           destination_folder: ${{ env.flux-path }}/flux-system
           user_email: ci@biomage.net
