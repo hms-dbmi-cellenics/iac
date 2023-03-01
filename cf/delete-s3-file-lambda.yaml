@@ -119,13 +119,11 @@ Resources:
             }
           };
 
-          exports.handler = async (event, context, callback) => {
+          exports.handler = async (event) => {
             const { key, bucketName } = event;
             const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
 
-            await deleteS3Files(key, realBucketName);
-
-            callback(null, event);
+            return deleteS3Files(key, realBucketName);
           };
 
   LoggingGroup:
