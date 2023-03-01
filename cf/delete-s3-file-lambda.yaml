@@ -82,8 +82,8 @@ Resources:
           CLUSTER_ENV: !Ref Environment
       Code:
         ZipFile: |
+          const AWS = require('aws-sdk');
           const deleteS3Files = async (key, bucketName) => {
-            const AWS = require('aws-sdk');
             const s3Client = new AWS.S3({
               apiVersion: '2006-03-01',
             });
