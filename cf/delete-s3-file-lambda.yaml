@@ -30,7 +30,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - 's3:DeleteObjects'
+                  - 's3:DeleteObject'
                 Resource:
                   - Fn::Sub: "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - Fn::Sub: "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
