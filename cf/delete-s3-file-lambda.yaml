@@ -30,8 +30,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - 's3:DeleteObject'
-                  - 's3:ListBucket'
+                  - 's3:DeleteObjects'
                 Resource:
                   - Fn::Sub: "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - Fn::Sub: "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
@@ -39,6 +38,16 @@ Resources:
                   - Fn::Sub: "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - Fn::Sub: "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
                   - Fn::Sub: "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
+              - Effect: Allow
+                Action:
+                  - 's3:ListBucket'
+                Resource:
+                  - Fn::Sub: "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}"
+                  - Fn::Sub: "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}"
+                  - Fn::Sub: "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}"
+                  - Fn::Sub: "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}"
+                  - Fn::Sub: "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
+                  - Fn::Sub: "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
           PolicyDocument:
