@@ -109,11 +109,8 @@ Resources:
               };
 
               items.map(items => console.log(`== Deleting ${items.Key} from ${bucketName} ==`));
-
-              s3Client.deleteObjects(deleteObjectParams, (err, data) => {
-                if (err) console.log(err, err.stack);
-                else console.log(`== Successfully deleted files from ${bucketName}==`, data);
-              });
+              await s3Client.deleteObjects(deleteObjectParams);
+              console.log(`== Successfully deleted files from ${bucketName}==`, data);
             } catch (err) {
               console.log(err, err.stack);
             }
@@ -122,8 +119,7 @@ Resources:
           exports.handler = async (event) => {
             const { key, bucketName } = event;
             const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
-
-            await deleteS3Files(key, realBucketName);
+            return deleteS3Files(key, realBucketName);
           };
 
   LoggingGroup:
