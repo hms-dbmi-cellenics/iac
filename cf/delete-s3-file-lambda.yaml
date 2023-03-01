@@ -123,7 +123,7 @@ Resources:
             const { key, bucketName } = event;
             const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
 
-            return deleteS3Files(key, realBucketName);
+            await deleteS3Files(key, realBucketName);
           };
 
   LoggingGroup:
