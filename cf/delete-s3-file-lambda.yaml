@@ -110,7 +110,7 @@ Resources:
 
               items.map(items => console.log(`== Deleting ${items.Key} from ${bucketName} ==`));
               await s3Client.deleteObjects(deleteObjectParams).promise();
-              console.log(`== Successfully deleted files from ${bucketName}==`, data);
+              console.log(`== Successfully deleted files from ${bucketName}==`);
             } catch (err) {
               console.log(err, err.stack);
             }
