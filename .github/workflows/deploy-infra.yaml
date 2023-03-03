@@ -582,7 +582,7 @@ jobs:
       - id: fill-kustomization-template
         name: Fill in Kustomization template
         run: |-
-          cat infra/flux/kustomization.yaml \
+          cat infra/flux/kustomization-template.yaml \
             | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
             | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
             > infra/flux/kustomization.yaml
