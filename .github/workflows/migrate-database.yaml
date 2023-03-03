@@ -1,0 +1,88 @@
+name: Migrate database
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        type: choice
+        description: Select the environment name to run the actions on
+        options:
+          - trv
+          - Biomage
+          - all
+        default: all
+      environment_type:
+        type: choice
+        description: Select environment type
+        options:
+          - staging
+          - production
+          - staging and production
+        default: staging
+
+# this ensures that only one CI pipeline with the same key
+#  can run at once in order to prevent undefined states
+concurrency: database-migrate-mutex
+
+jobs:
+  set-environments:
+    name: Set up environment name and environment type for action run
+    runs-on: ubuntu-20.04
+    outputs:
+      env-type: ${{ steps.set-env-type.outputs.env-type }}
+      env-name: ${{ steps.set-env-name.outputs.env-name }}
+    steps:
+      - id: set-env-type
+        name: Set up environment type
+        run: |-
+          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
+            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
+            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
+            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+          ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
+      - id: set-env-name
+        name: Set up environment name
+        run: |-
+          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
+            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
+            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
+            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+          ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+
+  check-secrets:
+    name: Check that sufficient secrets are specified for environment name
+    runs-on: ubuntu-20.04
+    needs: set-environments
+    strategy:
+      matrix:
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: check-secrets-for-environment
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID not defined.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key not defined.
+            ERROR=true
+          fi
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
+            exit 1
+          fi
