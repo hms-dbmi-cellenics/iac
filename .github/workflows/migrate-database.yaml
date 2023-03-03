@@ -108,7 +108,7 @@ jobs:
     steps:
       - id: checkout
         name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
         with:
@@ -126,7 +126,7 @@ jobs:
 
       - id: setup-tunnel
         name: Setup tunnel to connect to RDS
-        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} 5432 READER
+        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} {{ secrets.RDS_TUNNEL_PORT }} READER
 
       - id: install
         name: Install dependencies
