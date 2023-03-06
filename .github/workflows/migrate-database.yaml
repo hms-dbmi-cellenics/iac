@@ -126,7 +126,7 @@ jobs:
 
       - id: setup-tunnel
         name: Setup tunnel to connect to RDS
-        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} {{ secrets.RDS_TUNNEL_PORT }} READER
+        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} ${{ secrets.RDS_TUNNEL_PORT }} READER
 
       - id: install
         name: Install dependencies
