@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - gotk-components.yaml
+  - gotk-sync.yaml
+
+# Assign IRSA role that allows image-reflector pod to access ECR
+patches:
+  - target:
+      kind: ServiceAccount
+      name: image-reflector-controller
+      namespace: flux-system
+    patch: |
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: image-reflector-controller
+        namespace: flux-system
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/flux-image-reflector-role-CLUSTER_ENV
