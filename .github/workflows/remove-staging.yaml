@@ -165,7 +165,7 @@ jobs:
           STACK_NAME: ${{ steps.set-name.outputs.cognito-name }}
 
       - id: remove-template-batch-job-definition
-        name: Remove CloudFormation stack for SNS topic
+        name: Remove CloudFormation stack for Batch job definition
         run: |-
           aws cloudformation delete-stack --stack-name $STACK_NAME
         env:
