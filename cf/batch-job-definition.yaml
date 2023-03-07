@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Create AWS Batch job definition for various environments
+Description: Creates AWS Batch job definition for various environments
 
 Parameters:
   Environment:
@@ -12,7 +12,7 @@ Parameters:
   SandboxID:
     Type: String
     Default: default
-    Description: The sandbox ID of the environment that this topic is created for.
+    Description: The sandbox ID of the environment that this stack is created for.
   PipelinePRNum:
     Type: String
     Default: ''
