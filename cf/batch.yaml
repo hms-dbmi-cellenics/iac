@@ -47,18 +47,3 @@ Resources:
         - ComputeEnvironment: !Sub "compute-env-${Environment}"
           Order: 1
       State: ENABLED
-
-  BatchPipelineJob:
-    Type: AWS::Batch::JobDefinition
-    Properties:
-      JobDefinitionName: !Sub "job-pipeline-${Environment}"
-      ContainerProperties:
-        Command:
-          - ./start-batch.sh
-        Image: !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-${Environment}"
-        ResourceRequirements:
-          - Type: VCPU
-            Value: 2
-          - Type: MEMORY
-            Value: 8192 # MiB
-      Type: Container

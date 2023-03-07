@@ -13,7 +13,7 @@ Parameters:
   SandboxID:
     Type: String
     Default: default
-    Description: The sandbox ID of the environment that this topic is created for.
+    Description: The sandbox ID of the environment that this stack is created for.
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
