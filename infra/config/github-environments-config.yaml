@@ -1,4 +1,3 @@
 HMS:
   publicFacing: true
-  monitoringEnabled: false
   selfSignedCertificate: false

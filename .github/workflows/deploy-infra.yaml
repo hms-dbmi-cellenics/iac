@@ -6,15 +6,19 @@ on:
         type: choice
         description: Select the environment name to run the actions on
         options:
+          - trv
+          - Biomage
           - HMS
+          - all
         default: HMS
       workflow_actions:
         type: choice
         description: Select actions to perform
         options:
-          - deploy and configure
-          - configure
-        default: configure
+          - create and configure cluster
+          - configure cluster
+          - deploy monitoring
+        default: configure cluster
       environment_type:
         type: choice
         description: Select environment type
@@ -28,6 +32,10 @@ on:
 #  can run at once in order to prevent undefined states
 concurrency: cluster-update-mutex
 
+# After set-environments and check-secrets jobs are finished:
+#   "create and configure cluster" workflow_actions option runs all jobs.
+#   "configure cluster" workflow_actions option runs only configure-cluster job
+#   "deploy monitoring" workflow_actions option runs only deploy-monitoring job
 jobs:
   set-environments:
     name: Set up environment name and environment type for action run
@@ -52,7 +60,11 @@ jobs:
         name: Set up environment name
         run: |-
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
+            echo 'env-name=["Biomage", "trv", "HMS"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
+            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
+            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
             echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
           fi
@@ -67,8 +79,6 @@ jobs:
       matrix:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
     environment: ${{ matrix.environment-name }}
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: check-secrets-for-environment
         name: Check if necessary secrets are installed.
@@ -104,6 +114,16 @@ jobs:
             echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
+          if [ -z "${{ secrets.DATADOG_API_KEY }}" ]
+          then
+            echo Secret DATADOG_API_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.DATADOG_APP_KEY }}" ]
+          then
+            echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -123,8 +143,11 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
-    if: github.event.inputs.workflow_actions == 'deploy and configure'
+    if: github.event.inputs.workflow_actions == 'create and configure cluster'
     steps:
       - id: checkout
         name: Check out source code
@@ -210,7 +233,7 @@ jobs:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster]
-    if: always() && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    if: always() && github.event.inputs.workflow_actions != 'deploy monitoring' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -219,6 +242,9 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+          - environment-name: trv
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -348,14 +374,16 @@ jobs:
           echo "::set-output name=domain-name::$DOMAIN_NAME"
           echo "::set-output name=acm-certificate-arn::$ACM_CERTIFICATE_ARN"
 
-      - id: deploy-route53
-        name: Deploy Route 53 DNS records to ELB
-        uses: aws-actions/aws-cloudformation-github-deploy@v1
-        with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-          name: "biomage-alb-route53-${{ matrix.environment-type }}"
-          template: 'infra/cf-route53.yaml'
-          no-fail-on-empty-changeset: "1"
+      # This is commented out because running Route53 for trv is still causing an error.
+      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # - id: deploy-route53
+      #   name: Deploy Route 53 DNS records to ELB
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
+      #     template: 'infra/cf-route53.yaml'
+      #     no-fail-on-empty-changeset: "1"
 
       - id: deploy-xray-daemon
         name: Deploy AWS X-Ray daemon
@@ -435,14 +463,6 @@ jobs:
       ###
       ### INSTALL AND CONFIGURE FLUX V2 ###
       ###
-      - id: platform-monitoring-enabled
-        name: Get config for whether monitoring should be enabled for deployment
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.[env(ENVIRONMENT_NAME)].monitoringEnabled' 'infra/config/github-environments-config.yaml'
-        env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
-
       - id: using-self-signed-certificate
         name: Get config for whether deployment is using self-signed certificate
         uses: mikefarah/yq@master
@@ -454,6 +474,9 @@ jobs:
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
+          export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
+          export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
+
           yq -i '
             .myAccount.domainName = strenv(DOMAIN_NAME) |
             .myAccount.region = strenv(AWS_REGION) |
@@ -461,21 +484,16 @@ jobs:
             .myAccount.publicFacing = strenv(PUBLIC_FACING) |
             .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
             .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
-            .myAccount.datadogEnabled = strenv(MONITORING_ENABLED) |
-            .myAccount.datadogApiKey = ""
+            .myAccount.datadogApiKey = strenv(DATADOG_API_KEY) |
+            .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY)
           ' infra/config/account-config.yaml
-          if [[ $MONITORING_ENABLED = "true" ]]
-          then
-            export API_KEY="${{ secrets.DATADOG_API_KEY }}"
-            yq -i '.myAccount.datadogApiKey = strenv(API_KEY)' infra/config/account-config.yaml
-          fi
+
           cat infra/config/account-config.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
           ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
-          MONITORING_ENABLED: ${{ steps.platform-monitoring-enabled.outputs.result }}
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
           SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
 
@@ -525,7 +543,7 @@ jobs:
             --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
             --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
           )
-          
+
           if [ "${{ matrix.environment-type }}" = "staging" ]
           then
             echo Flux will be deployed in staging with read and write permissions
@@ -534,7 +552,7 @@ jobs:
           then
             echo Flux will be deployed in production with read-only permissions
           fi
-          
+
           flux bootstrap github "${args[@]}"
 
         env:
@@ -597,10 +615,136 @@ jobs:
       ### END OF INSTALL AND CONFIGURE FLUX V2 ###
       ###
 
+  deploy-monitoring:
+    name: Setup logging and monitoring
+    runs-on: ubuntu-20.04
+    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
+    if: always() && github.event.inputs.workflow_actions != 'configure cluster' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped' && (needs.configure-cluster.result == 'success' || needs.configure-cluster.result == 'skipped'))
+    env:
+      CLUSTER_ENV: ${{ matrix.environment-type }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    strategy:
+      matrix:
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+          - environment-name: trv
+            environment-type: staging
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v2
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - id: add-kubeconfig
+        name: Add k8s config file for existing cluster.
+        run: |-
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+
+      - id: install-eksctl
+        name: Install eksctl
+        run: |-
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+
+      - id: setup-cluster-cloudwatch-logging-policy
+        name: Setup permissions required for cluster to log to Cloudwatch
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
+          template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      # Setting up log forwarding for pods hosted in EC2 nodes
+      - id: create-fluent-bit-namespace
+        name: Create namespace for node FluentBit deployment
+        run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
+
+      - id: create-service-account-for-node-fluent-bit
+        name: Create service account for node FluentBit
+        env:
+          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+        run: |-
+          eksctl create iamserviceaccount \
+            --name fluent-bit \
+            --namespace node-logging \
+            --cluster biomage-$CLUSTER_ENV \
+            --role-name irsa-fluent-bit-$CLUSTER_ENV \
+            --attach-policy-arn $LOGGING_POLICY_ARN \
+            --override-existing-serviceaccounts \
+            --approve
+
+      - id: deploy-node-fluent-bit
+        name: Deploy FluentBit for EC2 nodes
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
+          # We do not want to log everything for costs/security concerns
+
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
+
+          kubectl apply -f infra/cluster-logging/node-fluentbit-config.yaml
+
+      # Setting up log forwarding for pods hosted on Fargate nodes
+      - id: attach-pod-execution-role-name
+        name: Attach logging policy to pod execution role
+        env:
+          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+        run: |-
+          # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
+          # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
+          # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
+
+          POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
+            --cluster-name biomage-$CLUSTER_ENV \
+            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+
+          aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
+
+      - id: deploy-fargate-fluent-bit
+        name: Deploy FluentBit config for Fargate pods
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |-
+          # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+
+          kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
+
+      # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
+      - id: setup-datadog-cluster-agent
+        name: Setup Datadog cluster agent
+        run: |-
+          helm repo add datadog https://helm.datadoghq.com
+          helm repo update
+          helm upgrade datadog-agent datadog/datadog \
+            -f infra/datadog/cluster-agent-values.yaml \
+            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+            --set datadog.clusterName=biomage-$CLUSTER_ENV \
+            --install
+
+      - id: setup-datadog-sidecar-permissions
+        name: Setup Datadog sidecar permissions
+        run: |-
+          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack

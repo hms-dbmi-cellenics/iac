@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up role for the event-exporter [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the role needs to be created.
+
+  OIDCProvider:
+    Type: String
+    Description: The OIDC provider
+
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this topic is created for.
+
+Resources:
+  EventExporterRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "event-exporter-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Fn::Sub: |-
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${OIDCProvider}"
+                },
+                "Action": "sts:AssumeRoleWithWebIdentity",
+                "Condition": {
+                  "StringEquals": {
+                    "${OIDCProvider}:sub": "system:serviceaccount:monitoring:event-exporter",
+                    "${OIDCProvider}:aud": "sts.amazonaws.com"
+                  }
+                }
+              }
+            ]
+          }
+      Path: /
+      Policies:
+        - PolicyName: !Sub "can-publish-message-to-sns-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "sns:Publish"
+                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-${SandboxID}-v2"

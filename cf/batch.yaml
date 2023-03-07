@@ -54,8 +54,7 @@ Resources:
       JobDefinitionName: !Sub "job-pipeline-${Environment}"
       ContainerProperties:
         Command:
-          - Rscript
-          - init.R
+          - ./start-batch.sh
         Image: !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-${Environment}"
         ResourceRequirements:
           - Type: VCPU
