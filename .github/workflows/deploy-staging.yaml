@@ -15,6 +15,11 @@ on:
         required: false
         default: 'False'
         type: string
+      pipeline-pr:
+        description: Pipeline PR number to stage
+        required: false
+        default: ""
+        type: string
       secrets:
         description: 'Encrypted secrets to use for this task'
         required: true
@@ -108,6 +113,9 @@ jobs:
 
           BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
           echo "::set-output name=cognito-name::$BASE_NAME"
+
+          BASE_NAME=biomage-batch-job-definition-staging-$SANDBOX_ID
+          echo "::set-output name=batch-job-definition-name::$BASE_NAME"
         env:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
@@ -239,6 +247,16 @@ jobs:
           parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }}"
           name: ${{ steps.set-stack-name.outputs.cognito-name }}
           template: cf/userpoolclient.yaml
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+      - id: deploy-template-batch-job-definition
+        name: Deploy CloudFormation stack for Batch job definition
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }},PipelinePRNum=${{ github.event.inputs.pipeline-pr }}"
+          name: ${{ steps.set-stack-name.outputs.batch-job-definition-name }}
+          template: cf/batch-job-definition.yaml
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 

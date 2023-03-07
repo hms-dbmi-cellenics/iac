@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates AWS Batch job definition for various environments
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+  SandboxID:
+    Type: String
+    Default: default
+    Description: The sandbox ID of the environment that this stack is created for.
+  PipelinePRNum:
+    Type: String
+    Default: ''
+    Description: The pipeline PR number whose image is to be used in staging.
+
+Conditions:
+  isPipelinePRStaged: !And [ !Equals [!Ref Environment, "staging"], !Not [ !Equals [!Ref PipelinePRNum, "" ]]]
+
+Resources:
+  BatchPipelineJob:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      JobDefinitionName: !Sub "job-pipeline-${Environment}-${SandboxID}"
+      ContainerProperties:
+        Command:
+          - ./start-batch.sh
+        Image: !If [
+                  isPipelinePRStaged,
+                  !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge",
+                  !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-${Environment}"
+                ]
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 2
+          - Type: MEMORY
+            Value: 8192 # MiB
+      Type: Container
