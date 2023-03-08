@@ -13,10 +13,6 @@ vpc:
         id: "subnet-09bccdc8be23d5402"
 
 managedNodeGroups:
-  - name: nodegroup-post-scaling-x86-v2
-    subnets:
-      - dmz-us-east-2a
-      - dmz-us-east-2b
   - name: nodegroup-post-scaling-x86-v3
     subnets:
       - dmz-us-east-2a
