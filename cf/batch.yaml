@@ -10,6 +10,11 @@ Parameters:
       - staging
       - production
 
+Conditions:
+  isProduction: !Equals
+    - !Ref Environment
+    - production
+
 Resources:
   BatchComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
@@ -21,8 +26,8 @@ Resources:
       ComputeResources:
         Type: EC2
         AllocationStrategy: BEST_FIT_PROGRESSIVE
-        MinvCpus: 0
-        DesiredvCpus: 0
+        MinvCpus: !If [isProduction, 2, 0]
+        DesiredvCpus: !If [isProduction, 2, 0]
         MaxvCpus: 128
         InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
         InstanceTypes:
