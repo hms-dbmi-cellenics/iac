@@ -1,7 +1,12 @@
+ENVIRONMENT = "production"
+
+
 import boto3
 from datetime import datetime
+import json
 
 s3_client = boto3.client("s3")
+s3_resource = boto3.resource("s3")
 
 
 def get_object_paginator(bucket):
@@ -62,7 +67,7 @@ def build_objects(delete_markers, versions, only_outdated=True):
 
         version_key = {
             "Key": delete_marker["Key"],
-            "Version": delete_marker["VersionId"],
+            "VersionId": delete_marker["VersionId"],
         }
 
         object = {
@@ -77,7 +82,6 @@ def build_objects(delete_markers, versions, only_outdated=True):
     # Match versions on delete marker key prefix
     for version in versions:
         prefix = version["Key"].split("/")[0]
-
         # Check if a delete marker exists for the object
         if version["Key"] in objects.keys():
             key = version["Key"]
@@ -100,30 +104,31 @@ def build_objects(delete_markers, versions, only_outdated=True):
     return objects, wrong_objects
 
 
-bucket = "biomage-source-staging-242905224710"
+def get_delete_parameters(objects):
+    ret = []
+    for object in objects.values():
+        versions = object["Versions"]
+        keys = list(map(lambda x: {"Key": x["Key"]}, versions))
+        ret.extend(keys)
+    return ret
 
-paginator = get_object_paginator(bucket)
-delete_markers, versions = get_raw_objects(paginator)
-objects, wrong_objects = build_objects(delete_markers, versions, only_outdated=True)
 
-print(wrong_objects)
+buckets = [
+    f"biomage-filtered-cells-{ENVIRONMENT}-242905224710",
+    f"biomage-originals-{ENVIRONMENT}-242905224710",
+    f"biomage-source-{ENVIRONMENT}-242905224710",
+    f"processed-matrix-{ENVIRONMENT}-242905224710",
+]
+for bucket in buckets:
+    print(f"Cleaning up {bucket}")
+    paginator = get_object_paginator(bucket)
+    delete_markers, versions = get_raw_objects(paginator)
+    objects, wrong_objects = build_objects(delete_markers, versions, only_outdated=True)
 
-# for i in range(0, len(delete_marker_list), 1000):
-#     response = s3_client.delete_objects(
-#         Bucket=bucket,
-#         Delete={
-#             'Objects': delete_marker_list[i:i+1000],
-#             'Quiet': True
-#         }
-#     )
-#     print(response)
+    delete = get_delete_parameters(wrong_objects)
 
-# for i in range(0, len(version_list), 1000):
-#     response = s3_client.delete_objects(
-#         Bucket=bucket,
-#         Delete={
-#             'Objects': version_list[i:i+1000],
-#             'Quiet': True
-#         }
-#     )
-#     print(response)
+    for i in range(0, len(delete), 1000):
+        response = s3_client.delete_objects(
+            Bucket=bucket, Delete={"Objects": delete[i : i + 1000], "Quiet": True}
+        )
+        print(response)
