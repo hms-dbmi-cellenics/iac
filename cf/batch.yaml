@@ -26,17 +26,24 @@ Resources:
       ComputeResources:
         Type: EC2
         AllocationStrategy: BEST_FIT_PROGRESSIVE
-        MinvCpus: !If [isProduction, 2, 0]
-        DesiredvCpus: !If [isProduction, 2, 0]
+        MinvCpus: !If [isProduction, 4, 0]
+        DesiredvCpus: !If [isProduction, 4, 0]
         MaxvCpus: 128
         InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
-        InstanceTypes:
+        InstanceTypes: !If [isProduction,
+          - r6i.xlarge
+          - r6i.2xlarge
+          - r6i.4xlarge
+          - r6i.8xlarge
+          - r6i.12xlarge
+          - r6i.16xlarge,
           - r6i.xlarge
           - r6i.2xlarge
           - r6i.4xlarge
           - r6i.8xlarge
           - r6i.12xlarge
           - r6i.16xlarge
+        ]
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
         Subnets:
