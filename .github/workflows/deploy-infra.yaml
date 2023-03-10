@@ -527,7 +527,7 @@ jobs:
         run: |-
 
           # Refer to https://github.com/fluxcd/flux2/releases
-          FLUX_VERSION=v0.40.1
+          FLUX_VERSION=v0.41.0
           FLUX_REPO=releases
           FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
           REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
