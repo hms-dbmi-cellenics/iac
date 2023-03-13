@@ -44,6 +44,10 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
   The primary domain name where the staging instance of Cellenics will be deployed under (e.g. app.net). This is the name of the domain
   in the hosted zone.
 
+- RDS_TUNNEL_PORT
+
+  Port number for RDS migration
+
 - ACM_CERTIFICATE_ARN
 
  The AWS ACM ARN for the SSL certificate for the Cellenics domain name.

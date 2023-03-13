@@ -30,19 +30,19 @@ jobs:
 
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
-            echo AWS Access Key ID not defined.
+            echo AWS Access Key ID is not defined.
             ERROR=true
           fi
 
           if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
           then
-            echo AWS Secret Access Key not defined.
+            echo AWS Secret Access Key is not defined.
             ERROR=true
           fi
 
           if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
           then
-            echo GitHub deploy key access token not defined.
+            echo GitHub deploy key access token is not defined.
             ERROR=true
           fi
 

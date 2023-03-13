@@ -36,7 +36,6 @@ Resources:
       SecurityGroupEgress: []
       SecurityGroupIngress:
         - SourceSecurityGroupId:
-          # This is the important security group, SharedNodeSecurityGroup is supposed to be no longer in real use
             Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"
           FromPort: !Ref DBPort
           ToPort: !Ref DBPort

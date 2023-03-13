@@ -68,11 +68,6 @@ Resources:
           FromPort: !Ref CachePort
           IpProtocol: tcp
           ToPort: !Ref CachePort
-        - SourceSecurityGroupId: 
-            Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SharedNodeSecurityGroup"
-          FromPort: !Ref CachePort
-          IpProtocol: tcp
-          ToPort: !Ref CachePort
       Tags:
         - Key: Name
           Value: !Sub "${AWS::StackName}-security-group"

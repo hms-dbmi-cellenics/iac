@@ -4,13 +4,12 @@
   "description": "",
   "scripts": {
     "dynamoToSql": "node dynamoToSql/run",
-    "paramsHashToParams": "node 2023-01-17-migrate-params-hash-to-last-pipeline-params/run"
+    "paramsHashToParams": "node 2023-01-17-migrate-params-hash-to-last-gem2s-params/run"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1087.0",
-    "chalk": "^4.1.2",
     "crypto-js": "^4.1.1",
     "knex": "^1.0.3",
     "object-hash": "^2.2.0",

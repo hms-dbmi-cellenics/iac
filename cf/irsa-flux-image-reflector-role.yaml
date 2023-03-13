@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up role for the event-exporter [managed by github.com/hms-dbmi-cellenics/iac]
+Description: Set up role for the event-exporter [managed by github.com/biomage-org/iac]
 
 Parameters:
   Environment:
@@ -24,7 +24,7 @@ Resources:
   EventExporterRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Sub "event-exporter-role-${Environment}"
+      RoleName: !Sub "flux-image-reflector-role-${Environment}"
       AssumeRolePolicyDocument:
         Fn::Sub: |-
           {
@@ -38,7 +38,7 @@ Resources:
                 "Action": "sts:AssumeRoleWithWebIdentity",
                 "Condition": {
                   "StringEquals": {
-                    "${OIDCProvider}:sub": "system:serviceaccount:monitoring:event-exporter",
+                    "${OIDCProvider}:sub": "system:serviceaccount:flux-system:image-reflector-controller",
                     "${OIDCProvider}:aud": "sts.amazonaws.com"
                   }
                 }
@@ -46,11 +46,5 @@ Resources:
             ]
           }
       Path: /
-      Policies:
-        - PolicyName: !Sub "can-publish-message-to-sns-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "sns:Publish"
-                Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:work-results-${Environment}-${SandboxID}-v2"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
