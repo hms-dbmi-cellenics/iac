@@ -232,7 +232,7 @@ jobs:
         if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
         run: |-
           eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
-          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --override-existing-serviceaccounts
+          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
           eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
   configure-cluster:
@@ -286,21 +286,6 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
 
-      - id: deploy-load-balancer-role
-        name: Deploy permissions for AWS load balancer controller
-        run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
-          aws iam create-policy \
-            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --policy-document file://iam-policy.json || true
-          eksctl create iamserviceaccount \
-            --cluster=biomage-$CLUSTER_ENV \
-            --namespace=kube-system \
-            --name=aws-load-balancer-controller \
-            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --override-existing-serviceaccounts \
-            --approve
-
       # we need to retry this due to an active issue with the AWS Load Balancer Controller
       # where there are intermittent failures that are only fixable by retrying
       # see issue at https://github.com/kubernetes-sigs/aws-load-balancer-controller/issues/2071
@@ -322,6 +307,21 @@ jobs:
               --set serviceAccount.name=aws-load-balancer-controller \
               --set clusterName=biomage-$CLUSTER_ENV \
               --install --wait
+
+      - id: deploy-load-balancer-role
+        name: Deploy permissions for AWS load balancer controller
+        run: |-
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+          aws iam create-policy \
+            --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --policy-document file://iam-policy.json || true
+          eksctl create iamserviceaccount \
+            --cluster=biomage-$CLUSTER_ENV \
+            --namespace=kube-system \
+            --name=aws-load-balancer-controller \
+            --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --override-existing-serviceaccounts \
+            --approve
 
       - id: platform-public-facing
         name: Get config for whether platform should be public facing
