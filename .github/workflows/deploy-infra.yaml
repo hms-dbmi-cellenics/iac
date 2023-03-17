@@ -232,7 +232,7 @@ jobs:
         if: steps.create-clusters.outcome == 'failure' && steps.check-for-failure.outputs.reason == 'already-exists'
         run: |-
           eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
-          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
+          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --override-existing-serviceaccounts
           eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
 
   configure-cluster:
