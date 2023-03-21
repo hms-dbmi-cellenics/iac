@@ -31,8 +31,8 @@ Resources:
           - ./start-batch.sh
         Image: !If [
                   isPipelinePRStaged,
-                  !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge",
-                  !Sub "242905224710.dkr.ecr.eu-west-1.amazonaws.com/pipeline:batch-${Environment}"
+                  !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge",
+                  !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-${Environment}"
                 ]
         ResourceRequirements:
           - Type: VCPU
