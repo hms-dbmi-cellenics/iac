@@ -6,10 +6,11 @@ on:
         type: choice
         description: Select the environment name to run the actions on
         options:
+          - HMS
           - trv
           - Biomage
           - all
-        default: all
+        default: HMS
       environment_type:
         type: choice
         description: Select environment type
@@ -52,6 +53,8 @@ jobs:
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
+            echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
           fi
         env:
           ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
