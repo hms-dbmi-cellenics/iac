@@ -60,7 +60,7 @@ Resources:
                 Action:
                   - "batch:SubmitJob"
                 Resource:
-                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job-definition/job-pipeline-${Environment}"
+                  - !Sub "arn:aws:batch:*:${AWS::AccountId}:job-definition/job-pipeline-${Environment}-*"
                   - !Sub "arn:aws:batch:*:${AWS::AccountId}:job-queue/queue-pipeline-${Environment}"
 
 Outputs:
