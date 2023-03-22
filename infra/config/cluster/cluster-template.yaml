@@ -26,8 +26,7 @@ iam:
     - metadata:
         name: aws-load-balancer-controller
         namespace: kube-system
-      wellKnownPolicies:
-        roleName: filled-in-by-ci
+      roleName: filled-in-by-ci
 
 # if you add or remove items under managedNodeGroups, make sure you update customized cluster
 # config for each of the Github environments under infra/config/cluster
