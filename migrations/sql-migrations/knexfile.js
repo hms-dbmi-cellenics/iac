@@ -5,6 +5,10 @@ const getConnectionParams = require('./getConnectionParams');
 const fetchConfiguration = async (environment, sandboxId, region) => {
   const params = await getConnectionParams(environment, sandboxId, region);
 
+  const migrationsDir = environment === 'development' ? 
+    '../../../api/src/sql/migrations' 
+    : path.join(__dirname, '..', 'sql', process.env.NODE_ENV)
+
   return {
     [environment]: {
       client: 'postgresql',
@@ -12,7 +16,7 @@ const fetchConfiguration = async (environment, sandboxId, region) => {
       pool: { min: 0, max: 100 },
       acquireConnectionTimeout: 6000000,
       migrations: {
-        directory: path.join(__dirname, '..', 'sql', process.env.NODE_ENV)
+        directory: migrationsDir
       }
     },
   };
