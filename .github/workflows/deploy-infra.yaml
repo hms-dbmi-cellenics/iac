@@ -159,12 +159,15 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: fill-metadata
-        name: Add name and region to the eksctl file.
+        name: Add name and region dependent params to the eksctl config.
         run: |-
           export CLUSTER_NAME="biomage-$CLUSTER_ENV"
+          export LOAD_BALANCER_ROLE_NAME="eksctl-$CLUSTER_ENV-load-balancer-controller-role"
+
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
-            .metadata.region = strenv(AWS_REGION)
+            .metadata.region = strenv(AWS_REGION) |
+            .iam.serviceAccounts[1].metadata.roleName = strenv(LOAD_BALANCER_ROLE_NAME)
           ' infra/config/cluster/cluster-template.yaml
 
           export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
@@ -233,7 +236,7 @@ jobs:
         run: |-
           eksctl utils associate-iam-oidc-provider --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --approve
           eksctl delete iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --only-missing --approve
-          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml --role-name "eksctl-$CLUSTER_ENV-load-balancer-controller-role"
+          eksctl create iamserviceaccount --config-file=/tmp/cluster-$CLUSTER_ENV.yaml
 
   configure-cluster:
     name: Configure Kubernetes resources on the EKS cluster
