@@ -162,12 +162,10 @@ jobs:
         name: Add name and region dependent params to the eksctl config.
         run: |-
           export CLUSTER_NAME="biomage-$CLUSTER_ENV"
-          export LOAD_BALANCER_ROLE_NAME="eksctl-$CLUSTER_ENV-load-balancer-controller-role"
 
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
-            .metadata.region = strenv(AWS_REGION) |
-            .iam.serviceAccounts[2].roleName = strenv(LOAD_BALANCER_ROLE_NAME)
+            .metadata.region = strenv(AWS_REGION)
           ' infra/config/cluster/cluster-template.yaml
 
           export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
@@ -301,6 +299,7 @@ jobs:
             --namespace=kube-system \
             --name=aws-load-balancer-controller \
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --role-name eksctl-$CLUSTER_ENV-load-balancer-controller-role
             --override-existing-serviceaccounts \
             --approve
 
