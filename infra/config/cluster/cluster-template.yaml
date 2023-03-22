@@ -23,6 +23,10 @@ iam:
           aws-usage: cluster-ops
       attachPolicyARNs:
       - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+    - metadata:
+        name: aws-load-balancer-controller
+        namespace: kube-system
+        roleName: filled-in-by-ci
 
 # if you add or remove items under managedNodeGroups, make sure you update customized cluster
 # config for each of the Github environments under infra/config/cluster
