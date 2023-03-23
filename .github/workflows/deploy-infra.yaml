@@ -299,7 +299,6 @@ jobs:
             --namespace=kube-system \
             --name=aws-load-balancer-controller \
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
-            --role-name eksctl-$CLUSTER_ENV-load-balancer-controller-role \
             --override-existing-serviceaccounts \
             --approve
 
