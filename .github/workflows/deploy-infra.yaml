@@ -299,6 +299,7 @@ jobs:
             --namespace=kube-system \
             --name=aws-load-balancer-controller \
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --role-name eksctl-$CLUSTER_ENV-load-balancer-controller-role \
             --override-existing-serviceaccounts \
             --approve
 
@@ -322,6 +323,7 @@ jobs:
               --set serviceAccount.create=false \
               --set serviceAccount.name=aws-load-balancer-controller \
               --set clusterName=biomage-$CLUSTER_ENV \
+              --set iam.serviceAccounts[2].roleName = eksctl-$CLUSTER_ENV-load-balancer-controller-role" \
               --install --wait
 
       - id: platform-public-facing
