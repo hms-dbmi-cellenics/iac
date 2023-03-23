@@ -320,7 +320,7 @@ jobs:
             helm repo update
             helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
               --namespace kube-system \
-              --set serviceAccount.create=false \
+              --set serviceAccount.create=true \
               --set serviceAccount.name=aws-load-balancer-controller \
               --set clusterName=biomage-$CLUSTER_ENV \
               --install --wait
