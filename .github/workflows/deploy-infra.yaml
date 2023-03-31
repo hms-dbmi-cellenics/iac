@@ -162,6 +162,7 @@ jobs:
         name: Add name and region to the eksctl file.
         run: |-
           export CLUSTER_NAME="biomage-$CLUSTER_ENV"
+
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
             .metadata.region = strenv(AWS_REGION)
@@ -289,7 +290,7 @@ jobs:
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
         run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.0/docs/install/iam_policy.json
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --policy-document file://iam-policy.json || true
@@ -298,6 +299,7 @@ jobs:
             --namespace=kube-system \
             --name=aws-load-balancer-controller \
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --role-name eksctl-$CLUSTER_ENV-load-balancer-controller-role \
             --override-existing-serviceaccounts \
             --approve
 
