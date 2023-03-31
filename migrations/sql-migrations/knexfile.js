@@ -7,7 +7,10 @@ const fetchConfiguration = async (environment, sandboxId, region) => {
 
   let migrationsDir = path.join(__dirname, '..', 'sql', process.env.NODE_ENV)
 
-  if (environment === 'development' || (environment == 'staging' && sandboxId !== 'default')) {
+  if (
+    environment === 'development'
+    || (environment === 'staging' && sandboxId !== 'default'))
+  {
     migrationsDir = '../../../api/src/sql/migrations'
   }
 
