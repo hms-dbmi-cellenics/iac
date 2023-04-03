@@ -1,4 +1,4 @@
-ENVIRONMENT = "production"
+ENVIRONMENT = "staging"
 
 
 import boto3
@@ -114,17 +114,16 @@ def get_delete_parameters(objects):
 
 
 buckets = [
-    f"biomage-filtered-cells-{ENVIRONMENT}-242905224710",
-    f"biomage-originals-{ENVIRONMENT}-242905224710",
-    f"biomage-source-{ENVIRONMENT}-242905224710",
-    f"processed-matrix-{ENVIRONMENT}-242905224710",
+    f"biomage-filtered-cells-{ENVIRONMENT}-160782110667",
+    f"biomage-originals-{ENVIRONMENT}-160782110667",
+    f"biomage-source-{ENVIRONMENT}-160782110667",
+    f"processed-matrix-{ENVIRONMENT}-160782110667",
 ]
 for bucket in buckets:
     print(f"Cleaning up {bucket}")
     paginator = get_object_paginator(bucket)
     delete_markers, versions = get_raw_objects(paginator)
     objects, wrong_objects = build_objects(delete_markers, versions, only_outdated=True)
-
     delete = get_delete_parameters(wrong_objects)
 
     for i in range(0, len(delete), 1000):
