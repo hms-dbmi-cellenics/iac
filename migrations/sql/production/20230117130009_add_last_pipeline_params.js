@@ -1,4 +1,5 @@
 exports.up = async (knex) => {
+  // for HMS deployment last_gem2s_params was always called last_pipeline_params
   const hasLastGem2sParams = await knex.schema.hasColumn('experiment_execution', 'last_gem2s_params');
 
   if (hasLastGem2sParams) {
