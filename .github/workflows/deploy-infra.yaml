@@ -91,17 +91,17 @@ jobs:
           fi
           if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
           then
-            echo AWS Access Key ID not defined.
+            echo AWS Access Key ID is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
           then
-            echo AWS Secret Access Key not defined.
+            echo AWS Secret Access Key is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
           then
-            echo GitHub deploy key access token not defined.
+            echo GitHub deploy key access token is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.PRIMARY_DOMAIN_NAME }}" ]
@@ -112,16 +112,6 @@ jobs:
           if [ -z "${{ secrets.DOMAIN_NAME }}" ]
           then
             echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.DATADOG_API_KEY }}" ]
-          then
-            echo Secret DATADOG_API_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.DATADOG_APP_KEY }}" ]
-          then
-            echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
           if [ ! -z "$ERROR" ]
@@ -192,6 +182,7 @@ jobs:
           exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
 
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
+
           echo "::set-output name=outcome::created"
 
       - id: check-for-failure
@@ -211,6 +202,14 @@ jobs:
 
           echo Cluster already exists.
           echo "::set-output name=reason::already-exists"
+
+      - id: update-addons-for-cluster
+        name: Attempt to create addons for cluster.
+        continue-on-error: true
+        run: |-
+          exec &> >(tee /tmp/eksctl-$CLUSTER_ENV.log)
+
+          eksctl create addon -f /tmp/cluster-$CLUSTER_ENV.yaml
 
       - id: update-nodegroup
         name: Attempt to update node groups for existing cluster.
@@ -397,12 +396,12 @@ jobs:
         name: Install AWS EBS Container Storage Interface (CSI) drivers
         run: |-
           helm upgrade \
-            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.6.4/aws-ebs-csi-driver-2.6.4.tgz \
+            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.17.2/aws-ebs-csi-driver-2.17.2.tgz \
             --namespace kube-system \
             --set enableVolumeScheduling=true \
             --set enableVolumeResizing=true \
             --set enableVolumeSnapshot=true \
-            --install --wait \
+            --install --wait
 
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
@@ -524,6 +523,8 @@ jobs:
         name: Install Flux to EKS cluster
         run: |-
 
+          # Refer to https://github.com/fluxcd/flux2/releases
+          FLUX_VERSION=v0.41.0
           FLUX_REPO=releases
           FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
           REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
@@ -532,6 +533,7 @@ jobs:
           echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
 
           args=(
+            --version $FLUX_VERSION
             --owner $GITHUB_REPOSITORY_OWNER
             --repository $FLUX_REPO
             --branch master
@@ -582,6 +584,18 @@ jobs:
           destination_folder: ${{ env.flux-path }}
           user_email: ci@biomage.net
           user_name: 'Biomage CI/CD'
+
+      - id: fill-kustomization-template
+        name: Fill in Kustomization template
+        run: |-
+          cat infra/flux/kustomization-template.yaml \
+            | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
+            | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
+            > infra/flux/kustomization.yaml
+
+          cat infra/flux/kustomization.yaml
+        env:
+          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
 
       - id: push-kustomization-yaml
         name: Push the kustomization.yaml file to apply our custom config

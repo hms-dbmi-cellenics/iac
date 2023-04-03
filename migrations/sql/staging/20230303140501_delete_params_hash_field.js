@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async (knex) => {
+exports.up = async function (knex) {
   await knex.schema.alterTable('experiment_execution', (table) => {
     table.dropColumn('params_hash');
   });
@@ -12,7 +12,7 @@ exports.up = async (knex) => {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = async (knex) => {
+exports.down = async function (knex) {
   await knex.schema.alterTable('experiment_execution', (table) => {
     table.string('params_hash').nullable();
   });

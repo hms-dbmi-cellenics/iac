@@ -1,0 +1,164 @@
+name: Migrate database
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        type: choice
+        description: Select the environment name to run the actions on
+        options:
+          - HMS
+          - trv
+          - Biomage
+          - all
+        default: HMS
+      environment_type:
+        type: choice
+        description: Select environment type
+        options:
+          - staging
+          - production
+          - staging and production
+        default: staging
+
+# this ensures that only one CI pipeline with the same key
+#  can run at once in order to prevent undefined states
+concurrency: database-migrate-mutex
+
+jobs:
+  set-environments:
+    name: Set up environment name and environment type for action run
+    runs-on: ubuntu-20.04
+    outputs:
+      env-type: ${{ steps.set-env-type.outputs.env-type }}
+      env-name: ${{ steps.set-env-name.outputs.env-name }}
+    steps:
+      - id: set-env-type
+        name: Set up environment type
+        run: |-
+          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
+            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
+            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
+            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+          ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
+      - id: set-env-name
+        name: Set up environment name
+        run: |-
+          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
+            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
+            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
+            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
+            echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+          ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+
+  check-secrets:
+    name: Check that sufficient secrets are specified for environment name
+    runs-on: ubuntu-20.04
+    needs: set-environments
+    strategy:
+      matrix:
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: check-secrets-for-environment
+        name: Check if necessary secrets are installed.
+        run: |-
+          echo Checking if secrets are defined in the repository.
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          then
+            echo AWS Access Key ID is not defined.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
+          then
+            echo AWS Secret Access Key is not defined.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.AWS_REGION }}" ]
+          then
+            echo AWS Region is not defined.
+            ERROR=true
+          fi
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
+            exit 1
+          fi
+
+  migrate-database:
+    name: Migrate database
+    runs-on: ubuntu-20.04
+    needs: [set-environments, check-secrets]
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+          - environment-name: trv
+            environment-type: staging
+    environment: ${{ matrix.environment-name }}
+    steps:
+      - id: checkout
+        name: Check out source code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: 'npm'
+          cache-dependency-path: migrations/sql-migrations/package-lock.json
+
+      - id: setup-aws
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - id: setup-tunnel
+        name: Setup tunnel to connect to RDS
+        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} ${{ secrets.RDS_TUNNEL_PORT }} READER
+
+      - id: install
+        name: Install dependencies
+        working-directory: ./migrations/sql-migrations
+        run: |-
+          echo "Running CI with "
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+
+          git config --global url."https://".insteadOf ssh://
+          npm ci
+
+      - id: run-migration
+        name: Run database migration
+        working-directory: ./migrations/sql-migrations
+        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
+
+  report-if-failed:
+    name: Report if workflow failed
+    runs-on: ubuntu-20.04
+    needs: [set-environments, check-secrets, migrate-database]
+    if: failure() && github.ref == 'refs/heads/master'
+    steps:
+      - id: send-to-slack
+        name: Send failure notification to Slack on failure
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.WORKFLOW_STATUS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: workflow-failures
+          status: FAILED
+          color: danger
