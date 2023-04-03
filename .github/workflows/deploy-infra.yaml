@@ -202,7 +202,7 @@ jobs:
 
           echo Cluster already exists.
           echo "::set-output name=reason::already-exists"
-      
+
       - id: update-addons-for-cluster
         name: Attempt to create addons for cluster.
         continue-on-error: true
@@ -396,12 +396,12 @@ jobs:
         name: Install AWS EBS Container Storage Interface (CSI) drivers
         run: |-
           helm upgrade \
-            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.6.4/aws-ebs-csi-driver-2.6.4.tgz \
+            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.17.2/aws-ebs-csi-driver-2.17.2.tgz \
             --namespace kube-system \
             --set enableVolumeScheduling=true \
             --set enableVolumeResizing=true \
             --set enableVolumeSnapshot=true \
-            --install --wait \
+            --install --wait
 
       - id: deploy-read-only-group
         name: Deploy read-only permission definition for cluster
