@@ -26,9 +26,9 @@ Resources:
       ComputeResources:
         Type: EC2
         AllocationStrategy: BEST_FIT_PROGRESSIVE
-        MinvCpus: !If [isProduction, 4, 0]
-        DesiredvCpus: !If [isProduction, 4, 0]
-        MaxvCpus: !If [isProduction, 256, 128]
+        MinvCpus: 0
+        DesiredvCpus: 0
+        MaxvCpus: 128
         InstanceRole: !Sub "pipeline-instance-profile-${Environment}"
         InstanceTypes: !If [isProduction,
           [
