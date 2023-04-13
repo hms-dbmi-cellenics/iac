@@ -121,9 +121,9 @@ jobs:
           cat ${HOME}/cf_files.json
 
           # Set as output the minified JSON.
-          echo "files}={$(jq -c . < ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
+          echo "files=$(jq -c . < ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
           echo "$(jq -c . < ${HOME}/cf_files.json)"
-          echo "num-files}={$(jq '. | length' ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
+          echo "num-files=$(jq '. | length' ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
 
   lint-templates:
     name: Lint template files
