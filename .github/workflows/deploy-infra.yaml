@@ -191,7 +191,7 @@ jobs:
 
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
 
-          echo "{outcome}={created} >> $GITHUB_OUTPUT"
+          echo "{outcome}={created}" >> $GITHUB_OUTPUT
 
       - id: check-for-failure
         name: Check for reason of failure if cluster creation failed.
@@ -204,12 +204,12 @@ jobs:
           then
             echo Step failed for reason other than stack already existing.
             echo Job failing...
-            echo "{reason}={error} >> $GITHUB_OUTPUT"
+            echo "{reason}={error}" >> $GITHUB_OUTPUT
             false
           fi
 
           echo Cluster already exists.
-          echo "{reason}={already-exists} >> $GITHUB_OUTPUT"
+          echo "{reason}={already-exists}" >> $GITHUB_OUTPUT
 
       - id: update-addons-for-cluster
         name: Attempt to create addons for cluster.
@@ -375,8 +375,8 @@ jobs:
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
           fi
-          echo "{primary-domain-name}={$PRIMARY_DOMAIN_NAME} >> $GITHUB_OUTPUT"
-          echo "{domain-name}={$DOMAIN_NAME} >> $GITHUB_OUTPUT"
+          echo "{primary-domain-name}={$PRIMARY_DOMAIN_NAME}" >> $GITHUB_OUTPUT
+          echo "{domain-name}={$DOMAIN_NAME}" >> $GITHUB_OUTPUT
 
       # This is commented out because running Route53 for trv is still causing an error.
       # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
