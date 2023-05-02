@@ -83,7 +83,7 @@ jobs:
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
         run: |-
-            aws eks update-kubeconfig --name biomage-$CLUSTER_ENV --role-arn arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+            aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
       - id: install-helm
         name: Install Helm

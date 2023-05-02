@@ -438,7 +438,18 @@ jobs:
           done < "/tmp/users_to_remove"
 
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: add-state-machine-role
+      # Grant login rights to ci-iac-role
+      - id: add-ci-iac-oidc-cluster-role
+        name: Grant rights to the state machine IAM role.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+            --group system:masters \
+            --username ci-iac-role
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
         run: |-
           eksctl create iamidentitymapping \
