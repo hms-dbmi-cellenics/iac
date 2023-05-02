@@ -39,28 +39,10 @@ jobs:
           role-duration-seconds: 7200
           aws-region: ${{ env.region }}
 
-      - id: install-aws-cli
-        name: Install AWS CLI
-        uses: unfor19/install-aws-cli-action@v1
-        with:
-          version: 2
-
-      - id: check-env-vars-TMP
-        name: Check existence of environment variables
-        run: |-
-            echo "AWS_ACCOUNT_ID"
-            echo "$AWS_ACCOUNT_ID"
-
-            echo "AWS_ACCESS_KEY_ID"
-            echo "$AWS_ACCESS_KEY_ID"
-
-            echo "AWS_SECRET_ACCESS_KEY"
-            echo "$AWS_SECRET_ACCESS_KEY"
-
       - id: backup-users
         name: create backup json of cognito users
         run: |-
-            cbr backup --region ${{env.region}} --key ${{secrets.AWS_ACCESS_KEY_ID}} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }} --pool ${userPoolId} --directory .
+            cbr backup --region ${{env.region}} --use-env-vars --pool ${userPoolId} --directory .
 
       - id: save-to-s3
         name: save backup json to s3
