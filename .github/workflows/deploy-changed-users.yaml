@@ -6,8 +6,6 @@ on:
     paths:
       - 'infra/config/cluster/*'
       - 'infra/cf-state-machine-role.yaml'
-env:
-  region: ${{ secrets.AWS_REGION }}
 
 # this ensures that only one CI pipeline with the same key
 # can run at once in order to prevent undefined states

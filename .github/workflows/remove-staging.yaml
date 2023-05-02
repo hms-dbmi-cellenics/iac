@@ -9,9 +9,6 @@ on:
         description: 'Encrypted secrets to use for this task'
         required: true
 
-env:
-  region: ${{ secrets.AWS_REGION }}
-
 permissions:
   id-token: write
   contents: read
@@ -28,7 +25,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           role-duration-seconds: 7200
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - id: install-aws-cli
         name: Install AWS CLI

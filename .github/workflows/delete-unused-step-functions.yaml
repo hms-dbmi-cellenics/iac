@@ -4,8 +4,6 @@ on:
   schedule:
     - cron:  '20 4 * * *'
   workflow_dispatch:
-env:
-  region: ${{ secrets.AWS_REGION }}
 
 permissions:
   id-token: write
@@ -26,7 +24,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           role-duration-seconds: 7200
-          aws-region: ${{ env.region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       # If the step functions list is too close to its limit,
       # this will remove the 500 older step functions.
