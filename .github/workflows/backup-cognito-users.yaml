@@ -45,23 +45,22 @@ jobs:
         with:
           version: 2
 
-      - id: get-session-token
-        name: Get AWS session token
+      - id: check-env-vars-TMP
+        name: Check existence of environment variables
         run: |-
-            SESSION_TOKEN=$(aws sts get-session-token |  jq .Credentials.SessionToken)
-            echo "session-token=$SESSION_TOKEN" >> "$GITHUB_OUTPUT"
+            echo "AWS_ACCOUNT_ID"
+            echo "$AWS_ACCOUNT_ID"
 
-            # Remove before merging
-            echo "Session token"
-            echo "$SESSION_TOKEN"
+            echo "AWS_ACCESS_KEY_ID"
+            echo "$AWS_ACCESS_KEY_ID"
+
+            echo "AWS_SECRET_ACCESS_KEY"
+            echo "$AWS_SECRET_ACCESS_KEY"
 
       - id: backup-users
         name: create backup json of cognito users
         run: |-
-          userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
-          cbr backup --region ${{env.region}} --use-env-vars --pool ${userPoolId} --directory .
-        env:
-            AWS_SESSION_TOKEN: ${{ steps.get-session-token.session-token }}
+            cbr backup --region ${{env.region}} --key ${{secrets.AWS_ACCESS_KEY_ID}} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }} --pool ${userPoolId} --directory .
 
       - id: save-to-s3
         name: save backup json to s3
@@ -81,4 +80,3 @@ jobs:
           channel: workflow-failures
           status: FAILED
           color: danger
- 
