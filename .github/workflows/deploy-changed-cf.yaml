@@ -43,8 +43,8 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
-              echo "This workflow requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY defined in this repository secrets to complete."
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+              echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
               echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
           fi
 
@@ -177,6 +177,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 7200
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: set-name
@@ -266,6 +267,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 7200
           aws-region: ${{ secrets.AWS_REGION }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.
