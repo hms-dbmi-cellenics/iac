@@ -31,6 +31,10 @@ on:
 #  can run at once in order to prevent undefined states
 concurrency: cluster-update-mutex
 
+permissions:
+  id-token: write
+  contents: read
+
 # After set-environments and check-secrets jobs are finished:
 #   "create and configure cluster" workflow_actions option runs all jobs.
 #   "configure cluster" workflow_actions option runs only configure-cluster job
@@ -86,14 +90,9 @@ jobs:
             echo AWS certificate ARN is not defined.
             ERROR=true
           fi
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
           then
-            echo AWS Access Key ID is not defined.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key is not defined.
+            echo AWS Account ID is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
@@ -152,10 +151,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: fill-metadata
@@ -260,10 +259,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
@@ -439,7 +438,17 @@ jobs:
           done < "/tmp/users_to_remove"
 
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: add-state-machine-role
+      # Grant login rights to ci-iac-role
+      - id: add-ci-iac-oidc-cluster-role
+        name: Allow the OIDC role to log in to our cluster.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+            --group system:masters \
+            --username ci-iac-role
+
+      - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
         run: |-
           eksctl create iamidentitymapping \
@@ -448,7 +457,6 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
       # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
@@ -657,10 +665,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig

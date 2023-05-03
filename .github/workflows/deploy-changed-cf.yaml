@@ -23,6 +23,10 @@ on:
       - 'cf/**.yaml'
       - 'cf/**.yml'
 
+permissions:
+    id-token: write
+    contents: read
+
 jobs:
   setup:
     name: Check secrets and set up matrix
@@ -39,8 +43,8 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
-              echo "This workflow requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY defined in this repository secrets to complete."
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+              echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
               echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
           fi
 
@@ -170,10 +174,9 @@ jobs:
 
       - id: set-up-creds
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: set-name
@@ -260,10 +263,9 @@ jobs:
     steps:
       - id: set-up-creds
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           aws-region: ${{ secrets.AWS_REGION }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.

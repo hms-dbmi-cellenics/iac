@@ -1,11 +1,15 @@
 name: Create backup of cognito users
 on:
-  schedule: 
+  schedule:
     - cron: '0 1 * * 0'
   workflow_dispatch:
 env:
   region: ${{ secrets.AWS_REGION }}
   pool-name: 'biomage-user-pool-case-insensitive-production'
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   backup-users:
@@ -29,17 +33,16 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           aws-region: ${{ env.region }}
 
       - id: backup-users
         name: create backup json of cognito users
         run: |-
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
-          cbr backup --region ${{env.region}} --key  ${{secrets.AWS_ACCESS_KEY_ID}} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }} --pool ${userPoolId} --directory .
+          cbr backup --region ${{env.region}} --use-env-vars --pool ${userPoolId} --directory .
 
       - id: save-to-s3
         name: save backup json to s3
@@ -48,7 +51,7 @@ jobs:
           current_date=$(date '+%Y-%m-%d.%H-%M-%S')
           userPoolId=$(aws cognito-idp list-user-pools --max-results 20 | jq -c '.UserPools[] | select(.Name | test("${{env.pool-name}}")) | .Id' | tr -d '"' )
           aws s3api put-object --bucket $BUCKET_NAME --key ${current_date}/${{ env.pool-name }}/data.json --body ./${userPoolId}.json
-     
+
       - id: send-to-slack
         name: Send failure notification to Slack
         if: failure() && github.ref == 'refs/heads/master'
@@ -59,4 +62,3 @@ jobs:
           channel: workflow-failures
           status: FAILED
           color: danger
- 
