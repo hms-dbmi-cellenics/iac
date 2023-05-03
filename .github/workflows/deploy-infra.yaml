@@ -514,9 +514,9 @@ jobs:
           kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
 
       - id: install-flux-v2
-        name: Install flux CLI
+        name: Install flux CLI version 0.41.0
         run: |-
-          curl -s https://fluxcd.io/install.sh | sudo bash
+          curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=0.41.0 bash
 
       - id: delete-old-flux-github-deploy-key
         name: Attempt to delete previous github flux deploy key
