@@ -42,7 +42,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 7200
           aws-region: ${{ env.region }}
 
       - id: install-aws-cli
@@ -241,8 +240,8 @@ jobs:
           user_name: 'Biomage CI/CD'
 
       - id: add-kubeconfig
-        if: ${{ failure() }}
         name: Add k8s config to enable removal of Fargate profile on failure
+        if: ${{ failure() }}
         run: |-
             aws eks update-kubeconfig --name biomage-staging
 

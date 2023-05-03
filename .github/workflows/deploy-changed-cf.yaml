@@ -177,7 +177,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 7200
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: set-name
@@ -267,7 +266,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 7200
           aws-region: ${{ secrets.AWS_REGION }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.
