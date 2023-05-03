@@ -440,7 +440,7 @@ jobs:
       # see https://eksctl.io/usage/iam-identity-mappings/
       # Grant login rights to ci-iac-role
       - id: add-ci-iac-oidc-cluster-role
-        name: Grant rights to the state machine IAM role.
+        name: Allow the OIDC role to log in to our cluster.
         run: |-
           eksctl create iamidentitymapping \
             --cluster=biomage-$CLUSTER_ENV \
