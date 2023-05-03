@@ -136,7 +136,6 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-

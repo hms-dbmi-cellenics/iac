@@ -437,6 +437,7 @@ jobs:
               --all
           done < "/tmp/users_to_remove"
 
+      # see https://eksctl.io/usage/iam-identity-mappings/
       # Grant login rights to ci-iac-role
       - id: add-ci-iac-oidc-cluster-role
         name: Grant rights to the state machine IAM role.
@@ -447,7 +448,6 @@ jobs:
             --group system:masters \
             --username ci-iac-role
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
       - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
         run: |-
@@ -457,7 +457,6 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
       # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
