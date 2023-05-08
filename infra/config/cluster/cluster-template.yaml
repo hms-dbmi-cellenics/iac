@@ -15,14 +15,14 @@ iam:
           - Effect: Deny
             Action:
               - "s3:*"
-            Resource: '*'
+            Resource: "*"
     - metadata:
         name: aws-node
         namespace: kube-system
         labels:
           aws-usage: cluster-ops
       attachPolicyARNs:
-      - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 
 # if you add or remove items under managedNodeGroups, make sure you update customized cluster
 # config for each of the Github environments under infra/config/cluster
@@ -50,6 +50,11 @@ fargateProfiles:
   - name: worker-default
     selectors:
       - namespace: worker-default
+        labels:
+          type: worker
+
   - name: pipeline-default
     selectors:
       - namespace: pipeline-default
+        labels:
+          type: pipeline
