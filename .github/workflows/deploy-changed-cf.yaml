@@ -22,6 +22,10 @@ on:
       - 'cf/**.yaml'
       - 'cf/**.yml'
 
+permissions:
+    id-token: write
+    contents: read
+
 jobs:
   setup:
     name: Check secrets and set up matrix
@@ -38,8 +42,8 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
-              echo "This workflow requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY defined in this repository secrets to complete."
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+              echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
               echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
           fi
 
@@ -51,11 +55,11 @@ jobs:
           CLUSTER=${CLUSTER:-"staging"}
 
           if [ "${GITHUB_REF}" == "refs/heads/master" ] || [ "${CLUSTER}" = "staging and production" ]; then
-            echo '::set-output name=matrix::["staging", "production"]'
+            echo "matrix=['staging', 'production']" >> $GITHUB_OUTPUT
           elif [ "${CLUSTER}" = "staging" ]; then
-            echo '::set-output name=matrix::["staging"]'
+            echo "matrix=['staging']" >> $GITHUB_OUTPUT
           elif [ "${CLUSTER}" = "production" ]; then
-            echo '::set-output name=matrix::["production"]'
+            echo "matrix=['production']" >> $GITHUB_OUTPUT
           fi
         env:
           CLUSTER: ${{ github.event.inputs.cluster }}
@@ -120,9 +124,9 @@ jobs:
           cat ${HOME}/cf_files.json
 
           # Set as output the minified JSON.
-          echo "::set-output name=files::$(jq -c . < ${HOME}/cf_files.json)"
+          echo "files=$(jq -c . < ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
           echo "$(jq -c . < ${HOME}/cf_files.json)"
-          echo "::set-output name=num-files::$(jq '. | length' ${HOME}/cf_files.json)"
+          echo "num-files=$(jq '. | length' ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
 
   lint-templates:
     name: Lint template files
@@ -166,10 +170,9 @@ jobs:
 
       - id: set-up-creds
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: set-name
@@ -179,10 +182,10 @@ jobs:
           BASE_NAME=$(basename $FILE_NAME | sed "s/\..*//")
           STACK_NAME=biomage-$BASE_NAME-$CLUSTER_ENV
 
-          echo "::set-output name=stack-name::$STACK_NAME"
+          echo "stack-name=$STACK_NAME" >> $GITHUB_OUTPUT
 
           if [ "$BASE_NAME" == 'rds' ]; then
-            echo "::set-output name=deploy-rds::true"
+            echo "deploy-rds=true" >> $GITHUB_OUTPUT
           fi
 
         env:
@@ -224,7 +227,7 @@ jobs:
         name: Get OIDC provider information for IRSA role
         run: |-
           OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
-          echo "::set-output name=oidc-provider::$OIDC_PROVIDER"
+          echo "oidc-provider=$OIDC_PROVIDER" >> $GITHUB_OUTPUT
 
       - id: deploy-irsa-template
         if: ${{ contains(matrix.template, 'irsa-') }}
@@ -253,10 +256,9 @@ jobs:
     steps:
       - id: set-up-creds
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           aws-region: ${{ secrets.AWS_REGION }}
 
       # This step is needed to change the environment name (e.g. staging) into its uppercase form.

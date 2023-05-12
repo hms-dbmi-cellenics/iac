@@ -32,6 +32,10 @@ on:
 #  can run at once in order to prevent undefined states
 concurrency: cluster-update-mutex
 
+permissions:
+  id-token: write
+  contents: read
+
 # After set-environments and check-secrets jobs are finished:
 #   "create and configure cluster" workflow_actions option runs all jobs.
 #   "configure cluster" workflow_actions option runs only configure-cluster job
@@ -89,14 +93,9 @@ jobs:
             echo AWS certificate ARN is not defined.
             ERROR=true
           fi
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
           then
-            echo AWS Access Key ID is not defined.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key is not defined.
+            echo AWS Account ID is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
@@ -145,16 +144,17 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
           export CLUSTER_NAME="biomage-$CLUSTER_ENV"
+
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
             .metadata.region = strenv(AWS_REGION)
@@ -183,7 +183,7 @@ jobs:
 
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
 
-          echo "::set-output name=outcome::created"
+          echo "outcome=created" >> $GITHUB_OUTPUT
 
       - id: check-for-failure
         name: Check for reason of failure if cluster creation failed.
@@ -196,12 +196,12 @@ jobs:
           then
             echo Step failed for reason other than stack already existing.
             echo Job failing...
-            echo "::set-output name=reason::error"
+            echo "reason=error" >> $GITHUB_OUTPUT
             false
           fi
 
           echo Cluster already exists.
-          echo "::set-output name=reason::already-exists"
+          echo "reason=already-exists" >> $GITHUB_OUTPUT
 
       - id: update-addons-for-cluster
         name: Attempt to create addons for cluster.
@@ -252,10 +252,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
@@ -282,7 +282,7 @@ jobs:
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
         run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.0/docs/install/iam_policy.json
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --policy-document file://iam-policy.json || true
@@ -291,6 +291,7 @@ jobs:
             --namespace=kube-system \
             --name=aws-load-balancer-controller \
             --attach-policy-arn=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:policy/AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
+            --role-name eksctl-$CLUSTER_ENV-load-balancer-controller-role \
             --override-existing-serviceaccounts \
             --approve
 
@@ -369,9 +370,9 @@ jobs:
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
             ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN_STAGING }}"
           fi
-          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-          echo "::set-output name=domain-name::$DOMAIN_NAME"
-          echo "::set-output name=acm-certificate-arn::$ACM_CERTIFICATE_ARN"
+          echo "primary-domain-name=$PRIMARY_DOMAIN_NAME" >> $GITHUB_OUTPUT
+          echo "domain-name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
+          echo "acm-certificate-arn=$ACM_CERTIFICATE_ARN" >> $GITHUB_OUTPUT
 
       # This is commented out because running Route53 for trv is still causing an error.
       # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
@@ -434,7 +435,17 @@ jobs:
           done < "/tmp/users_to_remove"
 
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: add-state-machine-role
+      # Grant login rights to ci-iac-role
+      - id: add-ci-iac-oidc-cluster-role
+        name: Allow the OIDC role to log in to our cluster.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+            --group system:masters \
+            --username ci-iac-role
+
+      - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
         run: |-
           eksctl create iamidentitymapping \
@@ -443,7 +454,6 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
       # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
@@ -509,9 +519,9 @@ jobs:
           kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
 
       - id: install-flux-v2
-        name: Install flux CLI
+        name: Install flux CLI version 0.41.0
         run: |-
-          curl -s https://fluxcd.io/install.sh | sudo bash
+          curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=0.41.0 bash
 
       - id: delete-old-flux-github-deploy-key
         name: Attempt to delete previous github flux deploy key
@@ -652,10 +662,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
