@@ -58,6 +58,9 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ec2:DeleteNetworkInterface"
                 Resource: '*'
   CanaryAlarmRole:
     Type: "AWS::IAM::Role"
@@ -110,6 +113,10 @@ Resources:
               includeResponseHeaders: true, // Enable if headers should be displayed in HAR
               restrictedHeaders: [], // Value of these headers will be redacted from logs and reports
               restrictedUrlParameters: [] // Values of these url parameters will be redacted from logs and reports
+            });
+
+            await synthetics.launch({
+              ignoreHTTPSErrors: true
             });
 
             let page = await synthetics.getPage();
@@ -190,6 +197,14 @@ Resources:
       Schedule:
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
+      VPCConfig:
+        VpcId:
+          Fn::ImportValue:
+            !Sub "eksctl-biomage-${Environment}-cluster::VPC"
+        SubnetIds:
+          Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
 
   CanarySNSTopicCMK:
     Type: AWS::KMS::Key
@@ -238,7 +253,7 @@ Resources:
   CanariesAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub "${Environment} UI is down"
+      AlarmName: !Join [" ", [ Fn::ImportValue: !Sub "DomainName-${Environment}", !Sub "${Environment} UI is down"]]
       ActionsEnabled: True
       Namespace: CloudWatchSynthetics
       Dimensions:
