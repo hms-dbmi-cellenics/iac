@@ -253,7 +253,7 @@ Resources:
   CanariesAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Join [" ", [ Fn::ImportValue: !Sub "DomainName-${Environment}", "UI is down"]]
+      AlarmName: !Join [" ", [ Fn::ImportValue: !Sub "DomainName-${Environment}", !Sub "${Environment} UI is down"]]
       ActionsEnabled: True
       Namespace: CloudWatchSynthetics
       Dimensions:
