@@ -27,6 +27,8 @@ Mappings:
       AccountId: "033677994240"
     eu-west-1:
       AccountId: "156460612806"
+    us-west-2:
+      AccountId: "380194660975"
 
 Resources:
   LoadBalancer:
