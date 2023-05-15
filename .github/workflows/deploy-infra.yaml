@@ -460,7 +460,7 @@ jobs:
         run: |-
           eksctl create iamidentitymapping \
             --cluster biomage-production \
-            --arn “arn:aws:iam::380194660975:role/AWSReservedSSO_CellenicsDevOps_40d608e08ea6abac” \
+            --arn “arn:aws:iam::380194660975:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_CellenicsDevOps_40d608e08ea6abac” \
             --username anugerahe \
             --group system:masters
 
