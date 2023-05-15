@@ -459,9 +459,10 @@ jobs:
         name: Grant rights to SSO roles
         run: |-
           eksctl create iamidentitymapping \
-            --cluster biomage-production \
-            --arn “arn:aws:iam::380194660975:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_CellenicsDevOps_40d608e08ea6abac” \
-            --username anugerahe \
+            --cluster biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/AWSReservedSSO_CellenicsDevOps_40d608e08ea6abac \
+            --username cluster-admin \
+            --no-duplicate-arns \
             --group system:masters
 
     #   - id: add-state-machine-cluster-role
