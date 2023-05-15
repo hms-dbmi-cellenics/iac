@@ -18,18 +18,6 @@ Parameters:
 Conditions:
   isPublic: !Equals [!Ref PublicFacing, "true"]
 
-
-Mappings:
-  # The values below are the account IDs of the ALB logger service and are determined by AWS
-  # Refer to https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
-  ALBServiceMap:
-    us-east-2:
-      AccountId: "033677994240"
-    eu-west-1:
-      AccountId: "156460612806"
-    us-west-2:
-      AccountId: "380194660975"
-
 Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -101,7 +89,7 @@ Resources:
               - 's3:PutObject'
             Effect: Allow
             Principal:
-              AWS: !Join [ "", ["arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]]
+              AWS: !Ref "AWS::AccountId"
             Resource: !Join [ "", [!GetAtt ALBLogsBucket.Arn, !Sub "/k8s-${Environment}/*"]]
 
 Outputs:
