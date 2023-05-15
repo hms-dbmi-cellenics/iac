@@ -64,7 +64,8 @@ Resources:
                 Action:
                   - "lambda:InvokeFunction"
                 Resource:
-                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+                  "*"
+                  # Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
 
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -164,9 +165,9 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
-      LambdaConfig:
-        PostConfirmation:
-          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+      # LambdaConfig:
+      #   PostConfirmation:
+      #     Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
