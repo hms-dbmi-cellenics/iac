@@ -7,6 +7,7 @@ on:
         description: Select the environment name to run the actions on
         options:
           - trv
+          - alabs
           - Biomage
           - all
         default: all
@@ -63,9 +64,11 @@ jobs:
         name: Set up environment name
         run: |-
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           fi
@@ -141,6 +144,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'create and configure cluster'
@@ -250,6 +255,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -656,6 +663,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:

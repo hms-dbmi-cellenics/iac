@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage, trv]
+        environment-name: [Biomage, trv, alabs]
     environment: ${{ matrix.environment-name }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -159,9 +159,11 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, trv]
+        environment-name: [Biomage, trv, alabs]
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     environment: ${{ matrix.environment-name }}
@@ -253,9 +255,11 @@ jobs:
       max-parallel: 1
       matrix:
         environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, trv]
+        environment-name: [Biomage, trv, alabs]
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:
