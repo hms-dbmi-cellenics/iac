@@ -390,7 +390,7 @@ jobs:
         name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=production,DNSName=internal-k8s-production-1995135864.us-west-2.elb.amazonaws.com,Route53HostedZoneId=Z094640128KB2UBHSVZT2,ELBHostedZoneId=Z1H1FL5HABSF5,DomainName=cellenics.altoslabs.com"
+          parameter-overrides: "Environment=production,DNSName=internal-k8s-production-1995135864.us-west-2.elb.amazonaws.com,HostedZoneId=Z1H1FL5HABSF5,DomainName=cellenics.altoslabs.com"
           name: "biomage-alb-route53-${{ matrix.environment-type }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
