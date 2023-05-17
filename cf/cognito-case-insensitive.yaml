@@ -11,9 +11,6 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-
 Outputs:
   UserPoolId:
     Value: !Ref UserPool
