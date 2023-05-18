@@ -154,7 +154,7 @@ jobs:
             git config --global url."https://".insteadOf ssh://
             npm ci
             npm install -g knex
-            npm install object-hash
+            npm link object-hash
             NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_REGION=${{ secrets.AWS_REGION }} knex migrate:latest
 
   report-if-failed:
