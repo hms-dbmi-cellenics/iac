@@ -390,7 +390,7 @@ jobs:
         name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},Route53HostedZoneId=Z04064941GM4P69E0QRG4,DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},ELBHostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          parameter-overrides: "Environment=${{ matrix.environment-type }},Route53HostedZoneId=Z04064941GM4P69E0QRG4,DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},ELBHostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
           name: "biomage-alb-route53-${{ matrix.environment-type }}"
           template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
