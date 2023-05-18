@@ -386,108 +386,108 @@ jobs:
 
       # This is commented out because running Route53 for trv is still causing an error.
       # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
-    #   - id: deploy-route53
-    #     name: Deploy Route 53 DNS records to ELB
-    #     uses: aws-actions/aws-cloudformation-github-deploy@v1
-    #     with:
-    #       parameter-overrides: "Environment=${{ matrix.environment-type }},Route53HostedZoneId=${{ steps.setup-domain.outputs.hosted-zone-id }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},ELBHostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-    #       name: "biomage-alb-route53-${{ matrix.environment-type }}"
-    #       template: 'infra/cf-route53.yaml'
-    #       no-fail-on-empty-changeset: "1"
-
-      - id: deploy-xray-daemon
-        name: Deploy AWS X-Ray daemon
-        run: |-
-          helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
-            --namespace default \
-            --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
-            --install --wait
-
-      - id: install-ebs-csi-driver
-        name: Install AWS EBS Container Storage Interface (CSI) drivers
-        run: |-
-          helm upgrade \
-            aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.17.2/aws-ebs-csi-driver-2.17.2.tgz \
-            --namespace kube-system \
-            --set enableVolumeScheduling=true \
-            --set enableVolumeResizing=true \
-            --set enableVolumeSnapshot=true \
-            --install --wait
-
-      - id: deploy-read-only-group
-        name: Deploy read-only permission definition for cluster
-        run: |-
-          helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
-            --install --wait
-
-      - id: deploy-state-machine-role
-        name: Deploy AWS Step Function (state machine) roles
+      - id: deploy-route53
+        name: Deploy Route 53 DNS records to ELB
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "biomage-state-machine-role-${{ matrix.environment-type }}"
-          template: 'infra/cf-state-machine-role.yaml'
-          capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
+          parameter-overrides: "Environment=${{ matrix.environment-type }},Route53HostedZoneId=${{ steps.setup-domain.outputs.hosted-zone-id }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},ELBHostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          name: "biomage-alb-route53-${{ matrix.environment-type }}"
+          template: 'infra/cf-route53.yaml'
           no-fail-on-empty-changeset: "1"
 
-      - id: remove-identitymappings
-        name: Remove all previous identity mappings for IAM users
-        run: |-
-          eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
-          jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
-          while IFS= read -r user
-          do
-            echo "Remove rights of $user"
-            eksctl delete iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn $user \
-              --all
-          done < "/tmp/users_to_remove"
+    #   - id: deploy-xray-daemon
+    #     name: Deploy AWS X-Ray daemon
+    #     run: |-
+    #       helm upgrade "aws-xray-daemon" infra/aws-xray-daemon \
+    #         --namespace default \
+    #         --set iamRole=arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/xray-daemon-role-$CLUSTER_ENV \
+    #         --install --wait
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      # Grant login rights to ci-iac-role
-      - id: add-ci-iac-oidc-cluster-role
-        name: Allow the OIDC role to log in to our cluster.
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster=biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
-            --group system:masters \
-            --username ci-iac-role
+    #   - id: install-ebs-csi-driver
+    #     name: Install AWS EBS Container Storage Interface (CSI) drivers
+    #     run: |-
+    #       helm upgrade \
+    #         aws-ebs-csi-driver https://github.com/kubernetes-sigs/aws-ebs-csi-driver/releases/download/helm-chart-aws-ebs-csi-driver-2.17.2/aws-ebs-csi-driver-2.17.2.tgz \
+    #         --namespace kube-system \
+    #         --set enableVolumeScheduling=true \
+    #         --set enableVolumeResizing=true \
+    #         --set enableVolumeSnapshot=true \
+    #         --install --wait
 
-      - id: allow-sso-roles-to-access-cluster
-        name: Allow SSO role to log into the cluster
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ secrets.SSO_ROLE }} \
-            --username sso-cluster-admin \
-            --no-duplicate-arns \
-            --group system:masters
+    #   - id: deploy-read-only-group
+    #     name: Deploy read-only permission definition for cluster
+    #     run: |-
+    #       helm upgrade "biomage-read-only-group" infra/biomage-read-only-group \
+    #         --install --wait
 
-      - id: add-state-machine-cluster-role
-        name: Grant rights to the state machine IAM role.
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster=biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
-            --group state-machine-runner-group \
-            --username state-machine-runner
+    #   - id: deploy-state-machine-role
+    #     name: Deploy AWS Step Function (state machine) roles
+    #     uses: aws-actions/aws-cloudformation-github-deploy@v1
+    #     with:
+    #       parameter-overrides: "Environment=${{ matrix.environment-type }}"
+    #       name: "biomage-state-machine-role-${{ matrix.environment-type }}"
+    #       template: 'infra/cf-state-machine-role.yaml'
+    #       capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
+    #       no-fail-on-empty-changeset: "1"
 
-      # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
-      - id: update-identitymapping-admin
-        name: Add cluster admin rights to everyone on the admin list.
-        run: |-
-          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
-          while IFS= read -r user
-          do
-            echo "Adding cluster admin rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group system:masters \
-              --username $user
-          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+    #   - id: remove-identitymappings
+    #     name: Remove all previous identity mappings for IAM users
+    #     run: |-
+    #       eksctl get iamidentitymapping --cluster=biomage-$CLUSTER_ENV --output=json | \
+    #       jq -r '.[] | select(.userarn != null) | .userarn' > /tmp/users_to_remove
+    #       while IFS= read -r user
+    #       do
+    #         echo "Remove rights of $user"
+    #         eksctl delete iamidentitymapping \
+    #           --cluster=biomage-$CLUSTER_ENV \
+    #           --arn $user \
+    #           --all
+    #       done < "/tmp/users_to_remove"
+
+    #   # see https://eksctl.io/usage/iam-identity-mappings/
+    #   # Grant login rights to ci-iac-role
+    #   - id: add-ci-iac-oidc-cluster-role
+    #     name: Allow the OIDC role to log in to our cluster.
+    #     run: |-
+    #       eksctl create iamidentitymapping \
+    #         --cluster=biomage-$CLUSTER_ENV \
+    #         --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+    #         --group system:masters \
+    #         --username ci-iac-role
+
+    #   - id: allow-sso-roles-to-access-cluster
+    #     name: Allow SSO role to log into the cluster
+    #     run: |-
+    #       eksctl create iamidentitymapping \
+    #         --cluster biomage-$CLUSTER_ENV \
+    #         --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ secrets.SSO_ROLE }} \
+    #         --username sso-cluster-admin \
+    #         --no-duplicate-arns \
+    #         --group system:masters
+
+    #   - id: add-state-machine-cluster-role
+    #     name: Grant rights to the state machine IAM role.
+    #     run: |-
+    #       eksctl create iamidentitymapping \
+    #         --cluster=biomage-$CLUSTER_ENV \
+    #         --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
+    #         --group state-machine-runner-group \
+    #         --username state-machine-runner
+
+    #   # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
+    #   - id: update-identitymapping-admin
+    #     name: Add cluster admin rights to everyone on the admin list.
+    #     run: |-
+    #       echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+    #       while IFS= read -r user
+    #       do
+    #         echo "Adding cluster admin rights to $user"
+    #         eksctl create iamidentitymapping \
+    #           --cluster=biomage-$CLUSTER_ENV \
+    #           --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+    #           --group system:masters \
+    #           --username $user
+    #       done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
 
       ###
       ### INSTALL AND CONFIGURE FLUX V2 ###
@@ -526,135 +526,135 @@ jobs:
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
           SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
 
-      - id: create-flux-namespace
-        name: Attempt to create flux namespace
-        continue-on-error: true
-        run: |-
-          kubectl create namespace flux-system
+    #   - id: create-flux-namespace
+    #     name: Attempt to create flux namespace
+    #     continue-on-error: true
+    #     run: |-
+    #       kubectl create namespace flux-system
 
-      - id: create-account-information-configmap
-        name: Create a configmap containing AWS account specific details
-        continue-on-error: false
-        run: |-
-          kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
+    #   - id: create-account-information-configmap
+    #     name: Create a configmap containing AWS account specific details
+    #     continue-on-error: false
+    #     run: |-
+    #       kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
 
-      - id: install-flux-v2
-        name: Install flux CLI version 0.41.0
-        run: |-
-          curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=0.41.0 bash
+    #   - id: install-flux-v2
+    #     name: Install flux CLI version 0.41.0
+    #     run: |-
+    #       curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=0.41.0 bash
 
-      - id: delete-old-flux-github-deploy-key
-        name: Attempt to delete previous github flux deploy key
-        continue-on-error: true
-        run: |-
-          kubectl -n flux-system delete secret flux-system
+    #   - id: delete-old-flux-github-deploy-key
+    #     name: Attempt to delete previous github flux deploy key
+    #     continue-on-error: true
+    #     run: |-
+    #       kubectl -n flux-system delete secret flux-system
 
-      - id: install-flux
-        name: Install Flux to EKS cluster
-        run: |-
+    #   - id: install-flux
+    #     name: Install Flux to EKS cluster
+    #     run: |-
 
-          # Refer to https://github.com/fluxcd/flux2/releases
-          FLUX_VERSION=v0.41.0
-          FLUX_REPO=releases
-          FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
-          REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
+    #       # Refer to https://github.com/fluxcd/flux2/releases
+    #       FLUX_VERSION=v0.41.0
+    #       FLUX_REPO=releases
+    #       FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
+    #       REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
 
-          echo "flux-full-repo=$(echo $REPO_FULL_PATH)" >> $GITHUB_ENV
-          echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
+    #       echo "flux-full-repo=$(echo $REPO_FULL_PATH)" >> $GITHUB_ENV
+    #       echo "flux-path=$(echo $FLUX_PATH)" >> $GITHUB_ENV
 
-          args=(
-            --version $FLUX_VERSION
-            --owner $GITHUB_REPOSITORY_OWNER
-            --repository $FLUX_REPO
-            --branch master
-            --path $FLUX_PATH
-            --timeout 40s
-            –-interval 2m
-            --components-extra=image-reflector-controller,image-automation-controller
-            --namespace flux-system
-            --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
-            --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
-          )
+    #       args=(
+    #         --version $FLUX_VERSION
+    #         --owner $GITHUB_REPOSITORY_OWNER
+    #         --repository $FLUX_REPO
+    #         --branch master
+    #         --path $FLUX_PATH
+    #         --timeout 40s
+    #         –-interval 2m
+    #         --components-extra=image-reflector-controller,image-automation-controller
+    #         --namespace flux-system
+    #         --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
+    #         --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
+    #       )
 
-          if [ "${{ matrix.environment-type }}" = "staging" ]
-          then
-            echo Flux will be deployed in staging with read and write permissions
-            args+=(--read-write-key)
-          elif [ "${{ matrix.environment-type }}" = "production" ]
-          then
-            echo Flux will be deployed in production with read-only permissions
-          fi
+    #       if [ "${{ matrix.environment-type }}" = "staging" ]
+    #       then
+    #         echo Flux will be deployed in staging with read and write permissions
+    #         args+=(--read-write-key)
+    #       elif [ "${{ matrix.environment-type }}" = "production" ]
+    #       then
+    #         echo Flux will be deployed in production with read-only permissions
+    #       fi
 
-          flux bootstrap github "${args[@]}"
+    #       flux bootstrap github "${args[@]}"
 
-        env:
-          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+    #       AWS_REGION: ${{ secrets.AWS_REGION }}
+    #       AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+    #       ENVIRONMENT_NAME: ${{ matrix.environment-name }}
 
-      - id: fill-in-sync-yaml
-        name: Create the sync.yaml file that contains the Kustomization to sync the cluster
-        run: |-
-          export SPEC_PATH="./$CLUSTER_ENV"
-          yq -i '
-            .spec.path = strenv(SPEC_PATH)
-          ' infra/flux/sync.yaml
+    #   - id: fill-in-sync-yaml
+    #     name: Create the sync.yaml file that contains the Kustomization to sync the cluster
+    #     run: |-
+    #       export SPEC_PATH="./$CLUSTER_ENV"
+    #       yq -i '
+    #         .spec.path = strenv(SPEC_PATH)
+    #       ' infra/flux/sync.yaml
 
-          cat infra/flux/sync.yaml
+    #       cat infra/flux/sync.yaml
 
-      - id: push-sync-yaml
-        name: Push the sync.yaml file that was filled in during the previous step
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: infra/flux/sync.yaml
-          destination_repo: ${{ env.flux-full-repo }}
-          destination_folder: ${{ env.flux-path }}
-          user_email: ci@biomage.net
-          user_name: 'Biomage CI/CD'
+    #   - id: push-sync-yaml
+    #     name: Push the sync.yaml file that was filled in during the previous step
+    #     uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+    #     env:
+    #       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    #     with:
+    #       source_file: infra/flux/sync.yaml
+    #       destination_repo: ${{ env.flux-full-repo }}
+    #       destination_folder: ${{ env.flux-path }}
+    #       user_email: ci@biomage.net
+    #       user_name: 'Biomage CI/CD'
 
-      - id: fill-kustomization-template
-        name: Fill in Kustomization template
-        run: |-
-          cat infra/flux/kustomization-template.yaml \
-            | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
-            | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
-            > infra/flux/kustomization.yaml
+    #   - id: fill-kustomization-template
+    #     name: Fill in Kustomization template
+    #     run: |-
+    #       cat infra/flux/kustomization-template.yaml \
+    #         | sed "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" \
+    #         | sed "s/CLUSTER_ENV/$CLUSTER_ENV/g" \
+    #         > infra/flux/kustomization.yaml
 
-          cat infra/flux/kustomization.yaml
-        env:
-          AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
+    #       cat infra/flux/kustomization.yaml
+    #     env:
+    #       AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
 
-      - id: push-kustomization-yaml
-        name: Push the kustomization.yaml file to apply our custom config
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-        with:
-          source_file: infra/flux/kustomization.yaml
-          destination_repo: ${{ env.flux-full-repo }}
-          destination_folder: ${{ env.flux-path }}/flux-system
-          user_email: ci@biomage.net
-          user_name: 'Biomage CI/CD'
+    #   - id: push-kustomization-yaml
+    #     name: Push the kustomization.yaml file to apply our custom config
+    #     uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+    #     env:
+    #       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    #     with:
+    #       source_file: infra/flux/kustomization.yaml
+    #       destination_repo: ${{ env.flux-full-repo }}
+    #       destination_folder: ${{ env.flux-path }}/flux-system
+    #       user_email: ci@biomage.net
+    #       user_name: 'Biomage CI/CD'
 
-      - id: install-kubernetes-reflector
-        name: Install kubernetes reflector
-        run: |-
-          helm repo add emberstack https://emberstack.github.io/helm-charts
-          helm repo update
-          helm upgrade --install reflector emberstack/reflector --namespace flux-system
+    #   - id: install-kubernetes-reflector
+    #     name: Install kubernetes reflector
+    #     run: |-
+    #       helm repo add emberstack https://emberstack.github.io/helm-charts
+    #       helm repo update
+    #       helm upgrade --install reflector emberstack/reflector --namespace flux-system
 
-      - id: add-account-config-configmap-annotations
-        name: Add annotations to account-config configmap
-        run: |-
-          kubectl annotate configmap account-config \
-            --overwrite \
-            --namespace flux-system \
-            reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
-            reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="ui-.*,api-.*,pipeline-.*,worker-.*" \
-            reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true"
+    #   - id: add-account-config-configmap-annotations
+    #     name: Add annotations to account-config configmap
+    #     run: |-
+    #       kubectl annotate configmap account-config \
+    #         --overwrite \
+    #         --namespace flux-system \
+    #         reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
+    #         reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="ui-.*,api-.*,pipeline-.*,worker-.*" \
+    #         reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true"
       ###
       ### END OF INSTALL AND CONFIGURE FLUX V2 ###
       ###
