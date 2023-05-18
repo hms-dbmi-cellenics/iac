@@ -44,7 +44,7 @@ Resources:
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref ELBHostedZoneId
-      - Name: !Join ['.', ['*', !Ref DomainName]]
+      - Name: !Join ['.', ['api', !Ref DomainName]]
         Type: A
         AliasTarget:
           DNSName: !Ref DNSName
