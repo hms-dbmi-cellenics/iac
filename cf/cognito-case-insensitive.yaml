@@ -11,6 +11,9 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
 Outputs:
   UserPoolId:
     Value: !Ref UserPool
@@ -161,9 +164,9 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: false
-      # LambdaConfig:
-      #   PostConfirmation:
-      #     Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+      LambdaConfig:
+        PostConfirmation:
+          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
