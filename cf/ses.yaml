@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up SES for Cellenics [managed by github.com/biomage-org/iac]
+
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domain name of the deployment (e.g. scp.biomage.net)
+  PrimaryDomainName:
+    Type: String
+    Description: Primary domain name of the deployment (e.g. biomage.net)
+
+Resources:
+  SESVerifiedIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref DomainName
+
+  Route53DKIMRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      # Hosted zone name requires a trailing dot. See:
+      # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html
+      HostedZoneName: !Sub "${PrimaryDomainName}."
+      Comment: "DKIM verification keys for SES"
+      RecordSets:
+      - Name: !GetAtt SESVerifiedIdentity.DkimDNSTokenName1
+        Type: CNAME
+        TTL: 1800
+        ResourceRecords:
+          - !GetAtt SESVerifiedIdentity.DkimDNSTokenValue1
+      - Name: !GetAtt SESVerifiedIdentity.DkimDNSTokenName2
+        Type: CNAME
+        TTL: 1800
+        ResourceRecords:
+          - !GetAtt SESVerifiedIdentity.DkimDNSTokenValue2
+      - Name: !GetAtt SESVerifiedIdentity.DkimDNSTokenName3
+        Type: CNAME
+        TTL: 1800
+        ResourceRecords:
+          - !GetAtt SESVerifiedIdentity.DkimDNSTokenValue3
