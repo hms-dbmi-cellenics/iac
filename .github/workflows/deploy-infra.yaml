@@ -455,12 +455,16 @@ jobs:
             --group system:masters \
             --username ci-iac-role
 
+      # SSO access to cluster is only added if accessing AWS and cluster using SSO
       - id: allow-sso-roles-to-access-cluster
+        env:
+          SSO_ROLE: ${{ secrets.SSO_ROLE }}
+        if: ${{ env.SSO_ROLE != '' }}
         name: Allow SSO role to log into the cluster
         run: |-
           eksctl create iamidentitymapping \
             --cluster biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ secrets.SSO_ROLE }} \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ env.SSO_ROLE }} \
             --username sso-cluster-admin \
             --no-duplicate-arns \
             --group system:masters
