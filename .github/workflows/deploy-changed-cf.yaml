@@ -9,6 +9,20 @@ on:
         - production
         - staging
         default: staging
+      environment_name:
+        type: choice
+        description: Select the environment name to run the actions on
+        options:
+          - HMS
+        default: HMS
+      environment_type:
+        type: choice
+        description: Select environment type
+        options:
+          - staging
+          - production
+          - staging and production
+        default: staging
   push:
     branches:
       - master
@@ -44,7 +58,7 @@ jobs:
 
           if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
               echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
-              echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
+              echo "The secrets can be set/rotated by running 'rotate-ci' from 'cellenics-utils'."
           fi
 
       - id: set-matrix
