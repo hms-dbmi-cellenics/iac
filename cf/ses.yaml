@@ -8,12 +8,23 @@ Parameters:
   PrimaryDomainName:
     Type: String
     Description: Primary domain name of the deployment (e.g. biomage.net)
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the SES records need to be created.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
 
 Resources:
   SESVerifiedIdentity:
     Type: AWS::SES::EmailIdentity
     Properties:
-      EmailIdentity: !Ref DomainName
+      EmailIdentity: !If [ isProd, !Ref DomainName, !Sub "scp-staging.${PrimaryDomainName}" ]
 
   Route53DKIMRecords:
     Type: AWS::Route53::RecordSetGroup

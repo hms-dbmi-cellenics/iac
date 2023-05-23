@@ -230,7 +230,7 @@ jobs:
         if: ${{ matrix.template == 'cf/ses.yaml' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-         parameter-overrides: "DomainName=${{ secrets.DOMAIN_NAME }},PrimaryDomainName=${{ secrets.PRIMARY_DOMAIN_NAME }}"
+         parameter-overrides: "Environment=${{ matrix.environment-type }},DomainName=${{ secrets.DOMAIN_NAME }},PrimaryDomainName=${{ secrets.PRIMARY_DOMAIN_NAME }}"
          name: ${{ steps.set-name.outputs.stack-name }}
          template: ${{ matrix.template }}
          no-fail-on-empty-changeset: "1"
