@@ -46,37 +46,25 @@ jobs:
       - id: set-env-type
         name: Set up environment type
         run: |-
-            ENV_TYPE="none"
             if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
-                ENV_TYPE="staging"
                 echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
             elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
-                ENV_TYPE="production"
                 echo 'env-type=["production"]' >> $GITHUB_OUTPUT
             elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
-                ENV_TYPE="all"
                 echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
             fi
-
-            echo "$ENV_TYPE"
         env:
             ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
       - id: set-env-name
         name: Set up environment name
         run: |-
-            ENV_NAME="none"
             if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-                ENV_NAME="all"
                 echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
             elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
-                ENV_NAME="trv"
                 echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
             elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
-                ENV_NAME="Biomage"
                 echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
             fi
-
-            echo "$ENV_NAME"
         env:
             ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
