@@ -75,7 +75,11 @@ jobs:
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+            - environment-name: trv
+              environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
