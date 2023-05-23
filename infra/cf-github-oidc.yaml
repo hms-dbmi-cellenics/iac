@@ -18,7 +18,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                token.actions.githubusercontent.com:sub: repo:biomage-org/iac:*
+                token.actions.githubusercontent.com:sub: repo:hms-dbmi-cellenics/iac:*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
 
