@@ -18,22 +18,6 @@ on:
           - production
           - staging and production
         default: staging
-      environment_name:
-        type: choice
-        description: Select the environment name to run the actions on
-        options:
-          - trv
-          - Biomage
-          - all
-        default: all
-      environment_type:
-        type: choice
-        description: Select environment type
-        options:
-          - staging
-          - production
-          - staging and production
-        default: staging
   push:
     branches:
       - master
