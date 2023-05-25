@@ -8,6 +8,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: ci-iac-role
+      MaxSessionDuration: 7200
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
