@@ -8,6 +8,7 @@ on:
         options:
           - trv
           - Biomage
+          - alabs
           - all
         default: all
       environment_type:
@@ -46,25 +47,27 @@ jobs:
       - id: set-env-type
         name: Set up environment type
         run: |-
-            if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
-                echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
-            elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
-                echo 'env-type=["production"]' >> $GITHUB_OUTPUT
-            elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
-                echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
-            fi
+          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
+            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
+            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
+            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
+          fi
         env:
             ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
       - id: set-env-name
         name: Set up environment name
         run: |-
-            if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-                echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
-            elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
-                echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-            elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
-                echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-            fi
+          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
+            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
+            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
+            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
+          fi
         env:
             ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
