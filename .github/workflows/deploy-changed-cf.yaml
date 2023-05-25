@@ -2,20 +2,13 @@ name: Deploy changed CloudFormation templates
 on:
   workflow_dispatch:
     inputs:
-      cluster:
-        type: choice
-        description: Select environment to deploy to
-        options:
-        - staging
-        - production
-        - staging and production
-        default: staging
       environment_name:
         type: choice
         description: Select the environment name to run the actions on
         options:
           - trv
           - Biomage
+          - alabs
           - all
         default: all
       environment_type:
@@ -44,43 +37,72 @@ permissions:
     contents: read
 
 jobs:
-  setup:
-    name: Check secrets and set up matrix
+  set-environments:
+    name: Set up environment name and environment type for action run
     runs-on: ubuntu-20.04
+    outputs:
+        env-type: ${{ steps.set-env-type.outputs.env-type }}
+        env-name: ${{ steps.set-env-name.outputs.env-name }}
+    steps:
+      - id: set-env-type
+        name: Set up environment type
+        run: |-
+          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
+            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
+            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
+            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+            ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
+      - id: set-env-name
+        name: Set up environment name
+        run: |-
+          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
+            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
+            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
+            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+            ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+
+  check-secrets:
+    name: Check secrets
+    needs: set-environments
+    runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
-        environment-name: [Biomage, trv, alabs]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+        exclude:
+            - environment-name: trv
+              environment-type: staging
+            - environment-name: alabs
+              environment-type: staging
     environment: ${{ matrix.environment-name }}
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
         run: |-
-          echo Checking if secrets are defined in the repository.
-
-          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
-              echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
-              echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
+          then
+            echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
+            echo "The secrets can be set/rotated by running 'rotate-ci' from 'biomage-utils'."
+            ERROR=true
           fi
-
-      - id: set-matrix
-        name: Set up cluster matrix
-        run: |-
-          # Github workflow_dispatch inputs do not use use default value if workflow is not
-          # triggered by dispatch. Therefore, we have to manually provide a default value
-          CLUSTER=${CLUSTER:-"staging"}
-
-          if [ "${GITHUB_REF}" == "refs/heads/master" ] || [ "${CLUSTER}" = "staging and production" ]; then
-            echo "matrix=['staging', 'production']" >> $GITHUB_OUTPUT
-          elif [ "${CLUSTER}" = "staging" ]; then
-            echo "matrix=['staging']" >> $GITHUB_OUTPUT
-          elif [ "${CLUSTER}" = "production" ]; then
-            echo "matrix=['production']" >> $GITHUB_OUTPUT
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
+            exit 1
           fi
-        env:
-          CLUSTER: ${{ github.event.inputs.cluster }}
-          GITHUB_REF: ${{ github.ref }}
 
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
@@ -167,15 +189,15 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: [setup, get-modified-templates, lint-templates]
+    needs: [set-environments, check-secrets, get-modified-templates, lint-templates]
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, trv, alabs]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
             environment-type: staging
@@ -275,13 +297,12 @@ jobs:
   setup-rds-roles:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
-    needs: [setup, deploy-templates]
-    if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
+    needs: [set-environments, check-secrets, deploy-templates]
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [Biomage, trv, alabs]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
             environment-type: staging
@@ -386,7 +407,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [setup, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
+    needs: [set-environments, check-secrets, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
