@@ -80,6 +80,8 @@ jobs:
         exclude:
             - environment-name: trv
               environment-type: staging
+            - environment-name: alabs
+              environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -196,6 +198,8 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+          - environment-name: alabs
+            environment-type: staging
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     environment: ${{ matrix.environment-name }}
     env:
@@ -298,6 +302,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     env:

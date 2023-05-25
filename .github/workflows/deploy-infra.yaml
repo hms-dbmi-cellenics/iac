@@ -7,6 +7,7 @@ on:
         description: Select the environment name to run the actions on
         options:
           - trv
+          - alabs
           - Biomage
           - all
         default: all
@@ -63,9 +64,11 @@ jobs:
         name: Set up environment name
         run: |-
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           fi
@@ -141,6 +144,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'create and configure cluster'
@@ -250,6 +255,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -447,6 +454,20 @@ jobs:
             --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
             --group system:masters \
             --username ci-iac-role
+
+      # SSO access to cluster is only added if accessing AWS and cluster using SSO
+      - id: allow-sso-roles-to-access-cluster
+        env:
+          SSO_ROLE: ${{ secrets.SSO_ROLE }}
+        if: ${{ env.SSO_ROLE != '' }}
+        name: Allow SSO role to log into the cluster
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ env.SSO_ROLE }} \
+            --username sso-cluster-admin \
+            --no-duplicate-arns \
+            --group system:masters
 
       - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
@@ -656,6 +677,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
