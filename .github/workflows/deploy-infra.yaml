@@ -384,8 +384,9 @@ jobs:
           echo "primary-domain-name=$PRIMARY_DOMAIN_NAME" >> $GITHUB_OUTPUT
           echo "domain-name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
 
-      # This is commented out because running Route53 for trv is still causing an error.
-      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # This step should be run only once per deployment. The associated Route 53 records to be created
+      # e.g. DOMAIN_NAME and *.DOMAIN_NAME should be deleted before running this comment, otherwise this step fails.
+      # Refer to the new deployment runbook to learn more.
       # - id: deploy-route53
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
