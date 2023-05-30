@@ -3,24 +3,21 @@
 Our infrastructure as code.
 
 ### Base infrastructure
-
-
 Base infrastructure means infrastructure required for Cellenics to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
 infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
 from the [actions](https://github.com/biomage-org/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
 The configuration for these infraustructure components are under `infra/`.
 
+#### AWS Permssions for Github workflows
+AWS permissions required by Github workflows are carried out through [OIDC](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services). When setting up a new deployment, you have to **manually** create a new CloudFormation stack to setup the required IAM permissions for IAC as defined in `infra/cf-github-oidc`.  This should only be done once per AWS account.
+
 #### Required secrets to deploy infrastructure
 Some secrets are required to deploy infrastructure into AWS and configure the infrastructure and deployment:
 
-- AWS_ACCESS_KEY_ID
+- AWS_ACCOUNT_ID
 
-  The access key ID of the IAM user that the IAC repo will assume.
-
-- AWS_SECRET_ACCESS_KEY
-
-  Secret access key of the access key ID.
+  The AWS account ID to deploy to.
 
 - API_TOKEN_GITHUB
 
