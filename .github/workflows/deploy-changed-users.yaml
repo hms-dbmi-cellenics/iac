@@ -6,12 +6,14 @@ on:
     paths:
       - 'infra/config/cluster/*'
       - 'infra/cf-state-machine-role.yaml'
-env:
-  region: ${{ secrets.AWS_REGION }}
 
 # this ensures that only one CI pipeline with the same key
 # can run at once in order to prevent undefined states
 concurrency: cluster-update-mutex
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   check-secrets:
@@ -28,15 +30,9 @@ jobs:
         run: |-
           echo Checking if secrets are defined in the repository.
 
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
           then
-            echo AWS Access Key ID is not defined.
-            ERROR=true
-          fi
-
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key is not defined.
+            echo AWS Account ID is not defined.
             ERROR=true
           fi
 
@@ -72,16 +68,15 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
         run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+            aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
       - id: install-helm
         name: Install Helm
@@ -134,8 +129,7 @@ jobs:
             --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/state-machine-role-$CLUSTER_ENV \
             --group state-machine-runner-group \
             --username state-machine-runner
-      
-      # see https://eksctl.io/usage/iam-identity-mappings/
+
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
