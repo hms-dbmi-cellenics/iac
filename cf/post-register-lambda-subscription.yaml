@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up case insensitive Cognito resources for Biomage SCP [managed by github.com/biomage-org/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the buckets need to be created.
+
+Conditions:
+  isProd: !Equals [!Ref Environment, "production"]
+
+Resources:
+  # Subscribe to post register
+  PostUserRegistrationSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn:
+        Fn::ImportValue: !Sub "PostRegisterTopicArn-${Environment}"
+      Endpoint: !Sub [ "${BaseUrl}/v2/access/post-registration", BaseUrl: !If [
+                  isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
+                  !Sub ["https://api-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
+                ]]
+      Protocol: "https"
+      DeliveryPolicy:
+        healthyRetryPolicy:
+          minDelayTarget: 10
+          maxDelayTarget: 60
+          numRetries: 56
+          numNoDelayRetries: 0
+          numMinDelayRetries: 2
+          numMaxDelayRetries: 16
+          backoffFunction: exponential
+      FilterPolicy:
+        type:
+          - PostUserRegistration

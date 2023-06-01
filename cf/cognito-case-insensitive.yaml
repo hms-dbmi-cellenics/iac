@@ -21,48 +21,8 @@ Outputs:
     Value: !GetAtt UserPool.ProviderName
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
-  UIRoleArn:
-    Description: ARN of the UI role
-    Value: !GetAtt UIRole.Arn
-    Export:
-      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UIRoleArn'
 
 Resources:
-  UIRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      RoleName: !Sub "biomage-user-pool-case-insensitive-ui-auth-user-role-${Environment}"
-      AssumeRolePolicyDocument: |-
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Federated": "cognito-identity.amazonaws.com"
-              },
-              "Action": "sts:AssumeRoleWithWebIdentity",
-              "Condition": {
-                "ForAnyValue:StringLike": {
-                  "cognito-identity.amazonaws.com:amr": "authenticated"
-                }
-              }
-            }
-          ]
-        }
-      Path: /
-      Policies:
-        - PolicyName: !Sub "can-execute-lambda-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "lambda:InvokeFunction"
-                Resource:
-                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
-
   SMSRole:
     Type: "AWS::IAM::Role"
     Properties:
