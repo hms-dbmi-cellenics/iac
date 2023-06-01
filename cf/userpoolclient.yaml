@@ -71,7 +71,7 @@ Resources:
           ProviderName:
             Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName"
 
-  IdentityPoolRoleAttachment:
+  FileUploadIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties:
       IdentityPoolId: !Ref FileUploadIdentityPool
