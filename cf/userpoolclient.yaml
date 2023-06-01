@@ -64,24 +64,40 @@ Resources:
   FileUploadIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: !Sub "file-upload-identity-pool-${Environment}-${SandboxID}"
+      IdentityPoolName: !Sub "identity-pool-${Environment}-${SandboxID}"
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
         - ClientId: !Ref UserPoolClientCluster
           ProviderName:
             Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName"
 
-  # TODO: this will have to be refactored once authentication is done.
-  # this will have to work with attribute-based access control or role-based
-  # access control so we can limit the user to only upload to certain folders
-  # on S3 depending on their instutiton/name/etc.
-  #
-  # see https://docs.aws.amazon.com/cognito/latest/developerguide/attributes-for-access-control.html
-  # and https://docs.aws.amazon.com/cognito/latest/developerguide/role-based-access-control.html
   FileUploadIdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties:
       IdentityPoolId: !Ref FileUploadIdentityPool
       Roles:
-        "authenticated":
-          Fn::ImportValue: !Sub "biomage-user-pool-case-insensitive-${Environment}::UIRoleArn"
+        "authenticated": !GetAtt AuthedUserRole.Arn
+
+  AuthedUserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "authed-user-role-${Environment}"
+      AssumeRolePolicyDocument: |-
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "cognito-identity.amazonaws.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "ForAnyValue:StringLike": {
+                  "cognito-identity.amazonaws.com:amr": "authenticated"
+                }
+              }
+            }
+          ]
+        }
