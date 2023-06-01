@@ -107,6 +107,7 @@ jobs:
     name: Check secrets
     needs: set-environments
     runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
