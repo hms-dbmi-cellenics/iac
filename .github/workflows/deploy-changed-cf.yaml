@@ -47,27 +47,27 @@ jobs:
       - id: set-env-type
         name: Set up environment type
         run: |-
-          WORKFLOW_ENV_TYPE=""
+          ENVIRONMENT_TYPE=""
 
           # When merging a PR, the value of github.event.inputs.environment_type is empty
           # We want this to be "staging and production"
-          WORKFLOW_ENV_TYPE_ON_MERGE="staging and production"
+          ENVIRONMENT_TYPE_ON_MERGE="staging and production"
 
           # If github.event.inputs.environment_type is not empty, we're running this workflow manually
           # In that case, set WORKFLOW_ENV accordingly
-          if [ ! -z "${INPUT_ENVIRONMENT_TYPE}" ]; then
-            WORKFLOW_ENV_TYPE="${INPUT_ENVIRONMENT_TYPE}"
+          if [ ! -z "$INPUT_ENVIRONMENT_TYPE" ]; then
+            ENVIRONMENT_TYPE="$INPUT_ENVIRONMENT_TYPE"
           else
-            WORKFLOW_ENV_TYPE="$WORKFLOW_ENV_TYPE_ON_MERGE"
+            ENVIRONMENT_TYPE="$ENVIRONMENT_TYPE_ON_MERGE"
           fi
 
-          echo "Using env type: $WORKFLOW_ENV_TYPE"
+          echo "Using env type: $ENVIRONMENT_TYPE"
 
-          if [ "$WORKFLOW_ENV_TYPE" = "staging" ]; then
+          if [ "$ENVIRONMENT_TYPE" = "staging" ]; then
             echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
-          elif [ "$WORKFLOW_ENV_TYPE" = "production" ]; then
+          elif [ "$ENVIRONMENT_TYPE" = "production" ]; then
             echo 'env-type=["production"]' >> $GITHUB_OUTPUT
-          elif [ "$WORKFLOW_ENV_TYPE" = "staging and production" ]; then
+          elif [ "$ENVIRONMENT_TYPE" = "staging and production" ]; then
             echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
           fi
         env:
@@ -75,29 +75,29 @@ jobs:
       - id: set-env-name
         name: Set up environment name
         run: |-
-          WORKFLOW_ENV_NAME=""
+          ENVIRONMENT_NAME=""
 
           # When merging a PR, the value of github.event.inputs.environment_name is empty.
           # we want this to be "all"
-          WORKFLOW_ENV_NAME_ON_MERGE="all"
+          ENVIRONMENT_NAME_ON_MERGE="all"
 
           # If github.event.inputs.environment_type is not empty, we're running this workflow manually.
           # In that case, set WORKFLOW_ENV according to the choice
-          if [ ! -z "${INPUT_ENVIRONMENT_NAME}" ]; then
-            WORKFLOW_ENV_NAME="${INPUT_ENVIRONMENT_NAME}"
+          if [ ! -z "$INPUT_ENVIRONMENT_NAME" ]; then
+            ENVIRONMENT_NAME="$INPUT_ENVIRONMENT_NAME"
           else
-            WORKFLOW_ENV_NAME="$WORKFLOW_ENV_NAME_ON_MERGE"
+            ENVIRONMENT_NAME="$ENVIRONMENT_NAME_ON_MERGE"
           fi
 
-          echo "Using env name: $WORKFLOW_ENV_NAME"
+          echo "Using env name: $ENVIRONMENT_NAME"
 
-          if [ "$WORKFLOW_ENV_NAME" = "all" ]; then
+          if [ "$ENVIRONMENT_NAME" = "all" ]; then
             echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
-          elif [ "$WORKFLOW_ENV_NAME" = "trv" ]; then
+          elif [ "$ENVIRONMENT_NAME" = "trv" ]; then
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-          elif [ "$WORKFLOW_ENV_NAME" = "alabs" ]; then
+          elif [ "$ENVIRONMENT_NAME" = "alabs" ]; then
             echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
-          elif [ "$WORKFLOW_ENV_NAME" = "Biomage" ]; then
+          elif [ "$ENVIRONMENT_NAME" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           fi
         env:
