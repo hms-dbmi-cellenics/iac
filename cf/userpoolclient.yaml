@@ -81,7 +81,7 @@ Resources:
   AuthedUserRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Sub "authed-user-role-${Environment}"
+      RoleName: !Sub "authed-user-role-${Environment}-${SandboxID}"
       AssumeRolePolicyDocument: |-
         {
           "Version": "2012-10-17",
