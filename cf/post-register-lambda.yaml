@@ -13,13 +13,15 @@ Parameters:
 
 Outputs:
   PostRegisterLambdaArn:
-    Description: ARN of PostRegisterLambdaArn
+    Description: ARN of PostRegisterLambda
     Value: !GetAtt PostRegisterLambda.Arn
     Export:
       Name: !Sub PostRegisterLambdaArn-${Environment}
-
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
+  PostRegisterTopicArn:
+    Description: ARN of PostRegisterTopic
+    Value: !Ref PostRegisterTopic
+    Export:
+      Name: !Sub PostRegisterTopicArn-${Environment}
 
 Resources:
   PostRegisterLambdaRole:
@@ -68,29 +70,6 @@ Resources:
     Properties:
       KmsMasterKeyId: "alias/aws/sns"
       TopicName: !Sub "post-registration-user-access-${Environment}-default"
-
-  PostUserRegistrationSubscription:
-    Type: 'AWS::SNS::Subscription'
-    Properties:
-      TopicArn: !Ref PostRegisterTopic
-      Endpoint: !Sub [ "${BaseUrl}/v2/access/post-registration", BaseUrl: !If [
-                  isProd, !Sub ["https://api.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]],
-                  !Sub ["https://api-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
-                ]]
-
-      Protocol: "https"
-      DeliveryPolicy:
-        healthyRetryPolicy:
-          minDelayTarget: 10
-          maxDelayTarget: 60
-          numRetries: 56
-          numNoDelayRetries: 0
-          numMinDelayRetries: 2
-          numMaxDelayRetries: 16
-          backoffFunction: exponential
-      FilterPolicy:
-        type:
-          - PostUserRegistration
 
   PostRegisterLambda:
     Type: AWS::Lambda::Function
