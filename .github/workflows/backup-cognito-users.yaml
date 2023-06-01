@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        environment-name: [Biomage]
+        environment-name: [Biomage,trv]
     environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-node
