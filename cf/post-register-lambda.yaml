@@ -18,6 +18,9 @@ Parameters:
       - "true"
     Description: Determine whether lambda should ignore SSL certificate or not.
 
+Conditions:
+  isUsingSelfSignedCert: !Equals [ !Ref UsingSelfSignedCert, "true" ]
+
 Outputs:
   PostRegisterLambdaArn:
     Description: ARN of PostRegisterLambda
@@ -113,7 +116,7 @@ Resources:
       Environment:
         Variables:
           CLUSTER_ENV: !Sub "${Environment}"
-          IGNORE_SSL_CERTIFICATE: !Ref UsingSelfSignedCert
+          NODE_TLS_REJECT_UNAUTHORIZED: !If [ isUsingSelfSignedCert, "0", "1"]
           DOMAIN_NAME:
             Fn::ImportValue: !Sub "DomainName-${Environment}"
       Code:
