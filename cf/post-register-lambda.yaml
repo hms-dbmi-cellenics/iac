@@ -74,40 +74,34 @@ Resources:
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
       Environment:
         Variables:
-          TOPIC_ARN: !Ref PostRegisterTopic
           CLUSTER_ENV: !Sub "${Environment}"
+          DOMAIN_NAME:
+            Fn::ImportValue: !Sub "DomainName-${Environment}"
       Code:
         ZipFile: |
-          const AWS = require('aws-sdk');
-
-          const region = process.env.AWS_REGION;
+          const clusterEnv = process.env.CLUSTER_ENV;
+          const domainName = process.env.DOMAIN_NAME;
 
           const addUserPermission = async (userEmail, userId) => {
-            const sns = new AWS.SNS({ region });
+            const apiSubUrl = clusterEnv == "production" ? "api" : "api-default"
+            const endpoint = `https://${apiSubUrl}.${domainName}/v2/access/post-registration`
 
             const message = {
               userEmail,
               userId
             };
 
-            console.log(`Sending SNS message for user ${message}`)
-
-            await sns.publish({
-              Message: JSON.stringify(message),
-              TopicArn: process.env.TOPIC_ARN,
-              MessageAttributes: {
-                type: {
-                  DataType: 'String',
-                  StringValue: 'PostUserRegistration'
-                }
-              }
-            }, () => {}).promise();
-          };
+            await fetch(endpoint, {
+              method: "POST",
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(message)
+            })
+          }
 
           exports.handler = async (event, context, callback) => {
 
@@ -120,7 +114,7 @@ Resources:
 
             await addUserPermission(userEmail, userId);
 
-            console.log("== Successfully added user ${userEmail} ==")
+            console.log(`== Successfully added user ${userEmail} ==`)
 
             callback(null, event);
           };
