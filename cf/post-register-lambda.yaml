@@ -10,6 +10,13 @@ Parameters:
       - staging
       - production
     Description: The environment for which the tables need to be created.
+  UsingSelfSignedCert:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "false"
+      - "true"
+    Description: Determine whether lambda should ignore SSL certificate or not.
 
 Outputs:
   PostRegisterLambdaArn:
@@ -36,6 +43,27 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
+        - PolicyName: !Sub "can-create-required-vpc-access-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:AssignPrivateIpAddresses"
+                  - "ec2:UnassignPrivateIpAddresses"
+                Resource:
+                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-describe-network-interfaces-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:DescribeNetworkInterfaces"
+                Resource:
+                  - "*"
         - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -77,9 +105,15 @@ Resources:
       Runtime: nodejs18.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
+      VpcConfig:
+        SecurityGroupIds:
+          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+        SubnetIds:
+          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
           CLUSTER_ENV: !Sub "${Environment}"
+          IGNORE_SSL_CERTIFICATE: !Ref UsingSelfSignedCert
           DOMAIN_NAME:
             Fn::ImportValue: !Sub "DomainName-${Environment}"
       Code:
