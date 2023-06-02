@@ -239,6 +239,7 @@ jobs:
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
+      TEMPLATES_WITH_EXTRA_PARAMS: ("cf/sns.yaml" "cf/ses.yaml" "cf/post-register-lambda.yaml")
     steps:
       - id: checkout
         name: Check out source code
@@ -277,10 +278,21 @@ jobs:
 
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') && matrix.template != 'cf/sns.yaml' && matrix.template != 'cf/ses.yaml' }}
+        if: ${{ !contains(matrix.template, 'irsa-') && !contains(env.TEMPLATES_WITH_EXTRA_PARAMS, matrix.template) }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-post-register-lambda-template
+        name: Deploy CloudFormation PostRegisterLambda template
+        if: ${{ matrix.template == 'cf/post-register-lambda.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},UsingSelfSignedCert=${{ steps.using-self-signed-certificate.outputs.result }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
