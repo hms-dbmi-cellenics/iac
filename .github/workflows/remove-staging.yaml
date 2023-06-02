@@ -91,8 +91,8 @@ jobs:
           BASE_NAME=biomage-rds-staging-$SANDBOX_ID
           echo "rds-name=$BASE_NAME" >> $GITHUB_OUTPUT
 
-          BASE_NAME=biomage-cognito-staging-$SANDBOX_ID
-          echo "cognito-name=$BASE_NAME" >> $GITHUB_OUTPUT
+          BASE_NAME=biomage-userpoolclient-staging-$SANDBOX_ID
+          echo "userpoolclient-name=$BASE_NAME" >> $GITHUB_OUTPUT
 
           BASE_NAME=biomage-batch-job-definition-staging-$SANDBOX_ID
           echo "batch-job-definition-name=$BASE_NAME" >> $GITHUB_OUTPUT
@@ -113,12 +113,12 @@ jobs:
         env:
           STACK_NAME: ${{ steps.set-name.outputs.rds-name }}
 
-      - id: remove-template-cognito
-        name: Remove CloudFormation stack for Cognito pool clients
+      - id: remove-template-userpool-client
+        name: Remove CloudFormation stack for Cognito userpool clients
         run: |-
           aws cloudformation delete-stack --stack-name $STACK_NAME
         env:
-          STACK_NAME: ${{ steps.set-name.outputs.cognito-name }}
+          STACK_NAME: ${{ steps.set-name.outputs.userpoolclient-name }}
 
       - id: remove-template-batch-job-definition
         name: Remove CloudFormation stack for Batch job definition
