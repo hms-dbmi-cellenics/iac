@@ -1,0 +1,30 @@
+vpc:
+  id: CELLENICS_VPC_ID
+  subnets:
+    private:
+      private-1:
+        id: PRVATE_SUBNET_1_ID
+      private-2:
+        id: PRVATE_SUBNET_2_ID
+    public:
+      public-1:
+        id: PUBLIC_SUBNET_1_ID
+      public-2:
+        id: PUBLIC_SUBNET_2_ID
+
+managedNodeGroups:
+  - name: nodegroup-post-scaling-x86-v3
+    subnets:
+      - public-1
+      - public-2
+
+fargateProfiles:
+  - name: worker-default
+    subnets:
+      - private-1
+      - private-2
+
+  - name: pipeline-default
+    subnets:
+      - private-1
+      - private-2
