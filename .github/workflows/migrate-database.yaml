@@ -7,6 +7,7 @@ on:
         description: Select the environment name to run the actions on
         options:
           - trv
+          - alabs
           - Biomage
           - all
         default: all
@@ -22,6 +23,10 @@ on:
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
 concurrency: database-migrate-mutex
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   set-environments:
@@ -47,9 +52,11 @@ jobs:
         name: Set up environment name
         run: |-
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           fi
@@ -69,14 +76,9 @@ jobs:
         name: Check if necessary secrets are installed.
         run: |-
           echo Checking if secrets are defined in the repository.
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
           then
-            echo AWS Access Key ID is not defined.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key is not defined.
+            echo AWS Account ID is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.AWS_REGION }}" ]
@@ -104,6 +106,8 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+          - environment-name: alabs
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -118,10 +122,9 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: setup-tunnel
@@ -138,11 +141,12 @@ jobs:
 
           git config --global url."https://".insteadOf ssh://
           npm ci
+          npm install -g knex
 
       - id: run-migration
         name: Run database migration
         working-directory: ./migrations/sql-migrations
-        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
+        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
 
   report-if-failed:
     name: Report if workflow failed

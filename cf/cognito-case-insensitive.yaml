@@ -11,9 +11,6 @@ Parameters:
       - production
     Description: The environment for which the buckets need to be created.
 
-Conditions:
-  isProd: !Equals [!Ref Environment, "production"]
-
 Outputs:
   UserPoolId:
     Value: !Ref UserPool
@@ -24,48 +21,8 @@ Outputs:
     Value: !GetAtt UserPool.ProviderName
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
-  UIRoleArn:
-    Description: ARN of the UI role
-    Value: !GetAtt UIRole.Arn
-    Export:
-      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UIRoleArn'
 
 Resources:
-  UIRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      RoleName: !Sub "biomage-user-pool-case-insensitive-ui-auth-user-role-${Environment}"
-      AssumeRolePolicyDocument: |-
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Federated": "cognito-identity.amazonaws.com"
-              },
-              "Action": "sts:AssumeRoleWithWebIdentity",
-              "Condition": {
-                "ForAnyValue:StringLike": {
-                  "cognito-identity.amazonaws.com:amr": "authenticated"
-                }
-              }
-            }
-          ]
-        }
-      Path: /
-      Policies:
-        - PolicyName: !Sub "can-execute-lambda-${Environment}"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "lambda:InvokeFunction"
-                Resource:
-                  Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
-
   SMSRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -105,6 +62,7 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: !Sub "biomage-user-pool-case-insensitive-${Environment}"
+      DeletionProtection: ACTIVE
       AccountRecoverySetting:
         RecoveryMechanisms:
           - Name: verified_email
@@ -172,3 +130,13 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool
       Domain: !Sub "biomage-auth-${Environment}-${AWS::AccountId}"
+
+  # Add permission to allow userpool to trigger lambda
+  PostRegisterLambdaInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName:
+        Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+      Principal: "cognito-idp.amazonaws.com"
+      SourceArn: !GetAtt UserPool.Arn

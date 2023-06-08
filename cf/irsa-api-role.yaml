@@ -48,6 +48,15 @@ Resources:
               - Effect: Allow
                 Action: "sqs:CreateQueue"
                 Resource: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:queue-job-*-${Environment}.fifo"
+        - PolicyName: !Sub "create-admin-user-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cognito-idp:AdminCreateUser"
+                  - "cognito-idp:AdminGetUser"
+                Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
 
         - PolicyName: !Sub "can-send-to-worker-queue-${Environment}"
           PolicyDocument:
@@ -142,6 +151,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-gem2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-subset-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-copy-${Environment}-*"
 
         - PolicyName: !Sub "can-stop-execution-${Environment}"
           PolicyDocument:
@@ -158,6 +168,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-qc-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-gem2s-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-subset-${Environment}-*:*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-copy-${Environment}-*:*"
 
         - PolicyName: !Sub "can-create-activity-${Environment}"
           PolicyDocument:
@@ -170,6 +181,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-subset-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-copy-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
 
         - PolicyName: !Sub "can-pass-state-machine-executionrole-${Environment}"

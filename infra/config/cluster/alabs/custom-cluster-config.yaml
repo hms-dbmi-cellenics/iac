@@ -1,0 +1,30 @@
+vpc:
+  id: vpc-0111db45f161ca8eb
+  subnets:
+    private:
+      "Cellenics Private Subnet":
+        id: subnet-0247782cb11cb388c
+      "Cellenics Private Subnet B":
+        id: subnet-012a671fcb8f696f8
+    public:
+      "Cellenics Public Subnet":
+        id: subnet-0b66b7baf66243c9b
+      "Cellenics Public Subnet B":
+        id: subnet-04c63db67e637a5f1
+
+managedNodeGroups:
+  - name: nodegroup-post-scaling-x86-v3
+    subnets:
+      - "Cellenics Public Subnet"
+      - "Cellenics Public Subnet B"
+
+fargateProfiles:
+  - name: worker-default
+    subnets:
+      - subnet-0247782cb11cb388c
+      - subnet-012a671fcb8f696f8
+
+  - name: pipeline-default
+    subnets:
+      - subnet-0247782cb11cb388c
+      - subnet-012a671fcb8f696f8

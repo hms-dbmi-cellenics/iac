@@ -7,6 +7,7 @@ on:
         description: Select the environment name to run the actions on
         options:
           - trv
+          - alabs
           - Biomage
           - all
         default: all
@@ -30,6 +31,10 @@ on:
 # this ensures that only one CI pipeline with the same key
 #  can run at once in order to prevent undefined states
 concurrency: cluster-update-mutex
+
+permissions:
+  id-token: write
+  contents: read
 
 # After set-environments and check-secrets jobs are finished:
 #   "create and configure cluster" workflow_actions option runs all jobs.
@@ -59,9 +64,11 @@ jobs:
         name: Set up environment name
         run: |-
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
+            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           fi
@@ -86,14 +93,9 @@ jobs:
             echo AWS certificate ARN is not defined.
             ERROR=true
           fi
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
           then
-            echo AWS Access Key ID is not defined.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]
-          then
-            echo AWS Secret Access Key is not defined.
+            echo AWS Account ID is not defined.
             ERROR=true
           fi
           if [ -z "${{ secrets.API_TOKEN_GITHUB }}" ]
@@ -143,6 +145,8 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+          - environment-name: alabs
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'create and configure cluster'
     steps:
@@ -152,10 +156,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: fill-metadata
@@ -191,7 +195,7 @@ jobs:
 
           eksctl create cluster -f /tmp/cluster-$CLUSTER_ENV.yaml
 
-          echo "::set-output name=outcome::created"
+          echo "outcome=created" >> $GITHUB_OUTPUT
 
       - id: check-for-failure
         name: Check for reason of failure if cluster creation failed.
@@ -204,12 +208,12 @@ jobs:
           then
             echo Step failed for reason other than stack already existing.
             echo Job failing...
-            echo "::set-output name=reason::error"
+            echo "reason=error" >> $GITHUB_OUTPUT
             false
           fi
 
           echo Cluster already exists.
-          echo "::set-output name=reason::already-exists"
+          echo "reason=already-exists" >> $GITHUB_OUTPUT
 
       - id: update-addons-for-cluster
         name: Attempt to create addons for cluster.
@@ -252,6 +256,8 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+          - environment-name: alabs
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -260,10 +266,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
@@ -375,11 +381,12 @@ jobs:
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
           fi
-          echo "::set-output name=primary-domain-name::$PRIMARY_DOMAIN_NAME"
-          echo "::set-output name=domain-name::$DOMAIN_NAME"
+          echo "primary-domain-name=$PRIMARY_DOMAIN_NAME" >> $GITHUB_OUTPUT
+          echo "domain-name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
 
-      # This is commented out because running Route53 for trv is still causing an error.
-      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # This step should be run only once per deployment. The associated Route 53 records to be created
+      # e.g. DOMAIN_NAME and *.DOMAIN_NAME should be deleted before running this comment, otherwise this step fails.
+      # Refer to the new deployment runbook to learn more.
       # - id: deploy-route53
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -439,7 +446,31 @@ jobs:
           done < "/tmp/users_to_remove"
 
       # see https://eksctl.io/usage/iam-identity-mappings/
-      - id: add-state-machine-role
+      # Grant login rights to ci-iac-role
+      - id: add-ci-iac-oidc-cluster-role
+        name: Allow the OIDC role to log in to our cluster.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+            --group system:masters \
+            --username ci-iac-role
+
+      # SSO access to cluster is only added if accessing AWS and cluster using SSO
+      - id: allow-sso-roles-to-access-cluster
+        env:
+          SSO_ROLE: ${{ secrets.SSO_ROLE }}
+        if: ${{ env.SSO_ROLE != '' }}
+        name: Allow SSO role to log into the cluster
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ env.SSO_ROLE }} \
+            --username sso-cluster-admin \
+            --no-duplicate-arns \
+            --group system:masters
+
+      - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
         run: |-
           eksctl create iamidentitymapping \
@@ -448,7 +479,6 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-      # see https://eksctl.io/usage/iam-identity-mappings/
       # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
@@ -649,6 +679,8 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+          - environment-name: alabs
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -657,10 +689,10 @@ jobs:
 
       - id: setup-aws
         name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig

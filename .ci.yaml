@@ -1,3 +1,6 @@
+# The IAM user ci-user-iac and this associated policy is deprecated after 3rd of May 2023.
+# Any EKS clusters created after the date and Github workflow runs will use role/ci-iac-role.
+# See infra/cf-github-oidc for details for the definition of the role.
 ci-policies:
     - PolicyName: "admin-access"
       PolicyDocument:
