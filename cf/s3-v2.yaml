@@ -36,6 +36,24 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
+  PlotsTablesBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref PlotsTablesBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${PlotsTablesBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
 
   CellSetsBucket:
     Type: AWS::S3::Bucket
@@ -61,7 +79,24 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
-
+  CellSetsBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref CellSetsBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${CellSetsBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -105,7 +140,24 @@ Resources:
             AllowedOrigins:
               - "*"
             Id: uiHeadersRule
-
+  WorkerResultsBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref WorkerResultsBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${WorkerResultsBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   PipelineResultBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -130,7 +182,24 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
-
+  PipelineResultBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref PipelineResultBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${PipelineResultBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   # Stores, for each experiment and timestamp, the log and dump files for errors from the pipeline
   # Indexed by experimentId and timestamp
   PipelineDebugBucket:
@@ -153,7 +222,24 @@ Resources:
           - Id: DeleteObjectAfter10Days
             Status: Enabled
             ExpirationInDays: 10
-
+  PipelineDebugBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref PipelineDebugBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${PipelineDebugBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   # The bucket that contains the count matrix files (in .rds format) used for the experiments.
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -179,7 +265,24 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 5
-
+  SourceBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref SourceBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${SourceBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   # Stores, for each experiment, the cellIds that were preserved after each filter step of the latest qc run
   # Indexed by experimentId
   FilteredCellsBucket:
@@ -206,7 +309,24 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
-
+  FilteredCellsBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref FilteredCellsBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${FilteredCellsBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   BackupsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -234,7 +354,24 @@ Resources:
           - Id: BackupRetentionDays
             Status: "Enabled"
             ExpirationInDays: 90
-
+  BackupsBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref BackupsBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${BackupsBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   # The bucket that contains the unfiltered versions of the count matrix files as uploaded by the user.
   OriginalFilesBucket:
     Type: AWS::S3::Bucket
@@ -277,3 +414,21 @@ Resources:
             AllowedOrigins:
               - "*"
             Id: uiHeadersRule
+  OriginalFilesBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref OriginalFilesBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${OriginalFilesBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'            
