@@ -121,26 +121,8 @@ Resources:
             Fn::ImportValue: !Sub "DomainName-${Environment}"
       Code:
         ZipFile: |
-          const crypto = require('crypto')
-          const ENC_METHOD = 'aes-256-cbc'
-
           const clusterEnv = process.env.CLUSTER_ENV;
           const domainName = process.env.DOMAIN_NAME;
-
-          const key = crypto.createHash('sha512').update(domainName)
-            .digest('hex')
-            .substring(0, 32)
-
-          const iv = crypto.createHash('sha512').update(domainName)
-            .digest('hex')
-            .substring(0, 16)
-
-          const encrypt = (data) => {
-            const cipher = crypto.createCipheriv(ENC_METHOD, key, iv)
-            return Buffer.from(
-              cipher.update(data, 'utf8', 'hex') + cipher.final('hex')
-            ).toString('base64')
-          }
 
           const addUserPermission = async (userEmail, userId) => {
             const apiSubUrl = clusterEnv == "production" ? "api" : "api-default"
@@ -151,12 +133,10 @@ Resources:
               userId
             };
 
-            const payload = encrypt(JSON.stringify(message))
-
             await fetch(endpoint, {
               method: "POST",
-              headers: {'Content-Type': 'text/plain'},
-              body: payload + "." + iv
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(message)
             })
           }
 
