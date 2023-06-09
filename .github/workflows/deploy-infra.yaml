@@ -125,7 +125,7 @@ jobs:
           fi
 
           # If secrets.CELLENICS_VPC_ID is set, deployment is private. We need to check that the correct subnets are created
-          if [ ! -z "${{ secrets.CELLENICS_VPC_ID }}"]
+          if [ ! -z "${{ secrets.CELLENICS_VPC_ID }}" ]
           then
             if [ -z "${{ secrets.PRIVATE_SUBNET_1_ID }}" ]
             then
