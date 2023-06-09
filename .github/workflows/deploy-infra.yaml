@@ -206,8 +206,8 @@ jobs:
           if [ ! -z "$CELLENICS_VPC_ID" ]; then
             cat infra/config/cluster/cluster-config-template.yaml \
             | sed "s/CELLENICS_VPC_ID/$CELLENICS_VPC_ID/g" \
-            | sed "s/PRVATE_SUBNET_1_ID/$PRVATE_SUBNET_1_ID/g" \
-            | sed "s/PRVATE_SUBNET_2_ID/$PRVATE_SUBNET_2_ID/g" \
+            | sed "s/PRIVATE_SUBNET_1_ID/$PRIVATE_SUBNET_1_ID/g" \
+            | sed "s/PRIVATE_SUBNET_2_ID/$PRIVATE_SUBNET_2_ID/g" \
             | sed "s/PUBLIC_SUBNET_1_ID/$PUBLIC_SUBNET_1_ID/g" \
             | sed "s/PUBLIC_SUBNET_2_ID/$PUBLIC_SUBNET_2_ID/g" \
             > /tmp/cluster-config-values.yaml
@@ -220,10 +220,10 @@ jobs:
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           CELLENICS_VPC_ID: ${{ secrets.CELLENICS_VPC_ID }}
+          PRIVATE_SUBNET_1_ID: ${{ secrets.PRIVATE_SUBNET_1_ID }}
+          PRIVATE_SUBNET_2_ID: ${{ secrets.PRIVATE_SUBNET_2_ID }}
           PUBLIC_SUBNET_1_ID: ${{ secrets.PUBLIC_SUBNET_1_ID }}
           PUBLIC_SUBNET_2_ID: ${{ secrets.PUBLIC_SUBNET_2_ID }}
-          PRVATE_SUBNET_1_ID: ${{ secrets.PRVATE_SUBNET_1_ID }}
-          PRVATE_SUBNET_2_ID: ${{ secrets.PRVATE_SUBNET_2_ID }}
 
     #   - id: install-eksctl
     #     name: Install eksctl

@@ -3,9 +3,9 @@ vpc:
   subnets:
     private:
       private-1:
-        id: PRVATE_SUBNET_1_ID
+        id: PRIVATE_SUBNET_1_ID
       private-2:
-        id: PRVATE_SUBNET_2_ID
+        id: PRIVATE_SUBNET_2_ID
     public:
       public-1:
         id: PUBLIC_SUBNET_1_ID
