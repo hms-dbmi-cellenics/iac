@@ -194,14 +194,6 @@ jobs:
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          # Check that there is only 1 VPC at the moment
-          NUM_VPCS=$(aws ec2 describe-vpcs | jq -r '.Vpcs | length')
-
-          if [ $NUM_VPCS != "1" ]; then
-              echo "There are $NUM_VPCS in the account. Ensure there is only 1 VPC."
-              exit 1
-          fi
-
           CLUSTER_NAME="biomage-$CLUSTER_ENV"
 
           yq -i '
