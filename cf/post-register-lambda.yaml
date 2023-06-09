@@ -140,7 +140,7 @@ Resources:
             })
           }
 
-          exports.handler = async (event, context) => {
+          exports.handler = async (event) => {
 
             const {
               email: userEmail,
@@ -152,6 +152,8 @@ Resources:
             await addUserPermission(userEmail, userId);
 
             console.log(`== Successfully added user ${userEmail} ==`)
+
+            return event;
           };
 
   LoggingGroup:
