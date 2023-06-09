@@ -159,5 +159,5 @@ Resources:
   LoggingGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/post-invite-registration-lambda-${Environment}"
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref PostRegisterLambda]]
       RetentionInDays: 14
