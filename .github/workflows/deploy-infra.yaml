@@ -291,7 +291,7 @@ jobs:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster]
-    if: always() && (github.event.inputs.workflow_actions == 'configure cluster' || github.event.inputs.workflow_actions == 'create and configure cluster')
+    if: always() && (github.event.inputs.workflow_actions == 'create and configure cluster' || github.event.inputs.workflow_actions == 'configure cluster') && (needs.check-secrets.result == 'success') && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -715,7 +715,7 @@ jobs:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
-    if: always() && github.event.inputs.workflow_actions == 'deploy-monitoring'
+    if: always() && (needs.check-secrets.result == 'success') && (github.event.inputs.workflow_actions == 'deploy-monitoring')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
