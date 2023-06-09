@@ -27,11 +27,6 @@ Outputs:
     Value: !GetAtt PostRegisterLambda.Arn
     Export:
       Name: !Sub PostRegisterLambdaArn-${Environment}
-  PostRegisterTopicArn:
-    Description: ARN of PostRegisterTopic
-    Value: !Ref PostRegisterTopic
-    Export:
-      Name: !Sub PostRegisterTopicArn-${Environment}
 
 Resources:
   PostRegisterLambdaRole:
@@ -95,12 +90,6 @@ Resources:
                   - 'sns:Publish'
                 Resource:
                   - Fn::Sub: "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:post-registration-user-access-${Environment}-default"
-
-  PostRegisterTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      KmsMasterKeyId: "alias/aws/sns"
-      TopicName: !Sub "post-registration-user-access-${Environment}-default"
 
   PostRegisterLambda:
     Type: AWS::Lambda::Function
