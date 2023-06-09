@@ -160,4 +160,4 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref PostRegisterLambda]]
-      RetentionInDays: 14
+      RetentionInDays: 5
