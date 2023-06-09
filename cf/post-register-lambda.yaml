@@ -85,7 +85,7 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource:
-                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/biomage-post-register-lambda-*"
         - PolicyName: !Sub "can-post-to-post-registration-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
