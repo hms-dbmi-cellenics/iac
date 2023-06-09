@@ -123,6 +123,35 @@ jobs:
             echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
+
+          # If secrets.CELLENICS_VPC_ID is set, deployment is private. We need to check that the correct subnets are created
+          if [ ! -z "${{ secrets.CELLENICS_VPC_ID }}"]
+          then
+            if [ -z "${{ secrets.PRIVATE_SUBNET_1_ID }}" ]
+            then
+              echo Secret PRIVATE_SUBNET_1_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
+              ERROR=true
+            fi
+
+            if [ -z "${{ secrets.PRIVATE_SUBNET_2_ID }}" ]
+            then
+              echo Secret PRIVATE_SUBNET_2_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
+              ERROR=true
+            fi
+
+            if [ -z "${{ secrets.PUBLIC_SUBNET_1_ID }}" ]
+            then
+              echo Secret PUBLIC_SUBNET_1_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
+              ERROR=true
+            fi
+
+            if [ -z "${{ secrets.PUBLIC_SUBNET_2_ID }}" ]
+            then
+              echo Secret PUBLIC_SUBNET_2_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
+              ERROR=true
+            fi
+          fi
+
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -180,24 +209,29 @@ jobs:
             .metadata.region = strenv(AWS_REGION)
           ' infra/config/cluster/cluster-template.yaml
 
-          CELLENICS_VPC_ID=$(aws ec2 describe-vpcs | jq -r '.Vpcs[0].VpcId')
-          PUBLIC_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[0].SubnetId')
-          PUBLIC_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[1].SubnetId')
-          PRVATE_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[0].SubnetId')
-          PRVATE_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[1].SubnetId')
-
-          cat infra/config/cluster/cluster-config-template.yaml \
-          | sed "s/CELLENICS_VPC_ID/$CELLENICS_VPC_ID/g" \
-          | sed "s/PRVATE_SUBNET_1_ID/$PRVATE_SUBNET_1_ID/g" \
-          | sed "s/PRVATE_SUBNET_2_ID/$PRVATE_SUBNET_2_ID/g" \
-          | sed "s/PUBLIC_SUBNET_1_ID/$PUBLIC_SUBNET_1_ID/g" \
-          | sed "s/PUBLIC_SUBNET_2_ID/$PUBLIC_SUBNET_2_ID/g" \
-          > /tmp/cluster-config-values.yaml
+          # CELLENICS_VPC_ID is set if using custom cluster deployment. In this case, use the custom template file.
+          # If not set, create an empty template file to let eksctl create a new cluster for the deployment.
+          if [ ! -z "$CELLENICS_VPC_ID" ]; then
+            cat infra/config/cluster/cluster-config-template.yaml \
+            | sed "s/CELLENICS_VPC_ID/$CELLENICS_VPC_ID/g" \
+            | sed "s/PRVATE_SUBNET_1_ID/$PRVATE_SUBNET_1_ID/g" \
+            | sed "s/PRVATE_SUBNET_2_ID/$PRVATE_SUBNET_2_ID/g" \
+            | sed "s/PUBLIC_SUBNET_1_ID/$PUBLIC_SUBNET_1_ID/g" \
+            | sed "s/PUBLIC_SUBNET_2_ID/$PUBLIC_SUBNET_2_ID/g" \
+            > /tmp/cluster-config-values.yaml
+          else
+            touch /tmp/cluster-config-values.yaml
+          fi
 
           yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml /tmp/cluster-config-values.yaml > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          CELLENICS_VPC_ID: ${{ secrets.CELLENICS_VPC_ID }}
+          PUBLIC_SUBNET_1_ID: ${{ secrets.PUBLIC_SUBNET_1_ID }}
+          PUBLIC_SUBNET_2_ID: ${{ secrets.PUBLIC_SUBNET_2_ID }}
+          PRVATE_SUBNET_1_ID: ${{ secrets.PRVATE_SUBNET_1_ID }}
+          PRVATE_SUBNET_2_ID: ${{ secrets.PRVATE_SUBNET_2_ID }}
 
     #   - id: install-eksctl
     #     name: Install eksctl
