@@ -157,5 +157,4 @@ Resources:
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
       PubliclyAccessible: false
-      MultiAZ: true # Enable Multi-AZ deployment
 
