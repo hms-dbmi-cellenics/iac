@@ -142,7 +142,7 @@ Resources:
       MasterUsername: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::username}}"
       MasterUserPassword: !Sub "{{resolve:secretsmanager:${RDSMasterUserSecret}::password}}"
       EnableIAMDatabaseAuthentication: true
-      BackupRetentionPeriod: 5
+      BackupRetentionPeriod: 14
       SourceRegion: !Sub '${AWS::Region}'
       StorageEncrypted: true
       VpcSecurityGroupIds:
@@ -157,3 +157,5 @@ Resources:
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
       PubliclyAccessible: false
+      MultiAZ: true # Enable Multi-AZ deployment
+
