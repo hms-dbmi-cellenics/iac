@@ -10,6 +10,16 @@ Parameters:
       - staging
       - production
     Description: The environment for which the tables need to be created.
+  UsingSelfSignedCert:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "false"
+      - "true"
+    Description: Determine whether lambda should ignore SSL certificate or not.
+
+Conditions:
+  isUsingSelfSignedCert: !Equals [ !Ref UsingSelfSignedCert, "true" ]
 
 Outputs:
   PostRegisterLambdaArn:
@@ -17,11 +27,6 @@ Outputs:
     Value: !GetAtt PostRegisterLambda.Arn
     Export:
       Name: !Sub PostRegisterLambdaArn-${Environment}
-  PostRegisterTopicArn:
-    Description: ARN of PostRegisterTopic
-    Value: !Ref PostRegisterTopic
-    Export:
-      Name: !Sub PostRegisterTopicArn-${Environment}
 
 Resources:
   PostRegisterLambdaRole:
@@ -36,6 +41,27 @@ Resources:
             Action: "sts:AssumeRole"
       Path: /
       Policies:
+        - PolicyName: !Sub "can-create-required-vpc-access-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:AssignPrivateIpAddresses"
+                  - "ec2:UnassignPrivateIpAddresses"
+                Resource:
+                  - !Sub "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*"
+        - PolicyName: !Sub "can-describe-network-interfaces-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:DescribeNetworkInterfaces"
+                Resource:
+                  - "*"
         - PolicyName: !Sub "can-create-log-group-in-cloudwatch-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -54,7 +80,7 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource:
-                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/post-register-invite-lambda-${Environment}:*"
+                  - Fn::Sub: "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/biomage-post-register-lambda-*"
         - PolicyName: !Sub "can-post-to-post-registration-sns-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -65,51 +91,45 @@ Resources:
                 Resource:
                   - Fn::Sub: "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:post-registration-user-access-${Environment}-default"
 
-  PostRegisterTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      KmsMasterKeyId: "alias/aws/sns"
-      TopicName: !Sub "post-registration-user-access-${Environment}-default"
-
   PostRegisterLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Runtime: nodejs14.x
+      Runtime: nodejs18.x
       Role: !GetAtt PostRegisterLambdaRole.Arn
       Handler: index.handler
+      VpcConfig:
+        SecurityGroupIds:
+          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::ClusterSecurityGroupId"]
+        SubnetIds:
+          Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       Environment:
         Variables:
-          TOPIC_ARN: !Ref PostRegisterTopic
           CLUSTER_ENV: !Sub "${Environment}"
+          NODE_TLS_REJECT_UNAUTHORIZED: !If [ isUsingSelfSignedCert, "0", "1"]
+          DOMAIN_NAME:
+            Fn::ImportValue: !Sub "DomainName-${Environment}"
       Code:
         ZipFile: |
-          const AWS = require('aws-sdk');
-
-          const region = process.env.AWS_REGION;
+          const clusterEnv = process.env.CLUSTER_ENV;
+          const domainName = process.env.DOMAIN_NAME;
 
           const addUserPermission = async (userEmail, userId) => {
-            const sns = new AWS.SNS({ region });
+            const apiSubUrl = clusterEnv == "production" ? "api" : "api-default"
+            const endpoint = `https://${apiSubUrl}.${domainName}/v2/access/post-registration`
 
             const message = {
               userEmail,
               userId
             };
 
-            console.log(`Sending SNS message for user ${message}`)
+            await fetch(endpoint, {
+              method: "POST",
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(message)
+            })
+          }
 
-            await sns.publish({
-              Message: JSON.stringify(message),
-              TopicArn: process.env.TOPIC_ARN,
-              MessageAttributes: {
-                type: {
-                  DataType: 'String',
-                  StringValue: 'PostUserRegistration'
-                }
-              }
-            }, () => {}).promise();
-          };
-
-          exports.handler = async (event, context, callback) => {
+          exports.handler = async (event) => {
 
             const {
               email: userEmail,
@@ -120,13 +140,13 @@ Resources:
 
             await addUserPermission(userEmail, userId);
 
-            console.log("== Successfully added user ${userEmail} ==")
+            console.log(`== Successfully added user ${userEmail} ==`)
 
-            callback(null, event);
+            return event;
           };
 
   LoggingGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/post-invite-registration-lambda-${Environment}"
-      RetentionInDays: 14
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref PostRegisterLambda]]
+      RetentionInDays: 5
