@@ -1,6 +1,6 @@
 #!/bin/bash
-# The script below is adapted from Biomage utils tunnel script with modifications to run in the background
-# https://github.com/biomage-org/biomage-utils/blob/master/biomage/rds/tunnel.sh
+# The script below is adapted from Cellenics utils tunnel script with modifications to run in the background
+# https://github.com/hms-dbmi-cellenics/cellenics-utils/blob/master/cellenics/rds/tunnel.sh
 
 ENVIRONMENT=$1
 SANDBOX_ID=$2
