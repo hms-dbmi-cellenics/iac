@@ -2,13 +2,6 @@ name: Deploy changed CloudFormation templates
 on:
   workflow_dispatch:
     inputs:
-      cluster:
-        type: choice
-        description: Select environment to deploy to
-        options:
-        - production
-        - staging
-        default: staging
       environment_name:
         type: choice
         description: Select the environment name to run the actions on
@@ -41,43 +34,94 @@ permissions:
     contents: read
 
 jobs:
-  setup:
-    name: Check secrets and set up matrix
+  set-environments:
+    name: Set up environment name and environment type for action run
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         environment-name: [HMS]
     environment: ${{ matrix.environment-name }}
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+        env-type: ${{ steps.set-env-type.outputs.env-type }}
+        env-name: ${{ steps.set-env-name.outputs.env-name }}
+    steps:
+      - id: set-env-type
+        name: Set up environment type
+        run: |-
+          ENVIRONMENT_TYPE=""
+
+          # When merging a PR, the value of github.event.inputs.environment_type is empty
+          # We want this to be "staging and production"
+          ENVIRONMENT_TYPE_ON_MERGE="staging and production"
+
+          # If github.event.inputs.environment_type is not empty, we're running this workflow manually
+          # In that case, set WORKFLOW_ENV accordingly
+          if [ ! -z "$INPUT_ENVIRONMENT_TYPE" ]; then
+            ENVIRONMENT_TYPE="$INPUT_ENVIRONMENT_TYPE"
+          else
+            ENVIRONMENT_TYPE="$ENVIRONMENT_TYPE_ON_MERGE"
+          fi
+
+          echo "Using env type: $ENVIRONMENT_TYPE"
+
+          if [ "$ENVIRONMENT_TYPE" = "staging" ]; then
+            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
+          elif [ "$ENVIRONMENT_TYPE" = "production" ]; then
+            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
+          elif [ "$ENVIRONMENT_TYPE" = "staging and production" ]; then
+            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
+          fi
+        env:
+            INPUT_ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
+      - id: set-env-name
+        name: Set up environment name
+        run: |-
+          ENVIRONMENT_NAME=""
+
+          # When merging a PR, the value of github.event.inputs.environment_name is empty.
+          # we want this to be "all"
+          ENVIRONMENT_NAME_ON_MERGE="all"
+
+          # If github.event.inputs.environment_type is not empty, we're running this workflow manually.
+          # In that case, set WORKFLOW_ENV according to the choice
+          if [ ! -z "$INPUT_ENVIRONMENT_NAME" ]; then
+            ENVIRONMENT_NAME="$INPUT_ENVIRONMENT_NAME"
+          else
+            ENVIRONMENT_NAME="$ENVIRONMENT_NAME_ON_MERGE"
+          fi
+
+          echo "Using env name: $ENVIRONMENT_NAME"
+          echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
+        env:
+            INPUT_ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+
+  check-secrets:
+    name: Check secrets
+    needs: set-environments
+    runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+    environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
         run: |-
-          echo Checking if secrets are defined in the repository.
-
-          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
-              echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
-              echo "The secrets can be set/rotated by running 'rotate-ci' from 'cellenics-utils'."
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]
+          then
+            echo "This workflow requires AWS_ACCOUNT_ID defined in this repository secrets to complete."
+            echo "The secrets can be set/rotated by running 'rotate-ci' from 'cellenics-utils'."
+            ERROR=true
           fi
-
-      - id: set-matrix
-        name: Set up cluster matrix
-        run: |-
-          # Github workflow_dispatch inputs do not use use default value if workflow is not
-          # triggered by dispatch. Therefore, we have to manually provide a default value
-          CLUSTER=${CLUSTER:-"staging"}
-
-          if [ "${GITHUB_REF}" == "refs/heads/master" ] || [ "${CLUSTER}" = "staging and production" ]; then
-            echo "matrix=['staging', 'production']" >> $GITHUB_OUTPUT
-          elif [ "${CLUSTER}" = "staging" ]; then
-            echo "matrix=['staging']" >> $GITHUB_OUTPUT
-          elif [ "${CLUSTER}" = "production" ]; then
-            echo "matrix=['production']" >> $GITHUB_OUTPUT
+          if [ ! -z "$ERROR" ]
+          then
+            echo
+            echo This workflow requires some secrets to complete.
+            echo Please make they are created by adding/rotating them manually.
+            exit 1
           fi
-        env:
-          CLUSTER: ${{ github.event.inputs.cluster }}
-          GITHUB_REF: ${{ github.ref }}
 
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
@@ -164,19 +208,20 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: [setup, get-modified-templates, lint-templates]
+    needs: [set-environments, check-secrets, get-modified-templates, lint-templates]
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [HMS]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
+      TEMPLATES_WITH_EXTRA_PARAMS: ("cf/sns.yaml" "cf/ses.yaml" "cf/post-register-lambda.yaml")
     steps:
       - id: checkout
         name: Check out source code
@@ -215,10 +260,21 @@ jobs:
 
       - id: deploy-template
         name: Deploy CloudFormation template
-        if: ${{ !contains(matrix.template, 'irsa-') && matrix.template != 'cf/sns.yaml' }}
+        if: ${{ !contains(matrix.template, 'irsa-') && !contains(env.TEMPLATES_WITH_EXTRA_PARAMS, matrix.template) }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment-type }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-post-register-lambda-template
+        name: Deploy CloudFormation PostRegisterLambda template
+        if: ${{ matrix.template == 'cf/post-register-lambda.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment-type }},UsingSelfSignedCert=${{ steps.using-self-signed-certificate.outputs.result }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
@@ -234,6 +290,16 @@ jobs:
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-ses-template
+        name: Deploy CloudFormation SES template
+        if: ${{ matrix.template == 'cf/ses.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+         parameter-overrides: "Environment=${{ matrix.environment-type }},DomainName=${{ secrets.DOMAIN_NAME }},PrimaryDomainName=${{ secrets.PRIMARY_DOMAIN_NAME }}"
+         name: ${{ steps.set-name.outputs.stack-name }}
+         template: ${{ matrix.template }}
+         no-fail-on-empty-changeset: "1"
 
       # The following steps are only necessary for IAM Service Account roles.
       - id: get-oidc
@@ -257,13 +323,13 @@ jobs:
   setup-rds-roles:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
-    needs: [setup, deploy-templates]
+    needs: [set-environments, check-secrets, deploy-templates]
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.setup.outputs.matrix) }}
-        environment-name: [HMS]
+        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
+        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
@@ -363,7 +429,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [setup, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
+    needs: [set-environments, check-secrets, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack

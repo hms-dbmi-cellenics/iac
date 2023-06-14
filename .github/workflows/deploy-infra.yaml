@@ -1,4 +1,4 @@
-name: Deploy Cellenics infrastructure on AWS
+name: Deploy Biomage infrastructure on AWS
 on:
   workflow_dispatch:
     inputs:
@@ -6,10 +6,7 @@ on:
         type: choice
         description: Select the environment name to run the actions on
         options:
-          - trv
-          - Biomage
           - HMS
-          - all
         default: HMS
       workflow_actions:
         type: choice
@@ -63,15 +60,7 @@ jobs:
       - id: set-env-name
         name: Set up environment name
         run: |-
-          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv", "HMS"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
-            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
-            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
-            echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
-          fi
+          echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_OUTPUT
         env:
           ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
@@ -113,6 +102,16 @@ jobs:
             echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
+          if [ -z "${{ secrets.DATADOG_API_KEY }}" ]
+          then
+            echo Secret DATADOG_API_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
+          if [ -z "${{ secrets.DATADOG_APP_KEY }}" ]
+          then
+            echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
+            ERROR=true
+          fi
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -132,9 +131,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     if: github.event.inputs.workflow_actions == 'create and configure cluster'
     steps:
@@ -241,9 +237,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -374,8 +367,9 @@ jobs:
           echo "domain-name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
           echo "acm-certificate-arn=$ACM_CERTIFICATE_ARN" >> $GITHUB_OUTPUT
 
-      # This is commented out because running Route53 for trv is still causing an error.
-      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # This step should be run only once per deployment. The associated Route 53 records to be created
+      # e.g. DOMAIN_NAME and *.DOMAIN_NAME should be deleted before running this comment, otherwise this step fails.
+      # Refer to the new deployment runbook to learn more.
       # - id: deploy-route53
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -444,6 +438,20 @@ jobs:
             --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
             --group system:masters \
             --username ci-iac-role
+
+      # SSO access to cluster is only added if accessing AWS and cluster using SSO
+      - id: allow-sso-roles-to-access-cluster
+        env:
+          SSO_ROLE: ${{ secrets.SSO_ROLE }}
+        if: ${{ env.SSO_ROLE != '' }}
+        name: Allow SSO role to log into the cluster
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ env.SSO_ROLE }} \
+            --username sso-cluster-admin \
+            --no-duplicate-arns \
+            --group system:masters
 
       - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
@@ -651,9 +659,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
