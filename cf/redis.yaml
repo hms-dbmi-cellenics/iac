@@ -38,7 +38,7 @@ Resources:
     Type: AWS::ElastiCache::ReplicationGroup
     Properties:
       ReplicationGroupId: !Sub "biomage-redis-${Environment}"
-      ReplicationGroupDescription: !Sub "Biomage ElastiCache cluster for environment ${Environment}"
+      ReplicationGroupDescription: !Sub "Cellenics ElastiCache cluster for environment ${Environment}"
       CacheNodeType: "cache.t3.medium"
       CacheSubnetGroupName: !Ref CacheSubnetGroup
       Engine: redis
@@ -60,7 +60,7 @@ Resources:
   CacheSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub "Biomage ElastiCache security group for ${Environment}"
+      GroupDescription: !Sub "Cellenics ElastiCache security group for ${Environment}"
       SecurityGroupEgress: []
       SecurityGroupIngress:
         - SourceSecurityGroupId: 
@@ -80,7 +80,7 @@ Resources:
   CacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties:
-      Description: !Sub "Biomage subnet group for ${Environment}"
+      Description: !Sub "Cellenics subnet group for ${Environment}"
       SubnetIds:
         Fn::Split:
           - ','

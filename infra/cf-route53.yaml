@@ -39,7 +39,7 @@ Resources:
       # Hosted zone name requires a trailing dot. See:
       # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-recordsetgroup.html
       HostedZoneName: !Sub "${PrimaryDomainName}."
-      Comment: !Sub "Routing for Biomage SCP ${Environment} cluster"
+      Comment: !Sub "Routing for Cellenics ${Environment} cluster"
       RecordSets:
       - Name: !Ref DomainName
         Type: A

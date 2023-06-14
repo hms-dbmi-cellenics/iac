@@ -7,10 +7,6 @@ on:
         description: Select the environment name to run the actions on
         options:
           - HMS
-          - trv
-          - alabs
-          - Biomage
-          - all
         default: HMS
       environment_type:
         type: choice
@@ -52,17 +48,7 @@ jobs:
       - id: set-env-name
         name: Set up environment name
         run: |-
-          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
-            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
-            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
-            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
-            echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
-          fi
+          echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_OUTPUT
         env:
           ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
@@ -106,11 +92,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
-          - environment-name: alabs
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout

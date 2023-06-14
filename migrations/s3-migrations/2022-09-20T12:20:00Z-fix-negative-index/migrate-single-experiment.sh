@@ -10,7 +10,7 @@ migration_log_file=${original_pwd}/migration-${MIGRATION_ENV}.log
 ## 1. Download experiment
 echo "[INFO] Downloading ${experiment_id}" | tee -a ${migration_log_file}
 
-biomage experiment download \
+cellenics experiment download \
     --without_tunnel \
     -e ${experiment_id} \
     -i ${MIGRATION_ENV} \
@@ -114,7 +114,7 @@ fi
 
 
 ## 5. Upload the resulting files into S3
-biomage experiment upload \
+cellenics experiment upload \
     --without_tunnel \
     -e ${experiment_id} \
     -o ${MIGRATION_ENV} \
@@ -130,7 +130,7 @@ echo "[INFO] Successfully patched ${experiment_id}" | tee -a ${migration_log_fil
 state_machine_arn=$(echo "select state_machine_arn
 from experiment_execution ee
 where experiment_id = '${experiment_id}' and "pipeline_type" = 'qc'"  |
-      biomage rds run -i ${MIGRATION_ENV} psql |
+      cellenics rds run -i ${MIGRATION_ENV} psql |
       grep 'arn:' |
       xargs)
 
@@ -143,7 +143,7 @@ last_status_response = jsonb_set(
     last_status_response,
     '{qc}', last_status_response->'qc' || '{\"startDate\": \"2022-09-26T00:00:00.000Z\", \"stopDate\": \"2022-09-26T00:00:00.000Z\"}')
 where experiment_id = '${experiment_id}' and pipeline_type = 'qc'"  |
-      biomage rds run -i ${MIGRATION_ENV} psql
+      cellenics rds run -i ${MIGRATION_ENV} psql
 
 echo "[INFO] Migrated QC to new date for ${experiment_id}"  | tee -a ${migration_log_file}
 
@@ -152,7 +152,7 @@ last_status_response = jsonb_set(
     last_status_response,
     '{gem2s}', last_status_response->'gem2s' || '{\"startDate\": \"2022-09-26T00:00:00.000Z\", \"stopDate\": \"2022-09-26T00:00:00.000Z\"}')
 where experiment_id = '${experiment_id}' and pipeline_type = 'gem2s'"  |
-      biomage rds run -i ${MIGRATION_ENV} psql
+      cellenics rds run -i ${MIGRATION_ENV} psql
 
 echo "[OK] Migrated ${experiment_id}"  | tee -a ${migration_log_file}
 
