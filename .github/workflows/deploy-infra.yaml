@@ -246,6 +246,17 @@ jobs:
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      # Grant login rights to ci-iac-role
+      - id: add-ci-iac-oidc-cluster-role
+        name: Allow the OIDC role to log in to our cluster.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+            --group system:masters \
+            --username ci-iac-role
+
       - id: deploy-metrics-server
         name: Deploy k8s metrics server
         run: |-
@@ -416,18 +427,7 @@ jobs:
               --cluster=biomage-$CLUSTER_ENV \
               --arn $user \
               --all
-          done < "/tmp/users_to_remove"
-
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      # Grant login rights to ci-iac-role
-      - id: add-ci-iac-oidc-cluster-role
-        name: Allow the OIDC role to log in to our cluster.
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster=biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
-            --group system:masters \
-            --username ci-iac-role
+          done < "/tmp/users_to_remove" 
 
       # SSO access to cluster is only added if accessing AWS and cluster using SSO
       - id: allow-sso-roles-to-access-cluster
