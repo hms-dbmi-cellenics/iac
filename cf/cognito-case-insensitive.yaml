@@ -130,4 +130,3 @@ Resources:
     Properties:
       UserPoolId: !Ref UserPool
       Domain: !Sub "hms-auth-${Environment}-${AWS::AccountId}"
-
