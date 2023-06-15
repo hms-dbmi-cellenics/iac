@@ -143,3 +143,4 @@ jobs:
               --group system:masters \
               --username $user
           done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+
