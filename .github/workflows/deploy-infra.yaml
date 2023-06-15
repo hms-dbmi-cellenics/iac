@@ -244,12 +244,11 @@ jobs:
       - id: add-kubeconfig
         name: Add k8s config file for existing cluster.
         run: |-
-          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
+          aws eks update-kubeconfig --name biomage-$CLUSTER_ENV --role-arn arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
 
       - id: deploy-metrics-server
         name: Deploy k8s metrics server
         run: |-
-          aws sts get-caller-identity
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
       - id: install-helm
