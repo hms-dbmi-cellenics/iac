@@ -210,8 +210,7 @@ jobs:
                 .vpc.subnets.private.private-2 = strenv(PRIVATE_SUBNET_2_ID) |
                 .vpc.subnets.public.public-1 = strenv(PUBLIC_SUBNET_1_ID) |
                 .vpc.subnets.public.public-2 = strenv(PUBLIC_SUBNET_2_ID)
-            ' infra/config/cluster/cluster-config-template.yaml
-            > /tmp/cluster-config-values.yaml
+            ' infra/config/cluster/cluster-config-template.yaml > /tmp/cluster-config-values.yaml
           else
             touch /tmp/cluster-config-values.yaml
           fi
