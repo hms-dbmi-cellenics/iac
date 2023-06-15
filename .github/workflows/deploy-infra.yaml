@@ -246,6 +246,11 @@ jobs:
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
+      # - id: deploy-metrics-server
+      #   name: Deploy k8s metrics server
+      #   run: |-
+      #     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
       - id: install-helm
         name: Install Helm
         run: |-
@@ -256,22 +261,6 @@ jobs:
         run: |-
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
-
-      # see https://eksctl.io/usage/iam-identity-mappings/
-      # Grant login rights to ci-iac-role
-      - id: add-ci-iac-oidc-cluster-role
-        name: Allow the OIDC role to log in to our cluster.
-        run: |-
-          eksctl create iamidentitymapping \
-            --cluster=biomage-$CLUSTER_ENV \
-            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
-            --group system:masters \
-            --username ci-iac-role
-
-      - id: deploy-metrics-server
-        name: Deploy k8s metrics server
-        run: |-
-          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
@@ -427,7 +416,18 @@ jobs:
               --cluster=biomage-$CLUSTER_ENV \
               --arn $user \
               --all
-          done < "/tmp/users_to_remove" 
+          done < "/tmp/users_to_remove"
+
+      # see https://eksctl.io/usage/iam-identity-mappings/
+      # Grant login rights to ci-iac-role
+      - id: add-ci-iac-oidc-cluster-role
+        name: Allow the OIDC role to log in to our cluster.
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster=biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/ci-iac-role \
+            --group system:masters \
+            --username ci-iac-role
 
       # SSO access to cluster is only added if accessing AWS and cluster using SSO
       - id: allow-sso-roles-to-access-cluster
