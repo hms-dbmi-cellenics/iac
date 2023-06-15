@@ -249,6 +249,7 @@ jobs:
       - id: deploy-metrics-server
         name: Deploy k8s metrics server
         run: |-
+          aws sts get-caller-identity
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
       - id: install-helm
