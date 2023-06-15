@@ -194,7 +194,7 @@ jobs:
       - id: fill-metadata
         name: Add name and region to the eksctl file.
         run: |-
-          CLUSTER_NAME="biomage-$CLUSTER_ENV"
+          export CLUSTER_NAME="biomage-$CLUSTER_ENV"
 
           yq -i '
             .metadata.name = strenv(CLUSTER_NAME) |
@@ -217,6 +217,8 @@ jobs:
 
           yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml /tmp/cluster-config-values.yaml > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
+
+          aws s3 cp /tmp/cluster-$CLUSTER_ENV.yaml s3://biomage-backups-staging-242905224710/cluster-${{ matrix.environment-name }}-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           CELLENICS_VPC_ID: ${{ secrets.CELLENICS_VPC_ID }}
