@@ -21,7 +21,7 @@ Resources:
   RDSAgentSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub Cellenics RDS security group for ${Environment} to connect ec2 agent with rds
+      GroupDescription: !Sub Biomage RDS security group for ${Environment} to connect ec2 agent with rds
       VpcId:
         Fn::ImportValue:
           !Sub 'eksctl-biomage-${Environment}-cluster::VPC'
