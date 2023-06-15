@@ -133,7 +133,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 4800
+          role-duration-seconds: 3600
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: fill-metadata
@@ -238,7 +238,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 4800
+          role-duration-seconds: 3600
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
@@ -660,7 +660,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 4800
+          role-duration-seconds: 3600
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
