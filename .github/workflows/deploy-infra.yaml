@@ -102,16 +102,6 @@ jobs:
             echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
-          if [ -z "${{ secrets.DATADOG_API_KEY }}" ]
-          then
-            echo Secret DATADOG_API_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
-            ERROR=true
-          fi
-          if [ -z "${{ secrets.DATADOG_APP_KEY }}" ]
-          then
-            echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
-            ERROR=true
-          fi
           if [ ! -z "$ERROR" ]
           then
             echo
