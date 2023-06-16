@@ -124,34 +124,6 @@ jobs:
             ERROR=true
           fi
 
-          # If secrets.CELLENICS_VPC_ID is set, deployment is private. We need to check that the correct subnets are created
-          if [ ! -z "${{ secrets.CELLENICS_VPC_ID }}" ]
-          then
-            if [ -z "${{ secrets.PRIVATE_SUBNET_1_ID }}" ]
-            then
-              echo Secret PRIVATE_SUBNET_1_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
-              ERROR=true
-            fi
-
-            if [ -z "${{ secrets.PRIVATE_SUBNET_2_ID }}" ]
-            then
-              echo Secret PRIVATE_SUBNET_2_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
-              ERROR=true
-            fi
-
-            if [ -z "${{ secrets.PUBLIC_SUBNET_1_ID }}" ]
-            then
-              echo Secret PUBLIC_SUBNET_1_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
-              ERROR=true
-            fi
-
-            if [ -z "${{ secrets.PUBLIC_SUBNET_2_ID }}" ]
-            then
-              echo Secret PUBLIC_SUBNET_2_ID is not set in repository secrets. Make sure this secret exists in the repository secrets.
-              ERROR=true
-            fi
-          fi
-
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -204,6 +176,12 @@ jobs:
           # CELLENICS_VPC_ID is set if using custom cluster deployment. In this case, use the custom template file.
           # If not set, create an empty template file to let eksctl create a new cluster for the deployment.
           if [ ! -z "$CELLENICS_VPC_ID" ]; then
+
+            export PUBLIC_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[0].SubnetId')
+            export PUBLIC_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[1].SubnetId')
+            export PRVATE_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[0].SubnetId')
+            export PRVATE_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" --filters "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[1].SubnetId')
+
             yq '
                 .vpc.id = strenv(CELLENICS_VPC_ID) |
                 .vpc.subnets.private.private-1 = strenv(PRIVATE_SUBNET_1_ID) |
@@ -217,13 +195,11 @@ jobs:
 
           yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml /tmp/cluster-config-values.yaml > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
+
+          aws s3 cp /tmp/cluster-$CLUSTER_ENV.yaml s3://biomage-backups-$CLUSTER_ENV-${{ secrets.AWS_ACCOUNT_ID }}/cluster-${{ matrix.environment-name }}-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           CELLENICS_VPC_ID: ${{ secrets.CELLENICS_VPC_ID }}
-          PRIVATE_SUBNET_1_ID: ${{ secrets.PRIVATE_SUBNET_1_ID }}
-          PRIVATE_SUBNET_2_ID: ${{ secrets.PRIVATE_SUBNET_2_ID }}
-          PUBLIC_SUBNET_1_ID: ${{ secrets.PUBLIC_SUBNET_1_ID }}
-          PUBLIC_SUBNET_2_ID: ${{ secrets.PUBLIC_SUBNET_2_ID }}
 
       - id: install-eksctl
         name: Install eksctl
