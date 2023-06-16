@@ -177,10 +177,10 @@ jobs:
           # If not set, create an empty template file to let eksctl create a new cluster for the deployment.
           if [ ! -z "$CELLENICS_VPC_ID" ]; then
 
-            export PRIVATE_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" --query "Subnets[0].SubnetId")
-            export PRIVATE_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" --query "Subnets[1].SubnetId")
-            export PUBLIC_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" --query "Subnets[0].SubnetId")
-            export PUBLIC_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" --query "Subnets[1].SubnetId")
+            export PRIVATE_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[0].SubnetId')
+            export PRIVATE_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[1].SubnetId')
+            export PUBLIC_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[0].SubnetId')
+            export PUBLIC_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[1].SubnetId')
 
             yq '
                 .vpc.id = strenv(CELLENICS_VPC_ID) |
