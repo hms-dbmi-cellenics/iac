@@ -123,6 +123,7 @@ jobs:
             echo Secret DATADOG_APP_KEY is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
+
           if [ ! -z "$ERROR" ]
           then
             echo
@@ -135,6 +136,7 @@ jobs:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets]
+    if: github.event.inputs.workflow_actions == 'create and configure cluster'
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
@@ -148,7 +150,6 @@ jobs:
           - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
-    if: github.event.inputs.workflow_actions == 'create and configure cluster'
     steps:
       - id: checkout
         name: Check out source code
@@ -172,11 +173,31 @@ jobs:
             .metadata.region = strenv(AWS_REGION)
           ' infra/config/cluster/cluster-template.yaml
 
-          export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
-          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
+          # CELLENICS_VPC_ID is set if using custom cluster deployment. In this case, use the custom template file.
+          # If not set, create an empty template file to let eksctl create a new cluster for the deployment.
+          if [ ! -z "$CELLENICS_VPC_ID" ]; then
+
+            export PRIVATE_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[0].SubnetId')
+            export PRIVATE_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[1].SubnetId')
+            export PUBLIC_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[0].SubnetId')
+            export PUBLIC_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[1].SubnetId')
+
+            yq '
+                .vpc.id = strenv(CELLENICS_VPC_ID) |
+                .vpc.subnets.private.private-1 = strenv(PRIVATE_SUBNET_1_ID) |
+                .vpc.subnets.private.private-2 = strenv(PRIVATE_SUBNET_2_ID) |
+                .vpc.subnets.public.public-1 = strenv(PUBLIC_SUBNET_1_ID) |
+                .vpc.subnets.public.public-2 = strenv(PUBLIC_SUBNET_2_ID)
+            ' infra/config/cluster/cluster-config-template.yaml > /tmp/cluster-config-values.yaml
+          else
+            touch /tmp/cluster-config-values.yaml
+          fi
+
+          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml /tmp/cluster-config-values.yaml > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          CELLENICS_VPC_ID: ${{ secrets.CELLENICS_VPC_ID }}
 
       - id: install-eksctl
         name: Install eksctl
@@ -244,7 +265,7 @@ jobs:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster]
-    if: always() && github.event.inputs.workflow_actions != 'deploy monitoring' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    if: always() && (github.event.inputs.workflow_actions == 'create and configure cluster' || github.event.inputs.workflow_actions == 'configure cluster') && (needs.check-secrets.result == 'success') && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -668,7 +689,7 @@ jobs:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
-    if: always() && github.event.inputs.workflow_actions != 'configure cluster' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped' && (needs.configure-cluster.result == 'success' || needs.configure-cluster.result == 'skipped'))
+    if: always() && (needs.check-secrets.result == 'success') && (github.event.inputs.workflow_actions == 'deploy monitoring')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
