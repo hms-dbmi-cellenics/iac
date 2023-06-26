@@ -7,9 +7,6 @@ on:
         description: Select the environment name to run the actions on
         options:
           - HMS
-          - trv
-          - Biomage
-          - all
         default: HMS
       environment_type:
         type: choice
@@ -51,15 +48,7 @@ jobs:
       - id: set-env-name
         name: Set up environment name
         run: |-
-          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
-            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
-            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
-            echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
-          fi
+          echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_OUTPUT
         env:
           ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
@@ -103,9 +92,6 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-          - environment-name: trv
-            environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
       - id: checkout
@@ -139,11 +125,12 @@ jobs:
 
           git config --global url."https://".insteadOf ssh://
           npm ci
+          npm install -g knex
 
       - id: run-migration
         name: Run database migration
         working-directory: ./migrations/sql-migrations
-        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
+        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
 
   report-if-failed:
     name: Report if workflow failed

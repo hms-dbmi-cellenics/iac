@@ -23,10 +23,6 @@ Mappings:
   # The values below are the account IDs of the ALB logger service and are determined by AWS
   # Refer to https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
   ALBServiceMap:
-    us-east-2:
-      AccountId: "033677994240"
-    eu-west-1:
-      AccountId: "156460612806"
     us-east-1:
       AccountId: "127311923021"
 
