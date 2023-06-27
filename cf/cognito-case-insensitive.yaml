@@ -132,6 +132,7 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
+<<<<<<< HEAD
       Domain: !If [
         isHMSAccount,
         !Sub "hms-auth-${Environment}-${AWS::AccountId}",
@@ -147,3 +148,6 @@ Resources:
         Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
       Principal: "cognito-idp.amazonaws.com"
       SourceArn: !GetAtt UserPool.Arn
+=======
+      Domain: !Sub "hms-auth-${Environment}-${AWS::AccountId}"
+>>>>>>> hms-iac/master

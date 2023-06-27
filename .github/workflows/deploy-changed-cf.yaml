@@ -6,12 +6,17 @@ on:
         type: choice
         description: Select the environment name to run the actions on
         options:
+<<<<<<< HEAD
           - trv
           - Biomage
           - alabs
           - all
           - HMS
         default: all
+=======
+          - HMS
+        default: HMS
+>>>>>>> hms-iac/master
       environment_type:
         type: choice
         description: Select environment type
@@ -41,6 +46,10 @@ jobs:
   set-environments:
     name: Set up environment name and environment type for action run
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        environment-name: [HMS]
+    environment: ${{ matrix.environment-name }}
     outputs:
         env-type: ${{ steps.set-env-type.outputs.env-type }}
         env-name: ${{ steps.set-env-name.outputs.env-name }}
@@ -91,16 +100,7 @@ jobs:
           fi
 
           echo "Using env name: $ENVIRONMENT_NAME"
-
-          if [ "$ENVIRONMENT_NAME" = "all" ]; then
-            echo 'env-name=["Biomage", "trv", "alabs"]' >> $GITHUB_OUTPUT
-          elif [ "$ENVIRONMENT_NAME" = "trv" ]; then
-            echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
-          elif [ "$ENVIRONMENT_NAME" = "alabs" ]; then
-            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
-          elif [ "$ENVIRONMENT_NAME" = "Biomage" ]; then
-            echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
-          fi
+          echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
         env:
             INPUT_ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
@@ -113,11 +113,14 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+<<<<<<< HEAD
         exclude:
             - environment-name: trv
               environment-type: staging
             - environment-name: alabs
               environment-type: staging
+=======
+>>>>>>> hms-iac/master
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -231,11 +234,14 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+<<<<<<< HEAD
         exclude:
           - environment-name: trv
             environment-type: staging
           - environment-name: alabs
             environment-type: staging
+=======
+>>>>>>> hms-iac/master
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     environment: ${{ matrix.environment-name }}
     env:
@@ -310,6 +316,16 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
+      - id: deploy-ses-template
+        name: Deploy CloudFormation SES template
+        if: ${{ matrix.template == 'cf/ses.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+         parameter-overrides: "Environment=${{ matrix.environment-type }},DomainName=${{ secrets.DOMAIN_NAME }},PrimaryDomainName=${{ secrets.PRIMARY_DOMAIN_NAME }}"
+         name: ${{ steps.set-name.outputs.stack-name }}
+         template: ${{ matrix.template }}
+         no-fail-on-empty-changeset: "1"
+
       # The following steps are only necessary for IAM Service Account roles.
       - id: get-oidc
         if: ${{ contains(matrix.template, 'irsa-') }}
@@ -339,11 +355,14 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
+<<<<<<< HEAD
         exclude:
           - environment-name: trv
             environment-type: staging
           - environment-name: alabs
             environment-type: staging
+=======
+>>>>>>> hms-iac/master
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
