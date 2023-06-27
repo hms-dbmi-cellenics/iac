@@ -7,10 +7,11 @@ on:
         description: Select the environment name to run the actions on
         options:
           - trv
+          - alabs
           - Biomage
           - HMS
           - all
-        default: HMS
+        default: all
       workflow_actions:
         type: choice
         description: Select actions to perform
@@ -64,9 +65,11 @@ jobs:
         name: Set up environment name
         run: |-
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo 'env-name=["Biomage", "trv", "HMS"]' >> $GITHUB_OUTPUT
+            echo 'env-name=["Biomage", "trv", "alabs", "HMS"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
             echo 'env-name=["trv"]' >> $GITHUB_OUTPUT
+          elif [ "${ENVIRONMENT_NAME}" = "alabs" ]; then
+            echo 'env-name=["alabs"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "Biomage" ]; then
             echo 'env-name=["Biomage"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
@@ -113,7 +116,7 @@ jobs:
             echo Secret DOMAIN_NAME is not set in repository secrets. Make sure this secret exists in the repository secrets.
             ERROR=true
           fi
-          if [ ! -z "$ERROR" ]
+          if [ -n "$ERROR" ]
           then
             echo
             echo This workflow requires some secrets to complete.
@@ -125,6 +128,7 @@ jobs:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets]
+    if: github.event.inputs.workflow_actions == 'create and configure cluster'
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
     strategy:
@@ -135,8 +139,9 @@ jobs:
         exclude:
           - environment-name: trv
             environment-type: staging
+          - environment-name: alabs
+            environment-type: staging
     environment: ${{ matrix.environment-name }}
-    if: github.event.inputs.workflow_actions == 'create and configure cluster'
     steps:
       - id: checkout
         name: Check out source code
@@ -160,11 +165,31 @@ jobs:
             .metadata.region = strenv(AWS_REGION)
           ' infra/config/cluster/cluster-template.yaml
 
-          export CUSTOM_CLUSTER_CONFIG="infra/config/cluster/${{ matrix.environment-name }}/custom-cluster-config.yaml"
-          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml ${CUSTOM_CLUSTER_CONFIG} > /tmp/cluster-$CLUSTER_ENV.yaml
+          # CELLENICS_VPC_ID is set if using custom cluster deployment. In this case, use the custom template file.
+          # If not set, create an empty template file to let eksctl create a new cluster for the deployment.
+          if [ ! -z "$CELLENICS_VPC_ID" ]; then
+
+            export PRIVATE_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[0].SubnetId')
+            export PRIVATE_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=false" | jq -r '.Subnets[1].SubnetId')
+            export PUBLIC_SUBNET_1_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[0].SubnetId')
+            export PUBLIC_SUBNET_2_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$CELLENICS_VPC_ID" "Name=map-public-ip-on-launch,Values=true" | jq -r '.Subnets[1].SubnetId')
+
+            yq '
+                .vpc.id = strenv(CELLENICS_VPC_ID) |
+                .vpc.subnets.private.private-1 = strenv(PRIVATE_SUBNET_1_ID) |
+                .vpc.subnets.private.private-2 = strenv(PRIVATE_SUBNET_2_ID) |
+                .vpc.subnets.public.public-1 = strenv(PUBLIC_SUBNET_1_ID) |
+                .vpc.subnets.public.public-2 = strenv(PUBLIC_SUBNET_2_ID)
+            ' infra/config/cluster/cluster-config-template.yaml > /tmp/cluster-config-values.yaml
+          else
+            touch /tmp/cluster-config-values.yaml
+          fi
+
+          yq eval-all '. as $item ireduce ({}; . *d $item)' infra/config/cluster/cluster-template.yaml /tmp/cluster-config-values.yaml > /tmp/cluster-$CLUSTER_ENV.yaml
           cat /tmp/cluster-$CLUSTER_ENV.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          CELLENICS_VPC_ID: ${{ secrets.CELLENICS_VPC_ID }}
 
       - id: install-eksctl
         name: Install eksctl
@@ -232,7 +257,7 @@ jobs:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster]
-    if: always() && github.event.inputs.workflow_actions != 'deploy monitoring' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
+    if: always() && (github.event.inputs.workflow_actions == 'create and configure cluster' || github.event.inputs.workflow_actions == 'configure cluster') && (needs.check-secrets.result == 'success') && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -243,6 +268,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -374,8 +401,9 @@ jobs:
           echo "domain-name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
           echo "acm-certificate-arn=$ACM_CERTIFICATE_ARN" >> $GITHUB_OUTPUT
 
-      # This is commented out because running Route53 for trv is still causing an error.
-      # A ticket to address this issue has been made: BIOMAGE-2314. Refer to the ticket for more information.
+      # This step should be run only once per deployment. The associated Route 53 records to be created
+      # e.g. DOMAIN_NAME and *.DOMAIN_NAME should be deleted before running this comment, otherwise this step fails.
+      # Refer to the new deployment runbook to learn more.
       # - id: deploy-route53
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -445,6 +473,20 @@ jobs:
             --group system:masters \
             --username ci-iac-role
 
+      # SSO access to cluster is only added if accessing AWS and cluster using SSO
+      - id: allow-sso-roles-to-access-cluster
+        env:
+          SSO_ROLE: ${{ secrets.SSO_ROLE }}
+        if: ${{ env.SSO_ROLE != '' }}
+        name: Allow SSO role to log into the cluster
+        run: |-
+          eksctl create iamidentitymapping \
+            --cluster biomage-$CLUSTER_ENV \
+            --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:role/${{ env.SSO_ROLE }} \
+            --username sso-cluster-admin \
+            --no-duplicate-arns \
+            --group system:masters
+
       - id: add-state-machine-cluster-role
         name: Grant rights to the state machine IAM role.
         run: |-
@@ -483,19 +525,22 @@ jobs:
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
         run: |-
-          export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
-          export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
-
           yq -i '
-            .myAccount.domainName = strenv(DOMAIN_NAME) |
-            .myAccount.region = strenv(AWS_REGION) |
-            .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
-            .myAccount.publicFacing = strenv(PUBLIC_FACING) |
-            .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
-            .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
-            .myAccount.datadogApiKey = strenv(DATADOG_API_KEY) |
-            .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY)
-          ' infra/config/account-config.yaml
+              .myAccount.domainName = strenv(DOMAIN_NAME) |
+              .myAccount.region = strenv(AWS_REGION) |
+              .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
+              .myAccount.publicFacing = strenv(PUBLIC_FACING) |
+              .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
+              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
+            ' infra/config/account-config.yaml
+
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
+            export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
+            export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
+            yq -i '
+              .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY)
+              .myAccount.datadogApiKey = strenv(DATADOG_API_KEY)
+            ' infra/config/account-config.yaml
 
           cat infra/config/account-config.yaml
         env:
@@ -643,7 +688,7 @@ jobs:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
     needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
-    if: always() && github.event.inputs.workflow_actions != 'configure cluster' && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped' && (needs.configure-cluster.result == 'success' || needs.configure-cluster.result == 'skipped'))
+    if: always() && (needs.check-secrets.result == 'success') && (github.event.inputs.workflow_actions == 'deploy monitoring')
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -653,6 +698,8 @@ jobs:
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
         exclude:
           - environment-name: trv
+            environment-type: staging
+          - environment-name: alabs
             environment-type: staging
     environment: ${{ matrix.environment-name }}
     steps:
@@ -752,18 +799,20 @@ jobs:
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
         run: |-
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-          helm upgrade datadog-agent datadog/datadog \
-            -f infra/datadog/cluster-agent-values.yaml \
-            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-            --set datadog.clusterName=biomage-$CLUSTER_ENV \
-            --install
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
+            helm repo add datadog https://helm.datadoghq.com
+            helm repo update
+            helm upgrade datadog-agent datadog/datadog \
+              -f infra/datadog/cluster-agent-values.yaml \
+              --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+              --set datadog.clusterName=biomage-$CLUSTER_ENV \
+              --install
 
       - id: setup-datadog-sidecar-permissions
         name: Setup Datadog sidecar permissions
         run: |-
-          kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
+            kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
 
   report-if-failed:
     name: Report if workflow failed

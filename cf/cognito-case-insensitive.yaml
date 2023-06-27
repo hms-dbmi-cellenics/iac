@@ -22,6 +22,9 @@ Outputs:
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
 
+Conditions:
+  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
+
 Resources:
   SMSRole:
     Type: "AWS::IAM::Role"
@@ -129,4 +132,18 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: !Sub "hms-auth-${Environment}-${AWS::AccountId}"
+      Domain: !If [
+        isHMSAccount,
+        !Sub "hms-auth-${Environment}-${AWS::AccountId}",
+        !Sub "biomage-auth-${Environment}-${AWS::AccountId}"
+      ]
+
+  # Add permission to allow userpool to trigger lambda
+  PostRegisterLambdaInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName:
+        Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+      Principal: "cognito-idp.amazonaws.com"
+      SourceArn: !GetAtt UserPool.Arn
