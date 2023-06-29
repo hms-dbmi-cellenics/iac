@@ -50,7 +50,7 @@ jobs:
           IFS=',' read -ra valid_options <<< "$OPTIONS"
           for i in "${valid_options[@]}"; do
             echo "Checking if $i is selected"
-            echo $Selected ${{ github.event.inputs.environment_option }}$
+            echo "Selected ${{ github.event.inputs.environment_option }}"
             if [[ "${{ github.event.inputs.environment_option }}" == "$i" ]]; then
               echo "Valid option selected"
               exit 0
