@@ -1,0 +1,29 @@
+name: Setup Variables
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      var1: ${{ steps.set_vars.outputs.var1 }}
+      var2: ${{ steps.set_vars.outputs.var2 }}
+      var3: ${{ steps.set_vars.outputs.var3 }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - id: set_vars
+      name: Set variables
+      run: |
+        VAR1=$(jq -r '.VAR1' deployment_config.json)
+        VAR2=$(jq -r '.VAR2' deployment_config.json)
+        VAR3=$(jq -r '.VAR3' deployment_config.json)
+        echo "VAR1: $VAR1"
+        echo "VAR2: $VAR2"
+        echo "VAR3: $VAR3"
+        echo var1=$VAR1 >> $GITHUB_OUTPUT
+        echo var2=$VAR2 >> $GITHUB_OUTPUT
+        echo var3=$VAR3 >> $GITHUB_OUTPUT

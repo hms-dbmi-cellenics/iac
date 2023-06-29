@@ -4,3 +4,4 @@
 *.json
 *.log
 *.csv
+!deployment_config.json
