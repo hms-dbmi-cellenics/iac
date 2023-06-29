@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with: ###########  REMOVE THIS WHEN MERGING IN MASTER
+        ref: hms-merge #####################################
 
     - id: set_vars
       name: Set variables
