@@ -44,12 +44,13 @@ jobs:
         run: |
           OPTIONS=$(jq -r '.environment_names | join(",")' deployment-config.json)
           echo "OPTIONS=$OPTIONS" >> $GITHUB_ENV
-          echo "$OPTIONS"
         shell: bash
       - name: Validate input against config
         run: |
           IFS=',' read -ra valid_options <<< "$OPTIONS"
           for i in "${valid_options[@]}"; do
+            echo "Checking if $i is selected"
+            echo $Selected ${{ github.event.inputs.environment_option }}$
             if [[ "${{ github.event.inputs.environment_option }}" == "$i" ]]; then
               echo "Valid option selected"
               exit 0
