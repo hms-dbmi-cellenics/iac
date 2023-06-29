@@ -1,12 +1,9 @@
 HMS:
   publicFacing: true
   selfSignedCertificate: false
-<<<<<<< HEAD
 trv:
   publicFacing: false
   selfSignedCertificate: true
 alabs:
   publicFacing: false
   selfSignedCertificate: false
-=======
->>>>>>> hms-iac/master

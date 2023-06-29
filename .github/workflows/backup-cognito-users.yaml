@@ -17,11 +17,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-<<<<<<< HEAD
-        environment-name: [HMS, Biomage, trv, alabs]
-=======
         environment-name: [HMS]
->>>>>>> hms-iac/master
     environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-node
@@ -66,7 +62,3 @@ jobs:
           channel: workflow-failures
           status: FAILED
           color: danger
-<<<<<<< HEAD
-
-=======
->>>>>>> hms-iac/master

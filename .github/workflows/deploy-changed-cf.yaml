@@ -6,17 +6,12 @@ on:
         type: choice
         description: Select the environment name to run the actions on
         options:
-<<<<<<< HEAD
           - trv
           - Biomage
           - alabs
           - all
           - HMS
         default: all
-=======
-          - HMS
-        default: HMS
->>>>>>> hms-iac/master
       environment_type:
         type: choice
         description: Select environment type
@@ -113,14 +108,11 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-<<<<<<< HEAD
         exclude:
             - environment-name: trv
               environment-type: staging
             - environment-name: alabs
               environment-type: staging
-=======
->>>>>>> hms-iac/master
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -234,14 +226,11 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-<<<<<<< HEAD
         exclude:
           - environment-name: trv
             environment-type: staging
           - environment-name: alabs
             environment-type: staging
-=======
->>>>>>> hms-iac/master
         template: ${{fromJson(needs.get-modified-templates.outputs.files)}}
     environment: ${{ matrix.environment-name }}
     env:
@@ -355,14 +344,11 @@ jobs:
       matrix:
         environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
         environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-<<<<<<< HEAD
         exclude:
           - environment-name: trv
             environment-type: staging
           - environment-name: alabs
             environment-type: staging
-=======
->>>>>>> hms-iac/master
     environment: ${{ matrix.environment-name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment-type }}

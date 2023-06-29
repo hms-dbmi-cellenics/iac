@@ -7,12 +7,7 @@ on:
         description: Select the environment name to run the actions on
         options:
           - HMS
-<<<<<<< HEAD
-          - all
-        default: all
-=======
         default: HMS
->>>>>>> hms-iac/master
       workflow_actions:
         type: choice
         description: Select actions to perform
@@ -65,7 +60,6 @@ jobs:
       - id: set-env-name
         name: Set up environment name
         run: |-
-<<<<<<< HEAD
           if [ "${ENVIRONMENT_NAME}" = "all" ]; then
             echo 'env-name=["Biomage", "trv", "alabs", "HMS"]' >> $GITHUB_OUTPUT
           elif [ "${ENVIRONMENT_NAME}" = "trv" ]; then
@@ -77,9 +71,6 @@ jobs:
           elif [ "${ENVIRONMENT_NAME}" = "HMS" ]; then
             echo 'env-name=["HMS"]' >> $GITHUB_OUTPUT
           fi
-=======
-          echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_OUTPUT
->>>>>>> hms-iac/master
         env:
           ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
