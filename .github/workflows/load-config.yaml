@@ -20,9 +20,9 @@ jobs:
     - id: set_vars
       name: Set variables
       run: |
-        VAR1=$(jq -r '.VAR1' deployment_config.json)
-        VAR2=$(jq -r '.VAR2' deployment_config.json)
-        VAR3=$(jq -r '.VAR3' deployment_config.json)
+        VAR1=$(jq -r '.var1' deployment_config.json)
+        VAR2=$(jq -r '.var2' deployment_config.json)
+        VAR3=$(jq -r '.var3' deployment_config.json)
         echo "VAR1: $VAR1"
         echo "VAR2: $VAR2"
         echo "VAR3: $VAR3"
