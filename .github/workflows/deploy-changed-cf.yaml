@@ -44,6 +44,7 @@ jobs:
         run: |
           OPTIONS=$(jq -r '.environment_names | join(",")' deployment-config.json)
           echo "OPTIONS=$OPTIONS" >> $GITHUB_ENV
+          echo "$OPTIONS"
         shell: bash
       - name: Validate input against config
         run: |
