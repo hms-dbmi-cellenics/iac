@@ -37,8 +37,7 @@ jobs:
       name: Load variables
       run: |
         CONFIG=$(cat deployment-config.json | jq -r --arg org "${{ github.repository_owner }}" '.[$org]')
-        echo "::set-output name=config::$CONFIG"
-
+        echo "{config}={$CONFIG}" >> $GITHUB_OUTPUT
 
   validate-environment-name:
     name: Validate selected option
