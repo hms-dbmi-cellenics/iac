@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   load-config:
-    uses: ./blob/hms-merge/.github/workflows/load-config.yaml
+    uses: ${{ github.repository_owner }}/iac/.github/workflows/load-config.yaml@hms-merge
     # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
     with:
       environment: ${{ github.event.inputs.environment_name }}
