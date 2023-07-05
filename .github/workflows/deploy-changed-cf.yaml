@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show which option was selected
         run: |
-          CONFIG='${{ needs.load-config.outputs.config }}'
+          CONFIG='${{ fromJSON(needs.load-config.outputs.config) }}'
           ENVIRONMENTS=$(echo $CONFIG | jq -r '.environment_names')
           echo "The options are: $ENVIRONMENTS"
 
