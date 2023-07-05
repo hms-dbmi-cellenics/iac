@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   load-config:
-    uses: ${{ github.repository }}/.github/workflows/load-config.yaml@hms-merge ### DELETE @hms-merge when merging
+    uses: ./.github/workflows/load-config.yaml@hms-merge ### DELETE @hms-merge when merging
     with:
       environment: ${{ github.event.inputs.environment_name }}
   output-config:
