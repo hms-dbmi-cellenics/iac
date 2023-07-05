@@ -15,10 +15,11 @@ on:
     outputs:
       image_account_id:
         description: "Account ID that the docker images are stored in"
-        value: ${{ steps.load_variables.outputs.image_account_id }}
+        value: ${{ jobs.setup.outputs.image_account_id }}
+
       environment_names:
         description: "The names of all environments"
-        value: ${{ steps.load_variables.outputs.environment_names }}
+        value: ${{ jobs.setup.outputs.environment_names }}
 jobs:
   setup:
     runs-on: ubuntu-latest
