@@ -38,9 +38,10 @@ jobs:
     - id: load_variables
       name: Load variables
       run: |
-        ORGANIZATION_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-        IMAGE_ACCOUNT_ID=$(jq -r --arg org "$ORGANIZATION_NAME" '.[$org].pipeline_account_id' deployment_config.json)
-        ENVIRONMENT_NAMES=$(jq -r --arg org "$ORGANIZATION_NAME" '.[$org].environment_names | join(",")' deployment_config.json)
+        CONFIG_FILE=$(cat deployment-config.json | jq .)
+
+        IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].pipeline_account_id')
+        ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].environment_names | join(","))
 
         echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
         echo "image_account_id=$IMAGE_ACCOUNT_ID"
