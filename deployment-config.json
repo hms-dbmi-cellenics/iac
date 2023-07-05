@@ -1,8 +1,22 @@
 {
-    "environment_names": [
-        "alabs",
-        "biomage",
-        "trv",
-        "all"
-    ]
+    "biomage-org": {
+        "environment_names": [
+            "alabs",
+            "biomage",
+            "trv"
+        ],
+        "docker_image_account": {
+            "id": 242905224710,
+            "region": "eu-west-1"
+        }
+    },
+    "hms-dbmi-cellenics": {
+        "environment_names": [
+            "hms"
+        ],
+        "docker_image_account": {
+            "id": 160782110667,
+            "region": "us-east-1"
+        }
+    }
 }

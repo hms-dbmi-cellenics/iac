@@ -2,14 +2,21 @@ name: Setup Variables
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment for validation (leave blank to skip validation)"
+        required: false
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      var1: ${{ steps.set_vars.outputs.var1 }}
-      var2: ${{ steps.set_vars.outputs.var2 }}
-      var3: ${{ steps.set_vars.outputs.var3 }}
+      image_account_id:
+        description: "Account ID that the docker images are stored in"
+        value: ${{ steps.load_variables.outputs.image_account_id }}
+      environment_names:
+        description: "The names of all environments"
+        value: ${{ steps.load_variables.outputs.environment_names }}
 
     steps:
     - name: Checkout
@@ -17,15 +24,44 @@ jobs:
       with: ###########  REMOVE THIS WHEN MERGING IN MASTER
         ref: hms-merge #####################################
 
-    - id: set_vars
-      name: Set variables
+    - id: load_variables
+      name: Load variables
       run: |
-        VAR1=$(jq -r '.var1' deployment_config.json)
-        VAR2=$(jq -r '.var2' deployment_config.json)
-        VAR3=$(jq -r '.var3' deployment_config.json)
-        echo "VAR1: $VAR1"
-        echo "VAR2: $VAR2"
-        echo "VAR3: $VAR3"
-        echo var1=$VAR1 >> $GITHUB_OUTPUT
-        echo var2=$VAR2 >> $GITHUB_OUTPUT
-        echo var3=$VAR3 >> $GITHUB_OUTPUT
+        ORGANIZATION_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        IMAGE_ACCOUNT_ID=$(jq -r --arg org "$ORGANIZATION_NAME" '.[$org].pipeline_account_id' deployment_config.json)
+        ENVIRONMENT_NAMES=$(jq -r --arg org "$ORGANIZATION_NAME" '.[$org].environment_names | join(",")' deployment_config.json)
+
+        echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
+        echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
+
+  validate-option:
+    name: Validate selected option
+    needs: setup
+    if: ${{ github.event.inputs.environment != '' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with: ###########  REMOVE THIS WHEN MERGING IN MASTER
+          ref: hms-merge #####################################
+      - name: Validate input against config
+        run: |
+          IFS=',' read -ra valid_options <<< "${{ needs.setup.outputs.environment_names }}"
+          for i in "${valid_options[@]}"; do
+            if [[ "${{ github.event.inputs.environment }}" == "$i" ]] || [[ "${{ github.event.inputs.environment }}" == "all" ]]; then
+              echo "Valid option selected"
+              exit 0
+            fi
+          done
+          echo "Invalid option selected"
+          exit 1
+
+  output-option:
+    name: Output selected option
+    needs: validate-option
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Show which option was selected
+        run: echo "The option selected was ${{ github.event.inputs.environment_name }} in ${{ github.event.inputs.environment_type }}"
