@@ -219,8 +219,8 @@ jobs:
             Environment=staging,
             SandboxID=${{ github.event.inputs.sandbox-id }},
             PipelinePRNum=${{ github.event.inputs.pipeline-pr }},
-            ImageAccountId=${{ needs.load-config.outputs.image_account_id }},
-            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}
+            ImageAccountId=$(echo $${{ needs.load-config.outputs.config }} | jq -r '.image_account_id'),
+            ImageAccountRegion=$(echo $${{ needs.load-config.outputs.config }} | jq -r '.image_account_region')
           name: ${{ steps.set-stack-name.outputs.batch-job-definition-name }}
           template: cf/batch-job-definition.yaml
           no-fail-on-empty-changeset: "1"

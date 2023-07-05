@@ -41,13 +41,12 @@ jobs:
     name: Output selected option
     needs: load-config
     runs-on: ubuntu-20.04
-    env:
-      DEPLOYMENT_CONFIG: ${{ needs.load-config.outputs.config }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show which option was selected
-        run: echo "The option selected was $(echo $DEPLOYMENT_CONFIG | jq -r '.environment_names') $DEPLOYMENT_CONFIG"
+        run: echo "The option selected was $(echo $${{ needs.load-config.outputs.config }} | jq -r '.environment_names')"
 
 
   # set-environments:
