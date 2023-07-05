@@ -46,7 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show which option was selected
-        run: echo "The option selected was $(echo $${{ needs.load-config.outputs.config }} | jq -r '.environment_names')"
+        run: echo "The option selected was $(echo ${{ needs.load-config.outputs.config }} | jq -r '.environment_names')"
 
 
   # set-environments:
