@@ -15,13 +15,16 @@ on:
         description: "Environment for validation (leave blank to skip validation)"
         required: false
     outputs:
-      image_account_id:
-        description: "Account ID that the docker images are stored in"
-        value: ${{ jobs.setup.outputs.image_account_id }}
-
       environment_names:
         description: "The names of all environments"
         value: ${{ jobs.setup.outputs.environment_names }}
+      image_account_id:
+        description: "Account ID that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_id }}
+      image_account_region:
+        description: "Account region that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_region }}
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -40,13 +43,17 @@ jobs:
       run: |
         CONFIG_FILE=$(cat deployment-config.json | jq .)
 
-        IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].pipeline_account_id')
         ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].environment_names | join(","))
+        IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
+        IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
 
-        echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
-        echo "image_account_id=$IMAGE_ACCOUNT_ID"
+
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
         echo "environment_names=$ENVIRONMENT_NAMES"
+        echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
+        echo "image_account_id=$IMAGE_ACCOUNT_ID"
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION" >> $GITHUB_OUTPUT
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION"
 
   validate-option:
     name: Validate selected option
