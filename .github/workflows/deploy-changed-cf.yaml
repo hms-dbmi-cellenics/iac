@@ -5,6 +5,7 @@ on:
       environment_name:
         description: Select the environment name to run the actions on
         required: true
+        default: all
       environment_type:
         type: choice
         description: Select environment type
@@ -49,7 +50,7 @@ jobs:
         run: |
           IFS=',' read -ra valid_options <<< "$OPTIONS"
           for i in "${valid_options[@]}"; do
-            if [[ "${{ github.event.inputs.environment_name }}" == "$i" ]]; then
+            if [[ "${{ github.event.inputs.environment_name }}" == "$i" or "${{ github.event.inputs.environment_name }}" == "all" ]]; then
               echo "Valid option selected"
               exit 0
             fi
@@ -65,7 +66,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Show which option was selected
-        run: echo "The option selected was ${{ github.event.inputs.environment_option }} in ${{ github.event.inputs.environment_type }}"
+        run: echo "The option selected was ${{ github.event.inputs.environment_name }} in ${{ github.event.inputs.environment_type }}"
 
 
   # set-environments:
