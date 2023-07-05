@@ -32,41 +32,19 @@ permissions:
     contents: read
 
 jobs:
-  validate-option:
-    name: Validate selected option
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with: ###########  REMOVE THIS WHEN MERGING IN MASTER
-          ref: hms-merge #####################################
-      - name: Read options from deployment-config file
-        id: options
-        run: |
-          OPTIONS=$(jq -r '.environment_names | join(",")' deployment-config.json)
-          echo "OPTIONS=$OPTIONS" >> $GITHUB_ENV
-        shell: bash
-      - name: Validate input against config
-        run: |
-          IFS=',' read -ra valid_options <<< "$OPTIONS"
-          for i in "${valid_options[@]}"; do
-            if [[ "${{ github.event.inputs.environment_name }}" == "$i" or "${{ github.event.inputs.environment_name }}" == "all" ]]; then
-              echo "Valid option selected"
-              exit 0
-            fi
-          done
-          echo "Invalid option selected"
-          exit 1
-
-  output-option:
+  load-config:
+    uses: ${{ github.repository }}/.github/workflows/load-config@hms-merge
+    with:
+      environment: ${{ github.event.inputs.environment_name }}
+  output-config:
     name: Output selected option
-    needs: validate-option
+    needs: load-config
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show which option was selected
-        run: echo "The option selected was ${{ github.event.inputs.environment_name }} in ${{ github.event.inputs.environment_type }}"
+        run: echo "The option selected was ${{ needs.load-config.outputs.environment_names }}"
 
 
   # set-environments:
