@@ -7,9 +7,11 @@ on:
         description: "Environment for validation (leave blank to skip validation)"
         required: false
 
-jobs:
-  setup:
-    runs-on: ubuntu-latest
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment for validation (leave blank to skip validation)"
+        required: false
     outputs:
       image_account_id:
         description: "Account ID that the docker images are stored in"
@@ -17,6 +19,12 @@ jobs:
       environment_names:
         description: "The names of all environments"
         value: ${{ steps.load_variables.outputs.environment_names }}
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
+      environment_names: ${{ steps.load_variables.outputs.environment_names }}
 
     steps:
     - name: Checkout
@@ -32,7 +40,9 @@ jobs:
         ENVIRONMENT_NAMES=$(jq -r --arg org "$ORGANIZATION_NAME" '.[$org].environment_names | join(",")' deployment_config.json)
 
         echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
+        echo "image_account_id=$IMAGE_ACCOUNT_ID"
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
+        echo "environment_names=$ENVIRONMENT_NAMES"
 
   validate-option:
     name: Validate selected option
