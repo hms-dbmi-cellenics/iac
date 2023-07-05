@@ -11,6 +11,7 @@ on:
   workflow_call:
     inputs:
       environment:
+        type: string
         description: "Environment for validation (leave blank to skip validation)"
         required: false
     outputs:
