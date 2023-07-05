@@ -32,6 +32,9 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+      uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
+      # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
   deploy-staging:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
@@ -212,7 +215,12 @@ jobs:
         name: Deploy CloudFormation stack for Batch job definition
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }},PipelinePRNum=${{ github.event.inputs.pipeline-pr }}"
+          parameter-overrides: >-
+            Environment=staging,
+            SandboxID=${{ github.event.inputs.sandbox-id }},
+            PipelinePRNum=${{ github.event.inputs.pipeline-pr }},
+            ImageAccountId=${{ needs.load-config.outputs.image_account_id }},
+            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}
           name: ${{ steps.set-stack-name.outputs.batch-job-definition-name }}
           template: cf/batch-job-definition.yaml
           no-fail-on-empty-changeset: "1"

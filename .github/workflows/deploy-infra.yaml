@@ -74,8 +74,6 @@ jobs:
           fi
         env:
           ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
-          OPTIONS: ${{ env.DEPLOYMENT_OPTIONS }}
-
 
   # check-secrets:
   #   name: Check that sufficient secrets are specified for environment name

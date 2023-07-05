@@ -17,10 +17,15 @@ Parameters:
     Type: String
     Default: ''
     Description: The pipeline PR number whose image is to be used in staging.
+  ImageAccountId:
+    Type: String
+    Description: The id of the account, having the docker images
+  ImageAccountRegion:
+    Type: String
+    Description: The region of the account, having the docker images
 
 Conditions:
   isPipelinePRStaged: !And [ !Equals [!Ref Environment, "staging"], !Not [ !Equals [!Ref PipelinePRNum, "" ]]]
-  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Resources:
   BatchPipelineJob:
@@ -32,15 +37,9 @@ Resources:
           - ./start-batch.sh
         Image: !If [
                   isPipelinePRStaged,
-                  !If [ isHMSAccount,
-                    !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge",
-                    !Sub "242905224710.dkr.ecr.us-west-1.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge"
+                    !Sub "${ImageAccountId}.dkr.ecr.${ImageAccountRegion}.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge",
+                    !Sub "${ImageAccountId}.dkr.ecr.${ImageAccountRegion}.amazonaws.com/pipeline:batch-${Environment}",
                   ],
-                  !If [ isHMSAccount,
-                    !Sub "160782110667.dkr.ecr.us-east-1.amazonaws.com/pipeline:batch-${Environment}",
-                    !Sub "242905224710.dkr.ecr.us-west-1.amazonaws.com/pipeline:batch-${Environment}",
-                  ],
-                ]
         ResourceRequirements:
           - Type: VCPU
             Value: 2
