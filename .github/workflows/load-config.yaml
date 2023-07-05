@@ -1,4 +1,4 @@
-name: Setup Variables
+name: Load Deployment Config
 
 on:
   workflow_dispatch:
@@ -45,8 +45,7 @@ jobs:
 
         ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].environment_names | join(",")')
         IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
-        IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
-
+        IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
 
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
         echo "environment_names=$ENVIRONMENT_NAMES"
@@ -55,7 +54,7 @@ jobs:
         echo "image_account_region=$IMAGE_ACCOUNT_REGION" >> $GITHUB_OUTPUT
         echo "image_account_region=$IMAGE_ACCOUNT_REGION"
 
-  validate-option:
+  validate-environment-name:
     name: Validate selected option
     needs: setup
     if: ${{ github.event.inputs.environment != '' }}
@@ -76,13 +75,3 @@ jobs:
           done
           echo "Invalid option selected"
           exit 1
-
-  output-option:
-    name: Output selected option
-    needs: validate-option
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Show which option was selected
-        run: echo "The option selected was ${{ github.event.inputs.environment_name }} in ${{ github.event.inputs.environment_type }}"
