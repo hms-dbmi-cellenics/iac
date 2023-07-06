@@ -32,8 +32,10 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
       environment_names: ${{ steps.load_variables.outputs.environment_names }}
+      image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
+      image_account_region: ${{ steps.load_variables.outputs.image_account_region }}
+      deployment_matrix: ${{ steps.generate_deployment_matrix.outputs.deployment_matrix }}
 
     steps:
     - name: Checkout
@@ -62,7 +64,7 @@ jobs:
       run: |
         CONFIG_FILE=$(cat deployment-config.json | jq .)
 
-        DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c -r '
+        DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c '
         [
           to_entries[] |
           .value.deployment_environments |
