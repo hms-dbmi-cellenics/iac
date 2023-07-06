@@ -1,5 +1,6 @@
 {
     "biomage-org": {
+        "domain_name": "biomage",
         "environment_names": [
             "alabs",
             "biomage",
@@ -8,7 +9,9 @@
         "docker_image_account": {
             "id": 242905224710,
             "region": "eu-west-1"
-        }
+        },
+        "support_email": "engineering@biomage.net",
+        "reply_email": "hello@biomage.net"
     },
     "hms-dbmi-cellenics": {
         "environment_names": [
@@ -17,6 +20,8 @@
         "docker_image_account": {
             "id": 160782110667,
             "region": "us-east-1"
-        }
+        },
+        "support_email": "alex_pickering@hms.harvard.edu",
+        "reply_email": "alex_pickering@hms.harvard.edu"
     }
 }

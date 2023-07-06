@@ -10,6 +10,8 @@ Parameters:
       - staging
       - production
     Description: The environment for which the buckets need to be created.
+  DomainName:
+    Type: String
 
 Outputs:
   UserPoolId:
@@ -21,9 +23,6 @@ Outputs:
     Value: !GetAtt UserPool.ProviderName
     Export:
       Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
-
-Conditions:
-  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Resources:
   SMSRole:
@@ -132,11 +131,7 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: !If [
-        isHMSAccount,
-        !Sub "hms-auth-${Environment}-${AWS::AccountId}",
-        !Sub "biomage-auth-${Environment}-${AWS::AccountId}"
-      ]
+      Domain: !Sub "${DomainName}-auth-${Environment}-${AWS::AccountId}"
 
   # Add permission to allow userpool to trigger lambda
   PostRegisterLambdaInvocationPermission:
