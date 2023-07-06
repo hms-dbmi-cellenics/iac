@@ -60,7 +60,9 @@ jobs:
     - name: Generate deployment matrix
       id: generate_deployment_matrix
       run: |
-        MATRIX=$(jq -r '
+        CONFIG_FILE=$(cat deployment-config.json | jq .)
+
+        MATRIX=$(echo $CONFIG_FILE | jq -r '
         [
           to_entries[] |
           .value.deployment_environments |
@@ -69,8 +71,10 @@ jobs:
             environment_name: .key,
             environment_type: .value[]
           }
-        ]' config.json)
+        ]')
+
         echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+
       shell: bash
 
   validate-environment-name:
