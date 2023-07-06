@@ -43,7 +43,7 @@ jobs:
     needs: load-config
     runs-on: ubuntu-20.04
     strategy:
-      matrix: ${{ fromJson(needs.load-config.outputs.matrix) }}
+      matrix: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3

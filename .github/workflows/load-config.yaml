@@ -26,7 +26,7 @@ on:
         value: ${{ jobs.setup.outputs.image_account_region }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
-        value: ${{ jobs.setup.outputs.matrix }}
+        value: ${{ jobs.setup.outputs.deployment_matrix }}
 
 jobs:
   setup:
@@ -62,7 +62,7 @@ jobs:
       run: |
         CONFIG_FILE=$(cat deployment-config.json | jq .)
 
-        MATRIX=$(echo $CONFIG_FILE | jq -c '
+        DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c '
         [
           to_entries[] |
           .value.deployment_environments |
@@ -72,8 +72,8 @@ jobs:
             environment_type: .value[]
           }
         ]')
-        echo ${MATRIX}
-        echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+        echo ${DEPLOYMENT_MATRIX}
+        echo "deployment_matrix=${DEPLOYMENT_MATRIX}" >> $GITHUB_OUTPUT
 
       shell: bash
 
