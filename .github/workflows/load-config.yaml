@@ -72,7 +72,7 @@ jobs:
             environment_type: .value[]
           }
         ]')
-
+        echo ${MATRIX}
         echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
 
       shell: bash
