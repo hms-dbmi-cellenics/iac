@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       environment_name:
+        type: string
         description: Select the environment name to run the actions on
         required: true
         default: all
@@ -123,16 +124,15 @@ jobs:
   create-eks-cluster:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets]
+    needs: [set-environments, check-secrets, load-config]
     if: github.event.inputs.workflow_actions == 'create and configure cluster'
     env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
+      CLUSTER_ENV: ${{ matrix.environment.type }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment: ${{ fromJson(needs.load-config.outputs.deployment_matrix) }}
+    environment: ${{ matrix.environment.name }}
     steps:
       - id: checkout
         name: Check out source code
@@ -143,7 +143,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 3600
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: fill-metadata
@@ -247,17 +247,16 @@ jobs:
   configure-cluster:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster, load-config]
     if: always() && (github.event.inputs.workflow_actions == 'create and configure cluster' || github.event.inputs.workflow_actions == 'configure cluster') && (needs.check-secrets.result == 'success') && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
+      CLUSTER_ENV: ${{ matrix.environment.type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment: ${{ fromJson(needs.load-config.outputs.deployment_matrix) }}
+    environment: ${{ matrix.environment.name }}
     steps:
       - id: checkout
         name: Check out source code
@@ -268,7 +267,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/ci-iac-role
-          role-duration-seconds: 3600
+          role-duration-seconds: 4800
           aws-region: ${{ secrets.AWS_REGION }}
 
       - id: add-kubeconfig
@@ -336,7 +335,7 @@ jobs:
         with:
           cmd: yq '.[env(ENVIRONMENT_NAME)].publicFacing' 'infra/config/github-environments-config.yaml'
         env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+          ENVIRONMENT_NAME: ${{ matrix.environment.name }}
 
       - id: install-elb-503-subscription-endpoint
         name: Install ELB 503 subscription endpoint
@@ -365,20 +364,20 @@ jobs:
         name: Deploy AWS Application Load Balancer for environment
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
-          name: "biomage-k8s-alb-${{ matrix.environment-type }}"
+          parameter-overrides: "Environment=${{ matrix.environment.type }},PublicFacing=${{ steps.platform-public-facing.outputs.result }}"
+          name: "biomage-k8s-alb-${{ matrix.environment.type }}"
           template: 'infra/cf-loadbalancer.yaml'
           no-fail-on-empty-changeset: "1"
 
       - id: setup-domain
         name: Compile environment-specific domain name
         run: |-
-          if [ "${{ matrix.environment-type }}" = "production" ]; then
+          if [ "${{ matrix.environment.type }}" = "production" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
             ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN }}"
           fi
-          if [ "${{ matrix.environment-type }}" = "staging" ]; then
+          if [ "${{ matrix.environment.type }}" = "staging" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME_STAGING }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
             ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN_STAGING }}"
@@ -394,8 +393,8 @@ jobs:
       #   name: Deploy Route 53 DNS records to ELB
       #   uses: aws-actions/aws-cloudformation-github-deploy@v1
       #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment-type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-      #     name: "biomage-alb-route53-${{ matrix.environment-type }}"
+      #     parameter-overrides: "Environment=${{ matrix.environment.type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+      #     name: "biomage-alb-route53-${{ matrix.environment.type }}"
       #     template: 'infra/cf-route53.yaml'
       #     no-fail-on-empty-changeset: "1"
 
@@ -428,8 +427,8 @@ jobs:
         name: Deploy AWS Step Function (state machine) roles
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "biomage-state-machine-role-${{ matrix.environment-type }}"
+          parameter-overrides: "Environment=${{ matrix.environment.type }}"
+          name: "biomage-state-machine-role-${{ matrix.environment.type }}"
           template: 'infra/cf-state-machine-role.yaml'
           capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
           no-fail-on-empty-changeset: "1"
@@ -486,7 +485,7 @@ jobs:
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment.name}}/cluster-admins-$CLUSTER_ENV"
           while IFS= read -r user
           do
             echo "Adding cluster admin rights to $user"
@@ -495,7 +494,7 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+          done < "infra/config/cluster/${{matrix.environment.name}}/cluster-admins-$CLUSTER_ENV"
 
       ###
       ### INSTALL AND CONFIGURE FLUX V2 ###
@@ -506,7 +505,7 @@ jobs:
         with:
           cmd: yq '.[env(ENVIRONMENT_NAME)].selfSignedCertificate' 'infra/config/github-environments-config.yaml'
         env:
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+          ENVIRONMENT_NAME: ${{ matrix.environment.name }}
 
       - id: fill-account-specific-metadata
         name: Fill in account specific metadata in ConfigMap
@@ -587,11 +586,11 @@ jobs:
             --context arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
           )
 
-          if [ "${{ matrix.environment-type }}" = "staging" ]
+          if [ "${{ matrix.environment.type }}" = "staging" ]
           then
             echo Flux will be deployed in staging with read and write permissions
             args+=(--read-write-key)
-          elif [ "${{ matrix.environment-type }}" = "production" ]
+          elif [ "${{ matrix.environment.type }}" = "production" ]
           then
             echo Flux will be deployed in production with read-only permissions
           fi
@@ -602,7 +601,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
-          ENVIRONMENT_NAME: ${{ matrix.environment-name }}
+          ENVIRONMENT_NAME: ${{ matrix.environment.name }}
 
       - id: fill-in-sync-yaml
         name: Create the sync.yaml file that contains the Kustomization to sync the cluster
@@ -673,16 +672,15 @@ jobs:
   deploy-monitoring:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster]
+    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster, load-config]
     if: always() && (needs.check-secrets.result == 'success') && (github.event.inputs.workflow_actions == 'deploy monitoring')
     env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
+      CLUSTER_ENV: ${{ matrix.environment.type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     strategy:
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment: ${{ fromJson(needs.load-config.outputs.deployment_matrix)}}
+    environment: ${{ matrix.environment.name }}
     steps:
       - id: checkout
         name: Check out source code
@@ -711,8 +709,8 @@ jobs:
         name: Setup permissions required for cluster to log to Cloudwatch
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "cluster-cloudwatch-logging-policy-${{ matrix.environment-type }}"
+          parameter-overrides: "Environment=${{ matrix.environment.type }}"
+          name: "cluster-cloudwatch-logging-policy-${{ matrix.environment.type }}"
           template: 'infra/cluster-logging/cf-cluster-log-cloudwatch-policy.yaml'
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
@@ -779,15 +777,15 @@ jobs:
       # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
+        if: ${{ secrets.DATADOG_API_KEY != '' }}
         run: |-
-          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
-            helm repo add datadog https://helm.datadoghq.com
-            helm repo update
-            helm upgrade datadog-agent datadog/datadog \
-              -f infra/datadog/cluster-agent-values.yaml \
-              --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-              --set datadog.clusterName=biomage-$CLUSTER_ENV \
-              --install
+          helm repo add datadog https://helm.datadoghq.com
+          helm repo update
+          helm upgrade datadog-agent datadog/datadog \
+            -f infra/datadog/cluster-agent-values.yaml \
+            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
+            --set datadog.clusterName=biomage-$CLUSTER_ENV \
+            --install
 
       - id: setup-datadog-sidecar-permissions
         name: Setup Datadog sidecar permissions

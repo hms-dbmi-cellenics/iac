@@ -14,10 +14,14 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
+    # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
   remove-staging:
     name: Remove staging environment
     runs-on: ubuntu-20.04
-    environment: HMS
+    needs: load-config
+    environment: ${{ needs.load-config.outputs.domain_name}}
     steps:
       - id: setup-aws
         name: Configure AWS credentials

@@ -16,13 +16,17 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
+    # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
+
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-type: [staging, production]
-        environment-name: [HMS]
+        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -53,13 +57,13 @@ jobs:
   update-users:
     name: Updates Kubernetes user-related resources on the EKS cluster
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-type: [staging, production]
-        environment-name: [HMS]
-    environment: ${{ matrix.environment-name }}
+        environment: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
+    environment: ${{ matrix.environment.name }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
+      CLUSTER_ENV: ${{ matrix.environment.type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     steps:
       - id: checkout

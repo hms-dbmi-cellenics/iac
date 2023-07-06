@@ -12,12 +12,17 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
+    # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
+
   backup-users:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-name: [HMS]
+        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
     environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-node

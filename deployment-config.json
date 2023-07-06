@@ -1,6 +1,6 @@
 {
     "biomage-org": {
-        "domain_name": "biomage",
+        "domain_name": "Biomage",
         "environment_names": [
             "alabs",
             "Biomage",
@@ -26,7 +26,7 @@
         }
     },
     "hms-dbmi-cellenics": {
-        "domain_name": "hms",
+        "domain_name": "HMS",
         "environment_names": [
             "HMS"
         ],
