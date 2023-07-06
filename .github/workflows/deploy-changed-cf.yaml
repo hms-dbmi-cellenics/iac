@@ -48,7 +48,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show the matrix
-        run: echo "The matrix is ${{ needs.load-config.outputs.deployment_matrix }}"
+        run: echo "The matrix is ${{ needs.load-config.outputs.image_account_id }}"
 
 
 
