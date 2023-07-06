@@ -26,7 +26,7 @@ on:
         value: ${{ jobs.setup.outputs.image_account_region }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
-        value: ${{ jobs.setup.outputs.deployment_matrix }}
+        value: ${{ steps.generate_deployment_matrix.outputs.deployment_matrix }}
 
 jobs:
   setup:
@@ -35,7 +35,6 @@ jobs:
       environment_names: ${{ steps.load_variables.outputs.environment_names }}
       image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
       image_account_region: ${{ steps.load_variables.outputs.image_account_region }}
-      deployment_matrix: ${{ steps.generate_deployment_matrix.outputs.deployment_matrix }}
 
     steps:
     - name: Checkout
