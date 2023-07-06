@@ -3,7 +3,7 @@
         "domain_name": "biomage",
         "environment_names": [
             "alabs",
-            "biomage",
+            "Biomage",
             "trv"
         ],
         "docker_image_account": {
@@ -28,7 +28,7 @@
     "hms-dbmi-cellenics": {
         "domain_name": "hms",
         "environment_names": [
-            "hms"
+            "HMS"
         ],
         "docker_image_account": {
             "id": 160782110667,

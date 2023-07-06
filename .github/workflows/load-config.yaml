@@ -70,8 +70,8 @@ jobs:
           .value.deployment_environments |
           to_entries[] |
           {
-            environment_name: .key,
-            environment_type: .value[]
+            name: .key,
+            type: .value[]
           }
         ]')
         echo ${DEPLOYMENT_MATRIX}
