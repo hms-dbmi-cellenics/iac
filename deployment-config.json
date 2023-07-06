@@ -11,9 +11,20 @@
             "region": "eu-west-1"
         },
         "support_email": "engineering@biomage.net",
-        "reply_email": "hello@biomage.net"
+        "reply_email": "hello@biomage.net",
+        "deployment_environments": {
+            "trv": [
+                "production"
+            ],
+            "alabs": [
+                "production"
+            ],
+            "biomage": [
+                "production",
+                "staging"
+            ]
+        }
     },
-
     "hms-dbmi-cellenics": {
         "domain_name": "hms",
         "environment_names": [
@@ -24,6 +35,12 @@
             "region": "us-east-1"
         },
         "support_email": "alex_pickering@hms.harvard.edu",
-        "reply_email": "alex_pickering@hms.harvard.edu"
+        "reply_email": "alex_pickering@hms.harvard.edu",
+        "deployment_environments": {
+            "HMS": [
+                "staging",
+                "production"
+            ]
+        }
     }
 }

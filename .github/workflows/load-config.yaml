@@ -15,29 +15,63 @@ on:
         description: "Environment for validation (leave blank to skip validation)"
         required: false
     outputs:
-      config:
-        description: "Configuration data for the current organization"
-        value: ${{ jobs.setup.outputs.config }}
+      environment_names:
+        description: "The names of all environments"
+        value: ${{ jobs.setup.outputs.environment_names }}
+      image_account_id:
+        description: "Account ID that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_id }}
+      image_account_region:
+        description: "Account region that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_region }}
+      deployment_matrix:
+        description: "All allowed combinations of environment name and environment type"
+        value: ${{ jobs.setup.outputs.matrix }}
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      config: ${{ steps.load_variables.outputs.config }}
+      image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
+      environment_names: ${{ steps.load_variables.outputs.environment_names }}
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with: ###########  REMOVE THIS WHEN MERGING IN MASTER
+        ref: hms-merge #####################################
 
-      ### DELETE BEFORE MERGING
-      with: 
-        ref: hms-merge
-
-    - id: load_variables
-      name: Load variables
+    - name: Load variables
+      id: load_variables
       run: |
-        CONFIG=$(cat deployment-config.json | jq -r --arg org "${{ github.repository_owner }}" '.[$org]')
-        echo "{config}={$CONFIG}" >> $GITHUB_OUTPUT
+        CONFIG_FILE=$(cat deployment-config.json | jq .)
+
+        ENVIRONMENT_NAMES=    $(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].environment_names | join(",")')
+        IMAGE_ACCOUNT_ID=     $(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
+        IMAGE_ACCOUNT_REGION= $(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
+
+        echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
+        echo "environment_names=$ENVIRONMENT_NAMES"
+        echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
+        echo "image_account_id=$IMAGE_ACCOUNT_ID"
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION" >> $GITHUB_OUTPUT
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION"
+
+    - name: Generate deployment matrix
+      id: generate_deployment_matrix
+      run: |
+        MATRIX=$(jq -r '
+        [
+          to_entries[] |
+          .value.deployment_environments |
+          to_entries[] |
+          {
+            environment_name: .key,
+            environment_type: .value[]
+          }
+        ]' config.json)
+        echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+      shell: bash
 
   validate-environment-name:
     name: Validate selected option
@@ -47,21 +81,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-        ### DELETE BEFORE MERGING
-        with: ####
-          ref: hms-merge ###
-          
+        with: ###########  REMOVE THIS WHEN MERGING IN MASTER
+          ref: hms-merge #####################################
       - name: Validate input against config
         run: |
-          CONFIG='${{ needs.setup.outputs.config }}'
-          ENVIRONMENT_INPUT="${{ github.event.inputs.environment }}"
-          ENVIRONMENTS=$(echo $CONFIG | jq -r '.environment_names')
-          
-          if [[ "$ENVIRONMENTS" =~ "$ENVIRONMENT_INPUT" ]] || [[ "$ENVIRONMENT_INPUT" == "all" ]]; then
-            echo "Valid option selected"
-            exit 0
-          else
-            echo "Invalid option selected"
-            exit 1
-          fi
+          IFS=',' read -ra valid_options <<< "${{ needs.setup.outputs.environment_names }}"
+          for i in "${valid_options[@]}"; do
+            if [[ "${{ github.event.inputs.environment }}" == "$i" ]] || [[ "${{ github.event.inputs.environment }}" == "all" ]]; then
+              echo "Valid option selected"
+              exit 0
+            fi
+          done
+          echo "Invalid option selected"
+          exit 1
