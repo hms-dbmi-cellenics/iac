@@ -42,6 +42,7 @@ jobs:
   set-environments:
     name: Set up environment name and environment type for action run
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
         environment-name: ${{ fromJson(needs.load-config.outputs.environment_names) }}
