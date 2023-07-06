@@ -41,15 +41,19 @@ jobs:
     name: Output selected option
     needs: load-config
     runs-on: ubuntu-20.04
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show which option was selected
-        run: echo "The option selected was ${{ needs.load-config.outputs.environment_names }}"
+        run: |
+          CONFIG='${{ fromJSON(needs.load-config.outputs.config) }}'
+          ENVIRONMENTS=$(echo $CONFIG | jq -r '.environment_names')
+          echo "The options are: $ENVIRONMENTS"
 
 
   # set-environments:
-  #
+  
   #   name: Set up environment name and environment type for action run
   #   runs-on: ubuntu-20.04
   #   strategy:

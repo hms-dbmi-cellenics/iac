@@ -13,7 +13,9 @@
         "support_email": "engineering@biomage.net",
         "reply_email": "hello@biomage.net"
     },
+
     "hms-dbmi-cellenics": {
+        "domain_name": "hms",
         "environment_names": [
             "hms"
         ],
