@@ -91,12 +91,12 @@ jobs:
           ref: hms-merge #####################################
       - name: Validate input against config
         run: |
-          IFS=',' read -ra valid_options <<< "${{ needs.setup.outputs.environment_names }}"
-          for i in "${valid_options[@]}"; do
-            if [[ "${{ github.event.inputs.environment }}" == "$i" ]] || [[ "${{ github.event.inputs.environment }}" == "all" ]]; then
-              echo "Valid option selected"
-              exit 0
-            fi
-          done
-          echo "Invalid option selected"
-          exit 1
+          IFS=',' read -ra valid_options <<< "${{ needs.setup.outputs.environment_names }},all"
+
+          if [[ " ${valid_options[@]} " =~ " ${{ github.event.inputs.environment }} " ]]; then
+            echo "Valid option selected"
+            exit 0
+          else
+            echo "Invalid option selected"
+            exit 1
+          fi
