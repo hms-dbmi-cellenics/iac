@@ -37,21 +37,23 @@ jobs:
     # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
     with:
       environment: ${{ github.event.inputs.environment_name }}
+
   output-config:
     name: Output selected option
     needs: load-config
     runs-on: ubuntu-20.04
-
+    strategy:
+      matrix: ${{ fromJson(needs.load-config.outputs.matrix) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3
-      - name: Show which option was selected
-        run: echo "The option selected was ${{ needs.load-config.outputs.environment_names }}"
+      - name: Show the matrix
+        run: echo "The name is ${{ matrix.environment_name }}, type is ${{ matrix.environment_type }}"
 
 
 
   # set-environments:
-  
+
   #   name: Set up environment name and environment type for action run
   #   runs-on: ubuntu-20.04
   #   strategy:
