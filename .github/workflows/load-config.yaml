@@ -62,7 +62,7 @@ jobs:
       run: |
         CONFIG_FILE=$(cat deployment-config.json | jq .)
 
-        DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c '
+        DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c -r '
         [
           to_entries[] |
           .value.deployment_environments |
