@@ -73,7 +73,7 @@ jobs:
           }
         ]')
         echo ${DEPLOYMENT_MATRIX}
-        echo "deployment_matrix=${DEPLOYMENT_MATRIX}" >> $GITHUB_OUTPUT
+        echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
 
       shell: bash
 
