@@ -43,14 +43,13 @@ jobs:
     needs: load-config
     runs-on: ubuntu-20.04
     strategy:
-      matrix: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
+      matrix:
+        config: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2 # TODO: check if there is a v3
       - name: Show the matrix
-        run: echo "The name is ${{ matrix.environment_name }} at ${{ matrix.environment_type }}"
-
-
+        run: echo "The name is ${{ matrix.config.environment_name }} at ${{ matrix.config.environment_type }}"
 
   # set-environments:
 
