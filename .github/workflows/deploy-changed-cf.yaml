@@ -346,14 +346,6 @@ jobs:
          template: ${{ matrix.template }}
          no-fail-on-empty-changeset: "1"
 
-      # The following steps are only necessary for IAM Service Account roles.
-      - id: get-oidc
-        if: ${{ contains(matrix.template, 'irsa-') }}
-        name: Get OIDC provider information for IRSA role
-        run: |-
-          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
-          echo "oidc-provider=$OIDC_PROVIDER" >> $GITHUB_OUTPUT
-
       - id: deploy-irsa-template
         if: ${{ contains(matrix.template, 'irsa-') }}
         name: Deploy IRSA CloudFormation template
@@ -364,6 +356,16 @@ jobs:
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+          
+      # The following steps are only necessary for IAM Service Account roles.
+      - id: get-oidc
+        if: ${{ contains(matrix.template, 'irsa-') }}
+        name: Get OIDC provider information for IRSA role
+        run: |-
+          OIDC_PROVIDER=$(aws eks describe-cluster --name "biomage-$CLUSTER_ENV" --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
+          echo "oidc-provider=$OIDC_PROVIDER" >> $GITHUB_OUTPUT
+
+
 
   setup-rds-roles:
     name: Setup RDS roles for default resources
