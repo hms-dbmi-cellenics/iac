@@ -286,7 +286,7 @@ jobs:
         if: ${{ !contains(matrix.template, 'irsa-') && !contains(env.TEMPLATES_WITH_EXTRA_PARAMS, matrix.template) }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: ${{ steps.get-params.outputs.params }}
+          parameter-overrides: "Environment=${{ matrix.environment.type }}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
@@ -298,6 +298,17 @@ jobs:
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
           parameter-overrides: "Environment=${{ matrix.environment.type }},SupportEmail=${{ needs.load-config.outputs.support_email }}"
+          name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-cognito-case-insensitive
+        name: Deploy CloudFormation cognito-case-insensitive template
+        if: ${{ matrix.template == 'cf/cognito-case-insensitive.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment.type }},ReplyEmail=${{ needs.load-config.outputs.reply_email }}, DomainName=${{needs.load-config.outputs.domain_name}}"
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
