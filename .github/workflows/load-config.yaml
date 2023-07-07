@@ -24,6 +24,9 @@ on:
       image_account_region:
         description: "Account region that the docker images are stored in"
         value: ${{ jobs.setup.outputs.image_account_region }}
+      domain_name:
+        description: "The Domain name of the organisation"
+        value: ${{ jobs.setup.outputs.domain_name }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
         value: ${{ jobs.setup.outputs.deployment_matrix }}
@@ -35,6 +38,7 @@ jobs:
       environment_names: ${{ steps.load_variables.outputs.environment_names }}
       image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
       image_account_region: ${{ steps.load_variables.outputs.image_account_region }}
+      domain_name: ${{ steps.load_variables.outputs.domain_name }}
       deployment_matrix: ${{ steps.generate_deployment_matrix.outputs.deployment_matrix }}
 
     steps:
@@ -50,6 +54,7 @@ jobs:
         ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].environment_names')
         IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
         IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
+        DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].domain_name')
 
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
         echo "environment_names=$ENVIRONMENT_NAMES"
@@ -57,6 +62,8 @@ jobs:
         echo "image_account_id=$IMAGE_ACCOUNT_ID"
         echo "image_account_region=$IMAGE_ACCOUNT_REGION" >> $GITHUB_OUTPUT
         echo "image_account_region=$IMAGE_ACCOUNT_REGION"
+        echo "domain_name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
+        echo "domain_name=$DOMAIN_NAME"
 
     - name: Generate deployment matrix
       id: generate_deployment_matrix
