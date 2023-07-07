@@ -27,6 +27,12 @@ on:
       domain_name:
         description: "The Domain name of the organisation"
         value: ${{ jobs.setup.outputs.domain_name }}
+      support_email:
+        description: "The support email"
+        value: ${{ jobs.setup.outputs.support_email }}
+      reply_email:
+        description: "The reploy email"
+        value: ${{ jobs.setup.outputs.reply_email }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
         value: ${{ jobs.setup.outputs.deployment_matrix }}
@@ -39,6 +45,8 @@ jobs:
       image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
       image_account_region: ${{ steps.load_variables.outputs.image_account_region }}
       domain_name: ${{ steps.load_variables.outputs.domain_name }}
+      support_email: ${{ steps.load_variables.outputs.support_email }}
+      reply_email: ${{ steps.load_variables.outputs.reply_email }}
       deployment_matrix: ${{ steps.generate_deployment_matrix.outputs.deployment_matrix }}
 
     steps:
@@ -55,6 +63,8 @@ jobs:
         IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
         IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
         DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].domain_name')
+        SUPPORT_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].support_email')
+        REPLY_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].reply_email')
 
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
         echo "environment_names=$ENVIRONMENT_NAMES"
@@ -64,6 +74,10 @@ jobs:
         echo "image_account_region=$IMAGE_ACCOUNT_REGION"
         echo "domain_name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
         echo "domain_name=$DOMAIN_NAME"
+        echo "support_email=$SUPPORT_EMAIL" >> $GITHUB_OUTPUT
+        echo "support_email=$SUPPORT_EMAIL"
+        echo "reply_email=$REPLY_EMAIL" >> $GITHUB_OUTPUT
+        echo "reply_email=$REPLY_EMAIL"
 
     - name: Generate deployment matrix
       id: generate_deployment_matrix
