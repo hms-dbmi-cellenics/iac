@@ -101,6 +101,11 @@ Resources:
 
               const items = objects.map((object) => ({ Key: object.Key }));
 
+              if(!items.length) {
+                console.log(`== No items to be deleted ==`);
+                return;
+              }
+
               const deleteObjectParams = {
                 Bucket: bucketName,
                 Delete: {
@@ -118,6 +123,12 @@ Resources:
 
           exports.handler = async (event) => {
             const { key, bucketName } = event;
+
+            if(!key) {
+              console.log(`== Invalid key: ${key}, skip deleting files ==`);
+              return;
+            }
+
             const realBucketName = `${bucketName}-${process.env.CLUSTER_ENV}-${process.env.AWS_ACCOUNT_ID}`;
             return deleteS3Files(key, realBucketName);
           };
