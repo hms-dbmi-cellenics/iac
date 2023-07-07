@@ -47,7 +47,7 @@ jobs:
       name: Load variables
       run: |
         CONFIG_FILE=$(cat deployment-config.json | jq .)
-        ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq --arg org "${{ github.repository_owner }}" '.[$org].environment_names')
+        ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].environment_names')
         IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
         IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
 
