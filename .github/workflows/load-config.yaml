@@ -47,6 +47,7 @@ jobs:
       name: Load variables
       run: |
         CONFIG_FILE=$(cat deployment-config.json | jq .)
+        ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq --arg org "${{ github.repository_owner }}" '.[$org].environment_names')
 
         ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].environment_names | join(",")')
         IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
@@ -91,9 +92,9 @@ jobs:
           ref: hms-merge #####################################
       - name: Validate input against config
         run: |
-          IFS=',' read -ra valid_options <<< "${{ needs.setup.outputs.environment_names }},all"
+          valid_options=("all" ${{fromJson(needs.setup.outputs.environment_names)}})
 
-          if [[ " ${valid_options[@]} " =~ " ${{ github.event.inputs.environment }} " ]]; then
+          if [[ " ${valid_options[*]} " =~ " ${{ github.event.inputs.environment }} " ]]; then
             echo "Valid option selected"
             exit 0
           else
