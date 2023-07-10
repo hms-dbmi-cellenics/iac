@@ -42,7 +42,7 @@ on:
         value: ${{ jobs.setup.outputs.reply_email }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
-        value: ${{ jobs.setup.outputs.deployment_matrix }}
+        value: ${{ jobs.setup.generate-deployment-matrix.deployment_matrix }}
 
 jobs:
   setup:
@@ -54,7 +54,7 @@ jobs:
       domain_name: ${{ steps.load_variables.outputs.domain_name }}
       support_email: ${{ steps.load_variables.outputs.support_email }}
       reply_email: ${{ steps.load_variables.outputs.reply_email }}
-      deployment_matrix: ${{ steps.generate_deployment_matrix.outputs.deployment_matrix }}
+      deployment_matrix: ${{ steps.generate-deployment-matrix.outputs.deployment_matrix }}
 
     steps:
     - name: Checkout
@@ -86,8 +86,8 @@ jobs:
         echo "reply_email=$REPLY_EMAIL" >> $GITHUB_OUTPUT
         echo "reply_email=$REPLY_EMAIL"
 
-  validate-environment-name:
-    name: Validate selected option
+  generate-deployment-matrix:
+    name: Generate deployment matrix based on the config files
     needs: setup
     if: ${{ github.event.inputs.environment-name != '' }}
     runs-on: ubuntu-20.04
@@ -108,38 +108,34 @@ jobs:
             echo "Invalid option selected"
             exit 1
           fi
+      - name: Generate deployment matrix
+        run: |
+          CONFIG_FILE=$(cat deployment-config.json | jq .)
 
-  generate-deployment-matrix:
-    name: Generate deployment matrix
-    needs: validate-environment-name
-    run: |
-      CONFIG_FILE=$(cat deployment-config.json | jq .)
+          ENV_NAME=${{ github.event.inputs.environment_name }}
+          ENV_TYPE=${{ github.event.inputs.environment_type }}
 
-      ENV_NAME=${{ github.event.inputs.environment_name }}
-      ENV_TYPE=${{ github.event.inputs.environment_type }}
+          # If "all" is chosen, we use a regex that matches anything
+          if [ "$ENV_NAME" = "all" ]; then
+              ENV_NAME=".*"
+          fi
 
-      # If "all" is chosen, we use a regex that matches anything
-      if [ "$ENV_NAME" = "all" ]; then
-          ENV_NAME=".*"
-      fi
+          # If "staging and production" is chosen, we convert it to a format compatible with regex
+          if [ "$ENV_TYPE" = "staging and production" ]; then
+              ENV_TYPE="(staging|production)"
+          fi
 
-      # If "staging and production" is chosen, we convert it to a format compatible with regex
-      if [ "$ENV_TYPE" = "staging and production" ]; then
-          ENV_TYPE="(staging|production)"
-      fi
-
-      DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
-      [
-        to_entries[] |
-        .value.deployment_environments |
-        to_entries[] |
-        select((.key|test($env_name)) and (.value[]|test($env_type))) |
-        {
-          name: .key,
-          type: .value[]
-        }
-      ]')
-      echo "deployment_matrix=$DEPLOYMENT_MATRIX"
-      echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
-
-    shell: bash
+          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
+          [
+            to_entries[] |
+            .value.deployment_environments |
+            to_entries[] |
+            select((.key|test($env_name)) and (.value[]|test($env_type))) |
+            {
+              name: .key,
+              type: .value[]
+            }
+          ]')
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX"
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+        shell: bash
