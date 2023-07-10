@@ -3,16 +3,23 @@ name: Load Deployment Config
 on:
   workflow_dispatch:
     inputs:
-      environment:
+      environment-name:
         type: string
-        description: "Environment for validation (leave blank to skip validation)"
+        description: "Environment name"
         required: false
-
+      environment-type:
+        type: string
+        description: "Environment type"
+        required: false
   workflow_call:
     inputs:
-      environment:
+      environment-name:
         type: string
-        description: "Environment for validation (leave blank to skip validation)"
+        description: "Environment name"
+        required: false
+      environment-type:
+        type: string
+        description: "Environment type"
         required: false
     outputs:
       environment_names:
@@ -79,30 +86,10 @@ jobs:
         echo "reply_email=$REPLY_EMAIL" >> $GITHUB_OUTPUT
         echo "reply_email=$REPLY_EMAIL"
 
-    - name: Generate deployment matrix
-      id: generate_deployment_matrix
-      run: |
-        CONFIG_FILE=$(cat deployment-config.json | jq .)
-
-        DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c '
-        [
-          to_entries[] |
-          .value.deployment_environments |
-          to_entries[] |
-          {
-            name: .key,
-            type: .value[]
-          }
-        ]')
-        echo ${DEPLOYMENT_MATRIX}
-        echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
-
-      shell: bash
-
   validate-environment-name:
     name: Validate selected option
     needs: setup
-    if: ${{ github.event.inputs.environment != '' }}
+    if: ${{ github.event.inputs.environment-name != '' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
@@ -121,3 +108,38 @@ jobs:
             echo "Invalid option selected"
             exit 1
           fi
+
+  generate-deployment-matrix:
+    name: Generate deployment matrix
+    needs: validate-environment-name
+    run: |
+      CONFIG_FILE=$(cat deployment-config.json | jq .)
+
+      ENV_NAME=${{ github.event.inputs.environment_name }}
+      ENV_TYPE=${{ github.event.inputs.environment_type }}
+
+      # If "all" is chosen, we use a regex that matches anything
+      if [ "$ENV_NAME" = "all" ]; then
+          ENV_NAME=".*"
+      fi
+
+      # If "staging and production" is chosen, we convert it to a format compatible with regex
+      if [ "$ENV_TYPE" = "staging and production" ]; then
+          ENV_TYPE="(staging|production)"
+      fi
+
+      DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
+      [
+        to_entries[] |
+        .value.deployment_environments |
+        to_entries[] |
+        select((.key|test($env_name)) and (.value[]|test($env_type))) |
+        {
+          name: .key,
+          type: .value[]
+        }
+      ]')
+      echo "deployment_matrix=$DEPLOYMENT_MATRIX"
+      echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+
+    shell: bash
