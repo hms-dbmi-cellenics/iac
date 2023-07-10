@@ -19,10 +19,12 @@ on:
         type: string
         description: "Environment name"
         required: false
+        default: all
       environment_type:
         type: string
         description: "Environment type"
         required: false
+        default: staging and production
     outputs:
       environment_names:
         description: "The names of all environments"
@@ -102,7 +104,7 @@ jobs:
           valid_options_json=$(echo '${{ needs.setup.outputs.environment_names }}' | jq '. += ["all"]')
           valid_options=($(echo $valid_options_json | jq -r '.[]'))
 
-          echo ${{ github.event.inputs.environment_name }}
+          echo "Selected environment name: ${{ github.event.inputs.environment_name }}"
 
           if [[ " ${valid_options[@]} " =~ " ${{ github.event.inputs.environment_name }} " ]]; then
             echo "Valid option selected"
