@@ -7,10 +7,12 @@ on:
         type: string
         description: "Environment name"
         required: false
+        default: "all"
       environment_type:
         type: string
         description: "Environment type"
         required: false
+        default: "staging and production"
   workflow_call:
     inputs:
       environment_name:
@@ -89,7 +91,6 @@ jobs:
   generate-deployment-matrix:
     name: Generate deployment matrix based on the config files
     needs: setup
-    if: ${{ github.event.inputs.environment_name != '' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
