@@ -42,7 +42,7 @@ on:
         value: ${{ jobs.setup.outputs.reply_email }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
-        value: ${{ jobs.setup.generate-deployment-matrix.deployment_matrix }}
+        value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
 
 jobs:
   setup:
