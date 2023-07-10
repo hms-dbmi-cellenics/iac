@@ -102,6 +102,8 @@ jobs:
           valid_options_json=$(echo '${{ needs.setup.outputs.environment_names }}' | jq '. += ["all"]')
           valid_options=($(echo $valid_options_json | jq -r '.[]'))
 
+          echo ${{ github.event.inputs.environment_name }}
+
           if [[ " ${valid_options[@]} " =~ " ${{ github.event.inputs.environment_name }} " ]]; then
             echo "Valid option selected"
             exit 0
