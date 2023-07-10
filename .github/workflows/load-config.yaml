@@ -112,8 +112,8 @@ jobs:
         run: |
           CONFIG_FILE=$(cat deployment-config.json | jq .)
 
-          ENV_NAME=${{ github.event.inputs.environment_name }}
-          ENV_TYPE=${{ github.event.inputs.environment_type }}
+          ENV_NAME="${{ github.event.inputs.environment_name }}"
+          ENV_TYPE="${{ github.event.inputs.environment_type }}"
 
           # If "all" is chosen, we use a regex that matches anything
           if [ "$ENV_NAME" = "all" ]; then
@@ -130,13 +130,13 @@ jobs:
             to_entries[] |
             .value.deployment_environments |
             to_entries[] |
-            select((.key|test($env_name)) && (.value[]|test($env_type))) |
+            select((.key|test($env_name)) and (.value[]|test($env_type))) |
             {
               name: .key,
               type: .value[]
             }
           ]')
 
-          echo ${DEPLOYMENT_MATRIX}
-          echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_ENV
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX"
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
         shell: bash
