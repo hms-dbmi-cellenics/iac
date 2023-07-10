@@ -37,8 +37,8 @@ jobs:
     uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
     # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
     with:
-      environment-name: ${{ github.event.inputs.environment_name }}
-      environment-type: ${{ github.event.inputs.environment_type }}
+      environment_name: ${{ github.event.inputs.environment_name }}
+      environment_type: ${{ github.event.inputs.environment_type }}
 
   set-environments:
     name: Set up environment name and environment type for action run
