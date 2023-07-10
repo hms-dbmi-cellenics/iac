@@ -136,6 +136,7 @@ jobs:
               type: .value[]
             }
           ]')
-          echo "deployment_matrix=$DEPLOYMENT_MATRIX"
-          echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+
+          echo ${DEPLOYMENT_MATRIX}
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_ENV
         shell: bash
