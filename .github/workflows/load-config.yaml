@@ -99,6 +99,16 @@ jobs:
         uses: actions/checkout@v2
         with: ###########  REMOVE THIS WHEN MERGING IN MASTER
           ref: hms-merge #####################################
+      - name: Fill if empty
+        run: |
+          if [ -z "${{ github.event.inputs.environment_name }}" ]; then
+            echo "environment_name is empty, setting to default"
+            echo "environment_name=all" >> $GITHUB_OUTPUT
+          fi
+          if [ -z "${{ github.event.inputs.environment_type }}" ]; then
+            echo "environment_type is empty, setting to default"
+            echo "environment_type=staging and production" >> $GITHUB_OUTPUT
+          fi
       - name: Validate input against config
         run: |
           valid_options_json=$(echo '${{ needs.setup.outputs.environment_names }}' | jq '. += ["all"]')
