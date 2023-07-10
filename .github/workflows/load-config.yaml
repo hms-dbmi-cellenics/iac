@@ -7,12 +7,12 @@ on:
         type: string
         description: "Environment name"
         required: false
-        default: "all"
+        default: all
       environment_type:
         type: string
         description: "Environment type"
         required: false
-        default: "staging and production"
+        default: staging and production
   workflow_call:
     inputs:
       environment_name:
