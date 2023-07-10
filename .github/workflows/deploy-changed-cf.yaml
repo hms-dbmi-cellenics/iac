@@ -40,75 +40,6 @@ jobs:
       environment_name: ${{ github.event.inputs.environment_name }}
       environment_type: ${{ github.event.inputs.environment_type }}
 
-  set-environments:
-    name: Set up environment name and environment type for action run
-    runs-on: ubuntu-20.04
-    needs: load-config
-    strategy:
-      matrix:
-        environment-name: ${{ fromJson(needs.load-config.outputs.environment_names) }}
-    environment: ${{ matrix.environment-name }}
-    outputs:
-        env-type: ${{ steps.set-env-type.outputs.env-type }}
-        env-name: ${{ steps.set-env-name.outputs.env-name }}
-    steps:
-      - id: set-env-type
-        name: Set up environment type
-        run: |-
-          ENVIRONMENT_TYPE=""
-
-          # When merging a PR, the value of github.event.inputs.environment_type is empty
-          # We want this to be "staging and production"
-          ENVIRONMENT_TYPE_ON_MERGE="staging and production"
-
-          # If github.event.inputs.environment_type is not empty, we're running this workflow manually
-          # In that case, set WORKFLOW_ENV accordingly
-          if [ ! -z "$INPUT_ENVIRONMENT_TYPE" ]; then
-            ENVIRONMENT_TYPE="$INPUT_ENVIRONMENT_TYPE"
-          else
-            ENVIRONMENT_TYPE="$ENVIRONMENT_TYPE_ON_MERGE"
-          fi
-
-          echo "Using env type: $ENVIRONMENT_TYPE"
-
-          if [ "$ENVIRONMENT_TYPE" = "staging" ]; then
-            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
-          elif [ "$ENVIRONMENT_TYPE" = "production" ]; then
-            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
-          elif [ "$ENVIRONMENT_TYPE" = "staging and production" ]; then
-            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
-          fi
-        env:
-            INPUT_ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
-      - id: set-env-name
-        name: Set up environment name
-        run: |-
-          ENVIRONMENT_NAME=""
-
-          # When merging a PR, the value of github.event.inputs.environment_name is empty.
-          # we want this to be "all"
-          ENVIRONMENT_NAME_ON_MERGE="all"
-
-          # If github.event.inputs.environment_type is not empty, we're running this workflow manually.
-          # In that case, set WORKFLOW_ENV according to the choice
-          if [ ! -z "$INPUT_ENVIRONMENT_NAME" ]; then
-            ENVIRONMENT_NAME="$INPUT_ENVIRONMENT_NAME"
-          else
-            ENVIRONMENT_NAME="$ENVIRONMENT_NAME_ON_MERGE"
-          fi
-
-          echo "Using env name: $ENVIRONMENT_NAME"
-
-          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo "env-name=${{ needs.load-config.outputs.environment_names }}" >> $GITHUB_ENV
-            echo "env-name=${{ needs.load-config.outputs.environment_names }}"
-          else
-            echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_ENV
-            echo "env-name=['${ENVIRONMENT_NAME}']"
-          fi
-        env:
-            INPUT_ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
-
   check-secrets:
     name: Check secrets
     needs: set-environments
@@ -116,14 +47,8 @@ jobs:
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-        exclude:
-            - environment-name: trv
-              environment-type: staging
-            - environment-name: alabs
-              environment-type: staging
-    environment: ${{ matrix.environment-name }}
+        environment: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
+    environment: ${{ matrix.environment.name }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.

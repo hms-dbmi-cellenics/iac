@@ -43,38 +43,6 @@ jobs:
     with:
       environment-name: ${{ github.event.inputs.environment_name }}
       environment-type: ${{ github.event.inputs.environment_type }}
-  set-environments:
-    name: Set up environment name and environment type for action run
-    runs-on: ubuntu-20.04
-    needs: load-config
-    outputs:
-      env-type: ${{ steps.set-env-type.outputs.env-type }}
-      env-name: ${{ steps.set-env-name.outputs.env-name }}
-    steps:
-      - id: set-env-type
-        name: Set up environment type
-        run: |-
-          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
-            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
-            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
-            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
-          fi
-        env:
-          ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
-      - id: set-env-name
-        name: Set up environment name
-        run: |-
-          if [ "${ENVIRONMENT_NAME}" = "all" ]; then
-            echo "env-name=${{ needs.load-config.outputs.environment_names }}" >> $GITHUB_ENV
-            echo "env-name=${{ needs.load-config.outputs.environment_names }}"
-          else
-            echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_ENV
-            echo "env-name=['${ENVIRONMENT_NAME}']"
-          fi
-        env:
-          ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
 
   check-secrets:
     name: Check that sufficient secrets are specified for environment name
