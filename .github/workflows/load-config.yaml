@@ -130,7 +130,7 @@ jobs:
             to_entries[] |
             .value.deployment_environments |
             to_entries[] |
-            select((.key|test($env_name)) and (.value[]|test($env_type))) |
+            select((.key|test($env_name)) && (.value[]|test($env_type))) |
             {
               name: .key,
               type: .value[]
