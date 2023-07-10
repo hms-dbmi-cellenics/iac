@@ -42,13 +42,13 @@ jobs:
 
   check-secrets:
     name: Check secrets
-    needs: set-environments
+    needs: load-config
     runs-on: ubuntu-20.04
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
-        environment: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
-    environment: ${{ matrix.environment.name }}
+        environment_name: ${{fromJson(needs.load-config.outputs.environment_names)}}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
@@ -152,7 +152,7 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, get-modified-templates, lint-templates, load-config]
+    needs: [check-secrets, get-modified-templates, lint-templates, load-config]
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
@@ -296,7 +296,7 @@ jobs:
   setup-rds-roles:
     name: Setup RDS roles for default resources
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, deploy-templates, load-config]
+    needs: [check-secrets, deploy-templates, load-config]
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
       max-parallel: 1
@@ -401,7 +401,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
+    needs: [check-secrets, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack

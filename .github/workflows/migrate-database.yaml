@@ -32,11 +32,11 @@ jobs:
   check-secrets:
     name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
-    needs: set-environments
+    needs: load-config
     strategy:
       matrix:
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment_name: ${{ fromJson(needs.load-config.outputs.environment_names) }}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: check-secrets-for-environment
         name: Check if necessary secrets are installed.
@@ -63,7 +63,7 @@ jobs:
   migrate-database:
     name: Migrate database
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, load-config]
+    needs: [check-secrets, load-config]
     strategy:
       max-parallel: 1
       matrix:
@@ -111,7 +111,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, migrate-database]
+    needs: [load-config, check-secrets, migrate-database]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack

@@ -32,7 +32,7 @@ permissions:
   id-token: write
   contents: read
 
-# After set-environments and check-secrets jobs are finished:
+# After load-config and check-secrets jobs are finished:
 #   "create and configure cluster" workflow_actions option runs all jobs.
 #   "configure cluster" workflow_actions option runs only configure-cluster job
 #   "deploy monitoring" workflow_actions option runs only deploy-monitoring job
@@ -47,11 +47,11 @@ jobs:
   check-secrets:
     name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
-    needs: set-environments
+    needs: load-config
     strategy:
       matrix:
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment_name: ${{ fromJson(needs.load-config.outputs.environment_names) }}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: check-secrets-for-environment
         name: Check if necessary secrets are installed.
@@ -93,7 +93,7 @@ jobs:
   create-eks-cluster:
     name: Create EKS cluster
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, load-config]
+    needs: [check-secrets, load-config]
     if: github.event.inputs.workflow_actions == 'create and configure cluster'
     env:
       CLUSTER_ENV: ${{ matrix.environment.type }}
@@ -216,7 +216,7 @@ jobs:
   configure-cluster:
     name: Configure Kubernetes resources on the EKS cluster
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, load-config]
+    needs: [check-secrets, create-eks-cluster, load-config]
     if: always() && (github.event.inputs.workflow_actions == 'create and configure cluster' || github.event.inputs.workflow_actions == 'configure cluster') && (needs.check-secrets.result == 'success') && (needs.create-eks-cluster.result == 'success' || needs.create-eks-cluster.result == 'skipped')
     env:
       CLUSTER_ENV: ${{ matrix.environment.type }}
@@ -641,7 +641,7 @@ jobs:
   deploy-monitoring:
     name: Setup logging and monitoring
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster, load-config]
+    needs: [check-secrets, create-eks-cluster, configure-cluster, load-config]
     if: always() && (needs.check-secrets.result == 'success') && (github.event.inputs.workflow_actions == 'deploy monitoring')
     env:
       CLUSTER_ENV: ${{ matrix.environment.type }}
@@ -765,7 +765,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, create-eks-cluster, configure-cluster, deploy-monitoring]
+    needs: [load-config, check-secrets, create-eks-cluster, configure-cluster, deploy-monitoring]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
