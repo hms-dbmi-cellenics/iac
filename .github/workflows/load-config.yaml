@@ -125,10 +125,10 @@ jobs:
               ENV_TYPE="(staging|production)"
           fi
 
-          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
+          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
           [
             to_entries[] |
-            .value.deployment_environments |
+            .[$org].value.deployment_environments |
             to_entries[] |
             select((.key|test($env_name)) and (.value[]|test($env_type))) |
             {
