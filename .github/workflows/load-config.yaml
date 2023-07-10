@@ -3,21 +3,21 @@ name: Load Deployment Config
 on:
   workflow_dispatch:
     inputs:
-      environment-name:
+      environment_name:
         type: string
         description: "Environment name"
         required: false
-      environment-type:
+      environment_type:
         type: string
         description: "Environment type"
         required: false
   workflow_call:
     inputs:
-      environment-name:
+      environment_name:
         type: string
         description: "Environment name"
         required: false
-      environment-type:
+      environment_type:
         type: string
         description: "Environment type"
         required: false
