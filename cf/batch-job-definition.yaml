@@ -39,7 +39,7 @@ Resources:
                   isPipelinePRStaged,
                     !Sub "${ImageAccountId}.dkr.ecr.${ImageAccountRegion}.amazonaws.com/pipeline:batch-refs-pull-${PipelinePRNum}-merge",
                     !Sub "${ImageAccountId}.dkr.ecr.${ImageAccountRegion}.amazonaws.com/pipeline:batch-${Environment}",
-                  ],
+                  ]
         ResourceRequirements:
           - Type: VCPU
             Value: 2
