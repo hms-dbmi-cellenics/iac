@@ -2,22 +2,22 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: can-delete-pods
+  name: can-manage-pods
 rules:
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["delete"]
+  verbs: ["delete", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: api-can-delete-pods
+  name: api-can-manage-pods
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: can-delete-pods
+  name: can-manage-pods
 subjects:
 - kind: ServiceAccount
   name: deployment-runner
-  namespace: {{ .Release.Namespace}}
+  namespace: {{ .Release.Namespace }}
 {{ end }}
