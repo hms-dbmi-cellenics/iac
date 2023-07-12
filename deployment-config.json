@@ -1,7 +1,6 @@
 {
     "biomage-org": {
         "domain_name": "Biomage",
-        "should_deploy_ses": true,
         "environment_names": [
             "alabs",
             "Biomage",
@@ -24,11 +23,11 @@
                 "production",
                 "staging"
             ]
-        }
+        },
+        "excluded_services": []
     },
     "hms-dbmi-cellenics": {
         "domain_name": "HMS",
-        "should_deploy_ses": false,
         "environment_names": [
             "HMS"
         ],
@@ -43,6 +42,10 @@
                 "staging",
                 "production"
             ]
-        }
+        },
+        "excluded_services": [
+            "cf/ses.yaml",
+            "cf/doit-cloudhealth-role.yaml"
+        ]
     }
 }

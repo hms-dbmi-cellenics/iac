@@ -44,13 +44,13 @@ on:
       reply_email:
         description: "The reploy email"
         value: ${{ jobs.setup.outputs.reply_email }}
-      should_deploy_ses: 
-        description: "Whether the SES CF should be deployed"
-        value: ${{ jobs.setup.outputs.should_deploy_ses }}
+      excluded_services:
+        description: "List of excluded AWS services"
+        value: ${{ jobs.setup.outputs.excluded_services }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
         value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
-      
+
 
 jobs:
   setup:
@@ -62,8 +62,7 @@ jobs:
       domain_name: ${{ steps.load_variables.outputs.domain_name }}
       support_email: ${{ steps.load_variables.outputs.support_email }}
       reply_email: ${{ steps.load_variables.outputs.reply_email }}
-      should_deploy_ses: ${{ steps.load_variables.outputs.should_deploy_ses }}
-      deployment_matrix: ${{ steps.generate-deployment-matrix.outputs.deployment_matrix }}
+      excluded_services: ${{ steps.load_variables.outputs.excluded_services }}
 
     steps:
     - name: Checkout
@@ -81,7 +80,7 @@ jobs:
         DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].domain_name')
         SUPPORT_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].support_email')
         REPLY_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].reply_email')
-        SHOULD_DEPLOY_SES=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].should_deploy_ses')
+        EXCLUDED_SERVICES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].excluded_services')
 
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
         echo "environment_names=$ENVIRONMENT_NAMES"
@@ -95,8 +94,8 @@ jobs:
         echo "support_email=$SUPPORT_EMAIL"
         echo "reply_email=$REPLY_EMAIL" >> $GITHUB_OUTPUT
         echo "reply_email=$REPLY_EMAIL"
-        echo "should_deploy_ses=$SHOULD_DEPLOY_SES" >> $GITHUB_OUTPUT
-        echo "should_deploy_ses=$SHOULD_DEPLOY_SES"
+        echo "excluded_services=$EXCLUDED_SERVICES" >> $GITHUB_OUTPUT
+        echo "excluded_services=$EXCLUDED_SERVICES"
 
   generate-deployment-matrix:
     name: Generate deployment matrix based on the config files

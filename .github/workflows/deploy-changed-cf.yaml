@@ -70,6 +70,7 @@ jobs:
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
     runs-on: ubuntu-20.04
+    needs: load-config
     outputs:
       files: ${{ steps.check-number-of-cf-files.outputs.files }}
       num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
@@ -116,19 +117,38 @@ jobs:
           echo "All changed files"
           cat ${HOME}/files.json
 
+      - id: exclude-services
+        name: Exclude services
+        run: |-
+          # Convert EXCLUDE_FOR_HMS from a JSON array string to a bash array
+          IFS=',' read -r -a excluded_services <<< "$(echo $EXCLUDED_SERVICES | jq -r '.[]')"
+
+          # Select files that are not in excluded_services
+          jq --argjson excluded_services '["${excluded_services[@]}"]' '. - $excluded_services' ${HOME}/cf_files.json > ${HOME}/filtered_cf_files.json
+
+          echo "Filtered CF files"
+          cat ${HOME}/filtered_cf_files.json
+
+          # Set as output the minified JSON.
+          echo "filtered_files=$(jq -c . < ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
+          echo "$(jq -c . < ${HOME}/filtered_cf_files.json)"
+          echo "num-files=$(jq '. | length' ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
+        env:
+          EXCLUDED_SERVICES: ${{ needs.load-config.output.excluded_services }}
+
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
         run: |-
           # Select those that are CF templates (path starts with `cf/`)
-          jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/cf_files.json
+          jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/filtered_cf_files.json
 
           echo "Changed CF files"
-          cat ${HOME}/cf_files.json
+          cat ${HOME}/filtered_cf_files.json
 
           # Set as output the minified JSON.
-          echo "files=$(jq -c . < ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
-          echo "$(jq -c . < ${HOME}/cf_files.json)"
-          echo "num-files=$(jq '. | length' ${HOME}/cf_files.json)" >> $GITHUB_OUTPUT
+          echo "files=$(jq -c . < ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
+          echo "$(jq -c . < ${HOME}/filtered_cf_files.json)"
+          echo "num-files=$(jq '. | length' ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
 
   lint-templates:
     name: Lint template files
