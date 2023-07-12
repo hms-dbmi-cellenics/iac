@@ -20,4 +20,4 @@ subjects:
 - kind: ServiceAccount
   name: deployment-runner
   namespace: {{ .Release.Namespace}}
-{{ end }}charts/nodejs/templates/api-can-manage-pods.yaml
+{{ end }}
