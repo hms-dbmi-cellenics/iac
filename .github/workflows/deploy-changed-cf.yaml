@@ -72,8 +72,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: load-config
     outputs:
-      files: ${{ steps.check-number-of-cf-files.outputs.files }}
-      num-files: ${{ steps.check-number-of-cf-files.outputs.num-files }}
+      files: ${{ steps.exclude-services.outputs.files }}
+      num-files: ${{ steps.exclude-services.outputs.num-files }}
     steps:
       - id: checkout
         name: Check out current branch source code
@@ -109,46 +109,36 @@ jobs:
           # If there are no changed files, create an empty array
           # else concatenate into an array
           if [ -z "$CHANGED_FILES" ]; then
-            echo "[]" > ${HOME}/files.json
+            echo "[]" > ${HOME}/changed_files.json
           else
-            echo "$CHANGED_FILES" | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
+            echo "$CHANGED_FILES" | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/changed_files.json
           fi
 
           echo "All changed files"
-          cat ${HOME}/files.json
-
-      - id: exclude-services
-        name: Exclude services
-        run: |-
-          # Convert EXCLUDE_FOR_HMS from a JSON array string to a bash array
-          IFS=',' read -r -a excluded_services <<< "$(echo $EXCLUDED_SERVICES | jq -r '.[]')"
-
-          # Select files that are not in excluded_services
-          jq --argjson excluded_services '["${excluded_services[@]}"]' '. - $excluded_services' ${HOME}/cf_files.json > ${HOME}/filtered_cf_files.json
-
-          echo "Filtered CF files"
-          cat ${HOME}/filtered_cf_files.json
-
-          # Set as output the minified JSON.
-          echo "filtered_files=$(jq -c . < ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
-          echo "$(jq -c . < ${HOME}/filtered_cf_files.json)"
-          echo "num-files=$(jq '. | length' ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
-        env:
-          EXCLUDED_SERVICES: ${{ needs.load-config.output.excluded_services }}
+          cat ${HOME}/changed_files.json
 
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
         run: |-
           # Select those that are CF templates (path starts with `cf/`)
-          jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/filtered_cf_files.json
+          jq '[.[] | select(match("^cf/"))]' ${HOME}/changed_files.json > ${HOME}/changed_cf_files.json
 
-          echo "Changed CF files"
-          cat ${HOME}/filtered_cf_files.json
+
+      - id: exclude-services
+        name: Exclude services
+        run: |-
+          IFS=',' read -r -a excluded_services <<< "$(echo $EXCLUDED_SERVICES | jq -r '.[]')"
+
+          # Select files that are not in excluded_services
+          jq --argjson excluded_services '["${excluded_services[@]}"]' '. - $excluded_services' ${HOME}/changed_cf_files.json > ${HOME}/filtered_cf_files.json
 
           # Set as output the minified JSON.
-          echo "files=$(jq -c . < ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
-          echo "$(jq -c . < ${HOME}/filtered_cf_files.json)"
+          echo "Filtered CF files"
+          cat ${HOME}/filtered_cf_files.json
           echo "num-files=$(jq '. | length' ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
+          echo "files=$(jq -c . < ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
+        env:
+          EXCLUDED_SERVICES: ${{ needs.load-config.output.excluded_services }}
 
   lint-templates:
     name: Lint template files
