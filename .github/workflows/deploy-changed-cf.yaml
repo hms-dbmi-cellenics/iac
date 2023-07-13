@@ -159,6 +159,8 @@ jobs:
         with:
           args: ${{ matrix.template }}
   check-values-test:
+    name: Just test
+    runs-on: ubuntu-20.04
     needs: [load-config, check-secrets, get-modified-templates, lint-templates]
     steps:
       - id: checkout
