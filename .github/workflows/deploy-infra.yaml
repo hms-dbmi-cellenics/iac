@@ -488,13 +488,15 @@ jobs:
               .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE)
             ' infra/config/account-config.yaml
 
-          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]
+          then
             export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
             export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
             yq -i '
               .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY) |
               .myAccount.datadogApiKey = strenv(DATADOG_API_KEY)
             ' infra/config/account-config.yaml
+          fi
 
           cat infra/config/account-config.yaml
         env:
