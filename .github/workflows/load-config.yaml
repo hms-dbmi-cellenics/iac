@@ -49,7 +49,7 @@ on:
         value: ${{ jobs.setup.outputs.excluded_services }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
-        value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
+        value: ${{ jobs.setup.outputs.deployment_matrix }}
 
 
 jobs:
