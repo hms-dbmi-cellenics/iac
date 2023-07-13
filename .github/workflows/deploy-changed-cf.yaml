@@ -174,7 +174,7 @@ jobs:
     environment: ${{ matrix.environment.name }}
     env:
       CLUSTER_ENV: ${{ matrix.environment.type }}
-      TEMPLATES_WITH_EXTRA_PARAMS: ("cf/sns.yaml" "cf/ses.yaml" "cf/post-register-lambda.yaml", "cf/canaries.yaml", "cf/cognito-case-insensitive.yaml")
+      TEMPLATES_WITH_EXTRA_PARAMS: ("cf/sns.yaml" "cf/ses.yaml" "cf/post-register-lambda.yaml", "cf/canaries.yaml", "cf/cognito-case-insensitive.yaml", "cf/batch-job-definition.yaml")
     steps:
       - id: checkout
         name: Check out source code
@@ -235,6 +235,19 @@ jobs:
         with:
           parameter-overrides: "Environment=${{ matrix.environment.type }},SupportEmail=${{ needs.load-config.outputs.support_email }}"
           name: ${{ steps.set-name.outputs.stack-name }}
+          template: ${{ matrix.template }}
+          no-fail-on-empty-changeset: "1"
+          capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+      - id: deploy-batch-job-definition-template
+        name: Deploy CloudFormation PostRegisterLambda template
+        if: ${{ matrix.template == 'cf/batch-job-definition.yaml' }}
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: >-
+            Environment=${{ matrix.environment.type }},
+            ImageAccountId=${{ needs.load-config.outputs.image_account_id }},
+            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}          name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
