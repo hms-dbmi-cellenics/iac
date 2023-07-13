@@ -158,6 +158,12 @@ jobs:
         uses: scottbrenner/cfn-lint-action@v2.2.4
         with:
           args: ${{ matrix.template }}
+  check-values-test:
+    needs: [load-config, check-secrets, get-modified-templates, lint-templates]
+    run: |-
+      echo "${{needs.load-config.outputs.deployment_matrix}}"
+      echo "${{needs.get-modified-templates.outputs.files}}"
+
 
   deploy-templates:
     name: Deploy changed CloudFormation template
