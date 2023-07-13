@@ -24,7 +24,9 @@
                 "staging"
             ]
         },
-        "excluded_services": []
+        "excluded_services": [
+            "cf/rds-agent-security-group.yaml"
+        ]
     },
     "hms-dbmi-cellenics": {
         "domain_name": "HMS",
@@ -45,7 +47,8 @@
         },
         "excluded_services": [
             "cf/ses.yaml",
-            "cf/doit-cloudhealth-role.yaml"
+            "cf/doit-cloudhealth-role.yaml",
+            "cf/rds-agent-security-group.yaml"
         ]
     }
 }

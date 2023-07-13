@@ -127,6 +127,8 @@ jobs:
       - id: exclude-services
         name: Exclude services
         run: |-
+          echo "Excluding services: $EXCLUDED_SERVICES"
+
           IFS=',' read -r -a excluded_services <<< "$(echo $EXCLUDED_SERVICES | jq -r '.[]')"
 
           # Select files that are not in excluded_services
@@ -247,8 +249,8 @@ jobs:
           parameter-overrides: >-
             Environment=${{ matrix.environment.type }},
             ImageAccountId=${{ needs.load-config.outputs.image_account_id }},
-            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}     
-          name: ${{ steps.set-name.outputs.stack-name }}     
+            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}
+          name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
