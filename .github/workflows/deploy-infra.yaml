@@ -746,15 +746,19 @@ jobs:
       # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
       - id: setup-datadog-cluster-agent
         name: Setup Datadog cluster agent
-        if: ${{ secrets.DATADOG_API_KEY != '' }}
         run: |-
-          helm repo add datadog https://helm.datadoghq.com
-          helm repo update
-          helm upgrade datadog-agent datadog/datadog \
-            -f infra/datadog/cluster-agent-values.yaml \
-            --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} \
-            --set datadog.clusterName=biomage-$CLUSTER_ENV \
-            --install
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]];
+          then
+            helm repo add datadog https://helm.datadoghq.com
+            helm repo update
+            helm upgrade datadog-agent datadog/datadog \
+              -f infra/datadog/cluster-agent-values.yaml \
+              --set datadog.apiKey=$DATADOG_API_KEY \
+              --set datadog.clusterName=biomage-$CLUSTER_ENV \
+              --install
+          else
+            echo "Datadog api key missing, skipping datadog setup"
+          fi
 
       - id: setup-datadog-sidecar-permissions
         name: Setup Datadog sidecar permissions
