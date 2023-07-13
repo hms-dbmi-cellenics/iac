@@ -247,7 +247,8 @@ jobs:
           parameter-overrides: >-
             Environment=${{ matrix.environment.type }},
             ImageAccountId=${{ needs.load-config.outputs.image_account_id }},
-            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}          name: ${{ steps.set-name.outputs.stack-name }}
+            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}     
+          name: ${{ steps.set-name.outputs.stack-name }}     
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
