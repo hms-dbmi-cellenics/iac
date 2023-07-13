@@ -70,7 +70,7 @@ jobs:
     steps:
       - id: checkout
         name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - id: setup-aws
         name: Configure AWS credentials

@@ -56,7 +56,7 @@ jobs:
 
       - id: checkout
         name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
       - id: install-eksctl
