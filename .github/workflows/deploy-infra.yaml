@@ -485,7 +485,7 @@ jobs:
               .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
               .myAccount.publicFacing = strenv(PUBLIC_FACING) |
               .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
-              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
+              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE)
             ' infra/config/account-config.yaml
 
           if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
