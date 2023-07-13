@@ -162,7 +162,7 @@ jobs:
   deploy-templates:
     name: Deploy changed CloudFormation template
     runs-on: ubuntu-20.04
-    needs: [check-secrets, get-modified-templates, lint-templates, load-config]
+    needs: [load-config, check-secrets, get-modified-templates, lint-templates]
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
       deploy-rds: ${{ steps.set-name.outputs.deploy-rds }}
@@ -411,7 +411,7 @@ jobs:
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [check-secrets, get-modified-templates, lint-templates, deploy-templates, setup-rds-roles]
+    needs: [check-secrets, lint-templates, deploy-templates, setup-rds-roles]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack
