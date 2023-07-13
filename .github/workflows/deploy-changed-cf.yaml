@@ -132,7 +132,7 @@ jobs:
           IFS=',' read -r -a excluded_services <<< "$(echo $EXCLUDED_SERVICES | jq -r '.[]')"
 
           # Select files that are not in excluded_services
-          jq --argjson excluded_services "$(echo "${excluded_services[@]}" | jq -R .)" '. - $excluded_services' ${HOME}/changed_cf_files.json > ${HOME}/filtered_cf_files.json
+          jq --argjson excluded_services '["cf/rds-agent-security-group.yaml"]' 'map(select(. as $in | $excluded_services | index($in) | not))' ${HOME}/changed_cf_files.json > ${HOME}/filtered_cf_files.json
           # Set as output the minified JSON.
           echo "Filtered CF files"
           cat ${HOME}/filtered_cf_files.json
