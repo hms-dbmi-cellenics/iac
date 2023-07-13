@@ -140,7 +140,7 @@ jobs:
           echo "num-files=$(jq '. | length' ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
           echo "files=$(jq -c . < ${HOME}/filtered_cf_files.json)" >> $GITHUB_OUTPUT
         env:
-          EXCLUDED_SERVICES: ${{ needs.load-config.output.excluded_services }}
+          EXCLUDED_SERVICES: ${{ needs.load-config.outputs.excluded_services }}
 
   lint-templates:
     name: Lint template files
