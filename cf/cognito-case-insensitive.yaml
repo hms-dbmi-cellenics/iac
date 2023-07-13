@@ -10,8 +10,6 @@ Parameters:
       - staging
       - production
     Description: The environment for which the buckets need to be created.
-  DomainName:
-    Type: String
   ReplyEmail:
     Type: String
 
@@ -133,7 +131,7 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
       UserPoolId: !Ref UserPool
-      Domain: !Sub "${DomainName}-auth-${Environment}-${AWS::AccountId}"
+      Domain: !Sub "biomage-auth-${Environment}-${AWS::AccountId}"
 
   # Add permission to allow userpool to trigger lambda
   PostRegisterLambdaInvocationPermission:
