@@ -160,9 +160,11 @@ jobs:
           args: ${{ matrix.template }}
   check-values-test:
     needs: [load-config, check-secrets, get-modified-templates, lint-templates]
-    run: |-
-      echo "${{needs.load-config.outputs.deployment_matrix}}"
-      echo "${{needs.get-modified-templates.outputs.files}}"
+    steps:
+      - id: checkout
+        run: |-
+          echo "${{needs.load-config.outputs.deployment_matrix}}"
+          echo "${{needs.get-modified-templates.outputs.files}}"
 
 
   deploy-templates:
