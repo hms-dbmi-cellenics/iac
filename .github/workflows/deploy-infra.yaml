@@ -765,8 +765,10 @@ jobs:
       - id: setup-datadog-sidecar-permissions
         name: Setup Datadog sidecar permissions
         run: |-
-          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]; then
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]];
+          then
             kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+          fi
 
   report-if-failed:
     name: Report if workflow failed
