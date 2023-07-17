@@ -346,7 +346,7 @@ jobs:
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
           fi
           if [ "${{ matrix.environment.type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
           fi
           echo "primary-domain-name=$PRIMARY_DOMAIN_NAME" >> $GITHUB_OUTPUT
