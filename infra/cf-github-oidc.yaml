@@ -19,7 +19,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                # Change the placeholder ORGANISATION_NAME below when deploying the template
+                # Change the placeholder <ORGANISATION_NAME> below when deploying the template
                 token.actions.githubusercontent.com:sub: repo:<ORGANISATION_NAME>/iac:*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
