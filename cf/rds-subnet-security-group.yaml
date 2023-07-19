@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up RDS Aurora cluster subnet and security groups [managed by github.com/biomage-org/iac]
+Description: Set up RDS Aurora cluster subnet and security groups [managed by github.com/hms-dbmi-cellenics/iac]
 
 Parameters:
   Environment:
@@ -21,7 +21,7 @@ Resources:
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: !Sub Biomage subnet group for ${Environment}.
+      DBSubnetGroupDescription: !Sub Cellenics subnet group for ${Environment}.
       DBSubnetGroupName: !Sub rds-subnet-group-${Environment}
       SubnetIds:
         Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
@@ -32,7 +32,7 @@ Resources:
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub "Biomage RDS security group for ${Environment}"
+      GroupDescription: !Sub "Cellenics RDS security group for ${Environment}"
       SecurityGroupEgress: []
       SecurityGroupIngress:
         - SourceSecurityGroupId:

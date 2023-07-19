@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up canaries to check for heartbeat of services [managed by github.com/biomage-org/iac]
+Description: Set up canaries to check for heartbeat of services [managed by github.com/hms-dbmi-cellenics/iac]
 
 Parameters:
   Environment:
@@ -10,6 +10,8 @@ Parameters:
       - staging
       - production
     Description: The environment for which the tables need to be created.
+  SupportEmail:
+    Type: String
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
@@ -247,7 +249,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: "engineering@biomage.net"
+      Endpoint: !Sub ${SupportEmail}
       Protocol: "email"
 
   CanariesAlarm:

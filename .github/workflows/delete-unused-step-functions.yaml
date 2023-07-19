@@ -10,12 +10,16 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
+
   delete-unused-step-functions:
     name: Delete old step functions
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-name: [Biomage]
+        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
     environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-aws

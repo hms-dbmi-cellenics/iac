@@ -16,16 +16,18 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
+    with:
+      environment-name: "all"
+      environment-type: "staging and production"
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-type: [staging, production]
-        environment-name: [Biomage, trv]
-        exclude:
-          - environment-name: trv
-            environment-type: staging
+        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
     environment: ${{ matrix.environment-name }}
     steps:
       - id: check-secrets
@@ -56,21 +58,18 @@ jobs:
   update-users:
     name: Updates Kubernetes user-related resources on the EKS cluster
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-type: [staging, production]
-        environment-name: [Biomage, trv]
-        exclude:
-          - environment-name: trv
-            environment-type: staging
-    environment: ${{ matrix.environment-name }}
+        environment: ${{fromJson(needs.load-config.outputs.deployment_matrix)}}
+    environment: ${{ matrix.environment.name }}
     env:
-      CLUSTER_ENV: ${{ matrix.environment-type }}
+      CLUSTER_ENV: ${{ matrix.environment.type }}
       API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
     steps:
       - id: checkout
         name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - id: setup-aws
         name: Configure AWS credentials
@@ -105,8 +104,8 @@ jobs:
         name: Deploy AWS Step Function (state machine) roles
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment-type }}"
-          name: "biomage-state-machine-role-${{ matrix.environment-type }}"
+          parameter-overrides: "Environment=${{ matrix.environment.type }}"
+          name: "biomage-state-machine-role-${{ matrix.environment.type }}"
           template: 'infra/cf-state-machine-role.yaml'
           capabilities: 'CAPABILITY_IAM,CAPABILITY_NAMED_IAM'
           no-fail-on-empty-changeset: "1"
@@ -139,7 +138,7 @@ jobs:
       - id: update-identitymapping-admin
         name: Add cluster admin rights to everyone on the admin list.
         run: |-
-          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+          echo "Reading cluster rights from file: infra/config/cluster/${{matrix.environment.name}}/cluster-admins-$CLUSTER_ENV"
           while IFS= read -r user
           do
             echo "Adding cluster admin rights to $user"
@@ -148,4 +147,4 @@ jobs:
               --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
               --group system:masters \
               --username $user
-          done < "infra/config/cluster/${{matrix.environment-name}}/cluster-admins-$CLUSTER_ENV"
+          done < "infra/config/cluster/${{matrix.environment.name}}/cluster-admins-$CLUSTER_ENV"

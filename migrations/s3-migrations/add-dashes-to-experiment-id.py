@@ -77,17 +77,17 @@ async def copy_and_rename_in_bucket(from_bucket_name, to_bucket_name, max_worker
 def copy_and_rename_objects():
   # Update keys that depend on the experiment id
   from_bucket_names = [
-    "biomage-source-staging-242905224710", # key: {experimentId}/r.rds
-    "biomage-filtered-cells-staging-242905224710", # key: {experimentId}/{qcStepName}/{hash}.rds
-    "cell-sets-staging-242905224710", # key: {experimentId}
-    "processed-matrix-staging-242905224710" # key: {experimentId}/r.rds
+    "biomage-source-staging-160782110667", # key: {experimentId}/r.rds
+    "biomage-filtered-cells-staging-160782110667", # key: {experimentId}/{qcStepName}/{hash}.rds
+    "cell-sets-staging-160782110667", # key: {experimentId}
+    "processed-matrix-staging-160782110667" # key: {experimentId}/r.rds
   ]
 
   to_bucket_names = [
-    ("biomage-source-staging-242905224710", 10),
-    ("biomage-filtered-cells-staging-242905224710", 50),
-    ("cell-sets-staging-242905224710", 50),
-    ("processed-matrix-staging-242905224710", 10)
+    ("biomage-source-staging-160782110667", 10),
+    ("biomage-filtered-cells-staging-160782110667", 50),
+    ("cell-sets-staging-160782110667", 50),
+    ("processed-matrix-staging-160782110667", 10)
   ]
   
   event_loop = asyncio.get_event_loop()
@@ -102,8 +102,8 @@ def copy_and_rename_objects():
   all_elapsed = (timer() - all_start)
   print(f"[DONE]. Time: {all_elapsed}")
   
-from_worker_results = "worker-results-staging-242905224710"
-to_worker_results = "worker-results-staging-242905224710"
+from_worker_results = "worker-results-staging-160782110667"
+to_worker_results = "worker-results-staging-160782110667"
 
 def generate_new_tagging(object):
   

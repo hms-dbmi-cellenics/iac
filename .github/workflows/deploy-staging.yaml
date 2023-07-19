@@ -32,10 +32,13 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
   deploy-staging:
     name: Deploy staging environment
     runs-on: ubuntu-20.04
-    environment: Biomage
+    needs: load-config
+    environment: ${{needs.load-config.outputs.domain_name}}
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -52,7 +55,7 @@ jobs:
 
       - id: checkout
         name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
       - id: install-eksctl
@@ -110,7 +113,8 @@ jobs:
           SANDBOX_ID: ${{ github.event.inputs.sandbox-id }}
 
       - id: deploy-template-rds
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        # if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        if: ${{ github.event.inputs.with-rds == 'True' }}
         name: Deploy CloudFormation stack for RDS
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -131,7 +135,8 @@ jobs:
           keys-as-outputs: true
 
       - id: setup-rds-roles
-        if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        # if: ${{ github.ref == 'refs/heads/master' && github.event.inputs.with-rds == 'True' }}
+        if: ${{ github.event.inputs.with-rds == 'True' }}
         name: Setup RDS roles
         run: |-
           INSTANCE_ID=$(aws ec2 describe-instances \
@@ -212,7 +217,12 @@ jobs:
         name: Deploy CloudFormation stack for Batch job definition
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=staging,SandboxID=${{ github.event.inputs.sandbox-id }},PipelinePRNum=${{ github.event.inputs.pipeline-pr }}"
+          parameter-overrides: >-
+            Environment=staging,
+            SandboxID=${{ github.event.inputs.sandbox-id }},
+            PipelinePRNum=${{ github.event.inputs.pipeline-pr }},
+            ImageAccountId=${{ needs.load-config.outputs.image_account_id }},
+            ImageAccountRegion=${{ needs.load-config.outputs.image_account_region }}
           name: ${{ steps.set-stack-name.outputs.batch-job-definition-name }}
           template: cf/batch-job-definition.yaml
           no-fail-on-empty-changeset: "1"

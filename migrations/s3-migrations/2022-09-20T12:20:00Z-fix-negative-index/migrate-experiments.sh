@@ -17,8 +17,8 @@ set -euo pipefail
 
 # The script relies on the following environment variables
 export MIGRATION_ENV=production # use staging for testing
-# BIOMAGE_DATA_PATH=... # where do you want the experiments to be downloaded to
-export DATA_MIGRATION_PATH=${BIOMAGE_DATA_PATH}/migration_-1
+# CELLENICS_DATA_PATH=... # where do you want the experiments to be downloaded to
+export DATA_MIGRATION_PATH=${CELLENICS_DATA_PATH}/migration_-1
 
 # 1. Compile list of affected experiments
 
@@ -38,7 +38,7 @@ export DATA_MIGRATION_PATH=${BIOMAGE_DATA_PATH}/migration_-1
 #         FROM experiment_execution ee
 #         WHERE last_status_response  @@ '$.gem2s.startDate > \"2022-08-24\"'
 #         AND last_status_response  @@ '$.gem2s.startDate < \"2022-09-15\"')"  |
-#       biomage rds run -i ${MIGRATION_ENV} psql |
+#       cellenics rds run -i ${MIGRATION_ENV} psql |
 #       tr '|' ',' > affected_experiments-${MIGRATION_ENV}.csv
 
 

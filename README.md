@@ -5,8 +5,8 @@ Our infrastructure as code.
 ### Base infrastructure
 Base infrastructure means infrastructure required for Cellenics to be deployed.
 This broadly corresponds to the kubernetes cluster and closely related infrastructure. This
-infrastructure is deployed *manually* by launching the action *Deploy Biomage infrastructure*
-from the [actions](https://github.com/biomage-org/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22).
+infrastructure is deployed *manually* by launching the action *Deploy Cellenics infrastructure*
+from the [actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Cellenics+infrastructure+on+AWS%22).
 The configuration for these infraustructure components are under `infra/`.
 
 #### AWS Permssions for Github workflows
@@ -25,16 +25,16 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
 - DOMAIN_NAME
 
-  The domain name that Cellenics will be deployed under (e.g. scp.biomage.net)
-
-- PRIMARY_DOMAIN_NAME
-
-  The primary domain name where Cellenics will be deployed under (e.g. biomage.net). This is the name of the domain
-  in the hosted zone.
+  The domain name that Cellenics will be deployed under (e.g. cellenics.app.net)
 
 - DOMAIN_NAME_STAGING (optional, used only if the deployment is not on a production environment)
 
-  The subdomain that the staging instance of Cellenics will be deployed (e.g. scp-staging.biomage.net)
+  The domain that the staging instance of Cellenics will be deployed under (e.g. cellenics-staging.app.net)
+
+- PRIMARY_DOMAIN_NAME
+
+  The primary domain name where Cellenics will be deployed under (e.g. app.net). This is the name of the domain
+  in the hosted zone.
 
 - RDS_TUNNEL_PORT
 
@@ -42,7 +42,7 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
 - ACM_CERTIFICATE_ARN
 
-  ARN of the SSL/TLS certificate used for HTTPS encryption.
+ The AWS ACM ARN for the SSL certificate for the Cellenics domain name.
 
 - DATADOG_API_KEY
 
@@ -52,10 +52,11 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
   The [Datadog application](https://docs.datadoghq.com/account_management/api-app-keys/#application-keys) key created for the Datadog account for AWS Batch monitoring. This can be created in the Organization Settings submenu inside the Datadog account.
 
+
 #### Changing base infrastructure
-The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/biomage-org/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
-1. Go to the *Deploy Biomage infrastructure*
-[actions](https://github.com/biomage-org/iac/actions?query=workflow%3A%22Deploy+Biomage+infrastructure+on+AWS%22). Select *Deploy Biomage infrastructure* workflow from the list of workflows.
+The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/hms-dbmi-cellenics/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
+1. Go to the *Deploy Cellenics infrastructure*
+[actions](https://github.com/hms-dbmi-cellenics/iac/actions?query=workflow%3A%22Deploy+Cellenics+infrastructure+on+AWS%22). Select *Deploy Cellenics infrastructure* workflow from the list of workflows.
 2. Click on `Run workflow` dropdown on the right side of the top workflow result. With this dropdown, you will configure the inputs with which the workflow will be run.
 3. `Use worklow from` defines which changes the build will be run wuth. Make sure it is set to `master` to avoid situations when infrastructure changes from other branch are deployed and we have unknown state.
 4. `Select actions to perform` defines what kind of changes you want to apply to the infrastructure. There are 2 options available to select from:

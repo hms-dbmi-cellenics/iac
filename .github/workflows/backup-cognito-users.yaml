@@ -12,12 +12,16 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
+
   backup-users:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-name: [Biomage,trv, alabs]
+        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
     environment: ${{ matrix.environment-name }}
     steps:
       - id: setup-node

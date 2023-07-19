@@ -1,6 +1,9 @@
 Biomage:
   publicFacing: true
   selfSignedCertificate: false
+HMS:
+  publicFacing: true
+  selfSignedCertificate: false
 trv:
   publicFacing: false
   selfSignedCertificate: true

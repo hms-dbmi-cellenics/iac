@@ -1,31 +1,171 @@
-name: Setup Variables
+name: Load Deployment Config
 
 on:
   workflow_dispatch:
+    inputs:
+      environment_name:
+        type: string
+        description: "Environment name"
+        required: false
+        default: all
+      environment_type:
+        type: string
+        description: "Environment type"
+        required: false
+        default: staging and production
+  workflow_call:
+    inputs:
+      environment_name:
+        type: string
+        description: "Environment name"
+        required: false
+        default: all
+      environment_type:
+        type: string
+        description: "Environment type"
+        required: false
+        default: staging and production
+    outputs:
+      environment_names:
+        description: "The names of all environments"
+        value: ${{ jobs.setup.outputs.environment_names }}
+      image_account_id:
+        description: "Account ID that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_id }}
+      image_account_region:
+        description: "Account region that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_region }}
+      domain_name:
+        description: "The Domain name of the organisation"
+        value: ${{ jobs.setup.outputs.domain_name }}
+      support_email:
+        description: "The support email"
+        value: ${{ jobs.setup.outputs.support_email }}
+      reply_email:
+        description: "The reploy email"
+        value: ${{ jobs.setup.outputs.reply_email }}
+      excluded_services:
+        description: "List of excluded AWS services"
+        value: ${{ jobs.setup.outputs.excluded_services }}
+      deployment_matrix:
+        description: "All allowed combinations of environment name and environment type"
+        value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
+
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      var1: ${{ steps.set_vars.outputs.var1 }}
-      var2: ${{ steps.set_vars.outputs.var2 }}
-      var3: ${{ steps.set_vars.outputs.var3 }}
+      environment_names: ${{ steps.load_variables.outputs.environment_names }}
+      image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
+      image_account_region: ${{ steps.load_variables.outputs.image_account_region }}
+      domain_name: ${{ steps.load_variables.outputs.domain_name }}
+      support_email: ${{ steps.load_variables.outputs.support_email }}
+      reply_email: ${{ steps.load_variables.outputs.reply_email }}
+      excluded_services: ${{ steps.load_variables.outputs.excluded_services }}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with: ###########  REMOVE THIS WHEN MERGING IN MASTER
         ref: hms-merge #####################################
 
-    - id: set_vars
-      name: Set variables
+    - id: load_variables
+      name: Load variables
       run: |
-        VAR1=$(jq -r '.VAR1' deployment_config.json)
-        VAR2=$(jq -r '.VAR2' deployment_config.json)
-        VAR3=$(jq -r '.VAR3' deployment_config.json)
-        echo "VAR1: $VAR1"
-        echo "VAR2: $VAR2"
-        echo "VAR3: $VAR3"
-        echo var1=$VAR1 >> $GITHUB_OUTPUT
-        echo var2=$VAR2 >> $GITHUB_OUTPUT
-        echo var3=$VAR3 >> $GITHUB_OUTPUT
+        CONFIG_FILE=$(cat deployment-config.json | jq .)
+        ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].environment_names')
+        IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
+        IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
+        DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].domain_name')
+        SUPPORT_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].support_email')
+        REPLY_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].reply_email')
+        EXCLUDED_SERVICES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].excluded_services')
+
+        echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
+        echo "environment_names=$ENVIRONMENT_NAMES"
+        echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
+        echo "image_account_id=$IMAGE_ACCOUNT_ID"
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION" >> $GITHUB_OUTPUT
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION"
+        echo "domain_name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
+        echo "domain_name=$DOMAIN_NAME"
+        echo "support_email=$SUPPORT_EMAIL" >> $GITHUB_OUTPUT
+        echo "support_email=$SUPPORT_EMAIL"
+        echo "reply_email=$REPLY_EMAIL" >> $GITHUB_OUTPUT
+        echo "reply_email=$REPLY_EMAIL"
+        echo "excluded_services=$EXCLUDED_SERVICES" >> $GITHUB_OUTPUT
+        echo "excluded_services=$EXCLUDED_SERVICES"
+
+  generate-deployment-matrix:
+    name: Generate deployment matrix based on the config files
+    needs: setup
+    runs-on: ubuntu-20.04
+    outputs:
+      deployment_matrix: ${{ steps.build-deployment-matrix.outputs.deployment_matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with: ###########  REMOVE THIS WHEN MERGING IN MASTER
+          ref: hms-merge #####################################
+      - name: Set environment
+        id: set-environments
+        run: |
+          if [ -z "${{ github.event.inputs.environment_name }}" ]; then
+            echo "environment_name is empty, setting to default"
+            echo "environment_name=all" >> $GITHUB_OUTPUT
+          else
+            echo "environment_name=${{ github.event.inputs.environment_name }}" >> $GITHUB_OUTPUT
+          fi
+          if [ -z "${{ github.event.inputs.environment_type }}" ]; then
+            echo "environment_type is empty, setting to default"
+            echo "environment_type=staging and production" >> $GITHUB_OUTPUT
+          else
+            echo "environment_type=${{ github.event.inputs.environment_type }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Validate input against config
+        run: |
+          valid_options_json=$(echo '${{ needs.setup.outputs.environment_names }}' | jq '. += ["all"]')
+          valid_options=($(echo $valid_options_json | jq -r '.[]'))
+
+          echo "Selected environment name: ${{ steps.set-environments.outputs.environment_name }}"
+
+          if [[ " ${valid_options[@]} " =~ " ${{ steps.set-environments.outputs.environment_name }} " ]]; then
+            echo "Valid option selected"
+            exit 0
+          else
+            echo "Invalid option selected"
+            exit 1
+          fi
+      - name: Build deployment matrix
+        id: build-deployment-matrix
+        run: |
+          CONFIG_FILE=$(cat deployment-config.json | jq .)
+
+          ENV_NAME="${{ steps.set-environments.outputs.environment_name }}"
+          ENV_TYPE="${{ steps.set-environments.outputs.environment_type }}"
+
+          # If "all" is chosen, we use a regex that matches anything
+          if [ "$ENV_NAME" = "all" ]; then
+              ENV_NAME=".*"
+          fi
+
+          # If "staging and production" is chosen, we convert it to a format compatible with regex
+          if [ "$ENV_TYPE" = "staging and production" ]; then
+              ENV_TYPE="(staging|production)"
+          fi
+
+          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
+          [
+            .[$org].deployment_environments |
+            to_entries[] |
+            select((.key|test($env_name)) and any(.value[]; test($env_type))) |
+            {
+              name: .key,
+              type: .value[] | select(test($env_type))
+            }
+          ]')
+
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX"
+          echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+        shell: bash
