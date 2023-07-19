@@ -197,7 +197,7 @@ Resources:
                 }
 
   LoggingGroup:
-    Type: AWS::Logs::LogGroup
+    Type: AWS::Logs::LogGroup 
     Properties:
       LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
       RetentionInDays: 3
