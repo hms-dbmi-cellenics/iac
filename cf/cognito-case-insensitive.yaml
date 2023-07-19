@@ -22,7 +22,7 @@ Outputs:
     Description: Address to use to connect to Primary Cluster endpoint
     Value: !GetAtt UserPool.ProviderName
     Export:
-      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName'
+      Name: !Sub 'biomage-user-pool-case-insensitive-${Environment}::UserPoolProviderName' 
 
 Resources:
   SMSRole:

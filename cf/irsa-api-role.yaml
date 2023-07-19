@@ -19,7 +19,7 @@ Resources:
   APIRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Sub "api-role-${Environment}"
+      RoleName: !Sub "api-role-${Environment}" 
       AssumeRolePolicyDocument:
         Fn::Sub: |-
           {

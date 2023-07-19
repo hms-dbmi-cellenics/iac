@@ -20,7 +20,7 @@ Resources:
   CanariesBucketV2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}"
+      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}" 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True

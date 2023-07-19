@@ -22,7 +22,7 @@ Parameters:
     Description: The id of the account, having the docker images
   ImageAccountRegion:
     Type: String
-    Description: The region of the account, having the docker images
+    Description: The region of the account, having the docker images 
 
 Conditions:
   isPipelinePRStaged: !And [ !Equals [!Ref Environment, "staging"], !Not [ !Equals [!Ref PipelinePRNum, "" ]]]
