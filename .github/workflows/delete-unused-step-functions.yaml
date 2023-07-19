@@ -19,8 +19,8 @@ jobs:
     needs: load-config
     strategy:
       matrix:
-        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
-    environment: ${{ matrix.environment-name }}
+        environment_name: ${{fromJson(needs.load-config.outputs.environment_names)}}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: setup-aws
         name: Configure AWS credentials
