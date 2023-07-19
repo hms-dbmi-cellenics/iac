@@ -19,16 +19,16 @@ jobs:
   load-config:
     uses: ./.github/workflows/load-config.yaml
     with:
-      environment-name: "all"
-      environment-type: "staging and production"
+      environment_name: "all"
+      environment_type: "staging and production"
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-20.04
     needs: load-config
     strategy:
       matrix:
-        environment-name: ${{fromJson(needs.load-config.outputs.environment_names)}}
-    environment: ${{ matrix.environment-name }}
+        environment_name: ${{fromJson(needs.load-config.outputs.environment_names)}}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: check-secrets
         name: Check if necessary secrets are installed.
