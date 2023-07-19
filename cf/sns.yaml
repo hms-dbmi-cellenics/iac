@@ -202,7 +202,7 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
       RetentionInDays: 3
 
-  SNSEndpointLambdaSubcription:
+  SNSEndpointLambdaSubcription: 
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref SNSTopicV2
