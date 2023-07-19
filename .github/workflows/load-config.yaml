@@ -67,9 +67,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with: ###########  REMOVE THIS WHEN MERGING IN MASTER
-        ref: hms-merge #####################################
-
     - id: load_variables
       name: Load variables
       run: |
@@ -106,8 +103,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with: ###########  REMOVE THIS WHEN MERGING IN MASTER
-          ref: hms-merge #####################################
       - name: Set environment
         id: set-environments
         run: |

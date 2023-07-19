@@ -38,8 +38,7 @@ permissions:
 #   "deploy monitoring" workflow_actions option runs only deploy-monitoring job
 jobs:
   load-config:
-    uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
-    # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
+    uses: ./.github/workflows/load-config.yaml
     with:
       environment_name: ${{ github.event.inputs.environment_name }}
       environment_type: ${{ github.event.inputs.environment_type }}
