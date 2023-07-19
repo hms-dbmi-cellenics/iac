@@ -54,7 +54,7 @@ Resources:
                   - "logs:PutQueryDefinition"
                   - "sns:Get*"
                   - "sns:List*"
-                Resource: "*"
+                Resource: "*" 
 
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
