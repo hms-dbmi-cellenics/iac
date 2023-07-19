@@ -108,19 +108,19 @@ jobs:
           # If there are no changed files, create an empty array
           # else concatenate into an array
           if [ -z "$CHANGED_FILES" ]; then
-            echo "[]" > ${HOME}/changed_files.json
+            echo "[]" > ${HOME}/files.json
           else
-            echo "$CHANGED_FILES" | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/changed_files.json
+            echo "$CHANGED_FILES" | xargs -I 'value' jq --arg filename "value" '. |= . + [$filename]' empty.json | jq -s 'add' > ${HOME}/files.json
           fi
 
           echo "All changed files"
-          cat ${HOME}/changed_files.json
+          cat ${HOME}/files.json
 
       - id: check-number-of-cf-files
         name: Check CloudFormation templates
         run: |-
           # Select those that are CF templates (path starts with `cf/`)
-          jq '[.[] | select(match("^cf/"))]' ${HOME}/changed_files.json > ${HOME}/changed_cf_files.json
+          jq '[.[] | select(match("^cf/"))]' ${HOME}/files.json > ${HOME}/changed_cf_files.json
 
 
       - id: exclude-services
