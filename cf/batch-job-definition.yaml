@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+
 Description: Creates AWS Batch job definition for various environments
 
 Parameters:
