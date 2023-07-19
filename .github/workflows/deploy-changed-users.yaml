@@ -17,8 +17,7 @@ permissions:
 
 jobs:
   load-config:
-    uses: biomage-org/iac/.github/workflows/load-config.yaml@hms-merge
-    # uses: ./.github/workflows/load-config.yaml ## USE THIS WHEN MERGING IN MASTER
+    uses: ./.github/workflows/load-config.yaml
     with:
       environment-name: "all"
       environment-type: "staging and production"
