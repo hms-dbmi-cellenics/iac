@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # The script relies on the following environment variables
+# export MIGRATION_ENV=production
 export MIGRATION_ENV=staging
 export BIOMAGE_DATA_PATH=./in
 export BIOMAGE_DATA_PATH_OUT=./out
