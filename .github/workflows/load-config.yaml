@@ -47,10 +47,12 @@ on:
       excluded_services:
         description: "List of excluded AWS services"
         value: ${{ jobs.setup.outputs.excluded_services }}
+      user_pool_domain_name:
+        description: "The name of cognito user pool"
+        value: ${{ jobs.setup.outputs.user_pool_domain_name }}
       deployment_matrix:
         description: "All allowed combinations of environment name and environment type"
         value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
-
 
 jobs:
   setup:
@@ -63,6 +65,7 @@ jobs:
       support_email: ${{ steps.load_variables.outputs.support_email }}
       reply_email: ${{ steps.load_variables.outputs.reply_email }}
       excluded_services: ${{ steps.load_variables.outputs.excluded_services }}
+      user_pool_domain_name: ${{ steps.load_variables.outputs.user_pool_domain_name }}
 
     steps:
     - name: Checkout
@@ -78,6 +81,7 @@ jobs:
         SUPPORT_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].support_email')
         REPLY_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].reply_email')
         EXCLUDED_SERVICES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].excluded_services')
+        USER_POOL_DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].user_pool_domain_name')
 
         echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
         echo "environment_names=$ENVIRONMENT_NAMES"
@@ -93,6 +97,8 @@ jobs:
         echo "reply_email=$REPLY_EMAIL"
         echo "excluded_services=$EXCLUDED_SERVICES" >> $GITHUB_OUTPUT
         echo "excluded_services=$EXCLUDED_SERVICES"
+        echo "user_pool_domain_name=$USER_POOL_DOMAIN_NAME" >> $GITHUB_OUTPUT
+        echo "user_pool_domain_name=$USER_POOL_DOMAIN_NAME"
 
   generate-deployment-matrix:
     name: Generate deployment matrix based on the config files

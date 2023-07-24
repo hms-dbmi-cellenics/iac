@@ -257,7 +257,10 @@ jobs:
         if: ${{ matrix.template == 'cf/cognito-case-insensitive.yaml' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
-          parameter-overrides: "Environment=${{ matrix.environment.type }},ReplyEmail=${{ needs.load-config.outputs.reply_email }}"
+          parameter-overrides: >-
+            Environment=${{ matrix.environment.type }},
+            ReplyEmail=${{ needs.load-config.outputs.reply_email }},
+            UserPoolDomainName=${{ needs.load-config.outputs.user_pool_domain_name }}
           name: ${{ steps.set-name.outputs.stack-name }}
           template: ${{ matrix.template }}
           no-fail-on-empty-changeset: "1"
