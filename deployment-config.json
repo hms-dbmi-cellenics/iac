@@ -39,7 +39,7 @@
             "id": 160782110667,
             "region": "us-east-1"
         },
-        "support_email": "alex_pickering@hms.harvard.edu",
+        "support_email": "ccbhelp@hms.harvard.edu",
         "reply_email": "alex_pickering@hms.harvard.edu",
         "deployment_environments": {
             "HMS": [
