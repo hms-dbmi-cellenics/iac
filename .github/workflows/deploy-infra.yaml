@@ -326,11 +326,7 @@ jobs:
               --install --wait
         env:
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
-<<<<<<< HEAD
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
-=======
-          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }} 
->>>>>>> master
+          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
 
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
@@ -359,7 +355,7 @@ jobs:
             fi
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
             ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN_STAGING }}"
-    
+
             if [ -z "$ACM_CERTIFICATE_ARN" ]; then
               ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN }}"
             fi
