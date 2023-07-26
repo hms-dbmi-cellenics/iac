@@ -174,13 +174,13 @@ jobs:
       - name: Add admins to deployment matrix
         id: add-admins
         run: |
-          CONFIG_FILE=$(cat deployment-config.json | jq .)
-          DEPLOYMENT_MATRIX="${{ steps.build-deployment-matrix.outputs.deployment_matrix }}"
-          ORG="${{ github.repository_owner }}"
-
-          UPDATED_DEPLOYMENT_MATRIX=$(echo $DEPLOYMENT_MATRIX | jq --argjson config "$CONFIG_FILE" --arg org "$ORG" -c '
-          map(. as $item | . + { admins: ($config[$org].cluster_admins[$item.name][$item.type] // []) } )'
-          )
+          UPDATED_DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson matrix "$DEPLOYMENT_MATRIX" '
+            . as $config |
+            $matrix |
+            map(. + {
+              admins: $config[$org].cluster_admins[.name][.type]
+            })
+          ')
 
           echo "deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX"
           echo "deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
