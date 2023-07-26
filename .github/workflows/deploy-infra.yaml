@@ -326,7 +326,7 @@ jobs:
               --install --wait
         env:
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }} 
+          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }} 
 
       - id: deploy-env-loadbalancer
         name: Deploy AWS Application Load Balancer for environment
@@ -337,19 +337,33 @@ jobs:
           template: 'infra/cf-loadbalancer.yaml'
           no-fail-on-empty-changeset: "1"
 
+    # For HMS ACM_CERTIFICATE_ARN_STAGING exists, having different domains for staging and prod
+    # so we need to check if it exists, otherwise set it to ACM_CERTIFICATE_ARN
+    # same applies for PRIMARY_DOMAIN_NAME_STAGING
       - id: setup-domain
         name: Compile environment-specific domain name
         run: |-
           if [ "${{ matrix.environment.type }}" = "production" ]; then
             PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME }}"
+            ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN }}"
           fi
           if [ "${{ matrix.environment.type }}" = "staging" ]; then
-            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME_STAGING }}"
+            if [ -z "$PRIMARY_DOMAIN_NAME" ]; then
+              PRIMARY_DOMAIN_NAME="${{ secrets.PRIMARY_DOMAIN_NAME }}"
+            fi
             DOMAIN_NAME="${{ secrets.DOMAIN_NAME_STAGING }}"
+            ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN_STAGING }}"
+    
+            if [ -z "$ACM_CERTIFICATE_ARN" ]; then
+              ACM_CERTIFICATE_ARN="${{ secrets.ACM_CERTIFICATE_ARN }}"
+            fi
           fi
           echo "primary-domain-name=$PRIMARY_DOMAIN_NAME" >> $GITHUB_OUTPUT
           echo "domain-name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
+          echo "acm-certificate-arn=$ACM_CERTIFICATE_ARN" >> $GITHUB_OUTPUT
+
 
       # This step should be run only once per deployment. The associated Route 53 records to be created
       # e.g. DOMAIN_NAME and *.DOMAIN_NAME should be deleted before running this comment, otherwise this step fails.
@@ -499,7 +513,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ steps.setup-aws.outputs.aws-account-id }}
           DOMAIN_NAME: ${{ steps.setup-domain.outputs.domain-name }}
-          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+          ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
           SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
 
