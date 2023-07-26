@@ -182,3 +182,30 @@ jobs:
           echo "deployment_matrix_admins=$UPDATED_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
 
         shell: bash
+
+  test-matrix:
+    name: Updates Kubernetes user-related resources on the EKS cluster
+    runs-on: ubuntu-20.04
+    needs: generate-deployment-matrix
+    strategy:
+      matrix:
+        environment: ${{fromJson(needs.generate-deployment-matrix.outputs.deployment_matrix)}}
+    environment: ${{ matrix.environment.name }}
+    env:
+      CLUSTER_ENV: ${{ matrix.environment.type }}
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    steps:
+      - id: test-loop
+        name: Add cluster admin rights to everyone on the admin list.
+        run: |-
+          echo ${{ matrix.environment.name }}
+          echo ${{ matrix.environment.type }}
+          echo ${{ matrix.environment.admins }}
+          for user in "${{ matrix.environment.admins }}"; do
+            echo "Adding cluster admin rights to $user"
+            # eksctl create iamidentitymapping \
+            #   --cluster=biomage-$CLUSTER_ENV \
+            #   --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+            #   --group system:masters \
+            #   --username $user
+          done
