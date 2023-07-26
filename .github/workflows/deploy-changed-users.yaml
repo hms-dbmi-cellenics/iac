@@ -1,5 +1,6 @@
 name: Update infrastructure users on AWS
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - master
