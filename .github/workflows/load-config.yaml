@@ -116,11 +116,13 @@ jobs:
           environment_name="${{ github.event.inputs.environment_name }}"
           environment_name="${environment_name:-${{ inputs.environment_name }}}"
           environment_name="${environment_name:-all}"
+          echo "environment_name=${environment_name}"
           echo "environment_name=${environment_name}" >> $GITHUB_OUTPUT
 
           environment_type="${{ github.event.inputs.environment_type }}"
           environment_type="${environment_type:-${{ inputs.environment_type }}}"
           environment_type="${environment_type:-staging and production}"
+          echo "environment_type=${environment_type}"
           echo "environment_type=${environment_type}" >> $GITHUB_OUTPUT
 
       - name: Validate input against config
