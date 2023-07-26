@@ -197,12 +197,9 @@ jobs:
         run: |-
           echo ${{ matrix.environment.name }}
           echo ${{ matrix.environment.type }}
-          echo ${{ matrix.environment.admins }}
-          for user in "${{ matrix.environment.admins }}"; do
-            echo "Adding cluster admin rights to $user"
-            # eksctl create iamidentitymapping \
-            #   --cluster=biomage-$CLUSTER_ENV \
-            #   --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-            #   --group system:masters \
-            #   --username $user
+
+          ADMINS="${{ join(matrix.environment.admins, ' ') }}"
+          echo $ADMINS
+          for user in $ADMINS; do
+              echo "Adding cluster admin rights to $user"
           done
