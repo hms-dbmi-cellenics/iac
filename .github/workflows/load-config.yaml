@@ -179,27 +179,3 @@ jobs:
           echo "deployment_matrix=$ADMIN_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
 
         shell: bash
-
-  test-matrix:
-    name: Updates Kubernetes user-related resources on the EKS cluster
-    runs-on: ubuntu-20.04
-    needs: generate-deployment-matrix
-    strategy:
-      matrix:
-        environment: ${{fromJson(needs.generate-deployment-matrix.outputs.deployment_matrix)}}
-    environment: ${{ matrix.environment.name }}
-    env:
-      CLUSTER_ENV: ${{ matrix.environment.type }}
-      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-    steps:
-      - id: test-loop
-        name: Add cluster admin rights to everyone on the admin list.
-        run: |-
-          echo ${{ matrix.environment.name }}
-          echo ${{ matrix.environment.type }}
-
-          ADMINS="${{ join(matrix.environment.admins, ' ') }}"
-          echo $ADMINS
-          for user in $ADMINS; do
-              echo "Adding cluster admin rights to $user"
-          done
