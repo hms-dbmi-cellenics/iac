@@ -174,7 +174,7 @@ jobs:
       - name: Add admins to deployment matrix
         id: add-admins
         run: |
-          CONFIG_FILE=$(cat deployment-config.json)
+          CONFIG_FILE=$(cat deployment-config.json | jq .)
           DEPLOYMENT_MATRIX="${{ steps.build-deployment-matrix.outputs.deployment_matrix }}"
           ORG="${{ github.repository_owner }}"
 
