@@ -167,7 +167,7 @@ jobs:
             }
           ]')
 
-          UPDATED_DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson matrix "$DEPLOYMENT_MATRIX" '
+          ADMIN_DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson matrix "$DEPLOYMENT_MATRIX" '
             . as $config |
             $matrix |
             map(. + {
