@@ -42,7 +42,7 @@ on:
         description: "The support email"
         value: ${{ jobs.setup.outputs.support_email }}
       reply_email:
-        description: "The reploy email"
+        description: "The reply-to address for emails sent by cognito"
         value: ${{ jobs.setup.outputs.reply_email }}
       excluded_services:
         description: "List of excluded AWS services"
