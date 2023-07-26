@@ -163,7 +163,8 @@ jobs:
             select((.key|test($env_name)) and any(.value[]; test($env_type))) |
             {
               name: .key,
-              type: .value[] | select(test($env_type))
+              type: .value[] | select(test($env_type)),
+              admins: (.key as $dep | .value[] as $env | select(test($env_type)) | $CONFIG_FILE[$org].cluster_admins[$dep][$env]) // []
             }
           ]')
 
