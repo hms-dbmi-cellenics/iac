@@ -178,12 +178,11 @@ jobs:
           DEPLOYMENT_MATRIX="${{ steps.build-deployment-matrix.outputs.deployment_matrix }}"
           ORG="${{ github.repository_owner }}"
 
-          UPDATED_DEPLOYMENT_MATRIX=$(
-            echo $DEPLOYMENT_MATRIX | jq --argjson config "$CONFIG_FILE" --arg org "$ORG" -c \
-            'map(. as $item | . + { admins: ($config[$org].cluster_admins[$item.name][$item.type] // []) } )'
+          UPDATED_DEPLOYMENT_MATRIX=$(echo $DEPLOYMENT_MATRIX | jq --argjson config "$CONFIG_FILE" --arg org "$ORG" -c '
+          map(. as $item | . + { admins: ($config[$org].cluster_admins[$item.name][$item.type] // []) } )'
           )
 
-          echo "updated_deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX"
-          echo "updated_deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+          echo "deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX"
+          echo "deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
         shell: bash
 
