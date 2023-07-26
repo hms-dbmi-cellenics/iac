@@ -9,9 +9,12 @@ on:
         required: false
         default: all
       environment_type:
-        type: string
-        description: "Environment type"
-        required: false
+        type: choice
+        description: Select environment type
+        options:
+          - staging
+          - production
+          - staging and production
         default: staging and production
   workflow_call:
     inputs:
