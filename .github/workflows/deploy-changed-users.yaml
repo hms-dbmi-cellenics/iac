@@ -20,8 +20,8 @@ jobs:
   load-config:
     uses: ./.github/workflows/load-config.yaml
     with:
-      environment_name: "Biomage"
-      environment_type: "staging"
+      environment_name: Biomage
+      environment_type: staging
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-20.04
