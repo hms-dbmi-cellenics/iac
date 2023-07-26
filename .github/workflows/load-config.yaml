@@ -174,11 +174,7 @@ jobs:
             . as $config |
             $matrix |
             map(. + {
-              admins: if $config[$org].cluster_admins[.name][.type] != null then
-                $config[$org].cluster_admins[.name][.type]
-              else
-                []
-              end
+              admins: ($config[$org].cluster_admins[.name][.type] // [])
             })
           ')
 
