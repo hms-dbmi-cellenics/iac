@@ -156,7 +156,7 @@ jobs:
               ENV_TYPE="(staging|production)"
           fi
 
-          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson configFile "$CONFIG_FILE" '
+          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
           [
             .[$org].deployment_environments |
             to_entries[] |
@@ -164,7 +164,7 @@ jobs:
             {
               name: .key,
               type: .value[] | select(test($env_type)),
-              admins: (.key as $dep | .value[] as $env | select(test($env_type)) | $configFile[$org].cluster_admins[$dep][$env]) // []
+              admins: if $CONFIG_FILE[$org].cluster_admins[.key][.] then $CONFIG_FILE[$org].cluster_admins[.key][.] else [] end
             }
           ]')
 
