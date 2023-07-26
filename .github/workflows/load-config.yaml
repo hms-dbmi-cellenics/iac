@@ -112,6 +112,10 @@ jobs:
       - name: Set environment
         id: set-environments
         run: |
+
+          echo "github.event.inputs.environment_name=${{ github.event.inputs.environment_name }}"
+          echo "inputs.environment_name=${{ inputs.environment_name }}"
+
           if [ -z "${{ github.event.inputs.environment_name }}" ]; then
             echo "environment_name is empty, setting to default"
             echo "environment_name=all" >> $GITHUB_OUTPUT
