@@ -109,25 +109,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
       - name: Set environment
         id: set-environments
         run: |
+          environment_name="${{ github.event.inputs.environment_name }}"
+          environment_name="${environment_name:-${{ inputs.environment_name }}}"
+          environment_name="${environment_name:-all}"
+          echo "environment_name=${environment_name}" >> $GITHUB_OUTPUT
 
-          echo "github.event.inputs.environment_name=${{ github.event.inputs.environment_name }}"
-          echo "inputs.environment_name=${{ inputs.environment_name }}"
+          environment_type="${{ github.event.inputs.environment_type }}"
+          environment_type="${environment_type:-${{ inputs.environment_type }}}"
+          environment_type="${environment_type:-staging and production}"
+          echo "environment_type=${environment_type}" >> $GITHUB_OUTPUT
 
-          if [ -z "${{ github.event.inputs.environment_name }}" ]; then
-            echo "environment_name is empty, setting to default"
-            echo "environment_name=all" >> $GITHUB_OUTPUT
-          else
-            echo "environment_name=${{ github.event.inputs.environment_name }}" >> $GITHUB_OUTPUT
-          fi
-          if [ -z "${{ github.event.inputs.environment_type }}" ]; then
-            echo "environment_type is empty, setting to default"
-            echo "environment_type=staging and production" >> $GITHUB_OUTPUT
-          else
-            echo "environment_type=${{ github.event.inputs.environment_type }}" >> $GITHUB_OUTPUT
-          fi
       - name: Validate input against config
         run: |
           valid_options_json=$(echo '${{ needs.setup.outputs.environment_names }}' | jq '. += ["all"]')
