@@ -141,7 +141,7 @@ jobs:
       - name: Build deployment matrix
         id: build-deployment-matrix
         run: |
-          CONFIG_FILE=$(cat deployment-config.json)
+          CONFIG_FILE=$(cat deployment-config.json | jq .)
 
           ENV_NAME="${{ steps.set-environments.outputs.environment_name }}"
           ENV_TYPE="${{ steps.set-environments.outputs.environment_type }}"
@@ -163,11 +163,27 @@ jobs:
             select((.key|test($env_name)) and any(.value[]; test($env_type))) |
             {
               name: .key,
-              type: .value[] | select(test($env_type)),
-              admins: .[$org].cluster_admins[.key][.value[] | select(test($env_type))]
+              type: .value[] | select(test($env_type))
             }
           ]')
 
           echo "deployment_matrix=$DEPLOYMENT_MATRIX"
           echo "deployment_matrix=$DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
         shell: bash
+
+      - name: Add admins to deployment matrix
+        id: add-admins
+        run: |
+          CONFIG_FILE=$(cat deployment-config.json)
+          DEPLOYMENT_MATRIX="${{ steps.build-deployment-matrix.outputs.deployment_matrix }}"
+          ORG="${{ github.repository_owner }}"
+
+          UPDATED_DEPLOYMENT_MATRIX=$(
+            echo $DEPLOYMENT_MATRIX | jq --argjson config "$CONFIG_FILE" --arg org "$ORG" -c \
+            'map(. as $item | . + { admins: ($config[$org].cluster_admins[$item.name][$item.type] // []) } )'
+          )
+
+          echo "updated_deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX"
+          echo "updated_deployment_matrix=$UPDATED_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+        shell: bash
+
