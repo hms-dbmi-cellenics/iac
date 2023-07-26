@@ -24,6 +24,49 @@
                 "staging"
             ]
         },
+        "cluster_admins": {
+            "trv": {
+                "production": [
+                    "ibabukova",
+                    "anugerahe",
+                    "martinf",
+                    "stefanb",
+                    "polav",
+                    "germans",
+                    "sarac",
+                    "jildoub"
+                ]
+            },
+            "Biomage": {
+                "production": [
+                    "ibabukova",
+                    "anugerahe",
+                    "martinf",
+                    "oliverg",
+                    "stefanb",
+                    "polav",
+                    "vickym",
+                    "germans",
+                    "sarac",
+                    "ci-users/testing/ci-user-testing",
+                    "jildoub"
+                ],
+                "staging": [
+                    "ibabukova",
+                    "anugerahe",
+                    "martinf",
+                    "oliverg",
+                    "stefanb",
+                    "polav",
+                    "vickym",
+                    "germans",
+                    "sarac",
+                    "ci-users/testing/ci-user-testing",
+                    "jildoub",
+                    "kristiana"
+                ]
+            }
+        },
         "user_pool_domain_name": "biomage-auth",
         "excluded_services": [
             "cf/rds-agent-security-group.yaml",
@@ -46,6 +89,18 @@
                 "staging",
                 "production"
             ]
+        },
+        "cluster_admins": {
+            "HMS": {
+                "staging": [
+                    "alex_pickering",
+                    "ci-users/testing/ci-user-testing"
+                ],
+                "production": [
+                    "alex_pickering",
+                    "ci-users/testing/ci-user-testing"
+                ]
+            }
         },
         "user_pool_domain_name": "hms-auth",
         "excluded_services": [
