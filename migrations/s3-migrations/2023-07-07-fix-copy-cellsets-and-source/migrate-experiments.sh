@@ -1,7 +1,9 @@
 #!/bin/bash
+# Example: ./migrate-experiments.sh true true
+# First parameter is download, if false it won't download, but look for the files in BIOMAGE_DATA_PATH
+# Second parameter is upload, if false it won't upload the result but still leave them in BIOMAGE_DATA_PATH_OUT
 
 # The script relies on the following environment variables
-# export MIGRATION_ENV=production
 export MIGRATION_ENV=staging
 export BIOMAGE_DATA_PATH=./in
 export BIOMAGE_DATA_PATH_OUT=./out
