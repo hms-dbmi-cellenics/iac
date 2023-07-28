@@ -19,7 +19,8 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                token.actions.githubusercontent.com:sub: repo:hms-dbmi-cellenics/iac:*
+                # Change the placeholder <ORGANISATION_NAME> below when deploying the template
+                token.actions.githubusercontent.com:sub: repo:<ORGANISATION_NAME>/iac:*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
 
@@ -31,6 +32,7 @@ Resources:
         - sts.amazonaws.com
       ThumbprintList:
         - 6938fd4d98bab03faadb97b34396831e3780aea1
+        - 1c58a3a8518e8759bf075b76b750d4f2df264fcd
 
 Outputs:
   Role:

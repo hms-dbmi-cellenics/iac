@@ -12,13 +12,17 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
+
   backup-users:
     name: create backup of cognito users
     runs-on: ubuntu-20.04
+    needs: load-config
     strategy:
       matrix:
-        environment-name: [HMS]
-    environment: ${{ matrix.environment-name }}
+        environment_name: ${{fromJson(needs.load-config.outputs.environment_names)}}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: setup-node
         uses: actions/setup-node@v2

@@ -157,16 +157,16 @@ Resources:
                 data = message_body
                 headers = application_json_headers
                 url = f"{os.getenv('DOMAIN_NAME')}/v2/kubernetesEvents"
-            elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "PipelineResponse":
-                url = f"{message_body.get('apiUrl')}/v2/pipelineResults"
-                data = sns_message_payload
-                headers = sns_message_headers
-            elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "GEM2SResponse":
-                url = f"{message_body.get('apiUrl')}/v2/gem2sResults"
-                data = sns_message_payload
-                headers = sns_message_headers
-            elif sns_message_payload["MessageAttributes"]["type"]["Value"] == "SeuratResponse":
-                url = f"{message_body.get('apiUrl')}/v2/seuratResults"
+
+            pipeline_type_mappings = {
+                "PipelineResponse": "/v2/pipelineResults",
+                "GEM2SResponse": "/v2/gem2sResults",
+                "SeuratResponse": "/v2/seuratResults"
+            }
+
+            message_type = sns_message_payload["MessageAttributes"]["type"]["Value"]
+            if message_type in pipeline_type_mappings:
+                url = message_body.get('apiUrl') + pipeline_type_mappings[message_type]
                 data = sns_message_payload
                 headers = sns_message_headers
 
@@ -197,12 +197,12 @@ Resources:
                 }
 
   LoggingGroup:
-    Type: AWS::Logs::LogGroup
+    Type: AWS::Logs::LogGroup 
     Properties:
       LogGroupName: !Sub "/aws/lambda/sns-endpoint-lambda-${Environment}-${SandboxID}"
       RetentionInDays: 3
 
-  SNSEndpointLambdaSubcription:
+  SNSEndpointLambdaSubcription: 
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref SNSTopicV2

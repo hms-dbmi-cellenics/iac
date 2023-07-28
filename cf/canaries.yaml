@@ -10,16 +10,17 @@ Parameters:
       - staging
       - production
     Description: The environment for which the tables need to be created.
+  SupportEmail:
+    Type: String
 
 Conditions:
   isProd: !Equals [!Ref Environment, "production"]
-  isHMSAccount: !Equals [ !Ref AWS::AccountId, "160782110667"]
 
 Resources:
   CanariesBucketV2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}"
+      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}" 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -248,7 +249,7 @@ Resources:
     Type: 'AWS::SNS::Subscription'
     Properties:
       TopicArn: !Ref CanarySNSTopic
-      Endpoint: !If [isHMSAccount, "alex_pickering@hms.harvard.edu", "engineering@biomage.net"]
+      Endpoint: !Sub ${SupportEmail}
       Protocol: "email"
 
   CanariesAlarm:

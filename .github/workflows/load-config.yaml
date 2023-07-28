@@ -1,0 +1,185 @@
+name: Load Deployment Config
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        type: string
+        description: "Environment name"
+        required: false
+        default: all
+      environment_type:
+        type: choice
+        description: Select environment type
+        options:
+          - staging
+          - production
+          - staging and production
+        default: staging and production
+  workflow_call:
+    inputs:
+      environment_name:
+        type: string
+        description: "Environment name"
+        required: false
+        default: all
+      environment_type:
+        type: string
+        description: "Environment type"
+        required: false
+        default: staging and production
+    outputs:
+      environment_names:
+        description: "The names of all environments"
+        value: ${{ jobs.setup.outputs.environment_names }}
+      image_account_id:
+        description: "Account ID that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_id }}
+      image_account_region:
+        description: "Account region that the docker images are stored in"
+        value: ${{ jobs.setup.outputs.image_account_region }}
+      domain_name:
+        description: "The Domain name of the organisation"
+        value: ${{ jobs.setup.outputs.domain_name }}
+      support_email:
+        description: "The support email"
+        value: ${{ jobs.setup.outputs.support_email }}
+      reply_email:
+        description: "The reply-to address for emails sent by cognito"
+        value: ${{ jobs.setup.outputs.reply_email }}
+      excluded_services:
+        description: "List of excluded AWS services"
+        value: ${{ jobs.setup.outputs.excluded_services }}
+      user_pool_domain_name:
+        description: "The name of cognito user pool"
+        value: ${{ jobs.setup.outputs.user_pool_domain_name }}
+      deployment_matrix:
+        description: "All allowed combinations of environment name and environment type"
+        value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environment_names: ${{ steps.load_variables.outputs.environment_names }}
+      image_account_id: ${{ steps.load_variables.outputs.image_account_id }}
+      image_account_region: ${{ steps.load_variables.outputs.image_account_region }}
+      domain_name: ${{ steps.load_variables.outputs.domain_name }}
+      support_email: ${{ steps.load_variables.outputs.support_email }}
+      reply_email: ${{ steps.load_variables.outputs.reply_email }}
+      excluded_services: ${{ steps.load_variables.outputs.excluded_services }}
+      user_pool_domain_name: ${{ steps.load_variables.outputs.user_pool_domain_name }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - id: load_variables
+      name: Load variables
+      run: |
+        CONFIG_FILE=$(cat deployment-config.json | jq .)
+        ENVIRONMENT_NAMES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].environment_names')
+        IMAGE_ACCOUNT_ID=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.id')
+        IMAGE_ACCOUNT_REGION=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].docker_image_account.region')
+        DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].domain_name')
+        SUPPORT_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].support_email')
+        REPLY_EMAIL=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].reply_email')
+        EXCLUDED_SERVICES=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" '.[$org].excluded_services')
+        USER_POOL_DOMAIN_NAME=$(echo $CONFIG_FILE | jq -r --arg org "${{ github.repository_owner }}" '.[$org].user_pool_domain_name')
+
+        echo "environment_names=$ENVIRONMENT_NAMES" >> $GITHUB_OUTPUT
+        echo "environment_names=$ENVIRONMENT_NAMES"
+        echo "image_account_id=$IMAGE_ACCOUNT_ID" >> $GITHUB_OUTPUT
+        echo "image_account_id=$IMAGE_ACCOUNT_ID"
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION" >> $GITHUB_OUTPUT
+        echo "image_account_region=$IMAGE_ACCOUNT_REGION"
+        echo "domain_name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
+        echo "domain_name=$DOMAIN_NAME"
+        echo "support_email=$SUPPORT_EMAIL" >> $GITHUB_OUTPUT
+        echo "support_email=$SUPPORT_EMAIL"
+        echo "reply_email=$REPLY_EMAIL" >> $GITHUB_OUTPUT
+        echo "reply_email=$REPLY_EMAIL"
+        echo "excluded_services=$EXCLUDED_SERVICES" >> $GITHUB_OUTPUT
+        echo "excluded_services=$EXCLUDED_SERVICES"
+        echo "user_pool_domain_name=$USER_POOL_DOMAIN_NAME" >> $GITHUB_OUTPUT
+        echo "user_pool_domain_name=$USER_POOL_DOMAIN_NAME"
+
+  generate-deployment-matrix:
+    name: Generate deployment matrix based on the config files
+    needs: setup
+    runs-on: ubuntu-20.04
+    outputs:
+      deployment_matrix: ${{ steps.build-deployment-matrix.outputs.deployment_matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set environment
+        id: set-environments
+        run: |
+          environment_name="${{ github.event.inputs.environment_name }}"
+          environment_name="${environment_name:-${{ inputs.environment_name }}}"
+          environment_name="${environment_name:-all}"
+          echo "environment_name=${environment_name}"
+          echo "environment_name=${environment_name}" >> $GITHUB_OUTPUT
+
+          environment_type="${{ github.event.inputs.environment_type }}"
+          environment_type="${environment_type:-${{ inputs.environment_type }}}"
+          environment_type="${environment_type:-staging and production}"
+          echo "environment_type=${environment_type}"
+          echo "environment_type=${environment_type}" >> $GITHUB_OUTPUT
+
+      - name: Validate input against config
+        run: |
+          valid_options_json=$(echo '${{ needs.setup.outputs.environment_names }}' | jq '. += ["all"]')
+          valid_options=($(echo $valid_options_json | jq -r '.[]'))
+
+          echo "Selected environment name: ${{ steps.set-environments.outputs.environment_name }}"
+
+          if [[ " ${valid_options[@]} " =~ " ${{ steps.set-environments.outputs.environment_name }} " ]]; then
+            echo "Valid option selected"
+            exit 0
+          else
+            echo "Invalid option selected"
+            exit 1
+          fi
+      - name: Build deployment matrix
+        id: build-deployment-matrix
+        run: |
+          CONFIG_FILE=$(cat deployment-config.json | jq .)
+
+          ENV_NAME="${{ steps.set-environments.outputs.environment_name }}"
+          ENV_TYPE="${{ steps.set-environments.outputs.environment_type }}"
+
+          # If "all" is chosen, we use a regex that matches anything
+          if [ "$ENV_NAME" = "all" ]; then
+              ENV_NAME=".*"
+          fi
+
+          # If "staging and production" is chosen, we convert it to a format compatible with regex
+          if [ "$ENV_TYPE" = "staging and production" ]; then
+              ENV_TYPE="(staging|production)"
+          fi
+
+          DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" '
+          [
+            .[$org].deployment_environments |
+            to_entries[] |
+            select((.key|test($env_name)) and any(.value[]; test($env_type))) |
+            {
+              name: .key,
+              type: .value[] | select(test($env_type))
+            }
+          ]')
+
+          ADMIN_DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson matrix "$DEPLOYMENT_MATRIX" '
+            . as $config |
+            $matrix |
+            map(. + {
+              admins: ($config[$org].cluster_admins[.name][.type] // [])
+            })
+          ')
+
+          echo "deployment_matrix=$ADMIN_DEPLOYMENT_MATRIX"
+          echo "deployment_matrix=$ADMIN_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
+
+        shell: bash

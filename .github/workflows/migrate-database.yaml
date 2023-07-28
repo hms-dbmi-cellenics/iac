@@ -3,11 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       environment_name:
-        type: choice
+        type: string
         description: Select the environment name to run the actions on
-        options:
-          - HMS
-        default: HMS
+        required: true
+        default: all
       environment_type:
         type: choice
         description: Select environment type
@@ -26,40 +25,17 @@ permissions:
   contents: read
 
 jobs:
-  set-environments:
-    name: Set up environment name and environment type for action run
-    runs-on: ubuntu-20.04
-    outputs:
-      env-type: ${{ steps.set-env-type.outputs.env-type }}
-      env-name: ${{ steps.set-env-name.outputs.env-name }}
-    steps:
-      - id: set-env-type
-        name: Set up environment type
-        run: |-
-          if [ "${ENVIRONMENT_TYPE}" = "staging" ]; then
-            echo 'env-type=["staging"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_TYPE}" = "production" ]; then
-            echo 'env-type=["production"]' >> $GITHUB_OUTPUT
-          elif [ "${ENVIRONMENT_TYPE}" = "staging and production" ]; then
-            echo 'env-type=["staging", "production"]' >> $GITHUB_OUTPUT
-          fi
-        env:
-          ENVIRONMENT_TYPE: ${{ github.event.inputs.environment_type }}
-      - id: set-env-name
-        name: Set up environment name
-        run: |-
-          echo "env-name=['${ENVIRONMENT_NAME}']" >> $GITHUB_OUTPUT
-        env:
-          ENVIRONMENT_NAME: ${{ github.event.inputs.environment_name }}
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
 
   check-secrets:
     name: Check that sufficient secrets are specified for environment name
     runs-on: ubuntu-20.04
-    needs: set-environments
+    needs: load-config
     strategy:
       matrix:
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment_name: ${{ fromJson(needs.load-config.outputs.environment_names) }}
+    environment: ${{ matrix.environment_name }}
     steps:
       - id: check-secrets-for-environment
         name: Check if necessary secrets are installed.
@@ -86,13 +62,12 @@ jobs:
   migrate-database:
     name: Migrate database
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets]
+    needs: [check-secrets, load-config]
     strategy:
       max-parallel: 1
       matrix:
-        environment-type: ${{ fromJson(needs.set-environments.outputs.env-type) }}
-        environment-name: ${{ fromJson(needs.set-environments.outputs.env-name) }}
-    environment: ${{ matrix.environment-name }}
+        environment: ${{ fromJson(needs.load-config.outputs.deployment_matrix) }}
+    environment: ${{ matrix.environment.name }}
     steps:
       - id: checkout
         name: Check out source code
@@ -113,7 +88,7 @@ jobs:
 
       - id: setup-tunnel
         name: Setup tunnel to connect to RDS
-        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment-type }} default ${{ secrets.AWS_REGION }} ${{ secrets.RDS_TUNNEL_PORT }} READER
+        run: ./workflow-utils/rds-tunnel.sh ${{ matrix.environment.type }} default ${{ secrets.AWS_REGION }} ${{ secrets.RDS_TUNNEL_PORT }} READER
 
       - id: install
         name: Install dependencies
@@ -130,12 +105,12 @@ jobs:
       - id: run-migration
         name: Run database migration
         working-directory: ./migrations/sql-migrations
-        run: NODE_ENV=${{ matrix.environment-type }} SANDBOX_ID=default AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
+        run: NODE_ENV=${{ matrix.environment.type }} SANDBOX_ID=default AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} AWS_REGION=${{ secrets.AWS_REGION }} ./node_modules/.bin/knex migrate:latest
 
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
-    needs: [set-environments, check-secrets, migrate-database]
+    needs: [load-config, check-secrets, migrate-database]
     if: failure() && github.ref == 'refs/heads/master'
     steps:
       - id: send-to-slack

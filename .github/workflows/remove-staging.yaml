@@ -14,10 +14,13 @@ permissions:
   contents: read
 
 jobs:
+  load-config:
+    uses: ./.github/workflows/load-config.yaml
   remove-staging:
     name: Remove staging environment
     runs-on: ubuntu-20.04
-    environment: HMS
+    needs: load-config
+    environment: ${{ needs.load-config.outputs.domain_name}}
     steps:
       - id: setup-aws
         name: Configure AWS credentials
@@ -34,7 +37,7 @@ jobs:
 
       - id: checkout
         name: Check out source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
 
@@ -58,7 +61,7 @@ jobs:
           max_attempts: 30
           retry_on: error
           command: |
-            output=$(eksctl delete fargateprofile --cluster biomage-staging --name pipeline-${SANDBOX_ID} 2>&1)
+            output=$(eksctl delete fargateprofile --cluster biomage-staging --region ${{ secrets.AWS_REGION }} --name pipeline-${SANDBOX_ID} 2>&1)
             echo $output
             echo $output | egrep "deleted Fargate profile|No Fargate Profile found"
           # Add jitter to break up correlated events.
@@ -74,7 +77,7 @@ jobs:
           max_attempts: 30
           retry_on: error
           command: |
-            output=$(eksctl delete fargateprofile --cluster biomage-staging --name worker-${SANDBOX_ID} 2>&1)
+            output=$(eksctl delete fargateprofile --cluster biomage-staging --region ${{ secrets.AWS_REGION }} --name worker-${SANDBOX_ID} 2>&1)
             echo $output
             echo $output | egrep "deleted Fargate profile|No Fargate Profile found"
           # Add jitter to break up correlated events.

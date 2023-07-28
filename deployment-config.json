@@ -1,0 +1,113 @@
+{
+    "biomage-org": {
+        "domain_name": "Biomage",
+        "environment_names": [
+            "alabs",
+            "Biomage",
+            "trv"
+        ],
+        "docker_image_account": {
+            "id": 242905224710,
+            "region": "eu-west-1"
+        },
+        "support_email": "engineering@biomage.net",
+        "reply_email": "hello@biomage.net",
+        "deployment_environments": {
+            "trv": [
+                "production"
+            ],
+            "alabs": [
+                "production"
+            ],
+            "Biomage": [
+                "production",
+                "staging"
+            ]
+        },
+        "cluster_admins": {
+            "trv": {
+                "production": [
+                    "ibabukova",
+                    "anugerahe",
+                    "martinf",
+                    "stefanb",
+                    "polav",
+                    "germans",
+                    "sarac",
+                    "jildoub"
+                ]
+            },
+            "Biomage": {
+                "production": [
+                    "ibabukova",
+                    "anugerahe",
+                    "martinf",
+                    "oliverg",
+                    "stefanb",
+                    "polav",
+                    "vickym",
+                    "germans",
+                    "sarac",
+                    "ci-users/testing/ci-user-testing",
+                    "jildoub"
+                ],
+                "staging": [
+                    "ibabukova",
+                    "anugerahe",
+                    "martinf",
+                    "oliverg",
+                    "stefanb",
+                    "polav",
+                    "vickym",
+                    "germans",
+                    "sarac",
+                    "ci-users/testing/ci-user-testing",
+                    "jildoub",
+                    "kristiana"
+                ]
+            }
+        },
+        "user_pool_domain_name": "biomage-auth",
+        "excluded_services": [
+            "cf/rds-agent-security-group.yaml",
+            "cf/rds-subnet-security-group.yaml"
+        ]
+    },
+    "hms-dbmi-cellenics": {
+        "domain_name": "HMS",
+        "environment_names": [
+            "HMS"
+        ],
+        "docker_image_account": {
+            "id": 160782110667,
+            "region": "us-east-1"
+        },
+        "support_email": "ccbhelp@hms.harvard.edu",
+        "reply_email": "alex_pickering@hms.harvard.edu",
+        "deployment_environments": {
+            "HMS": [
+                "staging",
+                "production"
+            ]
+        },
+        "cluster_admins": {
+            "HMS": {
+                "staging": [
+                    "alex_pickering",
+                    "ci-users/testing/ci-user-testing"
+                ],
+                "production": [
+                    "alex_pickering",
+                    "ci-users/testing/ci-user-testing"
+                ]
+            }
+        },
+        "user_pool_domain_name": "hms-auth",
+        "excluded_services": [
+            "cf/ses.yaml",
+            "cf/doit-cloudhealth-role.yaml",
+            "cf/rds-agent-security-group.yaml",
+            "cf/rds-subnet-security-group.yaml"
+        ]
+    }
+}
