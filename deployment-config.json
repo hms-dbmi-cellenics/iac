@@ -93,11 +93,11 @@
         "cluster_admins": {
             "HMS": {
                 "staging": [
-                    "alex_pickering",
+                    "alexvpickering",
                     "ci-users/testing/ci-user-testing"
                 ],
                 "production": [
-                    "alex_pickering",
+                    "alexvpickering",
                     "ci-users/testing/ci-user-testing"
                 ]
             }
