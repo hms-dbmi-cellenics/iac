@@ -209,6 +209,7 @@ Resources:
                   - "cognito-idp:DescribeUserPool"
                   - "cognito-idp:DescribeUserPoolClient"
                   - "cognito-idp:AdminGetUser"
+                  - "cognito-idp:ListUsers"
                 Resource: '*'
 
         - PolicyName: "can-access-rds"
