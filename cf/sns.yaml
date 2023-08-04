@@ -153,22 +153,22 @@ Resources:
                 "Content-Type": "application/json"
             }
 
-            if message_body.get("reason") == "BackOff":
-                data = message_body
-                headers = application_json_headers
-                url = f"{os.getenv('DOMAIN_NAME')}/v2/kubernetesEvents"
-
             pipeline_type_mappings = {
                 "PipelineResponse": "/v2/pipelineResults",
                 "GEM2SResponse": "/v2/gem2sResults",
                 "SeuratResponse": "/v2/seuratResults"
             }
 
-            message_type = sns_message_payload["MessageAttributes"]["type"]["Value"]
-            if message_type in pipeline_type_mappings:
-                url = message_body.get('apiUrl') + pipeline_type_mappings[message_type]
-                data = sns_message_payload
-                headers = sns_message_headers
+            if message_body.get("reason") == "BackOff":
+                data = message_body
+                headers = application_json_headers
+                url = f"{os.getenv('DOMAIN_NAME')}/v2/kubernetesEvents"
+            else:
+                message_type = sns_message_payload["MessageAttributes"]["type"]["Value"]
+                if message_type in pipeline_type_mappings:
+                    url = message_body.get('apiUrl') + pipeline_type_mappings[message_type]
+                    data = sns_message_payload
+                    headers = sns_message_headers
 
             print("[ENDPOINT CALLED] ", url)
             print("[DATA PAYLOAD] ", json.dumps(data))
