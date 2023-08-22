@@ -54,7 +54,7 @@ Resources:
                   - "logs:PutQueryDefinition"
                   - "sns:Get*"
                   - "sns:List*"
-                Resource: "*" 
+                Resource: "*"
 
         - PolicyName: "can-create-xray-groups"
           PolicyDocument:
@@ -181,6 +181,16 @@ Resources:
                   - 's3:PutObject'
                 Resource:
                   - "arn:aws:s3:::cf-templates-*"
+
+        - PolicyName: "can-delete-from-staging-buckets"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:DeleteObject'
+                Resource:
+                  - "arn:aws:s3:::*staging*/*"
 
         - PolicyName: "can-raise-support-questions"
           PolicyDocument:
