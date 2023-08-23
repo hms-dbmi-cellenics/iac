@@ -182,16 +182,6 @@ Resources:
                 Resource:
                   - "arn:aws:s3:::cf-templates-*"
 
-        - PolicyName: "can-delete-from-staging-buckets"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 's3:DeleteObject'
-                Resource:
-                  - "arn:aws:s3:::*staging*/*"
-
         - PolicyName: "can-raise-support-questions"
           PolicyDocument:
             Version: "2012-10-17"
@@ -223,6 +213,16 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
+
+        - PolicyName: "can-delete-from-staging-buckets"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:DeleteObject'
+                Resource:
+                  - !Sub "arn:aws:s3:::*staging-${AWS::AccountId}/*"
 
         - PolicyName: "can-list-and-describe-batch-resources"
           PolicyDocument:
