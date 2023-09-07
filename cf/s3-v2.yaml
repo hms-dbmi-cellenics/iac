@@ -453,10 +453,10 @@ Resources:
       LifecycleConfiguration:
         Rules:
           # Non-current versions of source files are stored in normal S3 for
-          # 5 days and are then deleted.
+          # 7 days and are then deleted.
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
-            NoncurrentVersionExpirationInDays: 5
+            NoncurrentVersionExpirationInDays: 7
   CellLevelMetadataBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
