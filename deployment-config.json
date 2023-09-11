@@ -28,19 +28,16 @@
             "trv": {
                 "production": [
                     "ibabukova",
-                    "anugerahe",
                     "martinf",
                     "stefanb",
                     "polav",
                     "germans",
-                    "sarac",
-                    "jildoub"
+                    "sarac"
                 ]
             },
             "Biomage": {
                 "production": [
                     "ibabukova",
-                    "anugerahe",
                     "martinf",
                     "oliverg",
                     "stefanb",
@@ -48,12 +45,10 @@
                     "vickym",
                     "germans",
                     "sarac",
-                    "ci-users/testing/ci-user-testing",
-                    "jildoub"
+                    "ci-users/testing/ci-user-testing"
                 ],
                 "staging": [
                     "ibabukova",
-                    "anugerahe",
                     "martinf",
                     "oliverg",
                     "stefanb",
@@ -62,7 +57,6 @@
                     "germans",
                     "sarac",
                     "ci-users/testing/ci-user-testing",
-                    "jildoub",
                     "kristiana"
                 ]
             }
