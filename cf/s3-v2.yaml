@@ -431,4 +431,47 @@ Resources:
             Principal: '*'
             Condition:
               Bool:
-                'aws:SecureTransport': 'false'            
+                'aws:SecureTransport': 'false'
+
+  CellLevelMetadataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "cellenics-cell-level-metadata-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "aws:kms"
+            BucketKeyEnabled: true
+      VersioningConfiguration:
+        Status: "Enabled"
+      LifecycleConfiguration:
+        Rules:
+          # Non-current versions of source files are stored in normal S3 for
+          # 7 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 7
+  CellLevelMetadataBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref CellLevelMetadataBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${CellLevelMetadataBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
