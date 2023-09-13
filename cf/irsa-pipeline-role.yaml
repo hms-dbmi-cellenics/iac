@@ -18,9 +18,9 @@ Parameters:
 Resources:
   PipelineProfile:
     Type: AWS::IAM::InstanceProfile
-    Properties: 
+    Properties:
       InstanceProfileName: !Sub "pipeline-instance-profile-${Environment}"
-      Roles: 
+      Roles:
         - !Ref PipelineRole
   PipelineRole:
     Type: "AWS::IAM::Role"
@@ -75,7 +75,7 @@ Resources:
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}"
- 
+
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
@@ -106,6 +106,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-pipeline-debug-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cellenics-cell-level-metadata-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-delete-cell-ids-s3-${Environment}"
           PolicyDocument:
@@ -152,4 +153,4 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-subset-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-copy-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
-                  
+
