@@ -97,6 +97,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::cell-sets-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cellenics-cell-level-metadata-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-get-object-tagging-from-s3-buckets-${Environment}"
           PolicyDocument:
