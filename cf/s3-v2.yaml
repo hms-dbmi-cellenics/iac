@@ -457,6 +457,23 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            ExposedHeaders:
+              - ETag
+              - "x-amz-server-side-encryption"
+              - "x-amz-request-id"
+              - "x-amz-id-2"
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins:
+              - "*"
+            Id: uiHeadersRule
   CellLevelMetadataBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
