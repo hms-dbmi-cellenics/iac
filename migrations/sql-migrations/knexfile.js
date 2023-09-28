@@ -5,7 +5,7 @@ const getConnectionParams = require('./getConnectionParams');
 const fetchConfiguration = async (environment, sandboxId, region) => {
   const params = await getConnectionParams(environment, sandboxId, region);
 
-  let migrationsDir = path.join(__dirname, '..', 'sql', process.env.NODE_ENV)
+  let migrationsDir = path.join(__dirname, '..', 'sql')
 
   if (
     environment === 'development'
