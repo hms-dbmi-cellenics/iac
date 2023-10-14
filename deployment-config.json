@@ -65,7 +65,12 @@
         "excluded_services": [
             "cf/rds-agent-security-group.yaml",
             "cf/rds-subnet-security-group.yaml"
-        ]
+        ],
+        "worker_scale_to_zero": {
+            "Biomage": {
+                "staging": "true"
+            }
+        }
     },
     "hms-dbmi-cellenics": {
         "domain_name": "HMS",
@@ -102,6 +107,17 @@
             "cf/doit-cloudhealth-role.yaml",
             "cf/rds-agent-security-group.yaml",
             "cf/rds-subnet-security-group.yaml"
-        ]
+        ],
+        "worker_timeout": {
+            "HMS": {
+                "production": "2400"
+            }
+        },
+        "worker_scale_to_zero": {
+            "HMS": {
+                "production": "true",
+                "staging": "true"
+            }
+        }
     }
 }
