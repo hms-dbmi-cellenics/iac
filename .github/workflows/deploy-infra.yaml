@@ -495,8 +495,8 @@ jobs:
               .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
               .myAccount.publicFacing = strenv(PUBLIC_FACING) |
               .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
-              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE)
-              .myAccount.workerTimeout = strenv(WORKER_TIMEOUT)
+              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
+              .myAccount.workerTimeout = strenv(WORKER_TIMEOUT) |
               .myAccount.workerScaleToZero = strenv(WORKER_SCALE_TO_ZERO)
             ' infra/config/account-config.yaml
 
