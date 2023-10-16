@@ -117,6 +117,7 @@
                     "worker_scale_to_zero": "true"
                 },
                 "staging": {
+                    "worker_timeout": "2400",
                     "worker_scale_to_zero": "true"
                 }
             }
