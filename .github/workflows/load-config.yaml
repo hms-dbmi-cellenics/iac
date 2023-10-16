@@ -53,11 +53,8 @@ on:
       user_pool_domain_name:
         description: "The name of cognito user pool"
         value: ${{ jobs.setup.outputs.user_pool_domain_name }}
-      worker_timeout:
-        description: "Time in milliseconds before killing an idle worker pod"
-        value: ${{ jobs.setup.outputs.worker_timeout }}
       deployment_matrix:
-        description: "All allowed combinations of environment name and environment type"
+        description: "Deployment specific configuration for specific environment name and environment type"
         value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
 
 jobs:
