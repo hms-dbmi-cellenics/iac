@@ -66,9 +66,11 @@
             "cf/rds-agent-security-group.yaml",
             "cf/rds-subnet-security-group.yaml"
         ],
-        "worker_scale_to_zero": {
+        "service_config": {
             "Biomage": {
-                "staging": "true"
+                "staging": {
+                    "worker_scale_to_zero": "true"
+                }
             }
         }
     },
@@ -108,15 +110,15 @@
             "cf/rds-agent-security-group.yaml",
             "cf/rds-subnet-security-group.yaml"
         ],
-        "worker_timeout": {
+        "service_config": {
             "HMS": {
-                "production": "2400"
-            }
-        },
-        "worker_scale_to_zero": {
-            "HMS": {
-                "production": "true",
-                "staging": "true"
+                "production": {
+                    "worker_timeout": "2400",
+                    "worker_scale_to_zero": "true"
+                },
+                "staging": {
+                    "worker_scale_to_zero": "true"
+                }
             }
         }
     }

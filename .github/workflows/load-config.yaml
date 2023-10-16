@@ -179,8 +179,8 @@ jobs:
             $matrix |
             map(. + {
               admins: ($config[$org].cluster_admins[.name][.type] // []),
-              worker_timeout: ($config[$org].worker_timeout[.name][.type] // ""),
-              worker_scale_to_zero: ($config[$org].worker_scale_to_zero[.name][.type] // "false"),
+              worker_timeout: ($config[$org].service_config[.name][.type].worker_timeout // ""),
+              worker_scale_to_zero: ($config[$org].service_config[.name][.type].worker_scale_to_zero // "false"),
             })
           ')
 
