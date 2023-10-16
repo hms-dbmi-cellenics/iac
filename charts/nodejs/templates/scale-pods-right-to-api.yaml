@@ -1,4 +1,4 @@
-{{ if and (contains "api" .Values.biomageCi.repo) (eq .Values.myAccount.workerScaleToZero "true") }}
+{{ if (contains "api" .Values.biomageCi.repo) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
