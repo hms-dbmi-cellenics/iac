@@ -495,9 +495,7 @@ jobs:
               .myAccount.accountId = strenv(AWS_ACCOUNT_ID) |
               .myAccount.publicFacing = strenv(PUBLIC_FACING) |
               .myAccount.acmCertificate = strenv(ACM_CERTIFICATE_ARN) |
-              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE) |
-              .myAccount.workerTimeout = strenv(WORKER_TIMEOUT) |
-              .myAccount.workerScaleToZero = strenv(WORKER_SCALE_TO_ZERO)
+              .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE)
             ' infra/config/account-config.yaml
 
           if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]
@@ -518,8 +516,6 @@ jobs:
           ACM_CERTIFICATE_ARN: ${{ steps.setup-domain.outputs.acm-certificate-arn }}
           PUBLIC_FACING: ${{ steps.platform-public-facing.outputs.result }}
           SELF_SIGNED_CERTIFICATE: ${{ steps.using-self-signed-certificate.outputs.result }}
-          WORKER_TIMEOUT: ${{ matrix.environment.worker_timeout }}
-          WORKER_SCALE_TO_ZERO: ${{ matrix.environment.worker_scale_to_zero }}
 
       - id: create-flux-namespace
         name: Attempt to create flux namespace

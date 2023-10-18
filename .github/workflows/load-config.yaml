@@ -171,17 +171,15 @@ jobs:
             }
           ]')
 
-          DEPLOYMENT_CONFIG_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson matrix "$DEPLOYMENT_MATRIX" '
+          ADMIN_DEPLOYMENT_MATRIX=$(echo $CONFIG_FILE | jq -c --arg org "${{ github.repository_owner }}" --arg env_name "$ENV_NAME" --arg env_type "$ENV_TYPE" --argjson matrix "$DEPLOYMENT_MATRIX" '
             . as $config |
             $matrix |
             map(. + {
-              admins: ($config[$org].cluster_admins[.name][.type] // []),
-              worker_timeout: ($config[$org].service_config[.name][.type].worker_timeout),
-              worker_scale_to_zero: ($config[$org].service_config[.name][.type].worker_scale_to_zero // "false"),
+              admins: ($config[$org].cluster_admins[.name][.type] // [])
             })
           ')
 
-          echo "deployment_matrix=$DEPLOYMENT_CONFIG_MATRIX"
-          echo "deployment_matrix=$DEPLOYMENT_CONFIG_MATRIX" >> $GITHUB_OUTPUT
+          echo "deployment_matrix=$ADMIN_DEPLOYMENT_MATRIX"
+          echo "deployment_matrix=$ADMIN_DEPLOYMENT_MATRIX" >> $GITHUB_OUTPUT
 
         shell: bash
