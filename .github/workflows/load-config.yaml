@@ -54,7 +54,7 @@ on:
         description: "The name of cognito user pool"
         value: ${{ jobs.setup.outputs.user_pool_domain_name }}
       deployment_matrix:
-        description: "Deployment specific configuration for environment name and environment type"
+        description: "All allowed combinations of environment name and environment type"
         value: ${{ jobs.generate-deployment-matrix.outputs.deployment_matrix }}
 
 jobs:
