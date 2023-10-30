@@ -1,4 +1,4 @@
-{{ if and (contains "api" .Values.biomageCirepo) (or (eq .Values.kubernetes.env "staging") (eq .Values.myAccount.accountId "160782110667")) }}
+{{ if contains "api" .Values.biomageCirepo }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
