@@ -16,4 +16,8 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: can-scale-worker-pods
+subjects:
+- kind: ServiceAccount
+  name: deployment-runner
+  namespace: {{ .Release.Namespace}}
 {{ end }}
