@@ -29,7 +29,7 @@ Parameters:
 
   DBEngineVersion:
     Type: Number
-    Default: 13.4
+    Default: 13.8
 
   DBSecretPrefix:
     Description: The prefix of the secret used to store master user and password,
