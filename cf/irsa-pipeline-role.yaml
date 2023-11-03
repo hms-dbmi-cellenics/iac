@@ -91,6 +91,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-originals-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::cellenics-cell-level-metadata-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-upload-object-to-destination-bucket-${Environment}"
           PolicyDocument:
@@ -106,7 +107,6 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-pipeline-debug-${Environment}-${AWS::AccountId}/*"
-                  - !Sub "arn:aws:s3:::cellenics-cell-level-metadata-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-delete-cell-ids-s3-${Environment}"
           PolicyDocument:
