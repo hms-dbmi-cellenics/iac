@@ -288,7 +288,8 @@ jobs:
           on_retry_command: sleep $(shuf -i 5-15 -n 1)
           command: |-
             helm repo add eks https://aws.github.io/eks-charts
-            kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+            wget https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
+            kubectl apply -f crds.yaml
             helm repo update
             helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
               --namespace kube-system \
