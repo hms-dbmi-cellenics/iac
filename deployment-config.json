@@ -2,62 +2,23 @@
     "biomage-org": {
         "domain_name": "Biomage",
         "environment_names": [
-            "alabs",
-            "Biomage",
             "trv"
         ],
         "docker_image_account": {
-            "id": 242905224710,
-            "region": "eu-west-1"
+            "id": 964743398471,
+            "region": "us-east-2"
         },
-        "support_email": "engineering@biomage.net",
+        "support_email": "iva@biomage.net",
         "reply_email": "hello@biomage.net",
         "deployment_environments": {
             "trv": [
                 "production"
-            ],
-            "alabs": [
-                "production"
-            ],
-            "Biomage": [
-                "production",
-                "staging"
             ]
         },
         "cluster_admins": {
             "trv": {
                 "production": [
-                    "ibabukova",
-                    "martinf",
-                    "stefanb",
-                    "polav",
-                    "germans",
-                    "sarac"
-                ]
-            },
-            "Biomage": {
-                "production": [
-                    "ibabukova",
-                    "martinf",
-                    "oliverg",
-                    "stefanb",
-                    "polav",
-                    "vickym",
-                    "germans",
-                    "sarac",
-                    "ci-users/testing/ci-user-testing"
-                ],
-                "staging": [
-                    "ibabukova",
-                    "martinf",
-                    "oliverg",
-                    "stefanb",
-                    "polav",
-                    "vickym",
-                    "germans",
-                    "sarac",
-                    "ci-users/testing/ci-user-testing",
-                    "kristiana"
+                    "ibabukova"
                 ]
             }
         },
