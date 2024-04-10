@@ -780,6 +780,21 @@ jobs:
             kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
           fi
 
+      - id: setup-falcon-sensor
+        name: Setup Falcon Sensor
+        run: |-
+          if [[ -n "${{ secrets.FALCON_CID }}" ]];
+          then
+            helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
+            helm repo update
+            helm upgrade --install falcon-helm crowdstrike/falcon-sensor \
+            --set node.enabled=false \
+            --set container.enabled=true \
+            --set falcon.cid=$FALCON_CID \
+            --set container.image.repository="<Your_Registry>/falcon-sensor"
+          else
+            echo "CrowdStrike CID missing, skipping falcon sensor setup"
+          fi
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
