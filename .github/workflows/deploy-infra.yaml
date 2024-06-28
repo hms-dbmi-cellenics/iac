@@ -857,7 +857,7 @@ jobs:
             export MY_INTERNAL_CONTAINER_REGISTRY="${ECR_REGISTRY}/falcon-sensor"
 
             # Configure your sensor repo 
-            export MY_INTERNAL_SENSOR_IMAGE_REPO="${MY_INTERNAL_CONTAINER_REGISTRY}/${SENSORTYPE}"
+            export MY_INTERNAL_SENSOR_IMAGE_REPO="${MY_INTERNAL_CONTAINER_REGISTRY}"
 
             # Login to crowdstrike registry
             echo $FALCON_ART_PASSWORD | docker login -u $FALCON_ART_USERNAME --password-stdin ${FALCON_CONTAINER_REGISTRY}
@@ -885,9 +885,9 @@ jobs:
               -n falcon-system --create-namespace \
               --set node.enabled=false \
               --set container.enabled=true \
-              --set falcon.cid="$CROWDSTRIKE_CID" \
-              --set container.image.repository="$FALCON_IMAGE_REPO" \
-              --set container.image.tag="$FALCON_IMAGE_TAG"
+              --set falcon.cid="$FALCON_CID" \
+              --set container.image.repository="$MY_INTERNAL_SENSOR_IMAGE_REPO" \
+              --set container.image.tag="$FALCON_SENSOR_IMAGE_TAG"
           else
             echo "CrowdStrike CID missing, skipping falcon sensor setup"
           fi
