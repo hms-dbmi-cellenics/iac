@@ -872,7 +872,7 @@ jobs:
             ${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
 
             ## push the images to your registry
-            docker push ${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
+            docker push ${ECR_REGISTRY}/${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
 
             # add the repository to your Helm client
             export REPO=crowdstrike/falcon-sensor
@@ -890,6 +890,9 @@ jobs:
           else
             echo "CrowdStrike CID missing, skipping falcon sensor setup"
           fi
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
