@@ -833,16 +833,23 @@ jobs:
             --silent \
             https://${FALCON_CLOUD_API}/oauth2/token | jq -cr '.access_token | values')
 
+            echo "HERE1"
+
             # Get CrowdStrike registry username and password:
             export FALCON_ART_USERNAME="fc-$(echo ${FALCON_CID} | awk '{ print tolower($0) }' | cut -d'-' -f1)"
+            echo "HERE2"
+
             export FALCON_ART_PASSWORD=$(curl -X GET -H "authorization: Bearer ${FALCON_CS_API_TOKEN}" \
             https://${FALCON_CLOUD_API}/container-security/entities/image-registry-credentials/v1 | jq -cr \
             '.resources[].token | values')
+            echo "HERE3!!"
+
 
             # Obtain a token to interact with the CrowdStrike private registry:
             export REGISTRY_BEARER=$(curl -X GET -s -u "${FALCON_ART_USERNAME}:${FALCON_ART_PASSWORD}" \
             "https://${FALCON_CONTAINER_REGISTRY}/v2/token?=fc-${CID}&scope=repository:falcon-sensor/${FALCON_REGION}/release/falcon-sensor:pull&service=${FALCON_CONTAINER_REGISTRY}" | jq -r '.token')
 
+            echo "HERE4!!!"
             # Fetch the latest tag:
             export SENSORTYPE=falcon-container
             export FALCON_SENSOR_IMAGE_REPO="${FALCON_CONTAINER_REGISTRY}/${SENSORTYPE}/${FALCON_REGION}/release/${SENSORTYPE}"
@@ -850,6 +857,8 @@ jobs:
             export FALCON_SENSOR_IMAGE_TAG=$(curl -X GET -s -H "authorization: Bearer ${REGISTRY_BEARER}" \
             "https://${FALCON_CONTAINER_REGISTRY}/v2/${SENSORTYPE}/${FALCON_REGION}/release/falcon-sensor/tags/list" | \
             jq -r '.tags[-1]')
+
+            echo "HERE5!!!"
 
             # Push Container Images to Private Registry
             # Configure your container registry
