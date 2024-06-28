@@ -854,7 +854,7 @@ jobs:
 
             # Push Container Images to Private Registry
             # Configure your container registry
-            export MY_INTERNAL_CONTAINER_REGISTRY=falcon-sensor
+            export MY_INTERNAL_CONTAINER_REGISTRY="${ECR_REGISTRY}/falcon-sensor"
 
             # Configure your sensor repo 
             export MY_INTERNAL_SENSOR_IMAGE_REPO="${MY_INTERNAL_CONTAINER_REGISTRY}/${SENSORTYPE}"
@@ -871,8 +871,9 @@ jobs:
             docker tag ${FALCON_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG} \
             ${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
 
+            docker login 
             ## push the images to your registry
-            docker push ${ECR_REGISTRY}/${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
+            docker push ${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
 
             # add the repository to your Helm client
             export REPO=crowdstrike/falcon-sensor
