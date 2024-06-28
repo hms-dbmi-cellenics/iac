@@ -846,7 +846,7 @@ jobs:
 
             # Fetch the latest tag:
             export SENSORTYPE=falcon-container
-            export FALCON_SENSOR_IMAGE_REPO="${FALCON_CONTAINER_REGISTRY}/${SENSORTYPE}/${FALCON_REGION}/release/${SENSORTYPE}"
+            export FALCON_SENSOR_IMAGE_REPO="${FALCON_CONTAINER_REGISTRY}/${SENSORTYPE}/${FALCON_REGION}/release/falcon-sensor"
 
             export FALCON_SENSOR_IMAGE_TAG=$(curl -X GET -s -H "authorization: Bearer ${REGISTRY_BEARER}" \
             "https://${FALCON_CONTAINER_REGISTRY}/v2/${SENSORTYPE}/${FALCON_REGION}/release/falcon-sensor/tags/list" | \
