@@ -856,9 +856,6 @@ jobs:
             # Login to crowdstrike registry
             echo $FALCON_ART_PASSWORD | docker login -u $FALCON_ART_USERNAME --password-stdin ${FALCON_CONTAINER_REGISTRY}
 
-            # Login to your internal registry
-            docker login ${MY_INTERNAL_CONTAINER_REGISTRY}
-
             # Move images to your local registry
 
             ## Pull latest falcon-sensor image for daemonset deployment
