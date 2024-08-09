@@ -784,8 +784,8 @@ jobs:
         name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - id: create-ecr-registry
-        name: Create an ECR repository for the Falcon Sensor (if needed)
+      - id: create-ecr-registries
+        name: Create an ECR repositories for the Falcon Sensor (if needed)
         # This will fail if the registry already exists, which is fine. If there is some other
         # error, the `push` step will fail instead.
         continue-on-error: true
@@ -793,8 +793,9 @@ jobs:
           if [[ -n "${{ secrets.FALCON_CID }}" ]];
           then
             aws ecr create-repository --repository-name falcon-sensor --image-tag-mutability IMMUTABLE
+            aws ecr create-repository --repository-name falcon-node-sensor --image-tag-mutability IMMUTABLE
           else
-            echo "CrowdStrike CID missing, not creating falcon sensor repo"
+            echo "CrowdStrike CID missing, not creating falcon sensor repos"
           fi
 
       - id: create-falcon-namespace
@@ -821,73 +822,44 @@ jobs:
             # confgure CID
             export FALCON_CID="${{ secrets.FALCON_CID }}"
 
-            # configure cloud region variables
-            export FALCON_CLOUD_API="${{ secrets.FALCON_CLOUD_API }}"
-            export FALCON_REGION="${{ secrets.FALCON_REGION }}"
-            export FALCON_CONTAINER_REGISTRY="${{ secrets.FALCON_CONTAINER_REGISTRY }}"
+            # URL of falcon-container-sensor-pull.sh
+            PULL_SCRIPT_URL="https://raw.githubusercontent.com/CrowdStrike/falcon-scripts/main/bash/containers/falcon-container-sensor-pull/falcon-container-sensor-pull.sh"
 
-            # Get OAuth2 token to interact with the CrowdStrike API:
-            export FALCON_CS_API_TOKEN=$(curl \
-            --data "client_id=${FALCON_CLIENT_ID}&client_secret=${FALCON_CLIENT_SECRET}" \
-            --request POST \
-            --silent \
-            https://${FALCON_CLOUD_API}/oauth2/token | jq -cr '.access_token | values')
+            # Download the pull script from GitHub and save it to the current directory
+            # --silent - Supresses standard/error output
+            # --remote-name - Keeps the original filename when saving
+            # --location - Follow redirects
+            curl --silent --remote-name --location "$PULL_SCRIPT_URL"
 
-            # Get CrowdStrike registry username and password:
-            export FALCON_ART_USERNAME="fc-$(echo ${FALCON_CID} | awk '{ print tolower($0) }' | cut -d'-' -f1)"
+            # download latest version of the Falcon Container (for fargate) and copy it to ECS
+            ./falcon-container-sensor-pull.sh \
+            --client-id ${FALCON_CLIENT_ID} \
+            --client-secret ${FALCON_CLIENT_SECRET} \
+            --type falcon-container \
+            --copy "${ECR_REGISTRY}/falcon-sensor"
 
-            export FALCON_ART_PASSWORD=$(curl \
-            -X GET -H "authorization: Bearer ${FALCON_CS_API_TOKEN}" \
-            https://${FALCON_CLOUD_API}/container-security/entities/image-registry-credentials/v1 | jq -cr '.resources[].token | values')
+            # download latest version of the Falcon Node Sensor (for EC2) and copy it to ECS
+            ./falcon-container-sensor-pull.sh \
+            --client-id ${FALCON_CLIENT_ID} \
+            --client-secret ${FALCON_CLIENT_SECRET} \
+            --type falcon-sensor \
+            --copy "${ECR_REGISTRY}/falcon-node-sensor"
 
-            # Obtain a token to interact with the CrowdStrike private registry:
-            export REGISTRY_BEARER=$(curl -X GET -s -u "${FALCON_ART_USERNAME}:${FALCON_ART_PASSWORD}" \
-            "https://${FALCON_CONTAINER_REGISTRY}/v2/token?=fc-${CID}&scope=repository:falcon-sensor/${FALCON_REGION}/release/falcon-sensor:pull&service=${FALCON_CONTAINER_REGISTRY}" | jq -r '.token')
-
-            # Fetch the latest tag:
-            export SENSORTYPE=falcon-container
-            export FALCON_SENSOR_IMAGE_REPO="${FALCON_CONTAINER_REGISTRY}/${SENSORTYPE}/${FALCON_REGION}/release/falcon-sensor"
-
-            export FALCON_SENSOR_IMAGE_TAG=$(curl -X GET -s -H "authorization: Bearer ${REGISTRY_BEARER}" \
-            "https://${FALCON_CONTAINER_REGISTRY}/v2/${SENSORTYPE}/${FALCON_REGION}/release/falcon-sensor/tags/list" | \
-            jq -r '.tags[-1]')
-
-            # Push Container Images to Private Registry
-            # Configure your container registry
-            export MY_INTERNAL_CONTAINER_REGISTRY="${ECR_REGISTRY}/falcon-sensor"
-
-            # Configure your sensor repo 
-            export MY_INTERNAL_SENSOR_IMAGE_REPO="${MY_INTERNAL_CONTAINER_REGISTRY}"
-
-            # Login to crowdstrike registry
-            echo $FALCON_ART_PASSWORD | docker login -u $FALCON_ART_USERNAME --password-stdin ${FALCON_CONTAINER_REGISTRY}
-
-            # Move images to your local registry
-
-            ## Pull latest falcon-sensor image for daemonset deployment
-            docker pull ${FALCON_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
-
-            ## Tag the images to point to your registry
-            docker tag ${FALCON_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG} \
-            ${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
-
-            docker login 
-            ## push the images to your registry
-            docker push ${MY_INTERNAL_SENSOR_IMAGE_REPO}:${FALCON_SENSOR_IMAGE_TAG}
-
-            # add the repository to your Helm client
-            export REPO=crowdstrike/falcon-sensor
-
-            # install into a customized namespace
+            # install container sensor (for fargate) into a customized namespace
             helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
             helm repo update
-            helm install falcon-helm ${REPO} \
-              -n falcon-system --create-namespace \
-              --set node.enabled=false \
-              --set container.enabled=true \
-              --set falcon.cid="$FALCON_CID" \
-              --set container.image.repository="$MY_INTERNAL_SENSOR_IMAGE_REPO" \
-              --set container.image.tag="$FALCON_SENSOR_IMAGE_TAG"
+            helm install falcon-helm crowdstrike/falcon-sensor \
+            -n falcon-system --create-namespace \
+            --set node.enabled=false \
+            --set container.enabled=true \
+            --set falcon.cid="$FALCON_CID" \
+            --set container.image.repository="${ECR_REGISTRY}/falcon-sensor"
+
+            # install node sensor (for ec2)
+            helm upgrade --install falcon-helm crowdstrike/falcon-sensor \
+            --set falcon.cid="$FALCON_CID" \
+            --set node.image.repository="${ECR_REGISTRY}/falcon-node-sensor"
+
           else
             echo "CrowdStrike CID missing, skipping falcon sensor setup"
           fi
