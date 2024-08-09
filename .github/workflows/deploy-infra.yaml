@@ -792,8 +792,8 @@ jobs:
         run: |-
           if [[ -n "${{ secrets.FALCON_CID }}" ]];
           then
-            aws ecr create-repository --repository-name falcon-sensor --image-tag-mutability IMMUTABLE
             aws ecr create-repository --repository-name falcon-node-sensor --image-tag-mutability IMMUTABLE
+            aws ecr create-repository --repository-name falcon-sensor --image-tag-mutability IMMUTABLE
           else
             echo "CrowdStrike CID missing, not creating falcon sensor repos"
           fi
@@ -832,6 +832,8 @@ jobs:
             curl --silent --remote-name --location "$PULL_SCRIPT_URL"
 
             # download latest version of the Falcon Container (for fargate) and copy it to ECS
+            docker login
+            
             ./falcon-container-sensor-pull.sh \
             --client-id ${FALCON_CLIENT_ID} \
             --client-secret ${FALCON_CLIENT_SECRET} \
