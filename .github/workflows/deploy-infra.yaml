@@ -887,7 +887,7 @@ jobs:
             helm upgrade --install falcon-sensor-helm crowdstrike/falcon-sensor \
             --set falcon.cid="$FALCON_CID" \
             --set node.image.repository="${ECR_REGISTRY}/falcon-sensor/falcon-sensor" \
-            --set container.image.tag="$FALCON_SENSOR_IMAGE_TAG"
+            --set node.image.tag="$FALCON_SENSOR_IMAGE_TAG"
 
           else
             echo "CrowdStrike CID missing, skipping falcon sensor setup"
