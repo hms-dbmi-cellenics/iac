@@ -792,8 +792,8 @@ jobs:
         run: |-
           if [[ -n "${{ secrets.FALCON_CID }}" ]];
           then
-            aws ecr create-repository --repository-name falcon-node-sensor/falcon-sensor --image-tag-mutability IMMUTABLE
-            aws ecr create-repository --repository-name falcon-sensor/falcon-sensor --image-tag-mutability IMMUTABLE
+            aws ecr create-repository --repository-name falcon-node-sensor/falcon-sensor --image-tag-mutability MUTABLE
+            aws ecr create-repository --repository-name falcon-sensor/falcon-sensor --image-tag-mutability MUTABLE
           else
             echo "CrowdStrike CID missing, not creating falcon sensor repos"
           fi
