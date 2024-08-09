@@ -839,13 +839,7 @@ jobs:
             --client-id ${FALCON_CLIENT_ID} \
             --client-secret ${FALCON_CLIENT_SECRET} \
             --type falcon-container \
-            --copy "${ECR_REGISTRY}/falcon-node-sensor"
-
-            ./falcon-container-sensor-pull.sh \
-            --client-id ${FALCON_CLIENT_ID} \
-            --client-secret ${FALCON_CLIENT_SECRET} \
-            --type falcon-container \
-            --get-image-path
+            --copy "${ECR_REGISTRY}/falcon-container"
 
             # download latest version of the Falcon Node Sensor (for EC2) and copy it to ECS
             ./falcon-container-sensor-pull.sh \
@@ -854,26 +848,46 @@ jobs:
             --type falcon-sensor \
             --copy "${ECR_REGISTRY}/falcon-sensor"
 
-            ./falcon-container-sensor-pull.sh \
-            --client-id ${FALCON_CLIENT_ID} \
-            --client-secret ${FALCON_CLIENT_SECRET} \
-            --type falcon-sensor \
-            --get-image-path
+            # functions to get image names for helm
+            get_image_path() {
+                local container_type=$1
+                ./falcon-container-sensor-pull.sh \
+                --client-id ${FALCON_CLIENT_ID} \
+                --client-secret ${FALCON_CLIENT_SECRET} \
+                --type ${container_type} \
+                --get-image-path
+            }
+
+            get_image_name() {
+                local container_type=$1
+                local image_path=$(get_image_path "$container_type")
+                
+                # Extract the image name using awk
+                local image_name=$(echo "$image_path" | awk -F':' '{print $2}')
+                
+                echo "$image_name"
+            }
+
+
+            FALCON_CONTAINER_IMAGE_TAG=$(get_image_name "falcon-container")
+            FALCON_SENSOR_IMAGE_TAG=$(get_image_name "falcon-sensor")
 
             # install container sensor (for fargate) into a customized namespace
             helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
             helm repo update
-            helm upgrade --install falcon-helm crowdstrike/falcon-sensor \
+            helm upgrade --install falcon-container-helm crowdstrike/falcon-sensor \
             -n falcon-system --create-namespace \
             --set node.enabled=false \
             --set container.enabled=true \
             --set falcon.cid="$FALCON_CID" \
-            --set container.image.repository="${ECR_REGISTRY}/falcon-sensor/falcon-sensor"
+            --set container.image.repository="${ECR_REGISTRY}/falcon-container/falcon-sensor" \
+            --set container.image.tag="$FALCON_CONTAINER_IMAGE_TAG"
 
-            # install node sensor (for ec2)
-            helm upgrade --install falcon-node-helm crowdstrike/falcon-sensor \
+            # install node sensor (for ec2) with different release name (falcon-node-helm)
+            helm upgrade --install falcon-sensor-helm crowdstrike/falcon-sensor \
             --set falcon.cid="$FALCON_CID" \
-            --set node.image.repository="${ECR_REGISTRY}/falcon-node-sensor/falcon-sensor"
+            --set node.image.repository="${ECR_REGISTRY}/falcon-sensor/falcon-sensor" \
+            --set container.image.tag="$FALCON_SENSOR_IMAGE_TAG"
 
           else
             echo "CrowdStrike CID missing, skipping falcon sensor setup"
