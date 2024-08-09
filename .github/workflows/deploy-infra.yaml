@@ -851,7 +851,7 @@ jobs:
             # install container sensor (for fargate) into a customized namespace
             helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
             helm repo update
-            helm install falcon-helm crowdstrike/falcon-sensor \
+            helm upgrade --install falcon-helm crowdstrike/falcon-sensor \
             -n falcon-system --create-namespace \
             --set node.enabled=false \
             --set container.enabled=true \
