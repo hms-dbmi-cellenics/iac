@@ -792,8 +792,8 @@ jobs:
         run: |-
           if [[ -n "${{ secrets.FALCON_CID }}" ]];
           then
-            aws ecr create-repository --repository-name falcon-node-sensor --image-tag-mutability IMMUTABLE
-            aws ecr create-repository --repository-name falcon-sensor --image-tag-mutability IMMUTABLE
+            aws ecr create-repository --repository-name falcon-sensor/falcon-node-sensor --image-tag-mutability IMMUTABLE
+            aws ecr create-repository --repository-name falcon-sensor/falcon-sensor --image-tag-mutability IMMUTABLE
           else
             echo "CrowdStrike CID missing, not creating falcon sensor repos"
           fi
@@ -839,14 +839,14 @@ jobs:
             --client-id ${FALCON_CLIENT_ID} \
             --client-secret ${FALCON_CLIENT_SECRET} \
             --type falcon-container \
-            --copy "${ECR_REGISTRY}"
+            --copy "${ECR_REGISTRY}/falcon-node-sensor"
 
             # download latest version of the Falcon Node Sensor (for EC2) and copy it to ECS
             ./falcon-container-sensor-pull.sh \
             --client-id ${FALCON_CLIENT_ID} \
             --client-secret ${FALCON_CLIENT_SECRET} \
             --type falcon-sensor \
-            --copy "${ECR_REGISTRY}"
+            --copy "${ECR_REGISTRY}/falcon-sensor"
 
             # install container sensor (for fargate) into a customized namespace
             helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
