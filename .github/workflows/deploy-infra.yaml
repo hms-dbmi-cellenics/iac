@@ -876,7 +876,7 @@ jobs:
             helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
             helm repo update
             helm upgrade --install falcon-container-helm crowdstrike/falcon-sensor \
-            -n falcon-system --create-namespace \
+            -n falcon-container-system --create-namespace \
             --set node.enabled=false \
             --set container.enabled=true \
             --set falcon.cid="$FALCON_CID" \
@@ -885,7 +885,7 @@ jobs:
 
             # install node sensor (for ec2) with different release name (falcon-sensor-helm)
             helm upgrade --install falcon-sensor-helm crowdstrike/falcon-sensor \
-            -n falcon-system --create-namespace \
+            -n falcon-sensor-system --create-namespace \
             --set falcon.cid="$FALCON_CID" \
             --set node.image.repository="${ECR_REGISTRY}/falcon-sensor/falcon-sensor" \
             --set node.image.tag="$FALCON_SENSOR_IMAGE_TAG"
