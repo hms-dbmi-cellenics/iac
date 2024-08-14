@@ -897,7 +897,7 @@ jobs:
             --set image.tag="0.2117.0" \
             --set crowdstrikeConfig.clientID="$FALCON_CLIENT_ID" \
             --set crowdstrikeConfig.clientSecret="$FALCON_CLIENT_SECRET" \
-            --set crowdstrikeConfig.clusterName="arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV" \
+            --set crowdstrikeConfig.clusterName="arn:aws:eks:$AWS_REGION:${AWS_ACCOUNT_ID}:cluster/biomage-${CLUSTER_ENV}" \
             --set crowdstrikeConfig.env="${{ secrets.FALCON_REGION }}" \
             --set crowdstrikeConfig.cid="${{ secrets.FALCON_CCID }}" \
             --set crowdstrikeConfig.dockerAPIToken="${{ secrets.FALCON_DOCKER_API_TOKEN }}"
