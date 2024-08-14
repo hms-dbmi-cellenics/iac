@@ -890,6 +890,18 @@ jobs:
             --set node.image.repository="${ECR_REGISTRY}/falcon-sensor/falcon-sensor" \
             --set node.image.tag="$FALCON_SENSOR_IMAGE_TAG"
 
+            # install KPA (kubernetes protection agent)
+            helm upgrade --install kpagent crowdstrike/cs-k8s-protection-agent \
+            -n falcon-kubernetes-protection --create-namespace \
+            --set image.repository="registry.crowdstrike.com/kubernetes_protection/kpagent" \
+            --set image.tag="0.2117.0" \
+            --set crowdstrikeConfig.clientID="$FALCON_CLIENT_ID" \
+            --set crowdstrikeConfig.clientSecret="$FALCON_CLIENT_SECRET" \
+            --set crowdstrikeConfig.clusterName="arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV" \
+            --set crowdstrikeConfig.env="${{ secrets.FALCON_REGION }}" \
+            --set crowdstrikeConfig.cid="${{ secrets.FALCON_CCID }}" \
+            --set crowdstrikeConfig.dockerAPIToken="${{ secrets.FALCON_DOCKER_API_TOKEN }}"
+
           else
             echo "CrowdStrike CID missing, skipping falcon sensor setup"
           fi
