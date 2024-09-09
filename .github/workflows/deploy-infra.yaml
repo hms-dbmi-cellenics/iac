@@ -784,7 +784,7 @@ jobs:
         name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - id: create-ecr-registries
+      - id: create-falcon-ecr-registries
         name: Create an ECR repositories for the Falcon Sensor (if needed)
         # This will fail if the registry already exists, which is fine. If there is some other
         # error, the `push` step will fail instead.
