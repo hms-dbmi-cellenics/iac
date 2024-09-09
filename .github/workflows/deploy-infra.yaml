@@ -781,6 +781,136 @@ jobs:
             kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
           fi
 
+      - id: login-ecr
+        name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - id: create-falcon-ecr-registries
+        name: Create an ECR repositories for the Falcon Sensor (if needed)
+        # This will fail if the registry already exists, which is fine. If there is some other
+        # error, the `push` step will fail instead.
+        continue-on-error: true
+        run: |-
+          if [[ -n "${{ secrets.FALCON_CID }}" ]];
+          then
+            aws ecr create-repository --repository-name falcon-container/falcon-sensor --image-tag-mutability MUTABLE
+            aws ecr create-repository --repository-name falcon-sensor/falcon-sensor --image-tag-mutability MUTABLE
+          else
+            echo "CrowdStrike CID missing, not creating falcon sensor repos"
+          fi
+
+      - id: create-falcon-namespace
+        name: Attempt to create falcon namespace
+        continue-on-error: true
+        run: |-
+          if [[ -n "${{ secrets.FALCON_CID }}" ]];
+          then
+            kubectl create namespace falcon-system
+             else
+            echo "CrowdStrike CID missing, not creating falcon namespace"
+          fi
+
+      - id: setup-falcon-sensor
+        name: Setup Falcon Sensor
+        run: |-
+          if [[ -n "${{ secrets.FALCON_CID }}" ]];
+          then
+
+            # configure the API client ID and password
+            export FALCON_CLIENT_ID="${{ secrets.FALCON_CLIENT_ID }}"
+            export FALCON_CLIENT_SECRET="${{ secrets.FALCON_CLIENT_SECRET }}"
+
+            # confgure CID
+            export FALCON_CID="${{ secrets.FALCON_CID }}"
+
+            # URL of falcon-container-sensor-pull.sh
+            PULL_SCRIPT_URL="https://raw.githubusercontent.com/CrowdStrike/falcon-scripts/main/bash/containers/falcon-container-sensor-pull/falcon-container-sensor-pull.sh"
+
+            # Download the pull script from GitHub and save it to the current directory
+            # --silent - Supresses standard/error output
+            # --remote-name - Keeps the original filename when saving
+            # --location - Follow redirects
+            curl --silent --remote-name --location "$PULL_SCRIPT_URL"
+
+            # make script executable
+            chmod +x falcon-container-sensor-pull.sh
+
+            # download latest version of the Falcon Container (for fargate) and copy it to ECS
+            ./falcon-container-sensor-pull.sh \
+            --client-id ${FALCON_CLIENT_ID} \
+            --client-secret ${FALCON_CLIENT_SECRET} \
+            --type falcon-container \
+            --copy "${ECR_REGISTRY}/falcon-container"
+
+            # download latest version of the Falcon Node Sensor (for EC2) and copy it to ECS
+            ./falcon-container-sensor-pull.sh \
+            --client-id ${FALCON_CLIENT_ID} \
+            --client-secret ${FALCON_CLIENT_SECRET} \
+            --type falcon-sensor \
+            --copy "${ECR_REGISTRY}/falcon-sensor"
+
+            # functions to get image names for helm
+            get_image_path() {
+                local container_type=$1
+                ./falcon-container-sensor-pull.sh \
+                --client-id ${FALCON_CLIENT_ID} \
+                --client-secret ${FALCON_CLIENT_SECRET} \
+                --type ${container_type} \
+                --get-image-path
+            }
+
+            get_image_name() {
+                local container_type=$1
+                local image_path=$(get_image_path "$container_type")
+                
+                # Extract the image name using awk
+                local image_name=$(echo "$image_path" | awk -F':' '{print $2}')
+                
+                echo "$image_name"
+            }
+
+
+            FALCON_CONTAINER_IMAGE_TAG=$(get_image_name "falcon-container")
+            FALCON_SENSOR_IMAGE_TAG=$(get_image_name "falcon-sensor")
+
+            # install container sensor (for fargate) into a customized namespace
+            helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm
+            helm repo update
+            helm upgrade --install falcon-container-helm crowdstrike/falcon-sensor \
+            -n falcon-container-system --create-namespace \
+            --set node.enabled=false \
+            --set container.enabled=true \
+            --set falcon.cid="$FALCON_CID" \
+            --set container.image.repository="${ECR_REGISTRY}/falcon-container/falcon-sensor" \
+            --set container.image.tag="$FALCON_CONTAINER_IMAGE_TAG"
+
+            # install node sensor (for ec2) with different release name (falcon-sensor-helm)
+            helm upgrade --install falcon-sensor-helm crowdstrike/falcon-sensor \
+            -n falcon-sensor-system --create-namespace \
+            --set falcon.cid="$FALCON_CID" \
+            --set node.image.repository="${ECR_REGISTRY}/falcon-sensor/falcon-sensor" \
+            --set node.image.tag="$FALCON_SENSOR_IMAGE_TAG"
+
+            # install KPA (kubernetes protection agent)
+            helm upgrade --install kpagent crowdstrike/cs-k8s-protection-agent \
+            -n falcon-kubernetes-protection --create-namespace \
+            --set image.repository="registry.crowdstrike.com/kubernetes_protection/kpagent" \
+            --set image.tag="0.2117.0" \
+            --set crowdstrikeConfig.clientID="$FALCON_CLIENT_ID" \
+            --set crowdstrikeConfig.clientSecret="$FALCON_CLIENT_SECRET" \
+            --set crowdstrikeConfig.clusterName="arn:aws:eks:${AWS_REGION}:${AWS_ACCOUNT_ID}:cluster/biomage-${CLUSTER_ENV}" \
+            --set crowdstrikeConfig.env="${{ secrets.FALCON_REGION }}" \
+            --set crowdstrikeConfig.cid="${{ secrets.FALCON_CCID }}" \
+            --set crowdstrikeConfig.dockerAPIToken="${{ secrets.FALCON_DOCKER_API_TOKEN }}"
+
+          else
+            echo "CrowdStrike CID missing, skipping falcon sensor setup"
+          fi
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
   report-if-failed:
     name: Report if workflow failed
     runs-on: ubuntu-20.04
