@@ -531,9 +531,9 @@ jobs:
           kubectl create configmap account-config --from-file=infra/config/account-config.yaml -n flux-system -o yaml --dry-run | kubectl apply -f -
 
       - id: install-flux-v2
-        name: Install flux CLI version 2.1.0
+        name: Install flux CLI version 2.3.0
         run: |-
-          curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=2.1.2 bash
+          curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=2.3.0 bash
 
       - id: delete-old-flux-github-deploy-key
         name: Attempt to delete previous github flux deploy key
@@ -546,7 +546,7 @@ jobs:
         run: |-
 
           # Refer to https://github.com/fluxcd/flux2/releases
-          FLUX_VERSION=v2.1.2
+          FLUX_VERSION=v2.3.0
           FLUX_REPO=releases
           FLUX_PATH=deployments/$ENVIRONMENT_NAME-$CLUSTER_ENV
           REPO_FULL_PATH=$GITHUB_REPOSITORY_OWNER/$FLUX_REPO
