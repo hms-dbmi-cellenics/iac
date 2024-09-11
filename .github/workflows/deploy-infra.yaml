@@ -781,6 +781,25 @@ jobs:
             kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
           fi
 
+      - id: setup-orca-cspm
+        name: Setup ORCA CSPM
+        run: |-
+          if [[ -n "${{ secrets.ORCA_TUNNEL_ID }}" ]];
+          then
+            helm upgrade --install orca-tunnel \
+            --namespace orca-security --create-namespace \
+            oci://public.ecr.aws/orcasecurity/helm-k8s-tunnel \
+            --set tunnelAddr=tunnel.production.us-east-1.orcasecurity.net \
+            --set tunnelId="${{ secrets.ORCA_TUNNEL_ID }}" \
+            --set tunnelToken="${{ secrets.ORCA_TUNNEL_TOKEN }}" \
+            --set clusterName="biomage-$CLUSTER_ENV" \
+            --set cloudVendorId="${{ secrets.AWS_ACCOUNT_ID }}" \
+            --set region="${{ secrets.AWS_REGION }}" \
+            --set clusterType=eks
+          else
+            echo "ORCA_TUNNEL_ID missing, skipping ORCA CSPM setup."
+          fi
+
       - id: login-ecr
         name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
