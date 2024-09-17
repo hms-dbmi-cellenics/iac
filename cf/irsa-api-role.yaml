@@ -152,7 +152,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:pipeline-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-gem2s-${Environment}-*"
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-seurat-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-obj2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-subset-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:biomage-copy-${Environment}-*"
 
@@ -171,7 +171,7 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-qc-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-gem2s-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-subset-${Environment}-*:*"
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-seurat-${Environment}-*:*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-obj2s-${Environment}-*:*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:biomage-copy-${Environment}-*:*"
 
         - PolicyName: !Sub "can-create-activity-${Environment}"
@@ -184,7 +184,7 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-qc-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-gem2s-${Environment}-*"
-                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-seurat-${Environment}-*"
+                  - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-obj2s-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-subset-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-copy-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"

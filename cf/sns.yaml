@@ -156,7 +156,7 @@ Resources:
             pipeline_type_mappings = {
                 "PipelineResponse": "/v2/pipelineResults",
                 "GEM2SResponse": "/v2/gem2sResults",
-                "SeuratResponse": "/v2/seuratResults"
+                "OBJ2SResponse": "/v2/obj2sResults"
             }
 
             if message_body.get("reason") == "BackOff":
