@@ -36,7 +36,7 @@ spec:
                 name: response-503
                 port:
                   name: use-annotation
-          - path: /v2/seuratResults
+          - path: /v2/obj2sResults
             pathType: ImplementationSpecific
             backend:
               service:
