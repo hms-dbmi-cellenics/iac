@@ -461,7 +461,7 @@ jobs:
 
             aws ssm send-command --instance-ids "$INSTANCE_ID" \
               --document-name AWS-RunShellScript \
-              --parameters "commands='$INSTALL_FALCON_COMMAND'
+              --parameters "commands='$INSTALL_FALCON_COMMAND'"
         env:
           REGION: ${{ secrets.AWS_REGION }}
 
