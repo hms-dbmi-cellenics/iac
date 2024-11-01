@@ -97,6 +97,48 @@ Resources:
             Condition:
               Bool:
                 'aws:SecureTransport': 'false'
+  SpatialImagesBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "spatial-images-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "aws:kms"
+            BucketKeyEnabled: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          # Non-current versions are stored in normal S3 for
+          # 7 days and are then deleted.
+          - Id: PreserveThenDeleteNonCurrentVersion
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 7
+  SpatialImagesBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref SpatialImagesBucket
+      PolicyDocument:
+        Id: SslOnlyAccess
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action:
+              - 's3:*'
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:s3:::${SpatialImagesBucket}/*'
+            Principal: '*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
   WorkerResultsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
