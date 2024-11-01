@@ -462,6 +462,11 @@ jobs:
             aws ssm send-command --instance-ids "$INSTANCE_ID" \
               --document-name AWS-RunShellScript \
               --parameters "commands='$INSTALL_FALCON_COMMAND'"
+              
+          else
+            echo "CrowdStrike CID missing, skipping falcon sensor setup"
+          fi
+
         env:
           REGION: ${{ secrets.AWS_REGION }}
 
