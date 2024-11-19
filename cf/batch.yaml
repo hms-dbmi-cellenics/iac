@@ -15,7 +15,7 @@ Conditions:
     - !Ref Environment
     - production
 
-  # Define the Launch Template with Metadata Options
+Resources:
   BatchLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
