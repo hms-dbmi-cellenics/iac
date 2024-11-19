@@ -62,6 +62,9 @@ Resources:
       InstanceType: t2.nano
       IamInstanceProfile: !Ref SSMProfile
       ImageId: !Ref LatestAmiId
+      MetadataOptions:
+        HttpTokens: required
+        HttpEndpoint: enabled
       BlockDeviceMappings:
         - DeviceName: "/dev/xvda"
           Ebs:

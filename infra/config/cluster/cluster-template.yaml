@@ -34,6 +34,7 @@ managedNodeGroups:
     maxSize: 4
     volumeSize: 80
     volumeEncrypted: true
+    disableIMDSv1: true
     iam:
       withAddonPolicies:
         ebs: true
