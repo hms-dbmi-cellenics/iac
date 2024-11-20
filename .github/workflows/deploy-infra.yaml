@@ -560,7 +560,7 @@ jobs:
             --repository $FLUX_REPO
             --branch master
             --path $FLUX_PATH
-            --timeout 40s
+            --timeout 80s
             –-interval 2m
             --components-extra=image-reflector-controller,image-automation-controller
             --namespace flux-system
