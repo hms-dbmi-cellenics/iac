@@ -560,8 +560,8 @@ jobs:
             --repository $FLUX_REPO
             --branch master
             --path $FLUX_PATH
-            --timeout 80s
-            –-interval 2m
+            --timeout 5m
+            –-interval 10m
             --components-extra=image-reflector-controller,image-automation-controller
             --namespace flux-system
             --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
