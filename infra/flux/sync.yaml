@@ -4,8 +4,7 @@ metadata:
   name: flux-sync
   namespace: flux-system
 spec:
-  timeout: 5m0s
-  interval: 10m0s
+  interval: 5m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
