@@ -77,12 +77,6 @@ spec:
         - name: DOMAIN_NAME
           value: {{ .Values.myAccount.domainName | quote }}
 
-        - name: DD_API_KEY
-          value: {{ .Values.myAccount.datadogApiKey | quote }}
-
-        - name: DD_APP_KEY
-          value:  {{ .Values.myAccount.datadogAppKey | quote }}
-
 {{- if eq .Values.myAccount.selfSignedCertificate "true" }}
         - name: NODE_TLS_REJECT_UNAUTHORIZED
           value:  "0"
