@@ -243,11 +243,6 @@ jobs:
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
-      - id: deploy-metrics-server
-        name: Deploy k8s metrics server
-        run: |-
-          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
       - id: install-helm
         name: Install Helm
         run: |-
