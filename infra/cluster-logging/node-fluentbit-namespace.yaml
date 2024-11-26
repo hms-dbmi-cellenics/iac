@@ -1,7 +1,0 @@
-#Reference: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs-FluentBit.html
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: node-logging
-  labels:
-    name: node-logging
