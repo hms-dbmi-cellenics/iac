@@ -51,5 +51,3 @@ Resources:
         AliasTarget:
           DNSName: !Ref DNSName
           HostedZoneId: !Ref HostedZoneId
-
-
