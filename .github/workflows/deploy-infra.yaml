@@ -682,6 +682,22 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
+      # Setting up log forwarding for pods hosted on Fargate nodes
+      - id: attach-pod-execution-role-name
+        name: Attach logging policy to pod execution role
+        env:
+          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+        run: |-
+          # Pods launched in the same cluster has the same pod execution role, as pod execution role scope is cluster-wide.
+          # See https://eksctl.io/usage/fargate-support/#creating-a-cluster-with-fargate-support
+          # Getting fargate-profile of pipeline or worker in the same cluster gets the same pod execution role.
+
+          POD_EXEC_ROLE_NAME=$(aws eks describe-fargate-profile \
+            --cluster-name biomage-$CLUSTER_ENV \
+            --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
+
+          aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
+    
       - id: setup-orca-cspm
         name: Setup ORCA CSPM
         run: |-
