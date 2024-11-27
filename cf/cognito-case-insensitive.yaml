@@ -62,6 +62,7 @@ Resources:
                 Resource:
                   - '*'
 
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
