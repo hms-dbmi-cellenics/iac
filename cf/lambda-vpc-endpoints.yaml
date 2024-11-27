@@ -38,4 +38,3 @@ Resources:
         Fn::Split: [",", Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
       SecurityGroupIds:
         - !GetAtt LambdaVPCSecurityGroup.GroupId
-        
