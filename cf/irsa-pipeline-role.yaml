@@ -155,3 +155,4 @@ Resources:
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:biomage-copy-${Environment}-*"
                   - !Sub "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:pipeline-${Environment}-*"
 
+
