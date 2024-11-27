@@ -64,10 +64,7 @@
         },
         "user_pool_domain_name": "hms-auth",
         "excluded_services": [
-            "cf/ses.yaml",
-            "cf/doit-cloudhealth-role.yaml",
-            "cf/rds-agent-security-group.yaml",
-            "cf/rds-subnet-security-group.yaml"
+            "cf/doit-cloudhealth-role.yaml"
         ]
     }
 }
