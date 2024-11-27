@@ -124,3 +124,4 @@ Outputs:
     Value: !GetAtt LoadBalancer.LoadBalancerFullName
     Export:
       Name: !Sub 'k8s-${Environment}::LoadBalancerFullName'
+
