@@ -368,14 +368,14 @@ jobs:
       # This step should be run only once per deployment. The associated Route 53 records to be created
       # e.g. DOMAIN_NAME and *.DOMAIN_NAME should be deleted before running this comment, otherwise this step fails.
       # Refer to the new deployment runbook to learn more.
-      # - id: deploy-route53
-      #   name: Deploy Route 53 DNS records to ELB
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     parameter-overrides: "Environment=${{ matrix.environment.type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
-      #     name: "biomage-alb-route53-${{ matrix.environment.type }}"
-      #     template: 'infra/cf-route53.yaml'
-      #     no-fail-on-empty-changeset: "1"
+      - id: deploy-route53
+        name: Deploy Route 53 DNS records to ELB
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          parameter-overrides: "Environment=${{ matrix.environment.type }},DNSName=${{ steps.deploy-env-loadbalancer.outputs.DNSName }},HostedZoneId=${{ steps.deploy-env-loadbalancer.outputs.CanonicalHostedZoneID }},PrimaryDomainName=${{ steps.setup-domain.outputs.primary-domain-name }},DomainName=${{ steps.setup-domain.outputs.domain-name }}"
+          name: "biomage-alb-route53-${{ matrix.environment.type }}"
+          template: 'infra/cf-route53.yaml'
+          no-fail-on-empty-changeset: "1"
 
       - id: deploy-xray-daemon
         name: Deploy AWS X-Ray daemon
