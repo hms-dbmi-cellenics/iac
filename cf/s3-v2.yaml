@@ -492,3 +492,4 @@ Resources:
             Condition:
               Bool:
                 'aws:SecureTransport': 'false'
+                
