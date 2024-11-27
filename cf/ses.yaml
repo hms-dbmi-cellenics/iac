@@ -49,3 +49,4 @@ Resources:
         TTL: 1800
         ResourceRecords:
           - !GetAtt SESVerifiedIdentity.DkimDNSTokenValue3
+          
