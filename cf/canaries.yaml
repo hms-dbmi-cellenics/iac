@@ -271,4 +271,3 @@ Resources:
       AlarmActions:
         - !Ref CanarySNSTopic
       TreatMissingData: missing
-
