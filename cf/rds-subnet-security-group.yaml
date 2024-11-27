@@ -54,6 +54,7 @@ Resources:
         Fn::ImportValue:
           !Sub "eksctl-biomage-${Environment}-cluster::VPC"
 
+
 Outputs:
   DBSubnetGroup:
     Value: !Ref DBSubnetGroup
@@ -64,4 +65,3 @@ Outputs:
     Export:
       Name: !Sub "biomage-${Environment}-rds::RDSSecurityGroup"
 
-      
