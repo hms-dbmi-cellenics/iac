@@ -226,3 +226,5 @@ Resources:
       FunctionName: !Ref SNSEndpointLambda
       Principal: "sns.amazonaws.com"
       SourceArn: !Ref SNSTopicV2
+
+
