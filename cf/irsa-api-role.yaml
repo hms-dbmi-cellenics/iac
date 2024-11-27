@@ -246,4 +246,3 @@ Resources:
                 Action:
                   - "batch:ListJobs"
                 Resource: '*'
-

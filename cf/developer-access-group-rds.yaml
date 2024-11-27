@@ -86,4 +86,3 @@ Resources:
                   - ec2:DescribeVpcs
                   - ec2:DescribeAccountAttributes
                 Resource: "*"
-

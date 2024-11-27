@@ -239,4 +239,3 @@ Resources:
                   - "batch:ListSchedulingPolicies"
                 Resource:
                   - "*"
-                  
