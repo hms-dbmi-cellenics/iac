@@ -108,7 +108,6 @@ Resources:
               AWS: !Join [ "", ["arn:aws:iam::", !FindInMap [ALBServiceMap, !Ref "AWS::Region", AccountId], ":root" ]]
             Resource: !Join [ "", [!GetAtt ALBLogsBucket.Arn, !Sub "/k8s-${Environment}/*"]]
 
-
 Outputs:
   CanonicalHostedZoneID:
     Description: The ID of the Amazon Route 53 hosted zone associated with the load balancer.
@@ -125,4 +124,3 @@ Outputs:
     Value: !GetAtt LoadBalancer.LoadBalancerFullName
     Export:
       Name: !Sub 'k8s-${Environment}::LoadBalancerFullName'
-
