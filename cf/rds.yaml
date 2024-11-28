@@ -157,3 +157,4 @@ Resources:
       Engine: aurora-postgresql
       AutoMinorVersionUpgrade: true
       PubliclyAccessible: false
+
