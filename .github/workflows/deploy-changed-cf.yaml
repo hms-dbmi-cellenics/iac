@@ -239,7 +239,7 @@ jobs:
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
       - id: deploy-batch-job-definition-template
-        name: Deploy CloudFormation PostRegisterLambda template
+        name: Deploy CloudFormation batch-job-definition template
         if: ${{ matrix.template == 'cf/batch-job-definition.yaml' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
