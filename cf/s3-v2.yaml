@@ -121,6 +121,16 @@ Resources:
           - Id: PreserveThenDeleteNonCurrentVersion
             Status: "Enabled"
             NoncurrentVersionExpirationInDays: 7
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - HEAD
+            AllowedOrigins:
+              - "*"
+            Id: uiSpatialCorsRule
   SpatialImagesBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
