@@ -58,3 +58,4 @@ fargateProfiles:
       - namespace: pipeline-default
         labels:
           type: pipeline
+          
