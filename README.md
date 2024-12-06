@@ -44,14 +44,6 @@ Some secrets are required to deploy infrastructure into AWS and configure the in
 
  The AWS ACM ARN for the SSL certificate for the Cellenics domain name.
 
-- DATADOG_API_KEY
-
-  The [Datadog API key](https://docs.datadoghq.com/account_management/api-app-keys/#api-keys) of the Datadog account.
-
-- DATADOG_APP_KEY
-
-  The [Datadog application](https://docs.datadoghq.com/account_management/api-app-keys/#application-keys) key created for the Datadog account for AWS Batch monitoring. This can be created in the Organization Settings submenu inside the Datadog account.
-
 
 #### Changing base infrastructure
 The github workflow that triggers an update to the base infrastructure with the files in `infra/` is [deploy-infra.yaml](https://github.com/hms-dbmi-cellenics/iac/blob/master/.github/workflows/deploy-infra.yaml). At the moment, this workflow has to be manually triggered for the update to happen. To trigger an update, you have to:
