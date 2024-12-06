@@ -127,7 +127,6 @@ Resources:
               - "*"
             AllowedMethods:
               - GET
-              - HEAD
             AllowedOrigins:
               - "*"
             Id: uiSpatialCorsRule
