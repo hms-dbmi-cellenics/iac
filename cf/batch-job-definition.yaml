@@ -27,7 +27,6 @@ Parameters:
 Conditions:
   isPipelinePRStaged: !And [ !Equals [!Ref Environment, "staging"], !Not [ !Equals [!Ref PipelinePRNum, "" ]]]
 
-
 Resources:
   BatchPipelineJob:
     Type: AWS::Batch::JobDefinition
@@ -47,5 +46,3 @@ Resources:
           - Type: MEMORY
             Value: 8192 # MiB
       Type: Container
-
-
