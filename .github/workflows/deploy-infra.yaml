@@ -256,13 +256,18 @@ jobs:
       - id: install-eksctl
         name: Install eksctl
         run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          ARCH=amd64
+          PLATFORM=$(uname -s)_$ARCH
+
+          curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+          tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
           sudo mv /tmp/eksctl /usr/local/bin
 
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
         run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.10.1/docs/install/iam_policy.json
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --policy-document file://iam-policy.json || true
@@ -283,7 +288,7 @@ jobs:
         uses: nick-invision/retry@v2
         with:
           timeout_seconds: 600
-          max_attempts: 20
+          max_attempts: 5
           retry_on: error
           on_retry_command: sleep $(shuf -i 5-15 -n 1)
           command: |-
