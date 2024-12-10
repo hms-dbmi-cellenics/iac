@@ -57,53 +57,53 @@ Resources:
                   - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
 
   RDSLaunchTemplate:
-  Type: AWS::EC2::LaunchTemplate
-  Properties:
-    LaunchTemplateName: !Sub "rds-${Environment}-ssm-launch-template"
-    LaunchTemplateData:
-      InstanceType: t2.nano
-      IamInstanceProfile: !Ref SSMProfile
-      MetadataOptions:
-        HttpTokens: required
-        HttpEndpoint: enabled
-      BlockDeviceMappings:
-        - DeviceName: "/dev/xvda"
-          Ebs:
-            VolumeSize: 8
-            Encrypted: true
-      SecurityGroupIds:
-        - Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
-          #UserData Runs when ec2 is being deployed
-      UserData:
-        Fn::Base64:
-          '
-          Content-Type: multipart/mixed; boundary="//"
-          MIME-Version: 1.0
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "rds-${Environment}-ssm-launch-template"
+      LaunchTemplateData:
+        InstanceType: t2.nano
+        IamInstanceProfile: !Ref SSMProfile
+        MetadataOptions:
+          HttpTokens: required
+          HttpEndpoint: enabled
+        BlockDeviceMappings:
+          - DeviceName: "/dev/xvda"
+            Ebs:
+              VolumeSize: 8
+              Encrypted: true
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
+            #UserData Runs when ec2 is being deployed
+        UserData:
+          Fn::Base64:
+            '
+            Content-Type: multipart/mixed; boundary="//"
+            MIME-Version: 1.0
 
-          --//
-          Content-Type: text/cloud-config; charset="us-ascii"
-          MIME-Version: 1.0
-          Content-Transfer-Encoding: 7bit
-          Content-Disposition: attachment; filename="cloud-config.txt"
+            --//
+            Content-Type: text/cloud-config; charset="us-ascii"
+            MIME-Version: 1.0
+            Content-Transfer-Encoding: 7bit
+            Content-Disposition: attachment; filename="cloud-config.txt"
 
-          #cloud-config
-          cloud_final_modules:
-          - [scripts-user, always]
+            #cloud-config
+            cloud_final_modules:
+            - [scripts-user, always]
 
-          --//
-          Content-Type: text/x-shellscript; charset="us-ascii"
-          MIME-Version: 1.0
-          Content-Transfer-Encoding: 7bit
-          Content-Disposition: attachment; filename="userdata.txt"
-          
-          #!/bin/bash -e
-          sudo yum -y install postgresql
-          '
-      TagSpecifications:
-        - ResourceType: instance
-          Tags:
-            - Key: "Name"
-              Value: !Sub "rds-${Environment}-ssm-agent"
+            --//
+            Content-Type: text/x-shellscript; charset="us-ascii"
+            MIME-Version: 1.0
+            Content-Transfer-Encoding: 7bit
+            Content-Disposition: attachment; filename="userdata.txt"
+            
+            #!/bin/bash -e
+            sudo yum -y install postgresql
+            '
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: "Name"
+                Value: !Sub "rds-${Environment}-ssm-agent"
 
   RDSAgent:
     Type: AWS::EC2::Instance
