@@ -243,6 +243,11 @@ jobs:
         run: |-
           aws eks update-kubeconfig --name biomage-$CLUSTER_ENV
 
+      - id: deploy-metrics-server
+        name: Deploy k8s metrics server
+        run: |-
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
       - id: install-helm
         name: Install Helm
         run: |-
@@ -251,13 +256,18 @@ jobs:
       - id: install-eksctl
         name: Install eksctl
         run: |-
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          ARCH=amd64
+          PLATFORM=$(uname -s)_$ARCH
+
+          curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+          tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
           sudo mv /tmp/eksctl /usr/local/bin
 
       - id: deploy-load-balancer-role
         name: Deploy permissions for AWS load balancer controller
         run: |-
-          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+          curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.10.1/docs/install/iam_policy.json
           aws iam create-policy \
             --policy-name AWSLoadBalancerControllerIAMPolicy-$CLUSTER_ENV \
             --policy-document file://iam-policy.json || true
@@ -494,6 +504,16 @@ jobs:
               .myAccount.selfSignedCertificate = strenv(SELF_SIGNED_CERTIFICATE)
             ' infra/config/account-config.yaml
 
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]]
+          then
+            export DATADOG_API_KEY="${{ secrets.DATADOG_API_KEY }}"
+            export DATADOG_APP_KEY="${{ secrets.DATADOG_APP_KEY }}"
+            yq -i '
+              .myAccount.datadogAppKey = strenv(DATADOG_APP_KEY) |
+              .myAccount.datadogApiKey = strenv(DATADOG_API_KEY)
+            ' infra/config/account-config.yaml
+          fi
+
           cat infra/config/account-config.yaml
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -546,7 +566,7 @@ jobs:
             --branch master
             --path $FLUX_PATH
             --timeout 40s
-            --interval 2m
+            –-interval 2m
             --components-extra=image-reflector-controller,image-automation-controller
             --namespace flux-system
             --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/biomage-$CLUSTER_ENV
@@ -682,6 +702,38 @@ jobs:
           no-fail-on-empty-changeset: "1"
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
 
+      # Setting up log forwarding for pods hosted in EC2 nodes
+      - id: create-fluent-bit-namespace
+        name: Create namespace for node FluentBit deployment
+        run: kubectl apply -f infra/cluster-logging/node-fluentbit-namespace.yaml
+
+      - id: create-service-account-for-node-fluent-bit
+        name: Create service account for node FluentBit
+        env:
+          LOGGING_POLICY_ARN: ${{ steps.setup-cluster-cloudwatch-logging-policy.outputs.PolicyARN }}
+        run: |-
+          eksctl create iamserviceaccount \
+            --name fluent-bit \
+            --namespace node-logging \
+            --cluster biomage-$CLUSTER_ENV \
+            --role-name irsa-fluent-bit-$CLUSTER_ENV \
+            --attach-policy-arn $LOGGING_POLICY_ARN \
+            --override-existing-serviceaccounts \
+            --approve
+
+      - id: deploy-node-fluent-bit
+        name: Deploy FluentBit for EC2 nodes
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          # FluentBit configuration is determined in infra/cluster-logging/node-fluentbit-config.yaml, specifically under [INPUT] > Path
+          # We do not want to log everything for costs/security concerns
+
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/node-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/node-fluentbit-config.yaml
+
+          kubectl apply -f infra/cluster-logging/node-fluentbit-config.yaml
+
       # Setting up log forwarding for pods hosted on Fargate nodes
       - id: attach-pod-execution-role-name
         name: Attach logging policy to pod execution role
@@ -697,7 +749,43 @@ jobs:
             --fargate-profile-name pipeline-default | jq -r '.fargateProfile.podExecutionRoleArn' | awk -F"/" '{print (NF>1)? $NF : ""}' )
 
           aws iam attach-role-policy --role-name $POD_EXEC_ROLE_NAME --policy-arn $LOGGING_POLICY_ARN
-    
+
+      - id: deploy-fargate-fluent-bit
+        name: Deploy FluentBit config for Fargate pods
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |-
+          # FluentBit configuration is determined in infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_CLUSTER_ENV\", \"$CLUSTER_ENV\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+          yq -i "(.. | select(type == \"!!str\")) |= sub(\"CI_AWS_REGION\", \"$AWS_REGION\")" infra/cluster-logging/fargate-fluentbit-config.yaml
+
+          kubectl apply -f infra/cluster-logging/fargate-fluentbit-config.yaml
+
+      # Setting up Datadog to watch pod metrics for pods hosted on EC2 and Fargate nodes
+      - id: setup-datadog-cluster-agent
+        name: Setup Datadog cluster agent
+        run: |-
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]];
+          then
+            helm repo add datadog https://helm.datadoghq.com
+            helm repo update
+            helm upgrade datadog-agent datadog/datadog \
+              -f infra/datadog/cluster-agent-values.yaml \
+              --set datadog.apiKey=$DATADOG_API_KEY \
+              --set datadog.clusterName=biomage-$CLUSTER_ENV \
+              --install
+          else
+            echo "Datadog api key missing, skipping datadog setup"
+          fi
+
+      - id: setup-datadog-sidecar-permissions
+        name: Setup Datadog sidecar permissions
+        run: |-
+          if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]];
+          then
+            kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
+          fi
+
       - id: setup-orca-cspm
         name: Setup ORCA CSPM
         run: |-

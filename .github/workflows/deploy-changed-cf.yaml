@@ -239,7 +239,7 @@ jobs:
           capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
       - id: deploy-batch-job-definition-template
-        name: Deploy CloudFormation PostRegisterLambda template
+        name: Deploy CloudFormation batch-job-definition template
         if: ${{ matrix.template == 'cf/batch-job-definition.yaml' }}
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -419,6 +419,54 @@ jobs:
           aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --parameters "commands='$SETUP_ROLES_CMD'"
+        env:
+          REGION: ${{ secrets.AWS_REGION }}
+
+      - id: install-crowdstrike-on-rds
+        name: Install CrowdStrike Sensor for default RDS instances
+        run: |-
+
+          if [[ -n "${{ secrets.FALCON_CID }}" ]];
+          then
+
+            INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=rds-${CLUSTER_ENV}-ssm-agent" \
+            --output text \
+            --query 'Reservations[*].Instances[*].InstanceId')
+            if [ -z $INSTANCE_ID ]; then
+              echo "Can not connect to RDS agent: No instances found for $CLUSTER_ENV"
+              exit 1
+            fi
+
+            CLUSTER_NAME=aurora-cluster-${CLUSTER_ENV}-default
+
+            RDSHOST=$(aws rds describe-db-cluster-endpoints \
+              --region $REGION \
+              --db-cluster-identifier $CLUSTER_NAME \
+              --filter Name=db-cluster-endpoint-type,Values='writer' \
+              --query 'DBClusterEndpoints[0].Endpoint' \
+              --output text)
+            if [ -z $RDSHOST ]; then
+              echo "Failed getting RDS host with name $CLUSTER_NAME"
+              exit 1
+            fi
+
+            INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/crowdstrike/falcon-scripts/v1.6.0/bash/install/falcon-linux-install.sh"
+            INSTALL_FALCON_COMMAND="
+              export FALCON_CLIENT_ID=${{ secrets.FALCON_CLIENT_ID }} && \
+              export FALCON_CLIENT_SECRET=${{ secrets.FALCON_CLIENT_SECRET }} && \
+              curl -O ${INSTALL_SCRIPT_URL} && \
+              bash falcon-linux-install.sh
+            "
+
+            aws ssm send-command --instance-ids "$INSTANCE_ID" \
+              --document-name AWS-RunShellScript \
+              --parameters "commands='$INSTALL_FALCON_COMMAND'"
+              
+          else
+            echo "CrowdStrike CID missing, skipping falcon sensor setup"
+          fi
+
         env:
           REGION: ${{ secrets.AWS_REGION }}
 
