@@ -20,7 +20,7 @@ Resources:
   BatchLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: !Sub "launch-template-${Environment}"
+      LaunchTemplateName: !Sub "batch-${Environment}-launch-template"
       LaunchTemplateData:
         MetadataOptions:
           HttpTokens: required
