@@ -104,4 +104,3 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "rds-${Environment}-ssm-agent"
-          
