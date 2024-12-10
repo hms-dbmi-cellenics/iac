@@ -62,7 +62,8 @@ Resources:
       LaunchTemplateName: !Sub "rds-${Environment}-ssm-launch-template"
       LaunchTemplateData:
         InstanceType: t2.nano
-        IamInstanceProfile: !Ref SSMProfile
+        IamInstanceProfile:
+          Arn: !GetAtt SSMProfile.Arn
         MetadataOptions:
           HttpTokens: required
           HttpEndpoint: enabled
