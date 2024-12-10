@@ -61,6 +61,7 @@ Resources:
     Properties:
       LaunchTemplateName: !Sub "rds-${Environment}-ssm-launch-template"
       LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
         InstanceType: t2.nano
         IamInstanceProfile:
           Arn: !GetAtt SSMProfile.Arn
