@@ -110,7 +110,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       LaunchTemplate:
-        LaunchTemplateName: !Ref RDSLaunchTemplate
-        Version: !GetAtt RDSLaunchTemplate.LatestVersionNumber
+         LaunchTemplateId: !Ref RDSLaunchTemplate
+         Version: !GetAtt RDSLaunchTemplate.LatestVersionNumber
       SubnetId:
         !Select [0, Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]]
