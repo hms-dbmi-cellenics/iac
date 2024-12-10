@@ -62,17 +62,15 @@ Resources:
     LaunchTemplateName: !Sub "rds-${Environment}-ssm-launch-template"
     LaunchTemplateData:
       InstanceType: t2.nano
-      IamInstanceProfile:
-        Arn: !GetAtt SSMProfile.Arn
-      ImageId: !Ref LatestAmiId
+      IamInstanceProfile: !Ref SSMProfile
       MetadataOptions:
         HttpTokens: required
         HttpEndpoint: enabled
       BlockDeviceMappings:
         - DeviceName: "/dev/xvda"
           Ebs:
-            VolumeSize: '8'
-            Encrypted: 'true'
+            VolumeSize: 8
+            Encrypted: true
       SecurityGroupIds:
         - Fn::ImportValue: !Sub "biomage-${Environment}-rds::RDSAgentSecurityGroupId"
           #UserData Runs when ec2 is being deployed
