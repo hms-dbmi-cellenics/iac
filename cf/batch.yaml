@@ -16,6 +16,16 @@ Conditions:
     - production
 
 Resources:
+  # Define the Launch Template with Metadata Options
+  BatchLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "batch-${Environment}-launch-template"
+      LaunchTemplateData:
+        MetadataOptions:
+          HttpTokens: required
+          HttpEndpoint: enabled
+
   BatchComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
@@ -52,6 +62,9 @@ Resources:
           - Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SecurityGroup"
         Subnets:
           Fn::Split: [',', Fn::ImportValue: !Sub "eksctl-biomage-${Environment}-cluster::SubnetsPrivate"]
+        LaunchTemplate:
+          LaunchTemplateId: !Ref BatchLaunchTemplate
+          Version: !GetAtt BatchLaunchTemplate.LatestVersionNumber
 
   BatchJobQueue:
     Type: AWS::Batch::JobQueue
