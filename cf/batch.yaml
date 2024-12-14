@@ -19,6 +19,7 @@ Resources:
   # Define the Launch Template with Metadata Options
   BatchLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
+    DeletionPolicy: Retain
     Properties:
       LaunchTemplateName: !Sub "batch-${Environment}-launch-template"
       LaunchTemplateData:
@@ -28,6 +29,7 @@ Resources:
 
   BatchComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
+    DeletionPolicy: Delete
     Properties:
       ComputeEnvironmentName: !Sub "compute-env-${Environment}"
       State:  ENABLED
@@ -69,6 +71,7 @@ Resources:
   BatchJobQueue:
     Type: AWS::Batch::JobQueue
     DependsOn: BatchComputeEnvironment
+    DeletionPolicy: Delete
     Properties:
       JobQueueName: !Sub "queue-pipeline-${Environment}"
       Priority: 1
@@ -76,4 +79,3 @@ Resources:
         - ComputeEnvironment: !Sub "compute-env-${Environment}"
           Order: 1
       State: ENABLED
-      
