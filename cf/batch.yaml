@@ -76,4 +76,3 @@ Resources:
         - ComputeEnvironment: !Sub "compute-env-${Environment}"
           Order: 1
       State: ENABLED
-      
