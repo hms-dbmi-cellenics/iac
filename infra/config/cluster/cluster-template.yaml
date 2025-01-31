@@ -27,8 +27,9 @@ iam:
 # if you add or remove items under managedNodeGroups, make sure you update customized cluster
 # config for each of the Github environments under infra/config/cluster
 managedNodeGroups:
-  - name: nodegroup-post-scaling-x86-v4
-    instanceType: r6i.large
+  - name: nodegroup-post-scaling-x86-v5
+    instanceTypes: [r6i.large, r5.large, r4.large]
+    spot: true
     desiredCapacity: 2
     minSize: 2
     maxSize: 4
