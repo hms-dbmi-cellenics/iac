@@ -39,7 +39,7 @@ Resources:
     Properties:
       ReplicationGroupId: !Sub "biomage-redis-${Environment}"
       ReplicationGroupDescription: !Sub "Cellenics ElastiCache cluster for environment ${Environment}"
-      CacheNodeType: "cache.t3.medium"
+      CacheNodeType: "cache.t3.micro"
       CacheSubnetGroupName: !Ref CacheSubnetGroup
       Engine: redis
       NumCacheClusters: 2
