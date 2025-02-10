@@ -197,8 +197,8 @@ Resources:
       SuccessRetentionPeriod: 2
       RuntimeVersion: syn-nodejs-puppeteer-9.1
       Schedule:
-        Expression: rate(5 minutes)
-      StartCanaryAfterCreation: True
+        Expression: rate(1000 days)
+      StartCanaryAfterCreation: False
       VPCConfig:
         VpcId:
           Fn::ImportValue:
