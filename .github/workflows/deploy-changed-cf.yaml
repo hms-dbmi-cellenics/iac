@@ -42,7 +42,7 @@ jobs:
   check-secrets:
     name: Check secrets
     needs: load-config
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
@@ -68,7 +68,7 @@ jobs:
 
   get-modified-templates:
     name: Fetch paths to modified CloudFormation templates
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: load-config
     outputs:
       files: ${{ steps.exclude-services.outputs.files }}
@@ -141,7 +141,7 @@ jobs:
 
   lint-templates:
     name: Lint template files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: get-modified-templates
     if: needs.get-modified-templates.outputs.num-files > 0
     strategy:
@@ -160,7 +160,7 @@ jobs:
 
   deploy-templates:
     name: Deploy changed CloudFormation template
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [load-config, check-secrets, get-modified-templates, lint-templates]
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     outputs:
@@ -319,7 +319,7 @@ jobs:
 
   setup-rds-roles:
     name: Setup RDS roles for default resources
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [check-secrets, deploy-templates, load-config]
     if: ${{ needs.deploy-templates.outputs.deploy-rds == 'true' }}
     strategy:
@@ -472,7 +472,7 @@ jobs:
 
   report-if-failed:
     name: Report if workflow failed
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [check-secrets, lint-templates, deploy-templates, setup-rds-roles]
     if: failure() && github.ref == 'refs/heads/master'
     steps:

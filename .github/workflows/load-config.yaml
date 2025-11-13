@@ -106,7 +106,7 @@ jobs:
   generate-deployment-matrix:
     name: Generate deployment matrix based on the config files
     needs: setup
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       deployment_matrix: ${{ steps.build-deployment-matrix.outputs.deployment_matrix }}
     steps:
