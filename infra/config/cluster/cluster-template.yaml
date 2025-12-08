@@ -4,10 +4,6 @@ kind: ClusterConfig
 # do not add `name` and `region` to this eksctl file. CI will fill these in automatically
 metadata:
 
-vpc:
-  clusterEndpoints:
-    privateAccess: true #VPC resources will use private such as nodes and pods - kb 1/8/25
-    publicAccess: true #Needs to be true for github runner to work - kb 1/8/25
 iam:
   withOIDC: true
   serviceAccounts:

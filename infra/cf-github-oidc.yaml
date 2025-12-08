@@ -21,40 +21,8 @@ Resources:
               StringLike:
                 # Change the placeholder <ORGANISATION_NAME> below when deploying the template
                 token.actions.githubusercontent.com:sub: repo:<ORGANISATION_NAME>/iac:*
-      Policies:
-        - PolicyName: OIDCScopedPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cloudformation:*
-                  - cognito-idp:*
-                  - ec2:*
-                  - eks:*
-                  - iam:AttachRolePolicy
-                  - iam:CreatePolicy
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:DetachRolePolicy
-                  - iam:GetOpenIDConnectProvider
-                  - iam:GetRole
-                  - iam:List*
-                  - iam:TagInstanceProfile
-                  - iam:TagPolicy
-                  - iam:TagRole
-                  - iam:TagServerCertificate
-                  - kms:*
-                  - s3:*
-                  - states:*
-                  - sts:GetCallerIdentity
-                  - sts:GetServiceBearerToken
-                  - sts:SetContext
-                  - sts:SetSourceIdentity
-                  - sts:TagSession
-                Resource: '*'
-
-
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
 
   GithubOidc:
     Type: AWS::IAM::OIDCProvider

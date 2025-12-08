@@ -135,4 +135,17 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-
+      - id: update-identitymapping-admin
+        name: Add cluster admin rights to everyone on the admin list.
+        run: |-
+          echo "Setting cluster admin rights for ${{matrix.environment.name}} in ${{matrix.environment.type}} environment"
+          ADMINS="${{ join(matrix.environment.admins, ' ') }}"
+          echo $ADMINS
+          for user in $ADMINS; do
+            echo "Adding cluster admin rights to $user"
+            eksctl create iamidentitymapping \
+              --cluster=biomage-$CLUSTER_ENV \
+              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
+              --group system:masters \
+              --username $user
+          done

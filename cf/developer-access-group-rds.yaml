@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up access rights to a given environment for development [managed by github.com/hms-dbmi-cellenics/iac]
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: The environment for which the access group is created.
+
+Resources:
+  RdsDeveloperAccessGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: !Sub "engineer-${Environment}-rds-access"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess
+
+      Policies:
+        - PolicyName: !Sub "can-connect-to-rds-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - rds-db:connect
+                Resource:
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
+              - Effect: Allow
+                Action:
+                  - rds:DescribeGlobalClusters
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:global-cluster:*"
+              - Effect: Allow
+                Action:
+                  - rds:DescribeClusters
+                  - rds:DescribeDBClusterEndpoints
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:aurora-cluster-${Environment}"
+
+        - PolicyName: !Sub "can-connect-to-rds-agent-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ec2:DescribeInstances
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ec2-instance-connect:SendSSHPublicKey
+                  - ec2-instance-connect:SendSerialConsoleSSHPublicKey
+                Resource:
+                  - !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*
+                Condition:
+                  StringEquals:
+                    ec2:ResourceTag/Name: !Sub rds-${Environment}-ssm-agent
+              - Effect: Allow
+                Action: 
+                  - ssm:StartSession
+                  - ssm:TerminateSession
+                Resource: 
+                  - !Sub arn:aws:ssm:${AWS::Region}::document/AWS-StartSSHSession
+                  - !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*
+
+        - PolicyName: !Sub "can-perform-rds-point-in-time-restores-${Environment}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - rds:ModifyDBInstance
+                  - rds:ModifyDBCluster
+                  - rds:CreateDBInstance
+                  - rds:CreateDBCluster
+                  - rds:ListTagsForResource
+                  - rds:RestoreDBClusterToPointInTime
+                  - rds:RestoreDBInstanceToPointInTime
+                Resource:
+                  - !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:*"
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeAccountAttributes
+                Resource: "*"
