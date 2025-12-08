@@ -7,7 +7,7 @@ on:
         type: string
         description: "Environment name"
         required: false
-        default: all
+        default: production
       environment_type:
         type: choice
         description: Select environment type
@@ -15,19 +15,19 @@ on:
           - staging
           - production
           - staging and production
-        default: staging and production
+        default: production
   workflow_call:
     inputs:
       environment_name:
         type: string
         description: "Environment name"
         required: false
-        default: all
+        default: production
       environment_type:
         type: string
         description: "Environment type"
         required: false
-        default: staging and production
+        default: production
     outputs:
       environment_names:
         description: "The names of all environments"
