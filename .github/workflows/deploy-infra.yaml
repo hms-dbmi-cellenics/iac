@@ -124,6 +124,12 @@ jobs:
             .metadata.region = strenv(AWS_REGION)
           ' infra/config/cluster/cluster-template.yaml
 
+          # Configure cluster endpoints - hybrid mode - kb 12/8/25
+          yq -i '
+            .vpc.clusterEndpoints.privateAccess = true |
+            .vpc.clusterEndpoints.publicAccess = true
+          ' infra/config/cluster/cluster-template.yaml
+
           # CELLENICS_VPC_ID is set if using custom cluster deployment. In this case, use the custom template file.
           # If not set, create an empty template file to let eksctl create a new cluster for the deployment.
           if [ ! -z "$CELLENICS_VPC_ID" ]; then
@@ -465,21 +471,6 @@ jobs:
             --group state-machine-runner-group \
             --username state-machine-runner
 
-      # NOTE: after updating this step, make sure you apply the updates in other relevant Github Actions workflows
-      - id: update-identitymapping-admin
-        name: Add cluster admin rights to everyone on the admin list.
-        run: |-
-          echo "Setting cluster admin rights for ${{matrix.environment.name}} in ${{matrix.environment.type}} environment"
-          ADMINS="${{ join(matrix.environment.admins, ' ') }}"
-          echo $ADMINS
-          for user in $ADMINS; do
-            echo "Adding cluster admin rights to $user"
-            eksctl create iamidentitymapping \
-              --cluster=biomage-$CLUSTER_ENV \
-              --arn arn:aws:iam::${{ steps.setup-aws.outputs.aws-account-id }}:user/$user \
-              --group system:masters \
-              --username $user
-          done
 
       ###
       ### INSTALL AND CONFIGURE FLUX V2 ###
@@ -784,25 +775,6 @@ jobs:
           if [[ -n "${{ secrets.DATADOG_API_KEY }}" ]];
           then
             kubectl apply -f infra/datadog/datadog-sidecar-rbac.yaml
-          fi
-
-      - id: setup-orca-cspm
-        name: Setup ORCA CSPM
-        run: |-
-          if [[ -n "${{ secrets.ORCA_TUNNEL_ID }}" ]];
-          then
-            helm upgrade --install orca-tunnel \
-            --namespace orca-security --create-namespace \
-            oci://public.ecr.aws/orcasecurity/helm-k8s-tunnel \
-            --set tunnelAddr=tunnel.production.us-east-1.orcasecurity.net \
-            --set tunnelId="${{ secrets.ORCA_TUNNEL_ID }}" \
-            --set tunnelToken="${{ secrets.ORCA_TUNNEL_TOKEN }}" \
-            --set clusterName="biomage-$CLUSTER_ENV" \
-            --set cloudVendorId="${{ secrets.AWS_ACCOUNT_ID }}" \
-            --set region="${{ secrets.AWS_REGION }}" \
-            --set clusterType=eks
-          else
-            echo "ORCA_TUNNEL_ID missing, skipping ORCA CSPM setup."
           fi
 
       - id: login-ecr

@@ -1,6 +1,7 @@
 HMS:
-  publicFacing: true
+  publicFacing: true #controls the application load balancer that serves the API to public - kb 1/8/25
   selfSignedCertificate: false
 trv:
   publicFacing: false
   selfSignedCertificate: true
+
