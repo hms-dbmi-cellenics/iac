@@ -20,7 +20,7 @@ jobs:
     uses: ./.github/workflows/load-config.yaml
     with:
       environment_name: all
-      environment_type: staging and production
+      environment_type: production
   check-secrets:
     name: Check if secrets are defined
     runs-on: ubuntu-22.04
