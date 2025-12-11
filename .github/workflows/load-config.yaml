@@ -7,7 +7,7 @@ on:
         type: string
         description: "Environment name"
         required: false
-        default: production
+        default: all
       environment_type:
         type: choice
         description: Select environment type
@@ -22,7 +22,7 @@ on:
         type: string
         description: "Environment name"
         required: false
-        default: production
+        default: all
       environment_type:
         type: string
         description: "Environment type"
