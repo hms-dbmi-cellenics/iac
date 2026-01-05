@@ -44,6 +44,7 @@ Resources:
                   - iam:TagPolicy
                   - iam:TagRole
                   - iam:TagServerCertificate
+                  - iam:PassRole
                   - kms:*
                   - s3:*
                   - states:*
@@ -52,6 +53,12 @@ Resources:
                   - sts:SetContext
                   - sts:SetSourceIdentity
                   - sts:TagSession
+                  - rds:DescribeDBInstances
+                  - rds:DescribeDBClusters
+                  - rds:ModifyDBCluster
+                  - rds:DescribeDBClusterEndpoints
+                  - iam:GetRolePolicy
+                  - secretsmanager:GetSecretValue
                 Resource: '*'
 
 
