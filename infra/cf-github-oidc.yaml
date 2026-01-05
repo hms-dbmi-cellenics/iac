@@ -45,6 +45,7 @@ Resources:
                   - iam:TagRole
                   - iam:TagServerCertificate
                   - iam:PassRole
+                  - iam:GetRolePolicy
                   - kms:*
                   - s3:*
                   - states:*
@@ -57,8 +58,8 @@ Resources:
                   - rds:DescribeDBClusters
                   - rds:ModifyDBCluster
                   - rds:DescribeDBClusterEndpoints
-                  - iam:GetRolePolicy
                   - secretsmanager:GetSecretValue
+                  - ssm:SendCommand
                 Resource: '*'
 
 
