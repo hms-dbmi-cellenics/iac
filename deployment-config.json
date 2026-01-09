@@ -46,6 +46,7 @@
         "reply_email": "alex_pickering@hms.harvard.edu",
         "deployment_environments": {
             "HMS": [
+                "staging",
                 "production"
             ]
         },
