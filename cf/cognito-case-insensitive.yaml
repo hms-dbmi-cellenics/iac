@@ -144,3 +144,4 @@ Resources:
         Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
       Principal: "cognito-idp.amazonaws.com"
       SourceArn: !GetAtt UserPool.Arn
+
