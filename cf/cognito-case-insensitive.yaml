@@ -15,6 +15,13 @@ Parameters:
   UserPoolDomainName:
     Type: String
 
+Conditions:
+  # Adjust this condition if you want different environments to use the post-register lambda
+  UsePostRegisterLambda:
+    !Or
+      - !Equals [ !Ref Environment, development ]
+      - !Equals [ !Ref Environment, production ]
+
 Outputs:
   UserPoolId:
     Value: !Ref UserPool
@@ -110,12 +117,10 @@ Resources:
           AttributeDataType: String
           Mutable: true
           Required: false
-          # Agreed to privacy policy (soft required)
         - Name: agreed_terms
           Required: false
           Mutable: true
           AttributeDataType: String
-          # Agreed to receiving emails (Not required, default is false)
         - Name: agreed_emails
           Required: false
           Mutable: true
@@ -127,8 +132,12 @@ Resources:
       UsernameConfiguration:
         CaseSensitive: false
       LambdaConfig:
-        PostConfirmation:
-          Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+        Fn::If:
+          - UsePostRegisterLambda
+          - PostConfirmation:
+              Fn::ImportValue: !Sub PostRegisterLambdaArn-${Environment}
+          - !Ref AWS::NoValue
+
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
@@ -137,6 +146,7 @@ Resources:
 
   # Add permission to allow userpool to trigger lambda
   PostRegisterLambdaInvocationPermission:
+    Condition: UsePostRegisterLambda
     Type: AWS::Lambda::Permission
     Properties:
       Action: "lambda:InvokeFunction"
