@@ -14,7 +14,7 @@ on:
           - staging
           - production
           - staging and production
-        default: staging
+        default: production
   push:
     branches:
       - master

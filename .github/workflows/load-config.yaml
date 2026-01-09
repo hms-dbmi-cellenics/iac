@@ -124,7 +124,7 @@ jobs:
 
           environment_type="${{ github.event.inputs.environment_type }}"
           environment_type="${environment_type:-${{ inputs.environment_type }}}"
-          environment_type="${environment_type:-staging and production}"
+          environment_type="${environment_type:-production}"
           echo "environment_type=${environment_type}"
           echo "environment_type=${environment_type}" >> $GITHUB_OUTPUT
 
