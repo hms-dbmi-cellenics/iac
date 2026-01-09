@@ -150,4 +150,3 @@ Resources:
     Properties:
       LogGroupName: !Join ["", ["/aws/lambda/", !Ref PostRegisterLambda]]
       RetentionInDays: 5
-
