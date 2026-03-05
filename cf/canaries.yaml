@@ -20,7 +20,7 @@ Resources:
   CanariesBucketV2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}" 
+      BucketName: !Sub "biomage-canaries-${Environment}-${AWS::AccountId}-v2" 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True
@@ -195,7 +195,7 @@ Resources:
             !Sub ["https://ui-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]
       SuccessRetentionPeriod: 2
-      RuntimeVersion: syn-nodejs-puppeteer-9.1
+      RuntimeVersion: syn-nodejs-puppeteer-10.1
       Schedule:
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
