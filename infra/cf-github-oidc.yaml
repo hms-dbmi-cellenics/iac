@@ -52,6 +52,8 @@ Resources:
                   - sts:SetContext
                   - sts:SetSourceIdentity
                   - sts:TagSession
+                  - synthetics:GetCanary
+                  - synthetics:UpdateCanary
                 Resource: '*'
 
 
