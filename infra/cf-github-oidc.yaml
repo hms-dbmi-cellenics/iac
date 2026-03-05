@@ -62,6 +62,7 @@ Resources:
                   - rds:DescribeDBClusterEndpoints
                   - secretsmanager:GetSecretValue
                   - ssm:SendCommand
+                  - lambda:GetFunctionConfiguration
                 Resource: '*'
 
 
