@@ -195,7 +195,7 @@ Resources:
             !Sub ["https://ui-default.${DomainName}", DomainName: !Join ["", [ Fn::ImportValue: !Sub "DomainName-${Environment}" ]]]
           ]
       SuccessRetentionPeriod: 2
-      RuntimeVersion: syn-nodejs-puppeteer-10.1
+      RuntimeVersion: syn-nodejs-puppeteer-13.1
       Schedule:
         Expression: rate(5 minutes)
       StartCanaryAfterCreation: True
