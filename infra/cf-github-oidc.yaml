@@ -54,12 +54,15 @@ Resources:
                   - sts:SetContext
                   - sts:SetSourceIdentity
                   - sts:TagSession
+                  - synthetics:GetCanary
+                  - synthetics:UpdateCanary
                   - rds:DescribeDBInstances
                   - rds:DescribeDBClusters
                   - rds:ModifyDBCluster
                   - rds:DescribeDBClusterEndpoints
                   - secretsmanager:GetSecretValue
                   - ssm:SendCommand
+                  - lambda:GetFunctionConfiguration
                 Resource: '*'
 
 
