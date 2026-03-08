@@ -63,6 +63,7 @@ Resources:
                   - secretsmanager:GetSecretValue
                   - ssm:SendCommand
                   - lambda:GetFunctionConfiguration
+                  - ecr:GetAuthorizationToken
                 Resource: '*'
 
 
