@@ -742,14 +742,14 @@ jobs:
             --client-id ${FALCON_CLIENT_ID} \
             --client-secret ${FALCON_CLIENT_SECRET} \
             --type falcon-container \
-            --copy "${ECR_REGISTRY}/falcon-container"
+            --copy "${ECR_REGISTRY}/falcon-container/falcon-sensor"
 
             # download latest version of the Falcon Node Sensor (for EC2) and copy it to ECS
             ./falcon-container-sensor-pull.sh \
             --client-id ${FALCON_CLIENT_ID} \
             --client-secret ${FALCON_CLIENT_SECRET} \
             --type falcon-sensor \
-            --copy "${ECR_REGISTRY}/falcon-sensor"
+            --copy "${ECR_REGISTRY}/falcon-sensor/falcon-sensor"
 
             # functions to get image names for helm
             get_image_path() {
