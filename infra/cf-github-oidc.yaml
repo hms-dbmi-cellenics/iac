@@ -64,6 +64,8 @@ Resources:
                   - ssm:SendCommand
                   - lambda:GetFunctionConfiguration
                   - ecr:*
+                  - batch:DescribeComputeEnvironments
+                  - batch:UpdateComputeEnvironment
                 Resource: '*'
 
 

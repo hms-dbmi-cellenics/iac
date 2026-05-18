@@ -25,6 +25,15 @@ Resources:
         MetadataOptions:
           HttpTokens: required
           HttpEndpoint: enabled
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: 40
+              VolumeType: gp3
+              Iops: 16000
+              Throughput: 1000
+              DeleteOnTermination: true
+              Encrypted: true
 
   BatchComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
@@ -65,6 +74,7 @@ Resources:
         LaunchTemplate:
           LaunchTemplateId: !Ref BatchLaunchTemplate
           Version: !GetAtt BatchLaunchTemplate.LatestVersionNumber
+
 
   BatchJobQueue:
     Type: AWS::Batch::JobQueue
