@@ -65,6 +65,15 @@ Resources:
         LaunchTemplate:
           LaunchTemplateId: !Ref BatchLaunchTemplate
           Version: !GetAtt BatchLaunchTemplate.LatestVersionNumber
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: 40
+              VolumeType: gp3
+              Iops: 16000
+              Throughput: 1000
+              DeleteOnTermination: true
+              Encrypted: true
 
   BatchJobQueue:
     Type: AWS::Batch::JobQueue
