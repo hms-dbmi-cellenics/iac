@@ -5,3 +5,5 @@
 *.log
 *.csv
 !deployment-config.json
+# hunkwise
+.vscode/hunkwise/

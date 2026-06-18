@@ -36,6 +36,8 @@ Resources:
       ComputeResources:
         Type: EC2
         AllocationStrategy: BEST_FIT_PROGRESSIVE
+        Ec2Configuration:
+          - ImageType: ECS_AL2023
         MinvCpus: !If [isProduction, 0, 0]
         DesiredvCpus: !If [isProduction, 0, 0]
         MaxvCpus: !If [isProduction, 256, 128]
