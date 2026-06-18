@@ -46,6 +46,7 @@ Resources:
                   - iam:TagServerCertificate
                   - iam:PassRole
                   - iam:GetRolePolicy
+                  - iam:GetInstanceProfile
                   - kms:*
                   - s3:*
                   - states:*
@@ -66,6 +67,7 @@ Resources:
                   - ecr:*
                   - batch:DescribeComputeEnvironments
                   - batch:UpdateComputeEnvironment
+                  - ssm:GetParameters
                 Resource: '*'
 
 
