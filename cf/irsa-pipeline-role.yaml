@@ -75,6 +75,10 @@ Resources:
                   - !Sub "arn:aws:s3:::plots-tables-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::processed-matrix-${Environment}-${AWS::AccountId}"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}"
+                  # spatial buckets are listed by remove_bucket_folder on gem2s re-run
+                  - !Sub "arn:aws:s3:::spatial-images-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::spatial-segmentations-${Environment}-${AWS::AccountId}"
+                  - !Sub "arn:aws:s3:::spatial-molecules-${Environment}-${AWS::AccountId}"
 
         - PolicyName: !Sub "can-download-objects-from-source-buckets-${Environment}"
           PolicyDocument:
@@ -109,6 +113,7 @@ Resources:
                   - !Sub "arn:aws:s3:::biomage-pipeline-debug-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::spatial-images-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::spatial-segmentations-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::spatial-molecules-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-delete-cell-ids-s3-${Environment}"
           PolicyDocument:
@@ -119,6 +124,10 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::biomage-source-${Environment}-${AWS::AccountId}/*"
                   - !Sub "arn:aws:s3:::biomage-filtered-cells-${Environment}-${AWS::AccountId}/*"
+                  # spatial buckets are cleared by remove_bucket_folder on gem2s re-run
+                  - !Sub "arn:aws:s3:::spatial-images-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::spatial-segmentations-${Environment}-${AWS::AccountId}/*"
+                  - !Sub "arn:aws:s3:::spatial-molecules-${Environment}-${AWS::AccountId}/*"
 
         - PolicyName: !Sub "can-modify-object-tags-${Environment}"
           PolicyDocument:
