@@ -31,6 +31,10 @@ Resources:
                   - cloudformation:*
                   - cognito-idp:*
                   - ec2:*
+                  # ec2-instance-connect is a distinct service namespace (not
+                  # covered by ec2:*); needed by rds-tunnel.sh to push an
+                  # ephemeral SSH key to the bastion for the migrate-database job
+                  - ec2-instance-connect:SendSSHPublicKey
                   - eks:*
                   - iam:AttachRolePolicy
                   - iam:CreatePolicy
@@ -63,6 +67,10 @@ Resources:
                   - rds:DescribeDBClusterEndpoints
                   - secretsmanager:GetSecretValue
                   - ssm:SendCommand
+                  # SSM Session Manager backs the rds-tunnel.sh SSH ProxyCommand
+                  # (aws ssm start-session ... AWS-StartSSHSession)
+                  - ssm:StartSession
+                  - ssm:TerminateSession
                   - lambda:GetFunctionConfiguration
                   - ecr:*
                   - batch:DescribeComputeEnvironments
