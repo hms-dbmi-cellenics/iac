@@ -31,9 +31,6 @@ Resources:
                   - cloudformation:*
                   - cognito-idp:*
                   - ec2:*
-                  # ec2-instance-connect is a distinct service namespace (not
-                  # covered by ec2:*); needed by rds-tunnel.sh to push an
-                  # ephemeral SSH key to the bastion for the migrate-database job
                   - ec2-instance-connect:SendSSHPublicKey
                   - eks:*
                   - iam:AttachRolePolicy
@@ -65,10 +62,9 @@ Resources:
                   - rds:DescribeDBClusters
                   - rds:ModifyDBCluster
                   - rds:DescribeDBClusterEndpoints
+                  - rds-db:connect
                   - secretsmanager:GetSecretValue
                   - ssm:SendCommand
-                  # SSM Session Manager backs the rds-tunnel.sh SSH ProxyCommand
-                  # (aws ssm start-session ... AWS-StartSSHSession)
                   - ssm:StartSession
                   - ssm:TerminateSession
                   - lambda:GetFunctionConfiguration
@@ -77,17 +73,6 @@ Resources:
                   - batch:UpdateComputeEnvironment
                   - ssm:GetParameters
                 Resource: '*'
-              # IAM database auth for the migrate-database job: the RDS token is
-              # signed with this role's credentials, so RDS checks rds-db:connect
-              # against it. dev_role is the admin/migration DB role (granted
-              # rds_iam by the deploy workflows). Scoped like cf/rds-agent.yaml.
-              - Effect: Allow
-                Action:
-                  - rds-db:connect
-                Resource:
-                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
-
-
 
   GithubOidc:
     Type: AWS::IAM::OIDCProvider
