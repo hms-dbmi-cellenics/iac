@@ -31,6 +31,7 @@ Resources:
                   - cloudformation:*
                   - cognito-idp:*
                   - ec2:*
+                  - ec2-instance-connect:SendSSHPublicKey
                   - eks:*
                   - iam:AttachRolePolicy
                   - iam:CreatePolicy
@@ -61,16 +62,17 @@ Resources:
                   - rds:DescribeDBClusters
                   - rds:ModifyDBCluster
                   - rds:DescribeDBClusterEndpoints
+                  - rds-db:connect
                   - secretsmanager:GetSecretValue
                   - ssm:SendCommand
+                  - ssm:StartSession
+                  - ssm:TerminateSession
                   - lambda:GetFunctionConfiguration
                   - ecr:*
                   - batch:DescribeComputeEnvironments
                   - batch:UpdateComputeEnvironment
                   - ssm:GetParameters
                 Resource: '*'
-
-
 
   GithubOidc:
     Type: AWS::IAM::OIDCProvider
