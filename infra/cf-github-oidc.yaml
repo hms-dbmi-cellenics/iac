@@ -77,6 +77,15 @@ Resources:
                   - batch:UpdateComputeEnvironment
                   - ssm:GetParameters
                 Resource: '*'
+              # IAM database auth for the migrate-database job: the RDS token is
+              # signed with this role's credentials, so RDS checks rds-db:connect
+              # against it. dev_role is the admin/migration DB role (granted
+              # rds_iam by the deploy workflows). Scoped like cf/rds-agent.yaml.
+              - Effect: Allow
+                Action:
+                  - rds-db:connect
+                Resource:
+                  - !Sub "arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/dev_role"
 
 
 
