@@ -100,10 +100,27 @@ Resources:
         # endpoint). The worker mints its own short-term bearer token from this
         # role's credentials, so no static API key is stored. Region is left as
         # a wildcard so the worker's AWS_REGION can select the Bedrock region.
+        #
+        # Two permissions are required: bedrock:CallWithBearerToken gates using
+        # the bearer token through the Bedrock endpoint at all (a short-term key
+        # inherits this principal's permissions), and InvokeModel authorises the
+        # actual model call. Granting only InvokeModel makes every request fail
+        # authentication ("Authentication failed for custom"), which is why this
+        # works with broad developer credentials locally but not with the scoped
+        # role in-cluster. CallWithBearerToken is a principal-level gate that
+        # does not support resource scoping, so it is a separate Resource: "*"
+        # statement, restricted to short-term tokens; model access stays
+        # constrained by the InvokeModel statement below.
         - PolicyName: !Sub "can-invoke-bedrock-models-${Environment}"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
+              - Effect: Allow
+                Action: "bedrock:CallWithBearerToken"
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "bedrock:bearerTokenType": "SHORT_TERM"
               - Effect: Allow
                 Action:
                   - "bedrock:InvokeModel"
